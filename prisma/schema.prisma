@@ -1,0 +1,276 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Users ───────────────────────────────────────────────────────────────────
+
+model User {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  name                String?
+  avatar              String?
+  passwordHash        String?   @map("password_hash")
+  provider            String    @default("email")
+  providerId          String?   @map("provider_id")
+  emailVerified       DateTime? @map("email_verified")
+  onboardingCompleted Boolean   @default(false) @map("onboarding_completed")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+  lastLoginAt         DateTime? @map("last_login_at")
+
+  // Relations
+  prompts           Prompt[]
+  collections       Collection[]
+  apiKeys           ApiKey[]
+  analytics         Analytics[]
+  notifications     Notification[]
+  usageLogs         UsageLog[]
+  accounts          Account[]
+  sessions          Session[]
+
+  @@map("users")
+}
+
+// ─── NextAuth Models ─────────────────────────────────────────────────────────
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ─── Prompts ─────────────────────────────────────────────────────────────────
+
+model Prompt {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  title        String?
+  originalText String   @map("original_text") @db.Text
+  enhancedText String?  @map("enhanced_text") @db.Text
+  model        String
+  category     String?
+  tone         String?
+  length       String?
+  score        Json?
+  tags         String[]
+  isSaved      Boolean  @default(false) @map("is_saved")
+  isFavorite   Boolean  @default(false) @map("is_favorite")
+  collectionId String?  @map("collection_id")
+  sharedToken  String?  @unique @map("shared_token")
+  lastAction   String?  @map("last_action")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  enhancedAt   DateTime? @map("enhanced_at")
+
+  // Relations
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collection Collection?  @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  versions   Version[]
+  analyses   Analysis[]
+  analytics  Analytics[]
+  usageLogs  UsageLog[]
+
+  @@index([userId])
+  @@index([collectionId])
+  @@index([model])
+  @@index([category])
+  @@index([isSaved])
+  @@index([createdAt(sort: Desc)])
+  @@map("prompts")
+}
+
+model Version {
+  id        String   @id @default(cuid())
+  promptId  String   @map("prompt_id")
+  version   Int
+  text      String   @db.Text
+  score     Json?
+  changes   Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  prompt Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([promptId, version])
+  @@index([promptId])
+  @@map("versions")
+}
+
+model Analysis {
+  id         String   @id @default(cuid())
+  promptId   String   @map("prompt_id")
+  intent     String
+  category   String
+  complexity Int
+  confidence Decimal  @db.Decimal(3, 2)
+  entities   Json?
+  context    Json?
+  keywords   String[]
+  missing    Json?
+  suggestions Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  prompt Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@index([promptId])
+  @@map("analyses")
+}
+
+// ─── Collections ─────────────────────────────────────────────────────────────
+
+model Collection {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  name        String
+  description String?
+  color       String   @default("#3B82F6")
+  icon        String   @default("folder")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompts Prompt[]
+
+  @@index([userId])
+  @@map("collections")
+}
+
+// ─── Templates ───────────────────────────────────────────────────────────────
+
+model Template {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  category    String
+  prompt      String   @db.Text
+  variables   Json
+  model       String?
+  usageCount  Int      @default(0) @map("usage_count")
+  isOfficial  Boolean  @default(false) @map("is_official")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@index([usageCount(sort: Desc)])
+  @@map("templates")
+}
+
+// ─── API Keys ────────────────────────────────────────────────────────────────
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  provider    String
+  apiKeyEnc   String    @map("api_key_enc")
+  isActive    Boolean   @default(true) @map("is_active")
+  lastUsedAt  DateTime? @map("last_used_at")
+  usageCount  Int       @default(0) @map("usage_count")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([provider])
+  @@map("api_keys")
+}
+
+// ─── Analytics ───────────────────────────────────────────────────────────────
+
+model Analytics {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  promptId  String?  @map("prompt_id")
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt Prompt? @relation(fields: [promptId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt(sort: Desc)])
+  @@map("analytics")
+}
+
+// ─── Usage Logs ──────────────────────────────────────────────────────────────
+
+model UsageLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  promptId  String?  @map("prompt_id")
+  action    String
+  model     String?
+  provider  String?
+  tokensIn  Int?     @map("tokens_in")
+  tokensOut Int?     @map("tokens_out")
+  cost      Decimal? @db.Decimal(10, 6)
+  latencyMs Int?     @map("latency_ms")
+  success   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt Prompt? @relation(fields: [promptId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt(sort: Desc)])
+  @@map("usage_logs")
+}
+
+// ─── Notifications ───────────────────────────────────────────────────────────
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  type      String
+  title     String
+  message   String?
+  isRead    Boolean   @default(false) @map("is_read")
+  actionUrl String?   @map("action_url")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt(sort: Desc)])
+  @@map("notifications")
+}
