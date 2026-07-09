@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Search, Copy, Check, FileText, Mail, Code, Share2, Book, ShoppingBag, Star, Zap } from "lucide-react";
+import { Search, Copy, Check, FileText, Mail, Code, Share2, Book, ShoppingBag, Star } from "lucide-react";
 
 interface Template {
   id: string;
@@ -123,21 +122,13 @@ export default function TemplatesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="h-14 flex items-center justify-between px-4 border-b">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="p-1.5 hover:bg-accent rounded-lg transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div>
-            <h1 className="font-semibold text-sm">Templates</h1>
-            <p className="text-xs text-muted-foreground">{templates.length} ready-to-use templates</p>
-          </div>
-        </div>
-      </header>
+    <div className="space-y-4">
+      <div>
+        <h2 className="font-semibold text-sm">Templates</h2>
+        <p className="text-xs text-muted-foreground">{templates.length} ready-to-use templates</p>
+      </div>
 
-      <div className="max-w-6xl mx-auto p-4">
+      <div className="max-w-6xl">
         {/* Filters */}
         <div className="flex items-center gap-3 mb-4">
           <div className="relative flex-1 max-w-sm">

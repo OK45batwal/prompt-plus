@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, X, Copy, Check, ArrowRight } from "lucide-react";
+import { Plus, X, Copy, Check } from "lucide-react";
 
 interface ComparisonItem {
   id: string;
@@ -62,21 +62,13 @@ export default function ComparePage() {
   , items[0]);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="h-14 flex items-center justify-between px-4 border-b">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="p-1.5 hover:bg-accent rounded-lg transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div>
-            <h1 className="font-semibold text-sm">Compare Prompts</h1>
-            <p className="text-xs text-muted-foreground">Side-by-side comparison</p>
-          </div>
-        </div>
-      </header>
+    <div className="space-y-4">
+      <div>
+        <h2 className="font-semibold text-sm">Compare Prompts</h2>
+        <p className="text-xs text-muted-foreground">Side-by-side comparison</p>
+      </div>
 
-      <div className="max-w-6xl mx-auto p-4">
+      <div className="max-w-6xl">
         {/* Comparison Grid */}
         <div className={`grid gap-4 ${items.length === 2 ? "grid-cols-1 md:grid-cols-2" : items.length === 3 ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"}`}>
           {items.map((item, index) => (

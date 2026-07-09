@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Sparkles, Copy, Save, Download, RotateCcw, ChevronDown, Check, Loader2, Zap, Target, Lightbulb, TrendingUp } from "lucide-react";
+import { Sparkles, Copy, Save, Download, RotateCcw, ChevronDown, Check, Loader2, Zap, Target, Lightbulb, TrendingUp } from "lucide-react";
 
 type Model = "gpt-4" | "claude-3" | "gemini-pro" | "grok" | "deepseek" | "ollama" | "lm-studio" | "midjourney" | "stable-diffusion";
 
@@ -188,24 +187,16 @@ export default function PromptBuilderPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="h-14 flex items-center justify-between px-4 border-b">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="p-1.5 hover:bg-accent rounded-lg transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div>
-            <h1 className="font-semibold text-sm">Prompt Builder</h1>
-            <p className="text-xs text-muted-foreground">Transform your ideas into optimized prompts</p>
-          </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-semibold text-sm">Prompt Builder</h2>
+          <p className="text-xs text-muted-foreground">Transform your ideas into optimized prompts</p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">5 free remaining today</span>
-        </div>
-      </header>
+        <span className="text-xs text-muted-foreground">5 free remaining today</span>
+      </div>
 
-      <div className="max-w-6xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Input */}
         <div className="space-y-4">
           {/* Model Selector */}

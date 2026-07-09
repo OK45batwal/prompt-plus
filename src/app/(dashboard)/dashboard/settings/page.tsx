@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, User, Key, Bell, Palette, Shield, Save, Eye, EyeOff, Check, ExternalLink, Copy } from "lucide-react";
+import { User, Key, Bell, Palette, Save, Eye, EyeOff, Check, ExternalLink, Copy } from "lucide-react";
 
 type SettingsTab = "profile" | "api-keys" | "preferences" | "notifications";
 
@@ -66,17 +65,11 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="h-14 flex items-center justify-between px-4 border-b">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="p-1.5 hover:bg-accent rounded-lg transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div>
-            <h1 className="font-semibold text-sm">Settings</h1>
-            <p className="text-xs text-muted-foreground">Manage your account and preferences</p>
-          </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-semibold text-sm">Settings</h2>
+          <p className="text-xs text-muted-foreground">Manage your account and preferences</p>
         </div>
         <button
           onClick={handleSave}
@@ -92,9 +85,9 @@ export default function SettingsPage() {
             </>
           )}
         </button>
-      </header>
+      </div>
 
-      <div className="max-w-4xl mx-auto p-4 grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Sidebar */}
         <div className="space-y-1">
           {tabs.map((tab) => (

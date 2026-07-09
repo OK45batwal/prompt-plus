@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Clock, RotateCcw, Trash2, ChevronDown, Check } from "lucide-react";
+import { Search, Clock, RotateCcw, Trash2, ChevronDown, Check } from "lucide-react";
 
 interface HistoryItem {
   id: string;
@@ -77,21 +77,13 @@ export default function HistoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="h-14 flex items-center justify-between px-4 border-b">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="p-1.5 hover:bg-accent rounded-lg transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div>
-            <h1 className="font-semibold text-sm">History</h1>
-            <p className="text-xs text-muted-foreground">{history.length} items</p>
-          </div>
-        </div>
-      </header>
+    <div className="space-y-4">
+      <div>
+        <h2 className="font-semibold text-sm">History</h2>
+        <p className="text-xs text-muted-foreground">{history.length} items</p>
+      </div>
 
-      <div className="max-w-4xl mx-auto p-4">
+      <div className="max-w-4xl">
         {/* Search */}
         <div className="relative mb-4">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

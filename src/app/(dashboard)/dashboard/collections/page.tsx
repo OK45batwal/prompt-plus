@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Plus, Folder, FileText, MoreHorizontal, Trash2, Edit, ChevronRight } from "lucide-react";
+import { Plus, Folder, Edit, Trash2, X } from "lucide-react";
 
 interface Collection {
   id: string;
@@ -90,17 +89,11 @@ export default function CollectionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="h-14 flex items-center justify-between px-4 border-b">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="p-1.5 hover:bg-accent rounded-lg transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div>
-            <h1 className="font-semibold text-sm">Collections</h1>
-            <p className="text-xs text-muted-foreground">{collections.length} collections</p>
-          </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-semibold text-sm">Collections</h2>
+          <p className="text-xs text-muted-foreground">{collections.length} collections</p>
         </div>
         <button
           onClick={() => setShowNewModal(true)}
@@ -108,69 +101,72 @@ export default function CollectionsPage() {
         >
           <Plus className="h-3.5 w-3.5 mr-1" /> New Collection
         </button>
-      </header>
+      </div>
 
-      <div className="max-w-4xl mx-auto p-4">
-        {/* Collections Grid */}
-        {collections.length === 0 ? (
-          <div className="text-center py-12">
-            <Folder className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No collections yet</p>
-            <p className="text-xs text-muted-foreground mt-1">Create your first collection to organize prompts</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {collections.map((collection) => (
-              <div
-                key={collection.id}
-                className="p-4 rounded-lg border bg-card hover:border-foreground/20 transition-colors group"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{collection.icon}</span>
-                    <div>
-                      <h3 className="font-medium text-sm">{collection.name}</h3>
-                      <p className="text-xs text-muted-foreground">{collection.promptCount} prompts</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-1 hover:bg-accent rounded">
-                      <Edit className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
-                    <button
-                      onClick={() => deleteCollection(collection.id)}
-                      className="p-1 hover:bg-accent rounded text-red-600"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+      {/* Collections Grid */}
+      {collections.length === 0 ? (
+        <div className="text-center py-12">
+          <Folder className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">No collections yet</p>
+          <p className="text-xs text-muted-foreground mt-1">Create your first collection to organize prompts</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {collections.map((collection) => (
+            <div
+              key={collection.id}
+              className="p-4 rounded-lg border bg-card hover:border-foreground/20 transition-colors group"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{collection.icon}</span>
+                  <div>
+                    <h3 className="font-medium text-sm">{collection.name}</h3>
+                    <p className="text-xs text-muted-foreground">{collection.promptCount} prompts</p>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground mb-3">{collection.description}</p>
-                <div className="flex items-center justify-between">
-                  <div
-                    className="w-full h-1 rounded-full"
-                    style={{ backgroundColor: collection.color + "30" }}
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button className="p-1 hover:bg-accent rounded">
+                    <Edit className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
+                  <button
+                    onClick={() => deleteCollection(collection.id)}
+                    className="p-1 hover:bg-accent rounded text-red-600"
                   >
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        backgroundColor: collection.color,
-                        width: `${Math.min(100, (collection.promptCount / 20) * 100)}%`,
-                      }}
-                    />
-                  </div>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <p className="text-xs text-muted-foreground mb-3">{collection.description}</p>
+              <div className="flex items-center justify-between">
+                <div
+                  className="w-full h-1 rounded-full"
+                  style={{ backgroundColor: collection.color + "30" }}
+                >
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      backgroundColor: collection.color,
+                      width: `${Math.min(100, (collection.promptCount / 20) * 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* New Collection Modal */}
       {showNewModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-sm bg-background rounded-lg border p-4">
-            <h2 className="font-semibold text-sm mb-4">New Collection</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-sm">New Collection</h2>
+              <button onClick={() => setShowNewModal(false)} className="p-1 hover:bg-accent rounded">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
             <div className="space-y-3">
               <div>
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">Name</label>
