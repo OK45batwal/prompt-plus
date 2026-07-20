@@ -1,7 +1,6 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="/screenshots/dashboard-dark.png">
-  <img src="/screenshots/dashboard-light.png" alt="AI Prompt+ Dashboard" width="100%">
-</picture>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/OK45batwal/Prompt-plus/main/public/screenshots/dashboard-light.png" alt="AI Prompt+ Dashboard" width="100%">
+</p>
 
 <p align="center">
   <h1 align="center">⚡ AI Prompt+</h1>
@@ -33,11 +32,11 @@
 
 | Light Mode | Dark Mode |
 |:---:|:---:|
-| ![Dashboard Light](/screenshots/dashboard-light.png) | ![Dashboard Dark](/screenshots/dashboard-dark.png) |
+| ![Dashboard Light](public/screenshots/dashboard-light.png) | ![Dashboard Dark](public/screenshots/dashboard-dark.png) |
 | **New Prompt** | **Library** |
-| ![New Prompt](/screenshots/new-prompt.png) | ![Library](/screenshots/library.png) |
+| ![New Prompt](public/screenshots/new-prompt.png) | ![Library](public/screenshots/library.png) |
 | **Collections** | **Mobile View** |
-| ![Collections](/screenshots/collections.png) | ![Mobile Dashboard](/screenshots/dashboard-mobile.png) |
+| ![Collections](public/screenshots/collections.png) | ![Mobile Dashboard](public/screenshots/dashboard-mobile.png) |
 
 ## 🛠️ Tech Stack
 
