@@ -78,9 +78,9 @@ export default function ComparePage() {
                   <span className="text-sm font-medium">Prompt {index + 1}</span>
                   {item.score > 0 && (
                     <span className={`text-xs font-bold px-2 py-0.5 rounded ${
-                      item.score >= 80 ? "bg-green-100 text-green-700" :
-                      item.score >= 60 ? "bg-yellow-100 text-yellow-700" :
-                      "bg-red-100 text-red-700"
+                      item.score >= 80 ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" :
+                      item.score >= 60 ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400" :
+                      "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
                     }`}>
                       {item.score}/100
                     </span>

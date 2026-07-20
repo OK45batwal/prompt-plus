@@ -210,7 +210,7 @@ export default function PromptBuilderPage() {
                 <span>{selectedModelData?.icon}</span>
                 <span>{selectedModelData?.name}</span>
                 {selectedModelData?.free && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">FREE</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">FREE</span>
                 )}
               </span>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -229,7 +229,7 @@ export default function PromptBuilderPage() {
                     <span>{model.icon}</span>
                     <span>{model.name}</span>
                     {model.free && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 ml-auto">FREE</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 ml-auto">FREE</span>
                     )}
                   </button>
                 ))}

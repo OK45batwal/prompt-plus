@@ -5,49 +5,44 @@ import { User, Key, Bell, Palette, Save, Eye, EyeOff, Check, ExternalLink, Copy 
 
 type SettingsTab = "profile" | "api-keys" | "preferences" | "notifications";
 
+type ProviderInfo = { id: string; name: string; placeholder: string; url: string };
+const providers: ProviderInfo[] = [
+  { id: "openai", name: "OpenAI", placeholder: "sk-...", url: "https://platform.openai.com/api-keys" },
+  { id: "anthropic", name: "Anthropic", placeholder: "sk-ant-...", url: "https://console.anthropic.com/settings/keys" },
+  { id: "google", name: "Google AI", placeholder: "AIza...", url: "https://makersuite.google.com/app/apikey" },
+];
+
+type ToggleDef = { id: string; title: string; description: string };
+const notificationToggles: ToggleDef[] = [
+  { id: "email", title: "Email Notifications", description: "Receive email updates about your account" },
+  { id: "usage", title: "Usage Alerts", description: "Get notified when approaching daily limits" },
+  { id: "digest", title: "Weekly Digest", description: "Receive a weekly summary of your activity" },
+];
+
+function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+  return (
+    <button onClick={onChange} className={`w-10 h-6 rounded-full transition-colors ${checked ? "bg-foreground" : "bg-muted"}`}>
+      <div className={`w-4 h-4 rounded-full bg-background transition-transform ${checked ? "translate-x-5" : "translate-x-1"}`} />
+    </button>
+  );
+}
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const [saved, setSaved] = useState(false);
-
-  // Profile state
   const [name, setName] = useState("Demo User");
   const [email, setEmail] = useState("demo@example.com");
-
-  // API Keys state
-  const [openaiKey, setOpenaiKey] = useState("");
-  const [anthropicKey, setAnthropicKey] = useState("");
-  const [googleKey, setGoogleKey] = useState("");
+  const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
-
-  // Preferences state
   const [defaultModel, setDefaultModel] = useState("gpt-4");
   const [defaultTone, setDefaultTone] = useState("");
   const [autoEnhance, setAutoEnhance] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [toggles, setToggles] = useState<Record<string, boolean>>({ email: true, usage: true, digest: false });
 
-  // Notifications state
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [usageAlerts, setUsageAlerts] = useState(true);
-  const [weeklyDigest, setWeeklyDigest] = useState(false);
+  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
-  const toggleKeyVisibility = (key: string) => {
-    setShowKeys((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const maskKey = (key: string) => {
-    if (!key) return "Not set";
-    if (showKeys[key]) return key;
-    return key.slice(0, 8) + "..." + key.slice(-4);
-  };
-
-  const copyKey = (key: string) => {
-    navigator.clipboard.writeText(key);
-  };
+  const toggleKeyVisibility = (key: string) => setShowKeys((p) => ({ ...p, [key]: !p[key] }));
 
   const tabs: { id: SettingsTab; label: string; icon: typeof User }[] = [
     { id: "profile", label: "Profile", icon: User },
@@ -162,140 +157,46 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-4">
-                {/* OpenAI */}
-                <div className="p-4 rounded-lg border bg-card">
-                  <div className="flex items-center justify-between mb-2">
+                {providers.map((p) => (
+                  <div key={p.id} className="p-4 rounded-lg border bg-card">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{p.name}</span>
+                        <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                      {apiKeys[p.id] && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Connected</span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">OpenAI</span>
-                      <a
-                        href="https://platform.openai.com/api-keys"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
+                      <div className="relative flex-1">
+                        <input
+                          type={showKeys[p.id] ? "text" : "password"}
+                          value={apiKeys[p.id] || ""}
+                          onChange={(e) => setApiKeys({ ...apiKeys, [p.id]: e.target.value })}
+                          placeholder={p.placeholder}
+                          className="h-9 w-full rounded-lg border bg-background px-3 pr-9 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring font-mono"
+                        />
+                        <button
+                          onClick={() => toggleKeyVisibility(p.id)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showKeys[p.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      {apiKeys[p.id] && (
+                        <button
+                          onClick={() => navigator.clipboard.writeText(apiKeys[p.id])}
+                          className="h-9 px-2 rounded-lg border hover:bg-accent transition-colors"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
-                    {openaiKey && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-700">Connected</span>
-                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <input
-                        type={showKeys.openai ? "text" : "password"}
-                        value={openaiKey}
-                        onChange={(e) => setOpenaiKey(e.target.value)}
-                        placeholder="sk-..."
-                        className="h-9 w-full rounded-lg border bg-background px-3 pr-9 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring font-mono"
-                      />
-                      <button
-                        onClick={() => toggleKeyVisibility("openai")}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showKeys.openai ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                    {openaiKey && (
-                      <button
-                        onClick={() => copyKey(openaiKey)}
-                        className="h-9 px-2 rounded-lg border hover:bg-accent transition-colors"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Anthropic */}
-                <div className="p-4 rounded-lg border bg-card">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">Anthropic</span>
-                      <a
-                        href="https://console.anthropic.com/settings/keys"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                    {anthropicKey && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-700">Connected</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <input
-                        type={showKeys.anthropic ? "text" : "password"}
-                        value={anthropicKey}
-                        onChange={(e) => setAnthropicKey(e.target.value)}
-                        placeholder="sk-ant-..."
-                        className="h-9 w-full rounded-lg border bg-background px-3 pr-9 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring font-mono"
-                      />
-                      <button
-                        onClick={() => toggleKeyVisibility("anthropic")}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showKeys.anthropic ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                    {anthropicKey && (
-                      <button
-                        onClick={() => copyKey(anthropicKey)}
-                        className="h-9 px-2 rounded-lg border hover:bg-accent transition-colors"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Google */}
-                <div className="p-4 rounded-lg border bg-card">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">Google AI</span>
-                      <a
-                        href="https://makersuite.google.com/app/apikey"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                    {googleKey && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-700">Connected</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <input
-                        type={showKeys.google ? "text" : "password"}
-                        value={googleKey}
-                        onChange={(e) => setGoogleKey(e.target.value)}
-                        placeholder="AIza..."
-                        className="h-9 w-full rounded-lg border bg-background px-3 pr-9 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring font-mono"
-                      />
-                      <button
-                        onClick={() => toggleKeyVisibility("google")}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showKeys.google ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                    {googleKey && (
-                      <button
-                        onClick={() => copyKey(googleKey)}
-                        className="h-9 px-2 rounded-lg border hover:bg-accent transition-colors"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           )}
@@ -340,12 +241,7 @@ export default function SettingsPage() {
                     <p className="text-sm font-medium">Auto-analyze on type</p>
                     <p className="text-xs text-muted-foreground">Automatically analyze prompt as you type</p>
                   </div>
-                  <button
-                    onClick={() => setAutoEnhance(!autoEnhance)}
-                    className={`w-10 h-6 rounded-full transition-colors ${autoEnhance ? "bg-foreground" : "bg-muted"}`}
-                  >
-                    <div className={`w-4 h-4 rounded-full bg-background transition-transform ${autoEnhance ? "translate-x-5" : "translate-x-1"}`} />
-                  </button>
+                  <ToggleSwitch checked={autoEnhance} onChange={() => setAutoEnhance(!autoEnhance)} />
                 </div>
 
                 <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
@@ -353,12 +249,7 @@ export default function SettingsPage() {
                     <p className="text-sm font-medium">Dark Mode</p>
                     <p className="text-xs text-muted-foreground">Toggle dark mode theme</p>
                   </div>
-                  <button
-                    onClick={() => setDarkMode(!darkMode)}
-                    className={`w-10 h-6 rounded-full transition-colors ${darkMode ? "bg-foreground" : "bg-muted"}`}
-                  >
-                    <div className={`w-4 h-4 rounded-full bg-background transition-transform ${darkMode ? "translate-x-5" : "translate-x-1"}`} />
-                  </button>
+                  <ToggleSwitch checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
                 </div>
               </div>
             </div>
@@ -372,44 +263,15 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                  <div>
-                    <p className="text-sm font-medium">Email Notifications</p>
-                    <p className="text-xs text-muted-foreground">Receive email updates about your account</p>
+                {notificationToggles.map((t) => (
+                  <div key={t.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
+                    <div>
+                      <p className="text-sm font-medium">{t.title}</p>
+                      <p className="text-xs text-muted-foreground">{t.description}</p>
+                    </div>
+                    <ToggleSwitch checked={toggles[t.id]} onChange={() => setToggles({ ...toggles, [t.id]: !toggles[t.id] })} />
                   </div>
-                  <button
-                    onClick={() => setEmailNotifications(!emailNotifications)}
-                    className={`w-10 h-6 rounded-full transition-colors ${emailNotifications ? "bg-foreground" : "bg-muted"}`}
-                  >
-                    <div className={`w-4 h-4 rounded-full bg-background transition-transform ${emailNotifications ? "translate-x-5" : "translate-x-1"}`} />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                  <div>
-                    <p className="text-sm font-medium">Usage Alerts</p>
-                    <p className="text-xs text-muted-foreground">Get notified when approaching daily limits</p>
-                  </div>
-                  <button
-                    onClick={() => setUsageAlerts(!usageAlerts)}
-                    className={`w-10 h-6 rounded-full transition-colors ${usageAlerts ? "bg-foreground" : "bg-muted"}`}
-                  >
-                    <div className={`w-4 h-4 rounded-full bg-background transition-transform ${usageAlerts ? "translate-x-5" : "translate-x-1"}`} />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                  <div>
-                    <p className="text-sm font-medium">Weekly Digest</p>
-                    <p className="text-xs text-muted-foreground">Receive a weekly summary of your activity</p>
-                  </div>
-                  <button
-                    onClick={() => setWeeklyDigest(!weeklyDigest)}
-                    className={`w-10 h-6 rounded-full transition-colors ${weeklyDigest ? "bg-foreground" : "bg-muted"}`}
-                  >
-                    <div className={`w-4 h-4 rounded-full bg-background transition-transform ${weeklyDigest ? "translate-x-5" : "translate-x-1"}`} />
-                  </button>
-                </div>
+                ))}
               </div>
             </div>
           )}

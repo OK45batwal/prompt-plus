@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="/screenshots/dashboard-dark.png">
+  <img src="/screenshots/dashboard-light.png" alt="AI Prompt+ Dashboard" width="100%">
+</picture>
 
-## Getting Started
+<p align="center">
+  <h1 align="center">⚡ AI Prompt+</h1>
+  <p align="center">Transform simple prompts into powerful, AI-optimized instructions</p>
+</p>
 
-First, run the development server:
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#getting-started">Getting Started</a> •
+  <a href="#screenshots">Screenshots</a>
+</p>
+
+---
+
+## ✨ Features
+
+| Feature | Description |
+|---------|-------------|
+| **Prompt Builder** | Write, analyze, and enhance prompts with AI-powered suggestions |
+| **Library** | Save, search, and manage your prompt collection |
+| **Collections** | Organize prompts by topic into curated collections |
+| **Templates** | Start faster with ready-to-use prompt templates |
+| **Compare** | Side-by-side comparison of original vs enhanced prompts |
+| **Analytics** | Track your enhancement activity and scores |
+| **Dark Mode** | Seamless light/dark theme toggle |
+
+## 🖼️ Screenshots
+
+| Light Mode | Dark Mode |
+|:---:|:---:|
+| ![Dashboard Light](/screenshots/dashboard-light.png) | ![Dashboard Dark](/screenshots/dashboard-dark.png) |
+| **New Prompt** | **Library** |
+| ![New Prompt](/screenshots/new-prompt.png) | ![Library](/screenshots/library.png) |
+| **Collections** | **Mobile View** |
+| ![Collections](/screenshots/collections.png) | ![Mobile Dashboard](/screenshots/dashboard-mobile.png) |
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | [Next.js 16](https://nextjs.org) (Turbopack) |
+| **Language** | TypeScript |
+| **UI** | Tailwind CSS v4 + Base UI |
+| **Database** | SQLite (via better-sqlite3) |
+| **Icons** | Lucide Icons |
+| **Theme** | next-themes |
+
+## 🚀 Getting Started
 
 ```bash
+git clone https://github.com/OK45batwal/Prompt-plus.git
+cd ai-prompt-plus
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Seed Demo Data
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npx prisma db push
+./prisma/seed.sh
+```
 
-## Learn More
+## 📁 Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/
+│   ├── (auth)/          # Login & Signup pages
+│   ├── (dashboard)/     # Dashboard layout & pages
+│   └── api/v1/          # REST API routes
+├── components/
+│   ├── dashboard/        # Dashboard-specific components
+│   └── ui/               # Reusable UI primitives
+└── lib/
+    └── db/               # Database layer
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📄 License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+[MIT](LICENSE)
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+<p align="center">
+  Built with <a href="https://nextjs.org">Next.js</a>
+</p>

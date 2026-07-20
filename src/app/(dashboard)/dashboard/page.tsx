@@ -105,10 +105,10 @@ export default function DashboardPage() {
           ].map((item, i) => (
             <div key={i} className="p-3 rounded-lg border bg-card flex items-center gap-3">
               <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                item.score >= 80 ? "bg-green-100" : item.score >= 60 ? "bg-yellow-100" : "bg-red-100"
+                item.score >= 80 ? "bg-green-100 dark:bg-green-900/30" : item.score >= 60 ? "bg-yellow-100 dark:bg-yellow-900/30" : "bg-red-100 dark:bg-red-900/30"
               }`}>
                 <span className={`text-sm font-bold ${
-                  item.score >= 80 ? "text-green-700" : item.score >= 60 ? "text-yellow-700" : "text-red-700"
+                  item.score >= 80 ? "text-green-700 dark:text-green-400" : item.score >= 60 ? "text-yellow-700 dark:text-yellow-400" : "text-red-700 dark:text-red-400"
                 }`}>{item.score}</span>
               </div>
               <div className="flex-1 min-w-0">

@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 // ─── Users ───────────────────────────────────────────────────────────────────
@@ -43,12 +43,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -83,14 +83,14 @@ model Prompt {
   id           String   @id @default(cuid())
   userId       String   @map("user_id")
   title        String?
-  originalText String   @map("original_text") @db.Text
-  enhancedText String?  @map("enhanced_text") @db.Text
+  originalText String   @map("original_text")
+  enhancedText String?  @map("enhanced_text")
   model        String
   category     String?
   tone         String?
   length       String?
   score        Json?
-  tags         String[]
+  tags         String   @default("[]")
   isSaved      Boolean  @default(false) @map("is_saved")
   isFavorite   Boolean  @default(false) @map("is_favorite")
   collectionId String?  @map("collection_id")
@@ -121,7 +121,7 @@ model Version {
   id        String   @id @default(cuid())
   promptId  String   @map("prompt_id")
   version   Int
-  text      String   @db.Text
+  text      String  
   score     Json?
   changes   Json?
   createdAt DateTime @default(now()) @map("created_at")
@@ -139,10 +139,10 @@ model Analysis {
   intent     String
   category   String
   complexity Int
-  confidence Decimal  @db.Decimal(3, 2)
+  confidence Decimal 
   entities   Json?
   context    Json?
-  keywords   String[]
+  keywords   String   @default("[]")
   missing    Json?
   suggestions Json?
   createdAt  DateTime @default(now()) @map("created_at")
@@ -179,7 +179,7 @@ model Template {
   title       String
   description String?
   category    String
-  prompt      String   @db.Text
+  prompt      String  
   variables   Json
   model       String?
   usageCount  Int      @default(0) @map("usage_count")
@@ -242,7 +242,7 @@ model UsageLog {
   provider  String?
   tokensIn  Int?     @map("tokens_in")
   tokensOut Int?     @map("tokens_out")
-  cost      Decimal? @db.Decimal(10, 6)
+  cost      Decimal?
   latencyMs Int?     @map("latency_ms")
   success   Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")

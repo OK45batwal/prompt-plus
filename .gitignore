@@ -30,6 +30,11 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# database
+dev.db
+dev.db-shm
+dev.db-wal
+
 # env files (can opt-in for committing if needed)
 .env*
 
