@@ -53,15 +53,6 @@
   --card-fg: #f0e6d3;
 }
 
-* {
-  border-color: var(--border);
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  animation: none !important;
-  transition: none !important;
-}
-
 body {
   background: var(--bg);
   color: var(--fg);
@@ -69,53 +60,7 @@ body {
   line-height: 1.5;
 }
 
-input, select, textarea {
-  border: 2px solid var(--border);
-  background: var(--bg);
-  color: var(--fg);
-  font-family: inherit;
-  padding: 6px 10px;
-}
-
-button:not([role="menuitem"]) {
-  border: 2px solid var(--border);
-  background: var(--bg);
-  color: var(--fg);
-  font-family: inherit;
-  cursor: pointer;
-  padding: 6px 14px;
-  font-weight: 600;
-}
-
-button:not([role="menuitem"]):hover {
-  background: var(--fg);
-  color: var(--bg);
-}
-
-button.bg-foreground, button.\!bg-foreground,
-[class*="bg-foreground"] button {
-  background: var(--fg);
-  color: var(--bg);
-  border-color: var(--fg);
-}
-
-button.bg-foreground:hover, button.\!bg-foreground:hover {
-  opacity: 0.9;
-}
-
 ::selection {
   background: var(--accent);
   color: var(--accent-fg);
-}
-
-a {
-  color: var(--primary);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-a:hover {
-  background: var(--primary);
-  color: var(--primary-fg);
-  text-decoration: none;
 }
