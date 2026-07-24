@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
-import { db } from "@/lib/db/prisma";
+import { getDb } from "@/lib/db/prisma";
 
 const createVersionSchema = z.object({
   text: z.string().min(1, "text is required"),
@@ -21,7 +21,7 @@ export async function GET(
   const { id: promptId } = await params;
   const userId = session.user.id;
 
-  const prompt = await db.prompt.findFirst({
+  const prompt = await getDb().prompt.findFirst({
     where: { id: promptId, userId },
   });
 
@@ -29,7 +29,7 @@ export async function GET(
     return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
   }
 
-  const versions = await db.version.findMany({
+  const versions = await getDb().version.findMany({
     where: { promptId },
     orderBy: { version: "desc" },
   });
@@ -49,7 +49,7 @@ export async function POST(
   const { id: promptId } = await params;
   const userId = session.user.id;
 
-  const prompt = await db.prompt.findFirst({
+  const prompt = await getDb().prompt.findFirst({
     where: { id: promptId, userId },
   });
 
@@ -74,14 +74,14 @@ export async function POST(
 
   const { text, score, changes } = parseResult.data;
 
-  const latestVersion = await db.version.findFirst({
+  const latestVersion = await getDb().version.findFirst({
     where: { promptId },
     orderBy: { version: "desc" },
   });
 
   const nextVersionNum = (latestVersion?.version || 0) + 1;
 
-  const versionObj = await db.version.create({
+  const versionObj = await getDb().version.create({
     data: {
       promptId,
       version: nextVersionNum,

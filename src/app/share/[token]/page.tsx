@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Sparkles, Folder } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
-import { db } from "@/lib/db/prisma";
+import { getDb } from "@/lib/db/prisma";
 
 export default async function SharedPromptPage({
   params,
@@ -15,7 +15,7 @@ export default async function SharedPromptPage({
     notFound();
   }
 
-  const prompt = await db.prompt.findUnique({
+  const prompt = await getDb().prompt.findUnique({
     where: { sharedToken: token },
     include: {
       user: { select: { name: true } },

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import { db } from "@/lib/db/prisma";
+import { getDb } from "@/lib/db/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    const existingUser = await db.user.findUnique({
+    const existingUser = await getDb().user.findUnique({
       where: { email: normalizedEmail },
     });
 
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    const user = await db.user.create({
+    const user = await getDb().user.create({
       data: {
         name: name ? String(name).trim() : null,
         email: normalizedEmail,

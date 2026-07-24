@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
-import { db } from "@/lib/db/prisma";
+import { getDb } from "@/lib/db/prisma";
 import { getTemplatesQuerySchema, createTemplateSchema } from "@/lib/validations/templates";
 
 export async function GET(request: NextRequest) {
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     ];
   }
 
-  const templates = await db.template.findMany({
+  const templates = await getDb().template.findMany({
     where,
     orderBy: { usageCount: "desc" },
   });
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
   const { name, description, prompt, category, models, isOfficial } = parseResult.data;
 
-  const template = await db.template.create({
+  const template = await getDb().template.create({
     data: {
       title: name,
       description: description || null,

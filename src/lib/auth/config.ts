@@ -4,7 +4,7 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import { authConfig } from "@/lib/auth/auth.config";
-import { db } from "@/lib/db/prisma";
+import { getDb } from "@/lib/db/prisma";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
@@ -31,7 +31,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const email = (credentials.email as string).toLowerCase().trim();
         const password = credentials.password as string;
 
-        const user = await db.user.findUnique({
+        const user = await getDb().user.findUnique({
           where: { email },
         });
 
@@ -44,7 +44,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        await db.user
+        await getDb().user
           .update({
             where: { id: user.id },
             data: { lastLoginAt: new Date() },

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { auth } from "@/lib/auth/config";
-import { db } from "@/lib/db/prisma";
+import { getDb } from "@/lib/db/prisma";
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Ensure prompt belongs to authenticated user
-  const prompt = await db.prompt.findFirst({
+  const prompt = await getDb().prompt.findFirst({
     where: { id: promptId, userId },
   });
 
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
   // Reuse existing shared token or generate new one
   const sharedToken = prompt.sharedToken || `sh_${crypto.randomBytes(16).toString("hex")}`;
 
-  const updatedPrompt = await db.prompt.update({
+  const updatedPrompt = await getDb().prompt.update({
     where: { id: promptId },
     data: { sharedToken },
   });
@@ -65,7 +65,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "promptId is required" }, { status: 400 });
   }
 
-  const prompt = await db.prompt.findFirst({
+  const prompt = await getDb().prompt.findFirst({
     where: { id: promptId, userId },
   });
 
@@ -73,7 +73,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
   }
 
-  await db.prompt.update({
+  await getDb().prompt.update({
     where: { id: promptId },
     data: { sharedToken: null },
   });

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
-import { db } from "@/lib/db/prisma";
+import { getDb } from "@/lib/db/prisma";
 import { encrypt } from "@/lib/crypto";
 
 const createApiKeySchema = z.object({
@@ -16,7 +16,7 @@ export async function GET() {
   }
 
   const userId = session.user.id;
-  const keys = await db.apiKey.findMany({
+  const keys = await getDb().apiKey.findMany({
     where: { userId },
     select: {
       id: true,
@@ -58,11 +58,11 @@ export async function POST(request: NextRequest) {
   const apiKeyEnc = encrypt(apiKey);
 
   // Deactivate existing key for this provider if any
-  await db.apiKey.deleteMany({
+  await getDb().apiKey.deleteMany({
     where: { userId, provider },
   }).catch(() => {});
 
-  const newKey = await db.apiKey.create({
+  const newKey = await getDb().apiKey.create({
     data: {
       userId,
       provider,
@@ -95,7 +95,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "provider or id query parameter required" }, { status: 400 });
   }
 
-  await db.apiKey.deleteMany({
+  await getDb().apiKey.deleteMany({
     where: {
       userId,
       ...(id ? { id } : { provider: provider! }),

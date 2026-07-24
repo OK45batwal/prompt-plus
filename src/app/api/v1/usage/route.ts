@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth/config";
-import { db } from "@/lib/db/prisma";
+import { getDb } from "@/lib/db/prisma";
 
 export async function GET() {
   const session = await auth();
@@ -24,30 +24,30 @@ export async function GET() {
     totalEnhancements,
     promptsWithScore,
   ] = await Promise.all([
-    db.usageLog.count({
+    getDb().usageLog.count({
       where: {
         userId,
         action: "enhance",
         createdAt: { gte: startOfDay },
       },
     }),
-    db.usageLog.count({
+    getDb().usageLog.count({
       where: {
         userId,
         action: "enhance",
         createdAt: { gte: startOfMonth },
       },
     }),
-    db.prompt.count({
+    getDb().prompt.count({
       where: { userId },
     }),
-    db.usageLog.count({
+    getDb().usageLog.count({
       where: {
         userId,
         action: "enhance",
       },
     }),
-    db.prompt.findMany({
+    getDb().prompt.findMany({
       where: {
         userId,
         score: { not: Prisma.JsonNull },
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "action is required" }, { status: 400 });
   }
 
-  const analyticsEvent = await db.analytics.create({
+  const analyticsEvent = await getDb().analytics.create({
     data: {
       userId,
       promptId: promptId || null,

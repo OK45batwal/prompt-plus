@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
-import { db } from "@/lib/db/prisma";
+import { getDb } from "@/lib/db/prisma";
 import { paginationSchema } from "@/lib/validations/common";
 import { createPromptSchema } from "@/lib/validations/prompts";
 
@@ -41,13 +41,13 @@ export async function GET(request: NextRequest) {
   };
 
   const [prompts, total] = await Promise.all([
-    db.prompt.findMany({
+    getDb().prompt.findMany({
       where,
       orderBy: { createdAt: "desc" },
       skip: offset,
       take: pageSize,
     }),
-    db.prompt.count({ where }),
+    getDb().prompt.count({ where }),
   ]);
 
   return NextResponse.json({ data: prompts, total, page, pageSize, hasMore: offset + pageSize < total });
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
   const { originalText, model, category, tone, length } = parseResult.data;
   const userId = session.user.id;
 
-  const prompt = await db.prompt.create({
+  const prompt = await getDb().prompt.create({
     data: {
       userId,
       originalText,

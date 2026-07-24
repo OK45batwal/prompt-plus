@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db/prisma";
+import { getDb } from "@/lib/db/prisma";
 
 export async function POST(
   request: NextRequest,
@@ -8,7 +8,7 @@ export async function POST(
   const { id: templateId } = await params;
 
   try {
-    const template = await db.template.update({
+    const template = await getDb().template.update({
       where: { id: templateId },
       data: {
         usageCount: { increment: 1 },

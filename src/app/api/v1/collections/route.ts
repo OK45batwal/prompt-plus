@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
-import { db } from "@/lib/db/prisma";
+import { getDb } from "@/lib/db/prisma";
 import { paginationSchema } from "@/lib/validations/common";
 import { createCollectionSchema } from "@/lib/validations/collections";
 
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
   const where = { userId };
 
   const [collections, total] = await Promise.all([
-    db.collection.findMany({
+    getDb().collection.findMany({
       where,
       orderBy: { name: "asc" },
       skip: offset,
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         _count: { select: { prompts: true } },
       },
     }),
-    db.collection.count({ where }),
+    getDb().collection.count({ where }),
   ]);
 
   const data = collections.map((c) => ({
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
   const { name, description, color, icon } = parseResult.data;
   const userId = session.user.id;
 
-  const collection = await db.collection.create({
+  const collection = await getDb().collection.create({
     data: {
       userId,
       name,

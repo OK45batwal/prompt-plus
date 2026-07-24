@@ -9,6 +9,9 @@
 
 <!-- GitHub Badges -->
 <p align="center">
+  <a href="https://prompt-plus-three.vercel.app">
+    <img src="https://img.shields.io/badge/Live-https%3A%2F%2Fprompt--plus--three.vercel.app-22c55e?logo=vercel&logoColor=white" alt="Live">
+  </a>
   <a href="https://github.com/OK45batwal/Prompt-plus/actions/workflows/ci.yml">
     <img src="https://github.com/OK45batwal/Prompt-plus/actions/workflows/ci.yml/badge.svg" alt="CI Status">
   </a>
@@ -25,6 +28,7 @@
   <a href="#features">Features</a> •
   <a href="#tech-stack">Tech Stack</a> •
   <a href="#getting-started">Getting Started</a> •
+  <a href="https://prompt-plus-three.vercel.app">Live Demo</a> •
   <a href="#screenshots">Screenshots</a>
 </p>
 
@@ -63,7 +67,7 @@
 | **Auth** | NextAuth.js v5 (JWT + Bcrypt) |
 | **Language** | TypeScript |
 | **UI** | Tailwind CSS v4 + Base UI |
-| **Database** | SQLite + Prisma ORM 7 |
+| **Database** | PostgreSQL (Neon) + Prisma ORM 7 |
 | **Testing** | Vitest Test Runner |
 | **CI/CD** | GitHub Actions Workflow |
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
-import { db } from "@/lib/db/prisma";
+import { getDb } from "@/lib/db/prisma";
 import { enhancePromptSchema } from "@/lib/validations/prompts";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { callLLM } from "@/lib/llm/providers";
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
   const targetProvider = reqProvider || (model?.includes("claude") ? "anthropic" : "openai");
 
-  const userApiKeyRow = await db.apiKey.findFirst({
+  const userApiKeyRow = await getDb().apiKey.findFirst({
     where: {
       userId,
       provider: targetProvider,
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     const enhancedText = `Act as an expert assistant. ${text} Be specific and thorough.`;
     const latencyMs = Date.now() - startTime;
 
-    await db.usageLog.create({
+    await getDb().usageLog.create({
       data: {
         userId,
         promptId: promptId || null,
@@ -100,12 +100,12 @@ export async function POST(request: NextRequest) {
     }).catch(() => {});
 
     if (promptId) {
-      const latestVersion = await db.version.findFirst({
+      const latestVersion = await getDb().version.findFirst({
         where: { promptId },
         orderBy: { version: "desc" },
       });
       const nextVer = (latestVersion?.version || 0) + 1;
-      await db.version.create({
+      await getDb().version.create({
         data: { promptId, version: nextVer, text: enhancedText },
       }).catch(() => {});
     }
@@ -133,13 +133,13 @@ export async function POST(request: NextRequest) {
     const latencyMs = Date.now() - startTime;
 
     if (userApiKeyRow) {
-      await db.apiKey.update({
+      await getDb().apiKey.update({
         where: { id: userApiKeyRow.id },
         data: { usageCount: { increment: 1 }, lastUsedAt: new Date() },
       }).catch(() => {});
     }
 
-    await db.usageLog.create({
+    await getDb().usageLog.create({
       data: {
         userId,
         promptId: promptId || null,
@@ -154,12 +154,12 @@ export async function POST(request: NextRequest) {
     }).catch(() => {});
 
     if (promptId) {
-      const latestVersion = await db.version.findFirst({
+      const latestVersion = await getDb().version.findFirst({
         where: { promptId },
         orderBy: { version: "desc" },
       });
       const nextVer = (latestVersion?.version || 0) + 1;
-      await db.version.create({
+      await getDb().version.create({
         data: { promptId, version: nextVer, text: response.content },
       }).catch(() => {});
     }
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
     console.error("LLM Enhance API error:", error);
     const latencyMs = Date.now() - startTime;
 
-    await db.usageLog.create({
+    await getDb().usageLog.create({
       data: {
         userId,
         promptId: promptId || null,

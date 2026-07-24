@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth/config";
-import { db } from "@/lib/db/prisma";
+import { getDb } from "@/lib/db/prisma";
 import { scorePromptSchema } from "@/lib/validations/prompts";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { callLLM } from "@/lib/llm/providers";
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
   const { promptId, text } = parseResult.data;
 
   // Check user keys first
-  const userKey = await db.apiKey.findFirst({
+  const userKey = await getDb().apiKey.findFirst({
     where: { userId, isActive: true },
   });
 
@@ -133,7 +133,7 @@ Return ONLY raw valid JSON, with no markdown formatting or commentary.`;
 
     const latencyMs = Date.now() - startTime;
 
-    await db.usageLog.create({
+    await getDb().usageLog.create({
       data: {
         userId,
         promptId: promptId || null,
@@ -161,7 +161,7 @@ Return ONLY raw valid JSON, with no markdown formatting or commentary.`;
   } catch (error) {
     console.error("LLM Scoring Error (falling back to heuristic):", error);
 
-    await db.usageLog.create({
+    await getDb().usageLog.create({
       data: {
         userId,
         promptId: promptId || null,
