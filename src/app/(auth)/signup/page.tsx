@@ -2,20 +2,67 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Zap, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create account");
+      }
+
+      // Automatically sign in the user after signup
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        router.push("/login?message=Account created. Please log in.");
+      } else {
+        router.push("/dashboard");
+        router.refresh();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOAuth = (provider: "google" | "github") => {
+    signIn(provider, { callbackUrl: "/dashboard" });
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="h-14 flex items-center px-4 border-b">
-        <Link href="/" className="flex items-center gap-2">
-          <Zap className="h-5 w-5" />
-          <span className="font-semibold text-sm">AI Prompt+</span>
+        <Link href="/">
+          <Logo size={20} />
         </Link>
       </header>
 
@@ -29,9 +76,19 @@ export default function SignupPage() {
             </p>
           </div>
 
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 text-xs">
+              {error}
+            </div>
+          )}
+
           {/* OAuth Buttons */}
           <div className="space-y-3 mb-6">
-            <button className="h-9 w-full inline-flex items-center justify-center rounded-lg border px-4 text-sm font-medium hover:bg-accent transition-colors">
+            <button
+              onClick={() => handleOAuth("google")}
+              type="button"
+              className="h-9 w-full inline-flex items-center justify-center rounded-lg border px-4 text-sm font-medium hover:bg-accent transition-colors"
+            >
               <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -52,7 +109,11 @@ export default function SignupPage() {
               </svg>
               Continue with Google
             </button>
-            <button className="h-9 w-full inline-flex items-center justify-center rounded-lg border px-4 text-sm font-medium hover:bg-accent transition-colors">
+            <button
+              onClick={() => handleOAuth("github")}
+              type="button"
+              className="h-9 w-full inline-flex items-center justify-center rounded-lg border px-4 text-sm font-medium hover:bg-accent transition-colors"
+            >
               <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
                 <path
                   fillRule="evenodd"
@@ -74,7 +135,7 @@ export default function SignupPage() {
           </div>
 
           {/* Email Form */}
-          <form className="space-y-3">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div className="relative">
               <User className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
@@ -82,6 +143,7 @@ export default function SignupPage() {
                 placeholder="Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                required
                 className="h-9 w-full rounded-lg border border-input bg-background px-3 pl-9 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring"
               />
             </div>
@@ -92,6 +154,7 @@ export default function SignupPage() {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
                 className="h-9 w-full rounded-lg border border-input bg-background px-3 pl-9 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring"
               />
             </div>
@@ -99,18 +162,30 @@ export default function SignupPage() {
               <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
                 type="password"
-                placeholder="Password"
+                placeholder="Password (8+ characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
                 className="h-9 w-full rounded-lg border border-input bg-background px-3 pl-9 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring"
               />
             </div>
             <button
               type="submit"
-              className="h-9 w-full inline-flex items-center justify-center rounded-lg bg-foreground text-background px-4 text-sm font-medium hover:bg-foreground/90 transition-colors"
+              disabled={isLoading}
+              className="h-9 w-full inline-flex items-center justify-center rounded-lg bg-foreground text-background px-4 text-sm font-medium hover:bg-foreground/90 transition-colors disabled:opacity-50"
             >
-              Sign up
-              <ArrowRight className="h-4 w-4 ml-2" />
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                <>
+                  Sign up
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </>
+              )}
             </button>
           </form>
 

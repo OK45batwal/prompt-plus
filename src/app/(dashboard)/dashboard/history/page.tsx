@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Search, Clock, RotateCcw, Trash2, ChevronDown, Check } from "lucide-react";
 
@@ -67,9 +68,11 @@ export default function HistoryPage() {
     setHistory(history.filter((item) => item.id !== id));
   };
 
+  const router = useRouter();
+
   const reusePrompt = (item: HistoryItem) => {
     // Navigate to builder with this prompt
-    window.location.href = `/dashboard/new?prompt=${encodeURIComponent(item.originalText)}`;
+    router.push(`/dashboard/new?prompt=${encodeURIComponent(item.originalText)}`);
   };
 
   const copyToClipboard = (text: string) => {

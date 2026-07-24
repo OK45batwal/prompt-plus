@@ -15,9 +15,9 @@ import {
   User,
   PanelLeftClose,
   PanelLeft,
-  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -67,9 +67,8 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       {/* Logo */}
       <div className="flex items-center justify-between h-14 px-4 border-b">
         {!collapsed && (
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            <span className="font-semibold text-sm">AI Prompt+</span>
+          <Link href="/dashboard">
+            <Logo size={20} />
           </Link>
         )}
         <Button

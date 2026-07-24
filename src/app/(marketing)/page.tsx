@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Zap, ArrowRight, Sparkles, BarChart3, BookOpen, Shield } from "lucide-react";
+import { ArrowRight, Sparkles, BarChart3, BookOpen, Shield } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
 
 const features = [
   {
@@ -53,9 +54,8 @@ export default function LandingPage() {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            <span className="font-semibold text-sm">AI Prompt+</span>
+          <Link href="/">
+            <Logo size={20} />
           </Link>
           <div className="flex items-center gap-4">
             <Link
@@ -181,10 +181,9 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="py-8 px-4 border-t">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Zap className="h-4 w-4" />
-            AI Prompt+
-          </div>
+          <Link href="/">
+            <Logo size={18} />
+          </Link>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <Link href="/features" className="hover:text-foreground transition-colors">
               Features

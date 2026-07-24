@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { User, Key, Bell, Palette, Save, Eye, EyeOff, Check, ExternalLink, Copy } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User, Key, Bell, Palette, Save, Eye, EyeOff, Check, ExternalLink, Trash2, Loader2 } from "lucide-react";
 
 type SettingsTab = "profile" | "api-keys" | "preferences" | "notifications";
 
-type ProviderInfo = { id: string; name: string; placeholder: string; url: string };
+type ProviderInfo = { id: "openai" | "anthropic" | "google"; name: string; placeholder: string; url: string };
 const providers: ProviderInfo[] = [
   { id: "openai", name: "OpenAI", placeholder: "sk-...", url: "https://platform.openai.com/api-keys" },
   { id: "anthropic", name: "Anthropic", placeholder: "sk-ant-...", url: "https://console.anthropic.com/settings/keys" },
@@ -32,15 +32,79 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [name, setName] = useState("Demo User");
   const [email, setEmail] = useState("demo@example.com");
-  const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
+  const [apiKeysInput, setApiKeysInput] = useState<Record<string, string>>({});
+  const [savedKeys, setSavedKeys] = useState<Record<string, boolean>>({});
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
+  const [isSavingKey, setIsSavingKey] = useState<Record<string, boolean>>({});
   const [defaultModel, setDefaultModel] = useState("gpt-4");
   const [defaultTone, setDefaultTone] = useState("");
   const [autoEnhance, setAutoEnhance] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [toggles, setToggles] = useState<Record<string, boolean>>({ email: true, usage: true, digest: false });
 
-  const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchKeys() {
+      try {
+        const res = await fetch("/api/v1/api-keys");
+        if (res.ok && isMounted) {
+          const json = await res.json();
+          const keyMap: Record<string, boolean> = {};
+          if (Array.isArray(json.data)) {
+            json.data.forEach((k: { provider: string; isActive: boolean }) => {
+              keyMap[k.provider] = k.isActive;
+            });
+          }
+          setSavedKeys(keyMap);
+        }
+      } catch {
+        // ignore
+      }
+    }
+    fetchKeys();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleSaveApiKey = async (provider: string) => {
+    const rawKey = apiKeysInput[provider];
+    if (!rawKey?.trim()) return;
+
+    setIsSavingKey((prev) => ({ ...prev, [provider]: true }));
+    try {
+      const res = await fetch("/api/v1/api-keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider, apiKey: rawKey }),
+      });
+      if (res.ok) {
+        setSavedKeys((prev) => ({ ...prev, [provider]: true }));
+        setApiKeysInput((prev) => ({ ...prev, [provider]: "" }));
+      }
+    } finally {
+      setIsSavingKey((prev) => ({ ...prev, [provider]: false }));
+    }
+  };
+
+  const handleDeleteApiKey = async (provider: string) => {
+    try {
+      const res = await fetch(`/api/v1/api-keys?provider=${provider}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setSavedKeys((prev) => ({ ...prev, [provider]: false }));
+        setApiKeysInput((prev) => ({ ...prev, [provider]: "" }));
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleSave = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   const toggleKeyVisibility = (key: string) => setShowKeys((p) => ({ ...p, [key]: !p[key] }));
 
@@ -153,7 +217,7 @@ export default function SettingsPage() {
               </div>
 
               <div className="p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                <p>Your API keys are stored securely and never shared. They are used only for your requests.</p>
+                <p>Your API keys are stored securely with AES-256-GCM encryption and never shared. They are used only for your requests.</p>
               </div>
 
               <div className="space-y-4">
@@ -166,7 +230,7 @@ export default function SettingsPage() {
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       </div>
-                      {apiKeys[p.id] && (
+                      {savedKeys[p.id] && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Connected</span>
                       )}
                     </div>
@@ -174,24 +238,35 @@ export default function SettingsPage() {
                       <div className="relative flex-1">
                         <input
                           type={showKeys[p.id] ? "text" : "password"}
-                          value={apiKeys[p.id] || ""}
-                          onChange={(e) => setApiKeys({ ...apiKeys, [p.id]: e.target.value })}
-                          placeholder={p.placeholder}
+                          value={apiKeysInput[p.id] || ""}
+                          onChange={(e) => setApiKeysInput({ ...apiKeysInput, [p.id]: e.target.value })}
+                          placeholder={savedKeys[p.id] ? "••••••••••••••••" : p.placeholder}
                           className="h-9 w-full rounded-lg border bg-background px-3 pr-9 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring font-mono"
                         />
                         <button
+                          type="button"
                           onClick={() => toggleKeyVisibility(p.id)}
                           className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
                           {showKeys[p.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
-                      {apiKeys[p.id] && (
+                      <button
+                        type="button"
+                        onClick={() => handleSaveApiKey(p.id)}
+                        disabled={!apiKeysInput[p.id]?.trim() || isSavingKey[p.id]}
+                        className="h-9 px-3 rounded-lg bg-foreground text-background text-xs font-medium hover:bg-foreground/90 transition-colors disabled:opacity-50"
+                      >
+                        {isSavingKey[p.id] ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
+                      </button>
+                      {savedKeys[p.id] && (
                         <button
-                          onClick={() => navigator.clipboard.writeText(apiKeys[p.id])}
-                          className="h-9 px-2 rounded-lg border hover:bg-accent transition-colors"
+                          type="button"
+                          onClick={() => handleDeleteApiKey(p.id)}
+                          className="h-9 px-2 rounded-lg border hover:bg-accent text-red-600 transition-colors"
+                          title="Remove key"
                         >
-                          <Copy className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       )}
                     </div>
