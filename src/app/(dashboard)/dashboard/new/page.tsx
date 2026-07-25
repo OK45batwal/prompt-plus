@@ -17,15 +17,15 @@ import { getSavedContextBlocks, ContextBlock } from "@/lib/context-memory";
 import { estimateTokenCount, calculateCostEstimates } from "@/lib/token-calculator";
 
 type Model =
+  | "openrouter-llama3-free"
+  | "openrouter-gemini-flash-free"
+  | "openrouter-deepseek-r1-free"
+  | "openrouter-qwen-coder-free"
   | "gpt-4"
   | "claude-3"
   | "gemini-pro"
   | "grok"
-  | "deepseek"
-  | "ollama"
-  | "lm-studio"
-  | "midjourney"
-  | "stable-diffusion";
+  | "deepseek";
 
 interface Analysis {
   intent: string;
@@ -64,7 +64,11 @@ interface EnhancedResult {
   enhancedScoring: Scoring;
 }
 
-const models: { id: Model; name: string; icon: string; free: boolean }[] = [
+const models: { id: Model; name: string; icon: string; free: boolean; provider?: string; rawModel?: string }[] = [
+  { id: "openrouter-llama3-free", name: "Llama 3.3 70B (OpenRouter Free)", icon: "🦙", free: true, provider: "openrouter", rawModel: "meta-llama/llama-3.3-70b-instruct:free" },
+  { id: "openrouter-gemini-flash-free", name: "Gemini 2.0 Flash (OpenRouter Free)", icon: "⚡", free: true, provider: "openrouter", rawModel: "google/gemini-2.0-flash-exp:free" },
+  { id: "openrouter-deepseek-r1-free", name: "DeepSeek R1 (OpenRouter Free)", icon: "🧠", free: true, provider: "openrouter", rawModel: "deepseek/deepseek-r1:free" },
+  { id: "openrouter-qwen-coder-free", name: "Qwen 2.5 Coder 32B (OpenRouter Free)", icon: "💻", free: true, provider: "openrouter", rawModel: "qwen/qwen-2.5-coder-32b-instruct:free" },
   { id: "gpt-4", name: "GPT-4o / GPT-4", icon: "🟢", free: true },
   { id: "claude-3", name: "Claude 3.5 Sonnet", icon: "🟣", free: true },
   { id: "gemini-pro", name: "Gemini 1.5 Pro", icon: "🔵", free: true },
@@ -144,7 +148,8 @@ export default function PromptBuilderPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: fullPrompt,
-          model: selectedModel,
+          model: selectedModelData?.rawModel || selectedModel,
+          provider: selectedModelData?.provider,
           category: selectedCategory,
           tone: selectedTone,
           length: selectedLength,
