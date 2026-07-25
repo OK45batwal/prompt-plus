@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Search, Clock, RotateCcw, Trash2, ChevronDown, Check } from "lucide-react";
 
 interface HistoryItem {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, Book, History, Folder, LayoutTemplate, GitCompare, ArrowRight, Clock, Zap } from "lucide-react";
+import { Sparkles, Book, History, Folder, LayoutTemplate, GitCompare, ArrowRight } from "lucide-react";
 
 const quickActions = [
   {

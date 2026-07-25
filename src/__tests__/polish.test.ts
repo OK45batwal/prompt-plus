@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { jsonResponse } from "@/lib/api/response-headers";
 import { checkRateLimit, resetRateLimit } from "@/lib/rate-limit";
 import { revalidate } from "@/app/api/v1/templates/route";
-import { NextRequest } from "next/server";
 
 vi.mock("next-auth", () => ({
   default: vi.fn().mockImplementation(() => ({

@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BarChart3, TrendingUp, Zap, Clock, Activity, CheckCircle2, ShieldCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 export default function AnalyticsPage() {
-  const [usageStats, setUsageStats] = useState({
+  const [usageStats] = useState({
     totalRequests: 24,
     successRate: "98.2%",
     avgLatency: "420ms",

@@ -12,7 +12,6 @@ import {
   BarChart3,
   Key,
   Settings,
-  User,
   PanelLeftClose,
   PanelLeft,
 } from "lucide-react";
@@ -21,7 +20,6 @@ import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { useState } from "react";
 
 interface SidebarProps {
   collapsed?: boolean;

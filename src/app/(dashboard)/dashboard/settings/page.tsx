@@ -47,9 +47,13 @@ export default function SettingsPage() {
   const [toggles, setToggles] = useState<Record<string, boolean>>({ email: true, usage: true, digest: false });
 
   useEffect(() => {
-    if (session?.user?.name) setName(session.user.name);
-    if (session?.user?.email) setEmail(session.user.email);
-  }, [session]);
+    if (session?.user?.name || session?.user?.email) {
+      queueMicrotask(() => {
+        if (session?.user?.name) setName(session.user.name);
+        if (session?.user?.email) setEmail(session.user.email);
+      });
+    }
+  }, [session?.user?.name, session?.user?.email]);
 
   useEffect(() => {
     let isMounted = true;

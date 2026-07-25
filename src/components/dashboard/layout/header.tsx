@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Search, Bell, Moon, Sun, Menu, User, Settings, Key, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,22 +13,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 interface HeaderProps {
   onMenuClick?: () => void;
 }
+
+const emptySubscribe = () => () => {};
 
 export function Header({ onMenuClick }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { setTheme, resolvedTheme } = useTheme();
   const [searchOpen, setSearchOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const getPageTitle = () => {
     if (pathname === "/dashboard") return "Dashboard";

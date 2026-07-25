@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Copy, Save, Download, RotateCcw, ChevronDown, Check, Loader2, Zap, Target, Lightbulb, TrendingUp } from "lucide-react";
+import { Sparkles, Copy, Save, Download, RotateCcw, ChevronDown, Check, Loader2, Target, Lightbulb, TrendingUp } from "lucide-react";
 
 type Model = "gpt-4" | "claude-3" | "gemini-pro" | "grok" | "deepseek" | "ollama" | "lm-studio" | "midjourney" | "stable-diffusion";
 
@@ -59,32 +59,12 @@ export default function PromptBuilderPage() {
   const [selectedTone, setSelectedTone] = useState("");
   const [selectedLength, setSelectedLength] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [result, setResult] = useState<EnhancedResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
 
   const selectedModelData = models.find((m) => m.id === selectedModel);
-
-  const handleAnalyze = async () => {
-    if (!prompt.trim()) return;
-    setIsAnalyzing(true);
-
-    try {
-      const res = await fetch("/api/v1/prompts/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: prompt }),
-      });
-      const data = await res.json();
-      // Analysis is part of the result, we'll use enhance-all for full result
-      setIsAnalyzing(false);
-    } catch (error) {
-      console.error("Analysis failed:", error);
-      setIsAnalyzing(false);
-    }
-  };
 
   const handleEnhance = async () => {
     if (!prompt.trim()) return;
