@@ -180,7 +180,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               />
             </div>
             <Link
-              href="/dashboard/settings/api"
+              href="/dashboard/settings"
               className="mt-2 flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               <Key className="h-3 w-3" />
