@@ -18,11 +18,71 @@ const userBuckets = new Map<string, TokenBucket>();
 const DAILY_LIMIT = parseInt(process.env.FREE_TIER_DAILY_LIMIT || "20", 10);
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// Periodic cleanup of stale in-memory buckets (older than 24h) to avoid memory leaks
+function cleanupStaleBuckets(now: number) {
+  if (userBuckets.size > 1000) {
+    for (const [key, bucket] of userBuckets.entries()) {
+      if (now - bucket.lastRefill > DAY_MS) {
+        userBuckets.delete(key);
+      }
+    }
+  }
+}
+
+export async function checkRateLimitAsync(
+  userId: string,
+  cost: number = 1
+): Promise<{ allowed: boolean; remaining: number; resetMs: number }> {
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (redisUrl && redisToken) {
+    try {
+      const key = `rate-limit:${userId}`;
+      const res = await fetch(`${redisUrl}/pipeline`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${redisToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([
+          ["INCRBY", key, cost],
+          ["TTL", key],
+        ]),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const currentUsage = data[0]?.result ?? cost;
+        let ttl = data[1]?.result ?? -1;
+
+        if (ttl === -1) {
+          // Set 24h expiration on key if first increment
+          await fetch(`${redisUrl}/expire/${key}/86400`, {
+            headers: { Authorization: `Bearer ${redisToken}` },
+          });
+          ttl = 86400;
+        }
+
+        const remaining = Math.max(0, DAILY_LIMIT - currentUsage);
+        const allowed = currentUsage <= DAILY_LIMIT;
+        return { allowed, remaining, resetMs: ttl * 1000 };
+      }
+    } catch {
+      // Fallback to in-memory on Redis connection failure
+    }
+  }
+
+  return checkRateLimit(userId, cost);
+}
+
 export function checkRateLimit(
   userId: string,
   cost: number = 1
 ): { allowed: boolean; remaining: number; resetMs: number } {
   const now = Date.now();
+  cleanupStaleBuckets(now);
+
   let bucket = userBuckets.get(userId);
 
   if (!bucket) {
@@ -46,3 +106,8 @@ export function checkRateLimit(
 
   return { allowed: false, remaining: 0, resetMs };
 }
+
+export function resetRateLimit(userId: string) {
+  userBuckets.delete(userId);
+}
+

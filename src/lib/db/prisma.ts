@@ -1,14 +1,29 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaNeonHttp } from "@prisma/adapter-neon";
 
-function createPrismaClient() {
-  const adapter = new PrismaNeonHttp(process.env.DATABASE_URL!, {});
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+function createPrismaClient(): PrismaClient {
+  const dbUrl = process.env.DATABASE_URL || "file:./dev.db";
+
+  if (dbUrl.startsWith("file:")) {
+    const filePath = dbUrl.replace(/^file:/, "");
+    const adapter = new PrismaBetterSqlite3({ url: filePath });
+    return new PrismaClient({ adapter });
+  }
+
+  const adapter = new PrismaNeonHttp(dbUrl, {});
   return new PrismaClient({ adapter });
 }
 
-let _db: PrismaClient | undefined;
+export const db = globalForPrisma.prisma ?? createPrismaClient();
 
-export function getDb() {
-  if (!_db) _db = createPrismaClient();
-  return _db;
+export function getDb(): PrismaClient {
+  return db;
 }
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+

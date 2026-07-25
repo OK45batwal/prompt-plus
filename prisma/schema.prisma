@@ -19,6 +19,7 @@ model User {
   createdAt           DateTime       @default(now()) @map("created_at")
   updatedAt           DateTime       @updatedAt @map("updated_at")
   lastLoginAt         DateTime?      @map("last_login_at")
+  deletedAt           DateTime?      @map("deleted_at")
   accounts            Account[]
   analytics           Analytics[]
   apiKeys             ApiKey[]
@@ -72,36 +73,43 @@ model VerificationToken {
 model Prompt {
   id           String      @id @default(cuid())
   userId       String      @map("user_id")
+  collectionId String?     @map("collection_id")
+
+  // Content
   title        String?
   originalText String      @map("original_text")
   enhancedText String?     @map("enhanced_text")
+
+  // Metadata
   model        String
   category     String?
+  tags         String?
   tone         String?
   length       String?
+
+  // Analysis & Scoring
   score        Json?
-  tags         String      @default("[]")
-  isSaved      Boolean     @default(false) @map("is_saved")
+  analysis     Json?
+
+  // Flags & Sharing
   isFavorite   Boolean     @default(false) @map("is_favorite")
-  collectionId String?     @map("collection_id")
+  isArchived   Boolean     @default(false) @map("is_archived")
   sharedToken  String?     @unique @map("shared_token")
-  lastAction   String?     @map("last_action")
+
+  // Timestamps
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
-  enhancedAt   DateTime?   @map("enhanced_at")
-  analyses     Analysis[]
-  analytics    Analytics[]
-  collection   Collection? @relation(fields: [collectionId], references: [id])
+  deletedAt    DateTime?   @map("deleted_at")
+
+  // Relations
   user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  usageLogs    UsageLog[]
+  collection   Collection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
   versions     Version[]
+  analyses     Analysis[]
 
   @@index([userId])
   @@index([collectionId])
-  @@index([model])
-  @@index([category])
-  @@index([isSaved])
-  @@index([createdAt(sort: Desc)])
+  @@index([createdAt])
   @@map("prompts")
 }
 
@@ -140,90 +148,83 @@ model Analysis {
 }
 
 model Collection {
-  id          String   @id @default(cuid())
-  userId      String   @map("user_id")
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
   name        String
   description String?
-  color       String   @default("#3B82F6")
-  icon        String   @default("folder")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  color       String    @default("#3B82F6")
+  icon        String    @default("folder")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   prompts     Prompt[]
 
   @@index([userId])
   @@map("collections")
 }
-
 model Template {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   title       String
   description String?
   category    String
   prompt      String
-  variables   Json
+  variables   Json? // Stored as JSON array
   model       String?
-  usageCount  Int      @default(0) @map("usage_count")
-  isOfficial  Boolean  @default(false) @map("is_official")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Community / System
+  isOfficial Boolean @default(false) @map("is_official")
+  usageCount Int     @default(0) @map("usage_count")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([category])
-  @@index([usageCount(sort: Desc)])
+  @@index([isOfficial])
   @@map("templates")
 }
 
 model ApiKey {
   id         String    @id @default(cuid())
   userId     String    @map("user_id")
-  provider   String
+  provider   String // e.g., "openai", "anthropic"
   apiKeyEnc  String    @map("api_key_enc")
   isActive   Boolean   @default(true) @map("is_active")
   lastUsedAt DateTime? @map("last_used_at")
   usageCount Int       @default(0) @map("usage_count")
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @updatedAt @map("updated_at")
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([provider])
   @@map("api_keys")
 }
 
-model Analytics {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  promptId  String?  @map("prompt_id")
-  action    String
-  metadata  Json?
-  createdAt DateTime @default(now()) @map("created_at")
-  prompt    Prompt?  @relation(fields: [promptId], references: [id])
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([action])
-  @@index([createdAt(sort: Desc)])
-  @@map("analytics")
-}
+// ─── Usage Logs ──────────────────────────────────────────────────────────────
 
 model UsageLog {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  promptId  String?  @map("prompt_id")
-  action    String
+  id        String  @id @default(cuid())
+  userId    String  @map("user_id")
+  promptId  String? @map("prompt_id")
+  action    String // e.g., "enhance", "analyze", "score"
+  provider  String? // e.g., "openai", "anthropic"
   model     String?
-  provider  String?
-  tokensIn  Int?     @map("tokens_in")
-  tokensOut Int?     @map("tokens_out")
-  cost      Decimal?
-  latencyMs Int?     @map("latency_ms")
-  success   Boolean  @default(true)
+  tokensIn  Int?    @map("tokens_in")
+  tokensOut Int?    @map("tokens_out")
+  latencyMs Int?    @map("latency_ms")
+  success   Boolean @default(true)
+
   createdAt DateTime @default(now()) @map("created_at")
-  prompt    Prompt?  @relation(fields: [promptId], references: [id])
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([createdAt(sort: Desc)])
+  @@index([createdAt])
   @@map("usage_logs")
 }
 
@@ -239,7 +240,25 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([isRead])
-  @@index([createdAt(sort: Desc)])
+  @@index([createdAt])
   @@map("notifications")
+}
+
+// ─── Analytics Events ────────────────────────────────────────────────────────
+
+model Analytics {
+  id       String  @id @default(cuid())
+  userId   String? @map("user_id")
+  promptId String? @map("prompt_id")
+  action   String
+  metadata Json?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("analytics")
 }

@@ -1,7 +1,40 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { diffWords } from "diff";
+
+interface DiffChunk {
+  value: string;
+  added?: boolean;
+  removed?: boolean;
+}
+
+function computeDiffWords(oldStr: string, newStr: string): DiffChunk[] {
+  const oldWords = oldStr ? oldStr.split(/(\s+)/) : [];
+  const newWords = newStr ? newStr.split(/(\s+)/) : [];
+  const chunks: DiffChunk[] = [];
+
+  let i = 0;
+  let j = 0;
+
+  while (i < oldWords.length || j < newWords.length) {
+    if (i < oldWords.length && j < newWords.length && oldWords[i] === newWords[j]) {
+      chunks.push({ value: oldWords[i] });
+      i++;
+      j++;
+    } else if (j < newWords.length && !oldWords.slice(i).includes(newWords[j])) {
+      chunks.push({ value: newWords[j], added: true });
+      j++;
+    } else if (i < oldWords.length) {
+      chunks.push({ value: oldWords[i], removed: true });
+      i++;
+    } else if (j < newWords.length) {
+      chunks.push({ value: newWords[j], added: true });
+      j++;
+    }
+  }
+
+  return chunks;
+}
 
 interface PromptDiffProps {
   originalText: string;
@@ -11,7 +44,7 @@ interface PromptDiffProps {
 export function PromptDiff({ originalText, enhancedText }: PromptDiffProps) {
   const diffChunks = useMemo(() => {
     if (!originalText && !enhancedText) return [];
-    return diffWords(originalText || "", enhancedText || "");
+    return computeDiffWords(originalText || "", enhancedText || "");
   }, [originalText, enhancedText]);
 
   if (!originalText && !enhancedText) {
