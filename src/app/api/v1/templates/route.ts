@@ -43,6 +43,25 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ data: templates });
 }
 
+export function extractTemplateVariables(prompt: string): Array<{ name: string; label: string; type: string; required: boolean }> {
+  const matches = prompt.matchAll(/\{\{([a-zA-Z0-9_-]+)\}\}/g);
+  const varsMap = new Map<string, { name: string; label: string; type: string; required: boolean }>();
+
+  for (const match of matches) {
+    const varName = match[1].trim();
+    if (varName && !varsMap.has(varName)) {
+      varsMap.set(varName, {
+        name: varName,
+        label: varName.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+        type: "text",
+        required: true,
+      });
+    }
+  }
+
+  return Array.from(varsMap.values());
+}
+
 export async function POST(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -65,6 +84,7 @@ export async function POST(request: NextRequest) {
   }
 
   const { name, description, prompt, category, models, isOfficial } = parseResult.data;
+  const variables = extractTemplateVariables(prompt);
 
   const template = await getDb().template.create({
     data: {
@@ -72,11 +92,24 @@ export async function POST(request: NextRequest) {
       description: description || null,
       category: category || "other",
       prompt,
-      variables: [],
+      variables,
       model: models?.[0] || null,
       isOfficial: isOfficial || false,
     },
   });
 
-  return NextResponse.json({ data: { id: template.id, name: template.title, description: template.description, prompt: template.prompt, category: template.category, isOfficial: template.isOfficial } }, { status: 201 });
+  return NextResponse.json(
+    {
+      data: {
+        id: template.id,
+        name: template.title,
+        description: template.description,
+        prompt: template.prompt,
+        variables,
+        category: template.category,
+        isOfficial: template.isOfficial,
+      },
+    },
+    { status: 201 }
+  );
 }

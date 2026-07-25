@@ -1,6 +1,6 @@
 Backend Fixes & Improvements Plan
 
-🔴 Critical (Security & Correctness)
+🔴 Critical (Security & Correctness)(done)
 #	Issue	Location	Impact
 1	Missing NEXTAUTH_SECRET / AUTH_SECRET in production	vercel env	Auth tokens unsigned → session hijacking possible
 2	No AUTH_TRUST_HOST or NEXTAUTH_URL set	Vercel env / lib/auth/config.ts	NextAuth v5 may reject valid callbacks in production
@@ -21,7 +21,7 @@ Backend Fixes & Improvements Plan
 14	Rate limit uses global Map (not shared across instances)	lib/rate-limit.ts	Won't work in multi-instance Vercel/container deployments
 15	Missing DELETE endpoints for collections, prompts, templates	app/api/v1/*	No way to clean up user data (GDPR compliance gap)
 
-🟡 Medium (Developer Experience & Maintainability)
+🟡 Medium (Developer Experience & Maintainability)(done)
 #	Issue	Location
 16	Inconsistent response shape	Routes return { data }, { error }, { data, total, page }, { data: { ... } }
 17	No OpenAPI / Swagger spec	Missing
@@ -34,7 +34,7 @@ Backend Fixes & Improvements Plan
 24	Template variables field always empty array	templates/route.ts:73
 25	No pagination cursor support	All list endpoints use offset/limit
 
-🟢 Low (Nice-to-Have / Polish)
+🟢 Low (Nice-to-Have / Polish) (done)
 #	Improvement	Area
 26	Add request ID header for tracing	Middleware
 27	Implement API key rotation / expiry reminders	api-keys
