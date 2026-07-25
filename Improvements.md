@@ -10,7 +10,7 @@ Backend Fixes & Improvements Plan
 6	No CSRF protection on state-changing API routes	All POST/PUT/DELETE in app/api/v1/*	Vulnerable to CSRF via browser cookies
 7	Middleware only checks auth, not permissions	middleware.ts	No authorization layer; any authenticated user can access all /api/v1 routes
 
-🟠 High (Reliability & Architecture)
+🟠 High (Reliability & Architecture)(done)
 #	Issue	Location	Impact
 8	Prisma 7 driver adapter requires @prisma/adapter-neon	lib/db/prisma.ts	Works now but not idiomatic; connection pooling not configured
 9	getDb() singleton not properly scoped for serverless	lib/db/prisma.ts	Cold starts may leak connections; no await prisma.$connect()

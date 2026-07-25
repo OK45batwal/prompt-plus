@@ -17,6 +17,34 @@ export interface LLMResponse {
   model: string;
 }
 
+export class LLMError extends Error {
+  constructor(message: string, public provider: string, public statusCode?: number) {
+    super(message);
+    this.name = "LLMError";
+  }
+}
+
+export class InvalidApiKeyError extends LLMError {
+  constructor(provider: string, message?: string) {
+    super(message || `Invalid API key for ${provider}`, provider, 401);
+    this.name = "InvalidApiKeyError";
+  }
+}
+
+export class RateLimitQuotaError extends LLMError {
+  constructor(provider: string, message?: string) {
+    super(message || `Rate limit / quota exceeded for ${provider}`, provider, 429);
+    this.name = "RateLimitQuotaError";
+  }
+}
+
+export class ProviderServerError extends LLMError {
+  constructor(provider: string, message?: string) {
+    super(message || `${provider} server error`, provider, 502);
+    this.name = "ProviderServerError";
+  }
+}
+
 export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> {
   const {
     provider,
@@ -55,7 +83,17 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    throw new Error(data.error?.message || `${provider} API error (${res.status})`);
+    const errMsg = data.error?.message || `${provider} API error (${res.status})`;
+    if (res.status === 401 || res.status === 403) {
+      throw new InvalidApiKeyError(provider, errMsg);
+    }
+    if (res.status === 429) {
+      throw new RateLimitQuotaError(provider, errMsg);
+    }
+    if (res.status >= 500) {
+      throw new ProviderServerError(provider, errMsg);
+    }
+    throw new LLMError(errMsg, provider, res.status);
   }
 
   const text = (isAnthropic ? data.content?.[0]?.text : data.choices?.[0]?.message?.content) || "";
