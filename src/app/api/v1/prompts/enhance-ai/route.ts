@@ -15,7 +15,8 @@ function buildSystemPrompt(category?: string, tone?: string, length?: string): s
   return sp;
 }
 
-export const POST = withAuth(async (request: NextRequest, { userId, requestId }) => {
+export const POST = withAuth(
+  async (request: NextRequest, { userId, requestId }) => {
   const rateCheck = checkRateLimit(userId);
   if (!rateCheck.allowed) {
     return jsonResponse(
@@ -199,4 +200,4 @@ export const POST = withAuth(async (request: NextRequest, { userId, requestId })
       { rateLimit: rateCheck, requestId }
     );
   }
-});
+}, { allowGuest: true });
