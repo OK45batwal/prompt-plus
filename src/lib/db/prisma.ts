@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaNeonHttp } from "@prisma/adapter-neon";
 
 const globalForPrisma = globalThis as unknown as {
@@ -7,15 +6,13 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient(): PrismaClient {
-  const dbUrl = process.env.DATABASE_URL || "file:./dev.db";
+  const dbUrl = process.env.DATABASE_URL || "";
+  const connectionUrl =
+    dbUrl.startsWith("postgresql://") || dbUrl.startsWith("postgres://")
+      ? dbUrl
+      : "postgresql://placeholder:placeholder@localhost:5432/placeholder";
 
-  if (dbUrl.startsWith("postgresql://") || dbUrl.startsWith("postgres://")) {
-    const adapter = new PrismaNeonHttp(dbUrl, {});
-    return new PrismaClient({ adapter });
-  }
-
-  const filePath = dbUrl.replace(/^file:/, "");
-  const adapter = new PrismaBetterSqlite3({ url: filePath });
+  const adapter = new PrismaNeonHttp(connectionUrl, {});
   return new PrismaClient({ adapter });
 }
 
