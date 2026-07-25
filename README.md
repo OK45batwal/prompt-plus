@@ -28,6 +28,7 @@
   <a href="#features">Features</a> •
   <a href="#tech-stack">Tech Stack</a> •
   <a href="#getting-started">Getting Started</a> •
+  <a href="CONTRIBUTING.md">Contributing</a> •
   <a href="https://prompt-plus-three.vercel.app">Live Demo</a> •
   <a href="#screenshots">Screenshots</a>
 </p>
@@ -88,6 +89,10 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 ```bash
 npm test
 ```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please check out [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on setting up your environment, running tests, and opening pull requests.
 
 ## 📄 License
 
