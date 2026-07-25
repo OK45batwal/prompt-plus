@@ -61,16 +61,29 @@ export default function SettingsPage() {
     async function fetchKeys() {
       try {
         const res = await fetch("/api/v1/api-keys");
+        const keyMap: Record<string, boolean> = {};
         if (res.ok && isMounted) {
           const json = await res.json();
-          const keyMap: Record<string, boolean> = {};
           if (Array.isArray(json.data)) {
             json.data.forEach((k: { provider: string; isActive: boolean }) => {
               keyMap[k.provider] = k.isActive;
             });
           }
-          setSavedKeys(keyMap);
         }
+        if (typeof window !== "undefined") {
+          try {
+            const raw = localStorage.getItem("promptplus_user_apikeys");
+            if (raw) {
+              const localMap = JSON.parse(raw);
+              Object.keys(localMap).forEach((p) => {
+                if (localMap[p]) keyMap[p] = true;
+              });
+            }
+          } catch {
+            // ignore
+          }
+        }
+        if (isMounted) setSavedKeys(keyMap);
       } catch {
         // ignore
       }
@@ -87,15 +100,25 @@ export default function SettingsPage() {
 
     setIsSavingKey((prev) => ({ ...prev, [provider]: true }));
     try {
-      const res = await fetch("/api/v1/api-keys", {
+      await fetch("/api/v1/api-keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider, apiKey: rawKey }),
       });
-      if (res.ok) {
-        setSavedKeys((prev) => ({ ...prev, [provider]: true }));
-        setApiKeysInput((prev) => ({ ...prev, [provider]: "" }));
+
+      if (typeof window !== "undefined") {
+        try {
+          const raw = localStorage.getItem("promptplus_user_apikeys") || "{}";
+          const localMap = JSON.parse(raw);
+          localMap[provider] = rawKey.trim();
+          localStorage.setItem("promptplus_user_apikeys", JSON.stringify(localMap));
+        } catch {
+          // ignore
+        }
       }
+
+      setSavedKeys((prev) => ({ ...prev, [provider]: true }));
+      setApiKeysInput((prev) => ({ ...prev, [provider]: "" }));
     } finally {
       setIsSavingKey((prev) => ({ ...prev, [provider]: false }));
     }
@@ -103,13 +126,19 @@ export default function SettingsPage() {
 
   const handleDeleteApiKey = async (provider: string) => {
     try {
-      const res = await fetch(`/api/v1/api-keys?provider=${provider}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        setSavedKeys((prev) => ({ ...prev, [provider]: false }));
-        setApiKeysInput((prev) => ({ ...prev, [provider]: "" }));
+      await fetch(`/api/v1/api-keys?provider=${provider}`, { method: "DELETE" });
+      if (typeof window !== "undefined") {
+        try {
+          const raw = localStorage.getItem("promptplus_user_apikeys") || "{}";
+          const localMap = JSON.parse(raw);
+          delete localMap[provider];
+          localStorage.setItem("promptplus_user_apikeys", JSON.stringify(localMap));
+        } catch {
+          // ignore
+        }
       }
+      setSavedKeys((prev) => ({ ...prev, [provider]: false }));
+      setApiKeysInput((prev) => ({ ...prev, [provider]: "" }));
     } catch {
       // ignore
     }

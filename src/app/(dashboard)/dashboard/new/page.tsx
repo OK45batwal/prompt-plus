@@ -172,6 +172,20 @@ export default function PromptBuilderPage() {
 
     const fullPrompt = getCombinedPromptWithContext();
 
+    let userApiKey: string | undefined;
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("promptplus_user_apikeys");
+        if (raw) {
+          const localMap = JSON.parse(raw);
+          const targetProv = selectedModelData?.provider || "openai";
+          userApiKey = localMap[targetProv] || localMap["openrouter"] || localMap["openai"] || localMap["anthropic"];
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     try {
       // Call real AI endpoint
       const aiRes = await fetch("/api/v1/prompts/enhance-ai", {
@@ -184,6 +198,7 @@ export default function PromptBuilderPage() {
           category: selectedCategory,
           tone: selectedTone,
           length: selectedLength,
+          userApiKey,
         }),
       });
       const aiData = await aiRes.json();

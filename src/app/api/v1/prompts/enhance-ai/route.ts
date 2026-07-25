@@ -69,12 +69,12 @@ export const POST = withAuth(
       );
     }
 
-    const { promptId, text, model, provider: reqProvider, category, tone, length } = parseResult.data;
+    const { promptId, text, model, provider: reqProvider, category, tone, length, userApiKey } = parseResult.data;
     const startTime = Date.now();
 
     const targetProvider =
       reqProvider ||
-      (model?.includes("claude") ? "anthropic" : model?.includes("openrouter") ? "openrouter" : "openai");
+      (model?.includes("claude") ? "anthropic" : model?.includes("openrouter") || model?.includes("/") ? "openrouter" : "openai");
 
     const userApiKeyRow = await getDb().apiKey.findFirst({
       where: {
@@ -84,7 +84,7 @@ export const POST = withAuth(
       },
     });
 
-    let apiKey: string | undefined;
+    let apiKey: string | undefined = userApiKey;
     let resolvedProvider: "openai" | "anthropic" | "openrouter" =
       targetProvider === "openrouter"
         ? "openrouter"
@@ -92,7 +92,7 @@ export const POST = withAuth(
         ? "anthropic"
         : "openai";
 
-    if (userApiKeyRow) {
+    if (!apiKey && userApiKeyRow) {
       try {
         apiKey = decrypt(userApiKeyRow.apiKeyEnc);
       } catch {
