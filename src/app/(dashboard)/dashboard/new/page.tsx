@@ -88,6 +88,7 @@ const tones = [
 ];
 const lengths = ["Short", "Medium", "Long", "Very Long"];
 const categories = [
+  "Finance & Banking",
   "Blog Post",
   "Email",
   "Social Media",
@@ -370,11 +371,10 @@ export default function PromptBuilderPage() {
                     key={block.id}
                     type="button"
                     onClick={() => toggleContextBlock(block.id)}
-                    className={`text-[11px] px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${
-                      isActive
+                    className={`text-[11px] px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${isActive
                         ? "bg-primary text-primary-foreground border-primary font-medium shadow-xs"
                         : "bg-background text-muted-foreground border-border hover:bg-accent"
-                    }`}
+                      }`}
                   >
                     {isActive ? <Check className="h-3 w-3" /> : <PlusCircle className="h-3 w-3 opacity-60" />}
                     {block.name}

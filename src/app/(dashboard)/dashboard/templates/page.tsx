@@ -75,6 +75,16 @@ const mockFallbackTemplates: TemplateItem[] = [
     isOfficial: false,
     prompt: "Write a product description for [PRODUCT].\n\nFeatures: [FEATURES]\nTarget audience: [AUDIENCE]\nUnique selling point: [USP]\n\nInclude:\n- Attention-grabbing headline\n- Key benefits\n- Specifications\n- Social proof elements\n- Call-to-action",
   },
+  {
+    id: "finance-analysis",
+    title: "Financial Valuation & Risk Analysis",
+    description: "Perform deep-dive financial modeling, DCF valuation, and risk assessment",
+    category: "Finance & Banking",
+    model: "gpt-4",
+    usageCount: 1420,
+    isOfficial: true,
+    prompt: "Act as a Chartered Financial Analyst (CFA). Conduct a comprehensive financial valuation and risk analysis for [COMPANY/ASSET].\n\nInclude:\n- Key Financial Ratios (P/E, EV/EBITDA, Debt-to-Equity)\n- Discounted Cash Flow (DCF) assumptions and sensitivity analysis\n- Industry macro risks & competitive moat evaluation\n- Strategic recommendations & target price range",
+  },
 ];
 
 export default function TemplatesPage() {
