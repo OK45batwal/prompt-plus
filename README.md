@@ -128,9 +128,9 @@ Prompt+ transforms simple or incomplete inputs into production-grade prompts usi
 | **Language** | TypeScript 5 (Strict Mode) |
 | **Styling** | Tailwind CSS v4 + Lucide Icons |
 | **Authentication** | NextAuth.js v5 (JWT + Bcrypt hashing) |
-| **Database & ORM** | Neon PostgreSQL / SQLite + Prisma ORM 7 |
+| **Database & ORM** | Neon PostgreSQL + Prisma ORM 7 |
 | **AI Providers** | OpenRouter (`Llama 3.3`, `DeepSeek R1`), OpenAI (`GPT-4o`), Anthropic (`Claude 3.5`) |
-| **Testing** | Vitest Runner (45 passing tests) |
+| **Testing** | Vitest Runner (37 passing tests) |
 | **Security** | AES-256-GCM encryption + Request ID tracing + CSRF validation |
 
 ---
@@ -141,14 +141,15 @@ Prompt+ transforms simple or incomplete inputs into production-grade prompts usi
 
 ```bash
 git clone https://github.com/OK45batwal/Prompt-plus.git
-cd Prompt-plus/prompt-plus
+cd Prompt-plus
 npm install
 ```
 
-### 2. Database Push & Dev Server
+### 2. Database Setup & Dev Server
 
 ```bash
-npx prisma db push
+# Set a Postgres connection string in .env (DATABASE_URL)
+npx prisma migrate dev
 npm run dev
 ```
 
