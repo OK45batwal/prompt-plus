@@ -15,7 +15,6 @@ export interface AuthApiContext<T = unknown> {
 
 export interface WithAuthOptions<T extends z.ZodTypeAny = z.ZodTypeAny> {
   schema?: T;
-  allowGuest?: boolean;
 }
 
 export type AuthenticatedRouteHandler<T = unknown> = (
@@ -23,18 +22,9 @@ export type AuthenticatedRouteHandler<T = unknown> = (
   context: AuthApiContext<T>
 ) => Promise<Response> | Response;
 
-const GUEST_SESSION: Session = {
-  user: {
-    id: "guest_user",
-    email: "guest@example.com",
-    name: "Guest User",
-  },
-  expires: new Date(Date.now() + 86400000).toISOString(),
-};
-
 /**
  * Higher-Order Function wrapper for API v1 route handlers.
- * Enforces session authentication (or guest fallback), CSRF validation on mutating methods,
+ * Enforces session authentication, CSRF validation on mutating methods,
  * request ID extraction, body stream preservation, and structured logging.
  */
 export function withAuth<T extends z.ZodTypeAny = z.ZodTypeAny>(
@@ -44,15 +34,11 @@ export function withAuth<T extends z.ZodTypeAny = z.ZodTypeAny>(
   return async (req: NextRequest): Promise<Response> => {
     const requestId = req.headers.get("x-request-id") || crypto.randomUUID();
 
-    // 1. Verify Authentication Session with guest fallback if allowed or in dev
-    let session = await auth();
+    // 1. Verify Authentication Session
+    const session = await auth();
     if (!session?.user?.id) {
-      if (options?.allowGuest || process.env.NODE_ENV !== "production") {
-        session = GUEST_SESSION;
-      } else {
-        logger.warn("Unauthorized API access attempt", { requestId, path: req.nextUrl?.pathname });
-        return jsonResponse({ error: "Unauthorized" }, { status: 401, requestId });
-      }
+      logger.warn("Unauthorized API access attempt", { requestId, path: req.nextUrl?.pathname });
+      return jsonResponse({ error: "Unauthorized" }, { status: 401, requestId });
     }
 
     // 2. Validate CSRF Protection for state-changing HTTP methods
@@ -89,7 +75,7 @@ export function withAuth<T extends z.ZodTypeAny = z.ZodTypeAny>(
     try {
       return await handler(req, {
         session,
-        userId: session.user?.id || "guest_user",
+        userId: session.user!.id,
         requestId,
         body: parsedBody,
       });

@@ -46,39 +46,6 @@ Rewrite the prompt above into a master AI prompt framework with the following ex
   return { metaPrompt, systemInstruction };
 }
 
-function generateSmartEnhancedPrompt(
-  text: string,
-  category?: string,
-  tone?: string,
-  length?: string
-): string {
-  const cleanText = text.trim();
-  const cat = category || "General Task";
-  const preferredTone = tone ? `in a ${tone.toLowerCase()} tone` : "in a professional, clear tone";
-  const preferredLength = length ? `Keep the response ${length.toLowerCase()}.` : "Provide a comprehensive, well-structured output.";
-
-  return `### Role & Objective
-Act as an expert AI consultant and senior specialist in ${cat}. Your objective is to process and execute the task below ${preferredTone}.
-
-### Context & Requirements
-- Primary Domain: ${cat}
-- Desired Quality: Production-ready, precise, and verified against best practices.
-
-### Core Task Input
-"${cleanText}"
-
-### Step-by-Step Execution Instructions
-1. Intent & Context Analysis: Evaluate key requirements, implicit assumptions, and deliverables.
-2. Solution Architecture: Formulate a step-by-step, logically structured solution that directly fulfills the task.
-3. Quality & Edge Cases: Identify potential pitfalls, security considerations, or performance edge cases.
-4. Actionable Output: Provide concrete recommendations, code snippets, or structured guidance.
-
-### Constraints & Output Format
-- ${preferredLength}
-- Format using clean Markdown headers, bullet lists, and syntax-highlighted code blocks where applicable.
-- Eliminate generic fluff, disclaimers, or conversational boilerplate.`;
-}
-
 export const POST = withAuth(
   async (request: NextRequest, { userId, requestId }) => {
     const rateCheck = checkRateLimit(userId);
@@ -152,48 +119,14 @@ export const POST = withAuth(
       }
     }
 
-    const { metaPrompt, systemInstruction } = buildArchitectMetaPrompt(text, category, tone, length);
-
     if (!apiKey) {
-      const enhancedText = generateSmartEnhancedPrompt(text, category, tone, length);
-      const latencyMs = Date.now() - startTime;
-
-      await getDb().usageLog.create({
-        data: {
-          userId,
-          promptId: promptId || null,
-          action: "enhance",
-          provider: "local",
-          model: model || "architect-engine",
-          tokensIn: text.length,
-          tokensOut: enhancedText.length,
-          latencyMs,
-          success: true,
-        },
-      }).catch(() => {});
-
-      if (promptId) {
-        const latestVersion = await getDb().version.findFirst({
-          where: { promptId },
-          orderBy: { version: "desc" },
-        });
-        const nextVer = (latestVersion?.version || 0) + 1;
-        await getDb().version.create({
-          data: { promptId, version: nextVer, text: enhancedText },
-        }).catch(() => {});
-      }
-
       return jsonResponse(
-        {
-          data: {
-            enhanced: enhancedText,
-            provider: "local",
-            model: model || "architect-engine",
-          },
-        },
-        { rateLimit: rateCheck, requestId }
+        { error: "No API key configured. Add your API key in Settings to use AI enhancement." },
+        { status: 402, requestId }
       );
     }
+
+    const { metaPrompt, systemInstruction } = buildArchitectMetaPrompt(text, category, tone, length);
 
     try {
       const response = await callLLM({
@@ -264,20 +197,12 @@ export const POST = withAuth(
         },
       }).catch(() => {});
 
-      const fallbackText = generateSmartEnhancedPrompt(text, category, tone, length);
-
       return jsonResponse(
         {
-          data: {
-            enhanced: fallbackText,
-            provider: "local-fallback",
-            model: model || "architect-engine",
-            error: error instanceof Error ? error.message : "API error",
-          },
+          error: error instanceof Error ? error.message : "AI enhancement failed",
         },
-        { rateLimit: rateCheck, requestId }
+        { status: 502, requestId }
       );
     }
-  },
-  { allowGuest: true }
+  }
 );

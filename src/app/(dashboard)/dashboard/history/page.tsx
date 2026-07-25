@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Clock, RotateCcw, Trash2, ChevronDown, Check } from "lucide-react";
+import { Search, Clock, RotateCcw, ChevronDown, Check } from "lucide-react";
 
 interface HistoryItem {
   id: string;
@@ -14,58 +14,15 @@ interface HistoryItem {
   timestamp: string;
 }
 
-const mockHistory: HistoryItem[] = [
-  {
-    id: "1",
-    originalText: "Write a blog post about AI",
-    enhancedText: "Act as a professional content writer. Write a comprehensive blog post about artificial intelligence in 2024...",
-    model: "gpt-4",
-    originalScore: 45,
-    enhancedScore: 85,
-    timestamp: "2 hours ago",
-  },
-  {
-    id: "2",
-    originalText: "Help me with my resume",
-    enhancedText: "Act as a professional career coach. Review and enhance my resume for [TARGET_POSITION]...",
-    model: "claude-3",
-    originalScore: 32,
-    enhancedScore: 78,
-    timestamp: "5 hours ago",
-  },
-  {
-    id: "3",
-    originalText: "Create a marketing email",
-    enhancedText: "Act as a marketing specialist. Create a compelling email campaign for [PRODUCT]...",
-    model: "gpt-4",
-    originalScore: 55,
-    enhancedScore: 92,
-    timestamp: "1 day ago",
-  },
-  {
-    id: "4",
-    originalText: "Explain quantum computing",
-    enhancedText: "Act as a physics professor. Explain quantum computing concepts in simple terms...",
-    model: "gemini-pro",
-    originalScore: 60,
-    enhancedScore: 88,
-    timestamp: "2 days ago",
-  },
-];
-
 export default function HistoryPage() {
   const [search, setSearch] = useState("");
-  const [history, setHistory] = useState(mockHistory);
+  const [history] = useState<HistoryItem[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const filteredHistory = history.filter((item) =>
     item.originalText.toLowerCase().includes(search.toLowerCase()) ||
     item.enhancedText.toLowerCase().includes(search.toLowerCase())
   );
-
-  const deleteHistory = (id: string) => {
-    setHistory(history.filter((item) => item.id !== id));
-  };
 
   const router = useRouter();
 
@@ -157,12 +114,7 @@ export default function HistoryPage() {
                       >
                         <Check className="h-3.5 w-3.5 mr-1" /> Copy Enhanced
                       </button>
-                      <button
-                        onClick={() => deleteHistory(item.id)}
-                        className="h-8 flex items-center justify-center rounded-lg border px-3 text-xs font-medium hover:bg-accent transition-colors text-red-600 ml-auto"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+
                     </div>
                   </div>
                 )}

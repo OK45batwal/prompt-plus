@@ -43,12 +43,6 @@ const quickActions = [
   },
 ];
 
-const stats = [
-  { label: "Total Prompts", value: "12", change: "+3 this week" },
-  { label: "Avg. Score", value: "78", change: "+5 improvement" },
-  { label: "Enhancements", value: "47", change: "5 remaining today" },
-];
-
 export default function DashboardPage() {
   return (
     <div className="space-y-6">
@@ -56,17 +50,6 @@ export default function DashboardPage() {
       <div>
         <h2 className="text-lg font-semibold">Welcome back</h2>
         <p className="text-sm text-muted-foreground">Transform your prompts into powerful, AI-optimized instructions.</p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {stats.map((stat) => (
-          <div key={stat.label} className="p-4 rounded-lg border bg-card">
-            <p className="text-xs text-muted-foreground mb-1">{stat.label}</p>
-            <p className="text-2xl font-bold">{stat.value}</p>
-            <p className="text-xs text-muted-foreground mt-1">{stat.change}</p>
-          </div>
-        ))}
       </div>
 
       {/* Quick Actions */}
@@ -94,34 +77,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div>
-        <h3 className="font-semibold text-sm mb-3">Recent Activity</h3>
-        <div className="space-y-2">
-          {[
-            { title: "Blog Post Introduction", model: "gpt-4", score: 85, time: "2 hours ago" },
-            { title: "Email Follow-up Template", model: "claude-3", score: 78, time: "5 hours ago" },
-            { title: "Code Review Request", model: "gpt-4", score: 92, time: "1 day ago" },
-          ].map((item, i) => (
-            <div key={i} className="p-3 rounded-lg border bg-card flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                item.score >= 80 ? "bg-green-100 dark:bg-green-900/30" : item.score >= 60 ? "bg-yellow-100 dark:bg-yellow-900/30" : "bg-red-100 dark:bg-red-900/30"
-              }`}>
-                <span className={`text-sm font-bold ${
-                  item.score >= 80 ? "text-green-700 dark:text-green-400" : item.score >= 60 ? "text-yellow-700 dark:text-yellow-400" : "text-red-700 dark:text-red-400"
-                }`}>{item.score}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{item.title}</p>
-                <p className="text-xs text-muted-foreground">{item.model} • {item.time}</p>
-              </div>
-              <Link href="/dashboard/new" className="text-xs text-muted-foreground hover:text-foreground">
-                View
-              </Link>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

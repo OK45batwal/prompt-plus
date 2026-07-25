@@ -100,34 +100,6 @@ const categories = [
   "Other",
 ];
 
-function generateLocalEnhancedPrompt(
-  text: string,
-  category?: string,
-  tone?: string,
-  length?: string
-): string {
-  const cleanText = text.trim();
-  const cat = category || "General Task";
-  const preferredTone = tone ? `in a ${tone.toLowerCase()} tone` : "in a professional, clear tone";
-  const preferredLength = length ? `Keep the output ${length.toLowerCase()}.` : "Provide a comprehensive, well-structured response.";
-
-  return `### Role & Objective
-You are an elite AI prompt engineer specializing in ${cat}. Your objective is to process the following request ${preferredTone} with maximum clarity and depth.
-
-### Request Input
-${cleanText}
-
-### Execution Instructions
-1. Analyze the core requirements, domain context, and expected deliverables.
-2. Provide a structured, step-by-step answer that directly fulfills the prompt objective.
-3. Highlight critical edge cases, key takeaways, and production-ready code blocks where applicable.
-4. Maintain logical precision while eliminating filler text or generic generalizations.
-
-### Formatting & Output Guidelines
-- ${preferredLength}
-- Format using clean Markdown headers, bullet lists, and code blocks as appropriate.`;
-}
-
 export default function PromptBuilderPage() {
   const [prompt, setPrompt] = useState("");
   const [selectedModel, setSelectedModel] = useState<Model>("gpt-4");
@@ -204,13 +176,17 @@ export default function PromptBuilderPage() {
       });
       const aiData = await aiRes.json();
 
-      if (!aiRes.ok && aiData.error) {
-        setErrorNotice(aiData.error);
+      if (!aiRes.ok) {
+        const errMsg = aiData.error || "Enhancement failed";
+        setErrorNotice(errMsg);
+        return;
       }
 
-      const finalEnhancedText =
-        aiData.data?.enhanced ||
-        generateLocalEnhancedPrompt(fullPrompt, selectedCategory, selectedTone, selectedLength);
+      const finalEnhancedText = aiData.data?.enhanced;
+      if (!finalEnhancedText) {
+        setErrorNotice("No enhancement returned");
+        return;
+      }
 
       // Get scoring and analysis
       const [analyzeRes, scoreRes, enhancedScoreRes] = await Promise.all([
@@ -232,47 +208,29 @@ export default function PromptBuilderPage() {
       ]);
 
       const [analyzeData, scoreData, enhancedScoreData] = await Promise.all([
-        analyzeRes.json(),
-        scoreRes.json(),
-        enhancedScoreRes.json(),
+        analyzeRes.json().catch(() => ({})),
+        scoreRes.json().catch(() => ({})),
+        enhancedScoreRes.json().catch(() => ({})),
       ]);
 
       setResult({
         original: {
           text: prompt,
-          score: scoreData.data?.total || 72,
-          analysis: analyzeData.data || { intent: "General", category: "Other", complexity: 3, confidence: 90, entities: [], missing: [], suggestions: [] },
+          score: scoreData.data?.total || 0,
+          analysis: analyzeData.data || { intent: "", category: "", complexity: 0, confidence: 0, entities: [], missing: [], suggestions: [] },
         },
         enhanced: {
           text: finalEnhancedText,
-          score: enhancedScoreData.data?.total || 94,
-          explanation: "Optimized prompt structure, added domain constraints, and refined clarity.",
-          improvements: [
-            { aspect: "Clarity", change: "Added explicit role definition", reason: "Directs AI focus" },
-            { aspect: "Constraints", change: "Specified target tech stack & format", reason: "Eliminates generic boilerplate" },
-          ],
+          score: enhancedScoreData.data?.total || 0,
+          explanation: "",
+          improvements: [],
         },
-        scoring: scoreData.data || { total: 72, dimensions: { clarity: 70, specificity: 65, structure: 75, context: 70, length: 80, actionability: 70 }, strengths: [], weaknesses: [], recommendations: [] },
-        enhancedScoring: enhancedScoreData.data || { total: 94, dimensions: { clarity: 95, specificity: 90, structure: 95, context: 95, length: 90, actionability: 95 }, strengths: [], weaknesses: [], recommendations: [] },
+        scoring: scoreData.data || { total: 0, dimensions: { clarity: 0, specificity: 0, structure: 0, context: 0, length: 0, actionability: 0 }, strengths: [], weaknesses: [], recommendations: [] },
+        enhancedScoring: enhancedScoreData.data || { total: 0, dimensions: { clarity: 0, specificity: 0, structure: 0, context: 0, length: 0, actionability: 0 }, strengths: [], weaknesses: [], recommendations: [] },
       });
     } catch (error) {
       console.error("Enhancement failed:", error);
-      const fallbackText = generateLocalEnhancedPrompt(fullPrompt, selectedCategory, selectedTone, selectedLength);
-      setResult({
-        original: {
-          text: prompt,
-          score: 70,
-          analysis: { intent: "General", category: "Other", complexity: 3, confidence: 90, entities: [], missing: [], suggestions: [] },
-        },
-        enhanced: {
-          text: fallbackText,
-          score: 92,
-          explanation: "Optimized structure using Prompt+ Smart Engine.",
-          improvements: [{ aspect: "Structure", change: "Added Role and Constraints", reason: "Optimizes output quality" }],
-        },
-        scoring: { total: 70, dimensions: { clarity: 70, specificity: 65, structure: 75, context: 70, length: 80, actionability: 70 }, strengths: [], weaknesses: [], recommendations: [] },
-        enhancedScoring: { total: 92, dimensions: { clarity: 92, specificity: 90, structure: 95, context: 92, length: 90, actionability: 92 }, strengths: [], weaknesses: [], recommendations: [] },
-      });
+      setErrorNotice("Network error. Please try again.");
     } finally {
       setIsEnhancing(false);
     }
@@ -307,7 +265,7 @@ export default function PromptBuilderPage() {
 
       {errorNotice && (
         <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-700 dark:text-amber-300 flex items-center justify-between">
-          <span>⚠️ {errorNotice} — Generated with Prompt+ Smart Optimization Engine.</span>
+          <span>⚠️ {errorNotice}</span>
           <button onClick={() => setErrorNotice(null)} className="text-xs underline ml-2">Dismiss</button>
         </div>
       )}

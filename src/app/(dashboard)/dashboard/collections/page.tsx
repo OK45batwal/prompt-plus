@@ -13,56 +13,8 @@ interface Collection {
   createdAt: string;
 }
 
-const mockCollections: Collection[] = [
-  {
-    id: "1",
-    name: "Blog Writing",
-    description: "Prompts for creating blog posts and articles",
-    promptCount: 12,
-    icon: "📝",
-    color: "#3b82f6",
-    createdAt: "2024-01-15",
-  },
-  {
-    id: "2",
-    name: "Email Templates",
-    description: "Professional email prompts",
-    promptCount: 8,
-    icon: "📧",
-    color: "#10b981",
-    createdAt: "2024-01-14",
-  },
-  {
-    id: "3",
-    name: "Code Review",
-    description: "Prompts for code analysis and review",
-    promptCount: 15,
-    icon: "💻",
-    color: "#8b5cf6",
-    createdAt: "2024-01-13",
-  },
-  {
-    id: "4",
-    name: "Marketing",
-    description: "Marketing and sales prompts",
-    promptCount: 6,
-    icon: "📈",
-    color: "#f59e0b",
-    createdAt: "2024-01-12",
-  },
-  {
-    id: "5",
-    name: "Social Media",
-    description: "Social media content prompts",
-    promptCount: 10,
-    icon: "📱",
-    color: "#ec4899",
-    createdAt: "2024-01-11",
-  },
-];
-
 export default function CollectionsPage() {
-  const [collections, setCollections] = useState(mockCollections);
+  const [collections, setCollections] = useState<Collection[]>([]);
   const [showNewModal, setShowNewModal] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");

@@ -36,8 +36,8 @@ export default function SettingsPage() {
   const { setTheme, resolvedTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const [saved, setSaved] = useState(false);
-  const [name, setName] = useState(session?.user?.name || "Demo User");
-  const [email, setEmail] = useState(session?.user?.email || "demo@example.com");
+  const [name, setName] = useState(session?.user?.name || "");
+  const [email, setEmail] = useState(session?.user?.email || "");
   const [apiKeysInput, setApiKeysInput] = useState<Record<string, string>>({});
   const [savedKeys, setSavedKeys] = useState<Record<string, boolean>>({});
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
