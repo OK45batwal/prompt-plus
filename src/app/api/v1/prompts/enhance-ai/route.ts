@@ -7,12 +7,43 @@ import { decrypt } from "@/lib/crypto";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 
-function buildSystemPrompt(category?: string, tone?: string, length?: string): string {
-  let sp = "You are an expert prompt engineer. Transform the user's prompt into a highly structured, clear, and effective prompt framework. Return ONLY the enhanced prompt itself without introductory chatter.";
-  if (category) sp += `\n\nTarget Domain / Category: ${category}`;
-  if (tone) sp += `\nTone Preference: ${tone}`;
-  if (length) sp += `\nDesired Length: ${length}`;
-  return sp;
+function buildArchitectMetaPrompt(
+  originalPrompt: string,
+  category?: string,
+  tone?: string,
+  length?: string
+): { metaPrompt: string; systemInstruction: string } {
+  const cat = category || "General Task";
+  const preferredTone = tone || "Professional & Clear";
+  const preferredLength = length || "Comprehensive & Structured";
+
+  const systemInstruction = `You are the Prompt+ Architect Engine — an advanced AI meta-prompt compiler.
+Your task is to transform raw, simple, or incomplete user prompts into production-grade, highly structured AI instructions.
+
+### ARCHITECT 8-STEP PIPELINE:
+1. User Input Analysis: Identify core intent, domain context, task type, and underlying complexity.
+2. Missing Element Detection: Detect missing Role, Context, Constraints, Target Audience, Examples, Tone, and Output Format.
+3. Meta-Prompt Synthesis: Construct an explicit meta-instruction framework without changing the user's original intent.
+4. Structure & Quality Validation: Ensure zero filler text, zero disclaimers, clear section boundaries, and precise formatting rules.
+
+Return ONLY the final enhanced prompt framework ready for immediate execution by AI models (GPT, Claude, Gemini, DeepSeek). Do NOT add introductory or conversational meta-text.`;
+
+  const metaPrompt = `[ORIGINAL USER PROMPT]:
+"${originalPrompt.trim()}"
+
+[TARGET DOMAIN]: ${cat}
+[PREFERRED TONE]: ${preferredTone}
+[TARGET OUTPUT LENGTH]: ${preferredLength}
+
+[META-PROMPT INSTRUCTIONS]:
+Rewrite the prompt above into a master AI prompt framework with the following explicit sections:
+1. ### Role & Objective — Define an elite persona tailored to ${cat}.
+2. ### Context & Domain Constraints — Establish target domain, background context, and non-negotiable boundaries.
+3. ### Step-by-Step Instructions — Break down execution into clear, sequential steps.
+4. ### Output Format & Constraints — Specify ${preferredLength}, ${preferredTone}, and formatting guidelines (Markdown, code blocks, bullet points).
+5. ### Input Variables — Highlight placeholders like {{user_input}} or specific parameters if required.`;
+
+  return { metaPrompt, systemInstruction };
 }
 
 function generateSmartEnhancedPrompt(
@@ -24,24 +55,28 @@ function generateSmartEnhancedPrompt(
   const cleanText = text.trim();
   const cat = category || "General Task";
   const preferredTone = tone ? `in a ${tone.toLowerCase()} tone` : "in a professional, clear tone";
-  const preferredLength = length ? `Keep the output ${length.toLowerCase()}.` : "Provide a comprehensive, well-structured response.";
+  const preferredLength = length ? `Keep the response ${length.toLowerCase()}.` : "Provide a comprehensive, well-structured output.";
 
   return `### Role & Objective
-You are an elite AI assistant specializing in ${cat}. Your objective is to fulfill the request below ${preferredTone} with maximum accuracy and depth.
+Act as an expert AI consultant and senior specialist in ${cat}. Your objective is to process and execute the task below ${preferredTone}.
 
-### Request / Input
-${cleanText}
+### Context & Requirements
+- Primary Domain: ${cat}
+- Desired Quality: Production-ready, precise, and verified against best practices.
 
-### Core Instructions
-1. Analyze the objective thoroughly and identify all implicit constraints and key deliverables.
-2. Provide a structured, step-by-step response that directly answers the input prompt.
-3. Highlight key takeaways, best practices, or actionable code where applicable.
-4. Maintain clarity, rigor, and precision while eliminating filler text.
+### Core Task Input
+"${cleanText}"
 
-### Output Constraints & Format
+### Step-by-Step Execution Instructions
+1. Intent & Context Analysis: Evaluate key requirements, implicit assumptions, and deliverables.
+2. Solution Architecture: Formulate a step-by-step, logically structured solution that directly fulfills the task.
+3. Quality & Edge Cases: Identify potential pitfalls, security considerations, or performance edge cases.
+4. Actionable Output: Provide concrete recommendations, code snippets, or structured guidance.
+
+### Constraints & Output Format
 - ${preferredLength}
-- Format using clean Markdown with distinct headers, bullet points, and code blocks as appropriate.
-- Ensure all technical terms, code snippets, and guidance are production-ready.`;
+- Format using clean Markdown headers, bullet lists, and syntax-highlighted code blocks where applicable.
+- Eliminate generic fluff, disclaimers, or conversational boilerplate.`;
 }
 
 export const POST = withAuth(
@@ -117,6 +152,8 @@ export const POST = withAuth(
       }
     }
 
+    const { metaPrompt, systemInstruction } = buildArchitectMetaPrompt(text, category, tone, length);
+
     if (!apiKey) {
       const enhancedText = generateSmartEnhancedPrompt(text, category, tone, length);
       const latencyMs = Date.now() - startTime;
@@ -127,7 +164,7 @@ export const POST = withAuth(
           promptId: promptId || null,
           action: "enhance",
           provider: "local",
-          model: model || "smart-enhancement",
+          model: model || "architect-engine",
           tokensIn: text.length,
           tokensOut: enhancedText.length,
           latencyMs,
@@ -151,7 +188,7 @@ export const POST = withAuth(
           data: {
             enhanced: enhancedText,
             provider: "local",
-            model: model || "smart-enhancement",
+            model: model || "architect-engine",
           },
         },
         { rateLimit: rateCheck, requestId }
@@ -163,10 +200,10 @@ export const POST = withAuth(
         provider: resolvedProvider,
         apiKey,
         model,
-        systemPrompt: buildSystemPrompt(category, tone, length),
-        userPrompt: `Transform the following user prompt into a high-quality, professional, structured AI prompt:\n\n"${text}"\n\nReturn ONLY the final enhanced prompt text.`,
+        systemPrompt: systemInstruction,
+        userPrompt: metaPrompt,
         temperature: 0.7,
-        maxTokens: 1000,
+        maxTokens: 1200,
       });
 
       const latencyMs = Date.now() - startTime;
@@ -234,7 +271,7 @@ export const POST = withAuth(
           data: {
             enhanced: fallbackText,
             provider: "local-fallback",
-            model: model || "smart-enhancement",
+            model: model || "architect-engine",
             error: error instanceof Error ? error.message : "API error",
           },
         },

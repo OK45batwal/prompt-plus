@@ -55,6 +55,23 @@
 
 ---
 
+## ⚡ Prompt+ Architect 8-Step Enhancement Pipeline
+
+Prompt+ transforms simple or incomplete inputs into production-grade prompts using an automated 8-step architectural pipeline:
+
+| Step | Component | Description |
+|---|---|---|
+| **1. User Input** | Input Acquisition | Captures simple or raw user inputs (e.g. *"Create a portfolio website"*). |
+| **2. Prompt Analysis** | Intent & Task NLP | Analyzes user intent, domain context, task classification, and complexity. |
+| **3. Missing Info Detection** | Gap Auditor | Identifies missing elements: Role, Context, Constraints, Audience, Tone, Examples, Output Format. |
+| **4. Meta-Prompt Generation** | Meta-Instruction Compiler | Formulates a hidden meta-instruction framework without altering original user intent. |
+| **5. AI Model Processing** | Multi-Provider Engine | Dispatches original prompt + meta-instruction to selected LLM (GPT-4o, Claude 3.5, Llama 3.3, DeepSeek R1). |
+| **6. Prompt Enhancement** | Architectural Rewrite | AI rewrites prompt into a structured framework with Role, Instructions, Constraints, and Input Variables. |
+| **7. Quality Validation** | 6-Metric Audit | Validates prompt completeness, section boundaries, actionability, and structural integrity. |
+| **8. Final Output** | Delivery & In-Page Injection | Displays enhanced prompt with options to Copy, Edit, Save, or Insert directly into ChatGPT, Claude, and Gemini. |
+
+---
+
 ## 🖼️ Screenshots & Interface Showcase
 
 <div align="center">
