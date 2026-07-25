@@ -1,10 +1,10 @@
 import NextAuth from "next-auth";
+import type { NextAuthConfig } from "next-auth";
 import type { Provider } from "next-auth/providers";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
-import { authConfig } from "@/lib/auth/auth.config";
 import { getDb } from "@/lib/db/prisma";
 
 const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
@@ -13,6 +13,41 @@ if (process.env.NODE_ENV === "production" && !secret) {
     "FATAL: NEXTAUTH_SECRET or AUTH_SECRET must be defined in production environment variables."
   );
 }
+
+export const authConfig: NextAuthConfig = {
+  trustHost: true,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: "/login",
+  },
+  callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user?.id;
+      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
+
+      if (isOnDashboard) {
+        if (isLoggedIn) return true;
+        return false;
+      }
+      return true;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = (user as { role?: string }).role || "user";
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user && token.id) {
+        session.user.id = token.id as string;
+        (session.user as { role?: string }).role = (token.role as string) || "user";
+      }
+      return session;
+    },
+  },
+  providers: [],
+};
 
 export function getProviders(): Provider[] {
   const providers: Provider[] = [];

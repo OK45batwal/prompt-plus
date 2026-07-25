@@ -1,11 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { logger } from "@/lib/logger";
-import {
-  LLMError,
-  InvalidApiKeyError,
-  RateLimitQuotaError,
-  ProviderServerError,
-} from "@/lib/llm/providers";
+import { LLMError } from "@/lib/llm/providers";
 import { withAuth } from "@/lib/api/with-auth";
 import { NextRequest } from "next/server";
 import { z } from "zod";
@@ -38,21 +33,21 @@ describe("Phase 2 High Reliability & Architecture Tests", () => {
   });
 
   describe("Typed LLM Error Classification", () => {
-    it("should construct InvalidApiKeyError with 401 status", () => {
-      const err = new InvalidApiKeyError("openai", "Invalid API key");
+    it("should construct LLMError with correct status code and provider", () => {
+      const err = new LLMError("Invalid API key", "openai", 401);
       expect(err).toBeInstanceOf(LLMError);
       expect(err.statusCode).toBe(401);
       expect(err.provider).toBe("openai");
     });
 
-    it("should construct RateLimitQuotaError with 429 status", () => {
-      const err = new RateLimitQuotaError("anthropic", "Quota exceeded");
+    it("should construct LLMError for rate limit errors", () => {
+      const err = new LLMError("Quota exceeded", "anthropic", 429);
       expect(err.statusCode).toBe(429);
       expect(err.provider).toBe("anthropic");
     });
 
-    it("should construct ProviderServerError with 502 status", () => {
-      const err = new ProviderServerError("openai", "500 Internal Error");
+    it("should construct LLMError for server errors", () => {
+      const err = new LLMError("500 Internal Error", "openai", 502);
       expect(err.statusCode).toBe(502);
     });
   });

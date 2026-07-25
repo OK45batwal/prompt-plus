@@ -35,11 +35,4 @@ export function jsonResponse(data: unknown, options: ResponseOptions = {}): Next
   });
 }
 
-export function apiSuccess<T>(data: T, options: ResponseOptions = {}): NextResponse {
-  return jsonResponse({ success: true, data }, options);
-}
 
-export function apiError(error: string, options: ResponseOptions = {}): NextResponse {
-  const status = options.status || 400;
-  return jsonResponse({ success: false, error }, { ...options, status });
-}

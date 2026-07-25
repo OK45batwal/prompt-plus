@@ -24,27 +24,6 @@ export class LLMError extends Error {
   }
 }
 
-export class InvalidApiKeyError extends LLMError {
-  constructor(provider: string, message?: string) {
-    super(message || `Invalid API key for ${provider}`, provider, 401);
-    this.name = "InvalidApiKeyError";
-  }
-}
-
-export class RateLimitQuotaError extends LLMError {
-  constructor(provider: string, message?: string) {
-    super(message || `Rate limit / quota exceeded for ${provider}`, provider, 429);
-    this.name = "RateLimitQuotaError";
-  }
-}
-
-export class ProviderServerError extends LLMError {
-  constructor(provider: string, message?: string) {
-    super(message || `${provider} server error`, provider, 502);
-    this.name = "ProviderServerError";
-  }
-}
-
 export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> {
   const {
     provider,
@@ -101,15 +80,6 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
 
   if (!res.ok) {
     const errMsg = data.error?.message || `${provider} API error (${res.status})`;
-    if (res.status === 401 || res.status === 403) {
-      throw new InvalidApiKeyError(provider, errMsg);
-    }
-    if (res.status === 429) {
-      throw new RateLimitQuotaError(provider, errMsg);
-    }
-    if (res.status >= 500) {
-      throw new ProviderServerError(provider, errMsg);
-    }
     throw new LLMError(errMsg, provider, res.status);
   }
 

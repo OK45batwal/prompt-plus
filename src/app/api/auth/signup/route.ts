@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { getDb } from "@/lib/db/prisma";
-import { BCRYPT_SALT_ROUNDS } from "@/lib/auth/constants";
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -35,7 +33,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const passwordHash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+    const passwordHash = await bcrypt.hash(password, 12);
 
     const user = await getDb().user.create({
       data: {

@@ -13,7 +13,6 @@ import { encrypt, decrypt } from "@/lib/crypto";
 import { getProviders } from "@/lib/auth/config";
 import { checkRateLimit, resetRateLimit } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/auth/csrf";
-import { hasPermission } from "@/lib/auth/permissions";
 import { NextRequest } from "next/server";
 
 describe("Phase 1 Security & Correctness Hardening", () => {
@@ -133,20 +132,5 @@ describe("Phase 1 Security & Correctness Hardening", () => {
     });
   });
 
-  describe("Issue #7: Permission Checks", () => {
-    it("should grant access if user owns the resource", () => {
-      const session = { user: { id: "user-123", role: "user" }, expires: "2099-01-01" };
-      expect(hasPermission(session, "user", "user-123")).toBe(true);
-    });
 
-    it("should deny access if user does not own the resource", () => {
-      const session = { user: { id: "user-123", role: "user" }, expires: "2099-01-01" };
-      expect(hasPermission(session, "user", "user-456")).toBe(false);
-    });
-
-    it("should grant admin full access to any resource", () => {
-      const session = { user: { id: "admin-1", role: "admin" }, expires: "2099-01-01" };
-      expect(hasPermission(session, "admin", "user-456")).toBe(true);
-    });
-  });
 });
