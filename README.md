@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/OK45batwal/Prompt-plus/main/public/logo.png" alt="Prompt+ Logo" width="240">
+  <img src="https://raw.githubusercontent.com/OK45batwal/Prompt-plus/main/public/logo.png" alt="Prompt+ Official Logo" width="480">
 </p>
 
 <p align="center">
