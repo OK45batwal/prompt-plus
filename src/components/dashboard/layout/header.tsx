@@ -14,6 +14,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import { useState, useSyncExternalStore } from "react";
+import { signOut } from "next-auth/react";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -138,7 +139,16 @@ export function Header({ onMenuClick }: HeaderProps) {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => router.push("/login")}
+              onClick={async () => {
+                if (typeof window !== "undefined") {
+                  try {
+                    localStorage.removeItem("promptplus_user_apikeys");
+                  } catch {
+                    // ignore
+                  }
+                }
+                await signOut({ callbackUrl: "/login" });
+              }}
               className="cursor-pointer gap-2 text-destructive focus:text-destructive"
             >
               <LogOut className="h-4 w-4" />
