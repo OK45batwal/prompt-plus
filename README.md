@@ -15,9 +15,6 @@
 
 <!-- GitHub Badges -->
 <p align="center">
-  <a href="https://prompt-plus-three.vercel.app">
-    <img src="https://img.shields.io/badge/Live%20Demo-https%3A%2F%2Fprompt--plus--three.vercel.app-22c55e?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo">
-  </a>
   <a href="https://github.com/OK45batwal/Prompt-plus/actions">
     <img src="https://img.shields.io/github/actions/workflow/status/OK45batwal/Prompt-plus/ci.yml?branch=main&style=for-the-badge&logo=github&label=Build%20%26%20CI" alt="CI Status">
   </a>
