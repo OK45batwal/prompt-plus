@@ -103,13 +103,10 @@ export function Header({ onMenuClick }: HeaderProps) {
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem render={<Link href="/dashboard/settings/profile" />}>
-              Profile
+            <DropdownMenuItem render={<Link href="/dashboard/settings" />}>
+              Settings & Profile
             </DropdownMenuItem>
             <DropdownMenuItem render={<Link href="/dashboard/settings" />}>
-              Settings
-            </DropdownMenuItem>
-            <DropdownMenuItem render={<Link href="/dashboard/settings/api" />}>
               API Keys
             </DropdownMenuItem>
             <DropdownMenuSeparator />

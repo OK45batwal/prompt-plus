@@ -10,7 +10,7 @@ const tabs = [
   { href: "/dashboard/library", label: "Library", icon: BookOpen },
   { href: "/dashboard/new", label: "New", icon: Sparkles, accent: true },
   { href: "/dashboard/history", label: "History", icon: Clock },
-  { href: "/dashboard/settings/profile", label: "Profile", icon: User },
+  { href: "/dashboard/settings", label: "Settings", icon: User },
 ];
 
 export function MobileNav() {
