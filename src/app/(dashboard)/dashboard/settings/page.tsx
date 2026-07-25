@@ -7,11 +7,12 @@ import { useSession } from "next-auth/react";
 
 type SettingsTab = "profile" | "api-keys" | "preferences" | "notifications";
 
-type ProviderInfo = { id: "openai" | "anthropic" | "google"; name: string; placeholder: string; url: string };
+type ProviderInfo = { id: "openai" | "anthropic" | "google" | "openrouter"; name: string; placeholder: string; url: string };
 const providers: ProviderInfo[] = [
   { id: "openai", name: "OpenAI", placeholder: "sk-...", url: "https://platform.openai.com/api-keys" },
   { id: "anthropic", name: "Anthropic", placeholder: "sk-ant-...", url: "https://console.anthropic.com/settings/keys" },
   { id: "google", name: "Google AI", placeholder: "AIza...", url: "https://makersuite.google.com/app/apikey" },
+  { id: "openrouter", name: "OpenRouter", placeholder: "sk-or-v1-...", url: "https://openrouter.ai/keys" },
 ];
 
 type ToggleDef = { id: string; title: string; description: string };

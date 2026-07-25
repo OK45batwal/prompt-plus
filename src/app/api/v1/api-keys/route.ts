@@ -5,7 +5,7 @@ import { getDb } from "@/lib/db/prisma";
 import { encrypt } from "@/lib/crypto";
 
 const createApiKeySchema = z.object({
-  provider: z.enum(["openai", "anthropic", "google"]),
+  provider: z.enum(["openai", "anthropic", "google", "openrouter"]),
   apiKey: z.string().min(5, "API key must be at least 5 characters"),
 });
 

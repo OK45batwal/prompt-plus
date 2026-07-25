@@ -1,5 +1,5 @@
 export interface LLMRequestOptions {
-  provider: "openai" | "anthropic";
+  provider: "openai" | "anthropic" | "openrouter" | "google";
   apiKey: string;
   model?: string;
   systemPrompt?: string;
@@ -56,15 +56,32 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
     responseFormatJson = false,
   } = options;
 
+  const isOpenRouter = provider === "openrouter";
   const isAnthropic = provider === "anthropic";
-  const model = options.model || (isAnthropic ? "claude-3-5-sonnet-20241022" : "gpt-4o-mini");
-  const url = isAnthropic
+
+  const model =
+    options.model ||
+    (isOpenRouter
+      ? "openai/gpt-4o-mini"
+      : isAnthropic
+      ? "claude-3-5-sonnet-20241022"
+      : "gpt-4o-mini");
+
+  const url = isOpenRouter
+    ? "https://openrouter.ai/api/v1/chat/completions"
+    : isAnthropic
     ? "https://api.anthropic.com/v1/messages"
     : "https://api.openai.com/v1/chat/completions";
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...(isAnthropic
+    ...(isOpenRouter
+      ? {
+          Authorization: `Bearer ${apiKey}`,
+          "HTTP-Referer": "https://prompt-plus-three.vercel.app",
+          "X-Title": "Prompt+",
+        }
+      : isAnthropic
       ? { "x-api-key": apiKey, "anthropic-version": "2023-06-01" }
       : { Authorization: `Bearer ${apiKey}` }),
   };

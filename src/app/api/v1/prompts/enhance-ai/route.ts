@@ -43,7 +43,7 @@ export const POST = withAuth(
   const { promptId, text, model, provider: reqProvider, category, tone, length } = parseResult.data;
   const startTime = Date.now();
 
-  const targetProvider = reqProvider || (model?.includes("claude") ? "anthropic" : "openai");
+  const targetProvider = reqProvider || (model?.includes("claude") ? "anthropic" : model?.includes("openrouter") ? "openrouter" : "openai");
 
   const userApiKeyRow = await getDb().apiKey.findFirst({
     where: {
@@ -54,7 +54,12 @@ export const POST = withAuth(
   });
 
   let apiKey: string | undefined;
-  let resolvedProvider: "openai" | "anthropic" = targetProvider === "anthropic" ? "anthropic" : "openai";
+  let resolvedProvider: "openai" | "anthropic" | "openrouter" =
+    targetProvider === "openrouter"
+      ? "openrouter"
+      : targetProvider === "anthropic"
+      ? "anthropic"
+      : "openai";
 
   if (userApiKeyRow) {
     try {
@@ -65,11 +70,16 @@ export const POST = withAuth(
   }
 
   if (!apiKey) {
-    if (resolvedProvider === "anthropic" && process.env.ANTHROPIC_API_KEY) {
+    if (resolvedProvider === "openrouter" && process.env.OPENROUTER_API_KEY) {
+      apiKey = process.env.OPENROUTER_API_KEY;
+    } else if (resolvedProvider === "anthropic" && process.env.ANTHROPIC_API_KEY) {
       apiKey = process.env.ANTHROPIC_API_KEY;
     } else if (process.env.OPENAI_API_KEY) {
       apiKey = process.env.OPENAI_API_KEY;
       resolvedProvider = "openai";
+    } else if (process.env.OPENROUTER_API_KEY) {
+      apiKey = process.env.OPENROUTER_API_KEY;
+      resolvedProvider = "openrouter";
     } else if (process.env.ANTHROPIC_API_KEY) {
       apiKey = process.env.ANTHROPIC_API_KEY;
       resolvedProvider = "anthropic";
