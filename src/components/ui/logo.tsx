@@ -6,37 +6,23 @@ interface LogoProps {
   size?: number;
 }
 
-export function Logo({ className = "", showText = true, size = 22 }: LogoProps) {
+export function Logo({ className = "", showText = true, size = 20 }: LogoProps) {
   return (
-    <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
-      {/* Sleek SVG Icon matching the modern dark/light UI */}
+    <div className={`inline-flex items-center gap-2 select-none font-sans ${className}`}>
+      {/* Minimalist prompt emblem badge */}
       <div
-        className="relative flex items-center justify-center rounded-lg bg-foreground text-background shadow-sm transition-transform hover:scale-105"
-        style={{ width: size + 10, height: size + 10 }}
+        className="flex items-center justify-center rounded-md bg-foreground text-background font-mono font-bold tracking-tighter shadow-sm transition-transform hover:scale-105"
+        style={{ width: size + 8, height: size + 8, fontSize: size * 0.6 }}
       >
-        <svg
-          width={size}
-          height={size}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          {/* Stylized Prompt Cursor '>' */}
-          <path d="M4 17L11 12L4 7" className="opacity-90" />
-          {/* Sparkles / Magic AI '+' icon */}
-          <path d="M15 8V16" strokeWidth="2" />
-          <path d="M11 12H19" strokeWidth="2" />
-          <circle cx="18" cy="6" r="1" fill="currentColor" />
-        </svg>
+        &gt;_
       </div>
 
       {showText && (
-        <span className="font-bold text-sm tracking-tight text-foreground flex items-center gap-0.5">
-          AI Prompt
-          <span className="text-blue-500 font-extrabold text-base leading-none">+</span>
+        <span className="font-extrabold tracking-wider text-foreground text-base flex items-center gap-1 uppercase">
+          Prompt
+          <span className="bg-blue-600 text-white dark:bg-blue-500 text-xs font-black px-1.5 py-0.5 rounded-md leading-none shadow-sm">
+            +
+          </span>
         </span>
       )}
     </div>
