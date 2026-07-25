@@ -1,10 +1,14 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/OK45batwal/Prompt-plus/main/public/screenshots/dashboard-light.png" alt="AI Prompt+ Dashboard" width="100%">
+  <img src="https://raw.githubusercontent.com/OK45batwal/Prompt-plus/main/public/logo.png" alt="AI Prompt+ Logo" width="180">
 </p>
 
 <p align="center">
   <h1 align="center">⚡ AI Prompt+</h1>
   <p align="center">Transform simple prompts into powerful, AI-optimized instructions</p>
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/OK45batwal/Prompt-plus/main/public/screenshots/dashboard-light.png" alt="AI Prompt+ Dashboard" width="100%">
 </p>
 
 <!-- GitHub Badges -->
