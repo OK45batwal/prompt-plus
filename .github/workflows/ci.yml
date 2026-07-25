@@ -10,6 +10,21 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,16 +40,22 @@ jobs:
 
       - name: Generate Prisma Client
         run: npx prisma generate
+        env:
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
 
       - name: Run ESLint
         run: npm run lint
+        env:
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
 
       - name: Run Vitest Suite
         run: npm test
+        env:
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
 
       - name: Build Next.js Application
         run: npm run build
         env:
-          DATABASE_URL: "file:./dev.db"
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           NEXTAUTH_SECRET: "ci-secret-for-testing-only-1234567890"
           ENCRYPTION_KEY: "ci-encryption-key-32-bytes-long"
