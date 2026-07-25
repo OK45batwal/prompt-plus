@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Search, Bell, Moon, Sun, Menu, User } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Search, Bell, Moon, Sun, Menu, User, Settings, Key, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -22,8 +22,14 @@ interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
+  const router = useRouter();
+  const { setTheme, resolvedTheme } = useTheme();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const getPageTitle = () => {
     if (pathname === "/dashboard") return "Dashboard";
@@ -34,10 +40,12 @@ export function Header({ onMenuClick }: HeaderProps) {
     if (pathname === "/dashboard/compare") return "Compare";
     if (pathname === "/dashboard/analytics") return "Analytics";
     if (pathname === "/dashboard/templates") return "Templates";
-    if (pathname === "/dashboard/settings") return "Settings";
-    if (pathname === "/dashboard/settings/api") return "API Keys";
-    if (pathname === "/dashboard/settings/profile") return "Profile";
+    if (pathname === "/dashboard/settings") return "Settings & Profile";
     return "Dashboard";
+  };
+
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
   return (
@@ -78,13 +86,19 @@ export function Header({ onMenuClick }: HeaderProps) {
           <Search className="h-4 w-4" />
         </Button>
 
+        {/* Dynamic Theme Toggle Button */}
         <Button
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          onClick={toggleTheme}
+          title="Toggle Theme"
         >
-          <Sun className="h-4 w-4" />
+          {mounted && resolvedTheme === "dark" ? (
+            <Sun className="h-4 w-4 text-yellow-500" />
+          ) : (
+            <Moon className="h-4 w-4 text-slate-700 dark:text-slate-200" />
+          )}
           <span className="sr-only">Toggle theme</span>
         </Button>
 
@@ -94,28 +108,44 @@ export function Header({ onMenuClick }: HeaderProps) {
         </Button>
 
         <DropdownMenu>
-          <DropdownMenuTrigger className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-accent transition-colors">
+          <DropdownMenuTrigger className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-accent transition-colors outline-none">
             <Avatar className="h-6 w-6">
               <AvatarImage src="" alt="User" />
-              <AvatarFallback className="text-xs">
+              <AvatarFallback className="text-xs bg-muted text-muted-foreground">
                 <User className="h-3.5 w-3.5" />
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem render={<Link href="/dashboard/settings" />}>
-              Settings & Profile
+          <DropdownMenuContent align="end" className="w-52 p-1">
+            <DropdownMenuItem
+              onClick={() => router.push("/dashboard/settings")}
+              className="cursor-pointer gap-2"
+            >
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span>Profile & Settings</span>
             </DropdownMenuItem>
-            <DropdownMenuItem render={<Link href="/dashboard/settings" />}>
-              API Keys
+            <DropdownMenuItem
+              onClick={() => router.push("/dashboard/settings")}
+              className="cursor-pointer gap-2"
+            >
+              <Key className="h-4 w-4 text-muted-foreground" />
+              <span>API Keys</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-muted-foreground">
-              Help & Support
+            <DropdownMenuItem
+              onClick={() => router.push("/dashboard/settings")}
+              className="cursor-pointer gap-2"
+            >
+              <Settings className="h-4 w-4 text-muted-foreground" />
+              <span>Preferences</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-muted-foreground">
-              Log out
+            <DropdownMenuItem
+              onClick={() => router.push("/login")}
+              className="cursor-pointer gap-2 text-destructive focus:text-destructive"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

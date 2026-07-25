@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { User, Key, Bell, Palette, Save, Eye, EyeOff, Check, ExternalLink, Trash2, Loader2 } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useSession } from "next-auth/react";
 
 type SettingsTab = "profile" | "api-keys" | "preferences" | "notifications";
 
@@ -28,10 +30,13 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () =>
 }
 
 export default function SettingsPage() {
+  const sessionResult = useSession();
+  const session = sessionResult?.data;
+  const { setTheme, resolvedTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const [saved, setSaved] = useState(false);
-  const [name, setName] = useState("Demo User");
-  const [email, setEmail] = useState("demo@example.com");
+  const [name, setName] = useState(session?.user?.name || "Demo User");
+  const [email, setEmail] = useState(session?.user?.email || "demo@example.com");
   const [apiKeysInput, setApiKeysInput] = useState<Record<string, string>>({});
   const [savedKeys, setSavedKeys] = useState<Record<string, boolean>>({});
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
@@ -39,8 +44,12 @@ export default function SettingsPage() {
   const [defaultModel, setDefaultModel] = useState("gpt-4");
   const [defaultTone, setDefaultTone] = useState("");
   const [autoEnhance, setAutoEnhance] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [toggles, setToggles] = useState<Record<string, boolean>>({ email: true, usage: true, digest: false });
+
+  useEffect(() => {
+    if (session?.user?.name) setName(session.user.name);
+    if (session?.user?.email) setEmail(session.user.email);
+  }, [session]);
 
   useEffect(() => {
     let isMounted = true;
@@ -322,9 +331,12 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
                   <div>
                     <p className="text-sm font-medium">Dark Mode</p>
-                    <p className="text-xs text-muted-foreground">Toggle dark mode theme</p>
+                    <p className="text-xs text-muted-foreground">Toggle light/dark theme preference</p>
                   </div>
-                  <ToggleSwitch checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
+                  <ToggleSwitch
+                    checked={resolvedTheme === "dark"}
+                    onChange={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                  />
                 </div>
               </div>
             </div>
