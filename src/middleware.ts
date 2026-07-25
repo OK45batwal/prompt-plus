@@ -1,4 +1,4 @@
-import { jwtVerify } from "jose";
+import { jwtDecrypt } from "jose";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -17,7 +17,7 @@ export default async function middleware(req: NextRequest) {
       || req.cookies.get("__Secure-next-auth.session-token")?.value;
     if (token) {
       try {
-        await jwtVerify(token, secret);
+        await jwtDecrypt(token, secret);
       } catch {
         return NextResponse.redirect(new URL("/login", req.url));
       }
