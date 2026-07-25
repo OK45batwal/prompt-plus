@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
 
   const where = {
     userId,
+    deletedAt: null,
     ...(search
       ? {
           OR: [

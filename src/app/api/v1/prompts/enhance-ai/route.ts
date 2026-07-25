@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth/config";
+import { NextRequest } from "next/server";
 import { getDb } from "@/lib/db/prisma";
 import { enhancePromptSchema } from "@/lib/validations/prompts";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { callLLM } from "@/lib/llm/providers";
 import { decrypt } from "@/lib/crypto";
+import { withAuth } from "@/lib/api/with-auth";
+import { jsonResponse } from "@/lib/api/response-headers";
 
 function buildSystemPrompt(category?: string, tone?: string, length?: string): string {
   let sp = "You are an expert prompt engineer. Transform the user's prompt into an optimized version. Be concise but comprehensive.";
@@ -14,19 +15,12 @@ function buildSystemPrompt(category?: string, tone?: string, length?: string): s
   return sp;
 }
 
-export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const userId = session.user.id;
-
+export const POST = withAuth(async (request: NextRequest, { userId, requestId }) => {
   const rateCheck = checkRateLimit(userId);
   if (!rateCheck.allowed) {
-    return NextResponse.json(
+    return jsonResponse(
       { error: "Daily limit reached. Please try again tomorrow or configure your own API key in Settings." },
-      { status: 429, headers: { "Retry-After": String(Math.ceil(rateCheck.resetMs / 1000)) } }
+      { status: 429, rateLimit: rateCheck, requestId }
     );
   }
 
@@ -34,14 +28,14 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    return jsonResponse({ error: "Invalid JSON body" }, { status: 400, requestId });
   }
 
   const parseResult = enhancePromptSchema.safeParse(body);
   if (!parseResult.success) {
-    return NextResponse.json(
+    return jsonResponse(
       { error: "Validation failed", details: parseResult.error.flatten() },
-      { status: 400 }
+      { status: 400, requestId }
     );
   }
 
@@ -110,13 +104,16 @@ export async function POST(request: NextRequest) {
       }).catch(() => {});
     }
 
-    return NextResponse.json({
-      data: {
-        enhanced: enhancedText,
-        provider: "local",
-        model: model || "local-enhancement",
+    return jsonResponse(
+      {
+        data: {
+          enhanced: enhancedText,
+          provider: "local",
+          model: model || "local-enhancement",
+        },
       },
-    });
+      { rateLimit: rateCheck, requestId }
+    );
   }
 
   try {
@@ -164,15 +161,17 @@ export async function POST(request: NextRequest) {
       }).catch(() => {});
     }
 
-    return NextResponse.json({
-      data: {
-        enhanced: response.content,
-        provider: response.provider,
-        model: response.model,
+    return jsonResponse(
+      {
+        data: {
+          enhanced: response.content,
+          provider: response.provider,
+          model: response.model,
+        },
       },
-    });
+      { rateLimit: rateCheck, requestId }
+    );
   } catch (error) {
-    console.error("LLM Enhance API error:", error);
     const latencyMs = Date.now() - startTime;
 
     await getDb().usageLog.create({
@@ -188,13 +187,16 @@ export async function POST(request: NextRequest) {
 
     const fallbackText = `Act as an expert assistant. ${text} Be specific and thorough.`;
 
-    return NextResponse.json({
-      data: {
-        enhanced: fallbackText,
-        provider: "local-fallback",
-        model: "local-enhancement",
-        error: error instanceof Error ? error.message : "API error",
+    return jsonResponse(
+      {
+        data: {
+          enhanced: fallbackText,
+          provider: "local-fallback",
+          model: "local-enhancement",
+          error: error instanceof Error ? error.message : "API error",
+        },
       },
-    });
+      { rateLimit: rateCheck, requestId }
+    );
   }
-}
+});

@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth/config";
 import { getDb } from "@/lib/db/prisma";
 import { getTemplatesQuerySchema, createTemplateSchema } from "@/lib/validations/templates";
 
+export const revalidate = 3600; // Cache template listings for 1 hour
+
 export async function GET(request: NextRequest) {
   // Public template browsing allowed
   const { searchParams } = new URL(request.url);

@@ -29,10 +29,17 @@ function cleanupStaleBuckets(now: number) {
   }
 }
 
+export interface RateLimitResult {
+  allowed: boolean;
+  remaining: number;
+  resetMs: number;
+  limit: number;
+}
+
 export async function checkRateLimitAsync(
   userId: string,
   cost: number = 1
-): Promise<{ allowed: boolean; remaining: number; resetMs: number }> {
+): Promise<RateLimitResult> {
   const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
   const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -66,7 +73,7 @@ export async function checkRateLimitAsync(
 
         const remaining = Math.max(0, DAILY_LIMIT - currentUsage);
         const allowed = currentUsage <= DAILY_LIMIT;
-        return { allowed, remaining, resetMs: ttl * 1000 };
+        return { allowed, remaining, resetMs: ttl * 1000, limit: DAILY_LIMIT };
       }
     } catch {
       // Fallback to in-memory on Redis connection failure
@@ -79,7 +86,7 @@ export async function checkRateLimitAsync(
 export function checkRateLimit(
   userId: string,
   cost: number = 1
-): { allowed: boolean; remaining: number; resetMs: number } {
+): RateLimitResult {
   const now = Date.now();
   cleanupStaleBuckets(now);
 
@@ -101,10 +108,10 @@ export function checkRateLimit(
 
   if (bucket.tokens >= cost) {
     bucket.tokens -= cost;
-    return { allowed: true, remaining: bucket.tokens, resetMs };
+    return { allowed: true, remaining: bucket.tokens, resetMs, limit: DAILY_LIMIT };
   }
 
-  return { allowed: false, remaining: 0, resetMs };
+  return { allowed: false, remaining: 0, resetMs, limit: DAILY_LIMIT };
 }
 
 export function resetRateLimit(userId: string) {
