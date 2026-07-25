@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 
-const from = process.env.SMTP_FROM || "Prompt+ <noreply@prompt-plus.app>";
+const from = process.env.SMTP_FROM || "Prompt+ <onboarding@resend.dev>";
 
 export async function sendResetEmail(email: string, resetUrl: string) {
   const apiKey = process.env.RESEND_API_KEY;
