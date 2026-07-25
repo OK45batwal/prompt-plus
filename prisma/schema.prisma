@@ -24,7 +24,7 @@ model User {
   analytics           Analytics[]
   apiKeys             ApiKey[]
   collections         Collection[]
-  notifications       Notification[]
+  sessions            Session[]
   prompts             Prompt[]
   usageLogs           UsageLog[]
 
