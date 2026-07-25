@@ -8,7 +8,7 @@
 </p>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/OK45batwal/Prompt-plus/main/public/screenshots/dashboard-light.png" alt="AI Prompt+ Dashboard Hero Screenshot" width="95%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+  <img src="./public/screenshots/dashboard-light.png" alt="AI Prompt+ Dashboard Hero Screenshot" width="95%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
 </div>
 
 <br/>
@@ -66,8 +66,8 @@
     <td width="50%" align="center"><b>🌙 Dark Theme Dashboard</b></td>
   </tr>
   <tr>
-    <td><img src="https://raw.githubusercontent.com/OK45batwal/Prompt-plus/main/public/screenshots/dashboard-light.png" alt="Dashboard Light Mode" width="100%"/></td>
-    <td><img src="https://raw.githubusercontent.com/OK45batwal/Prompt-plus/main/public/screenshots/dashboard-dark.png" alt="Dashboard Dark Mode" width="100%"/></td>
+    <td><img src="./public/screenshots/dashboard-light.png" alt="Dashboard Light Mode" width="100%"/></td>
+    <td><img src="./public/screenshots/dashboard-dark.png" alt="Dashboard Dark Mode" width="100%"/></td>
   </tr>
 </table>
 
@@ -80,8 +80,8 @@
     <td width="50%" align="center"><b>📚 Prompt Library</b></td>
   </tr>
   <tr>
-    <td><img src="https://raw.githubusercontent.com/OK45batwal/Prompt-plus/main/public/screenshots/new-prompt.png" alt="Prompt Builder Interface" width="100%"/></td>
-    <td><img src="https://raw.githubusercontent.com/OK45batwal/Prompt-plus/main/public/screenshots/library.png" alt="Prompt Library Interface" width="100%"/></td>
+    <td><img src="./public/screenshots/new-prompt.png" alt="Prompt Builder Interface" width="100%"/></td>
+    <td><img src="./public/screenshots/library.png" alt="Prompt Library Interface" width="100%"/></td>
   </tr>
 </table>
 
@@ -94,8 +94,8 @@
     <td width="50%" align="center"><b>📱 Mobile Responsive View</b></td>
   </tr>
   <tr>
-    <td><img src="https://raw.githubusercontent.com/OK45batwal/Prompt-plus/main/public/screenshots/collections.png" alt="Collections Interface" width="100%"/></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/OK45batwal/Prompt-plus/main/public/screenshots/dashboard-mobile.png" alt="Mobile Dashboard View" width="70%"/></td>
+    <td><img src="./public/screenshots/collections.png" alt="Collections Interface" width="100%"/></td>
+    <td align="center"><img src="./public/screenshots/dashboard-mobile.png" alt="Mobile Dashboard View" width="70%"/></td>
   </tr>
 </table>
 
