@@ -35,6 +35,7 @@
   <a href="#features">Features</a> •
   <a href="#tech-stack">Tech Stack</a> •
   <a href="#getting-started">Getting Started</a> •
+  <a href="docs/README.md">Documentation</a> •
   <a href="CONTRIBUTING.md">Contributing</a> •
   <a href="https://prompt-plus-three.vercel.app">Live Demo</a> •
   <a href="#screenshots">Screenshots</a>
@@ -96,6 +97,19 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 ```bash
 npm test
 ```
+
+## 📚 Documentation
+
+For complete architectural specifications, database models, and design guides, explore the [docs/](docs/README.md) directory:
+
+- 🏗️ **[Architecture](docs/ARCHITECTURE.md)** — System architecture & API design patterns
+- 🗄️ **[Database Specification](docs/DATABASE.md)** — Prisma ORM schema & Neon PostgreSQL configuration
+- 🧩 **[Component Hierarchy](docs/COMPONENT-HIERARCHY.md)** — UI component hierarchy & Shadcn layout composition
+- 🧭 **[Navigation Map](docs/NAVIGATION.md)** — Route hierarchy & navigation structures
+- 🎨 **[UI Visual Audit Report](docs/UI-REVIEW.md)** — 6-Pillar visual audit & WCAG accessibility review
+- ⚡ **[Engineering Backlog](docs/Improvements.md)** — Comprehensive improvements & optimization checklist
+
+Check out the full [Documentation Index](docs/README.md) for all 15 specification documents.
 
 ## 🤝 Contributing
 
