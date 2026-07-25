@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Prompt+ Sentry AI - Prompt Optimizer & Assistant",
+  "name": "Prompt+ Architect AI - Prompt Optimizer & Assistant",
   "version": "1.0.0",
   "description": "Transform simple prompts into professional, AI-optimized instructions directly inside ChatGPT, Claude, and Gemini.",
   "icons": {
@@ -10,7 +10,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Prompt+ Sentry AI"
+    "default_title": "Prompt+ Architect AI"
   },
   "background": {
     "service_worker": "background.js"

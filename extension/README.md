@@ -1,6 +1,6 @@
-# 🧩 Prompt+ Sentry Browser Extension (Manifest V3)
+# 🧩 Prompt+ Architect Browser Extension (Manifest V3)
 
-The **Prompt+ Sentry Browser Extension** integrates Prompt+ directly into **ChatGPT (`chatgpt.com`)**, **Claude (`claude.ai`)**, and **Gemini (`gemini.google.com`)**.
+The **Prompt+ Architect Browser Extension** integrates Prompt+ directly into **ChatGPT (`chatgpt.com`)**, **Claude (`claude.ai`)**, and **Gemini (`gemini.google.com`)**.
 
 ---
 
@@ -8,7 +8,7 @@ The **Prompt+ Sentry Browser Extension** integrates Prompt+ directly into **Chat
 
 1. **In-Page Action Pill (`⚡ Enhance with Prompt+`)**:
    - Injected automatically above prompt input boxes on ChatGPT, Claude, and Gemini.
-2. **Intent Analysis & Sentry Optimization Engine**:
+2. **Intent Analysis & Architect Optimization Engine**:
    - Analyzes prompt intent, missing role/context/constraints, and formats a production-ready prompt.
 3. **One-Click Insert into Chat**:
    - Automatically updates and replaces the chat box text so you get superior AI responses without manual copy-pasting.

@@ -1,7 +1,7 @@
-// Prompt+ Sentry In-Page Content Script for ChatGPT, Claude, and Gemini
+// Prompt+ Architect In-Page Content Script for ChatGPT, Claude, and Gemini
 
 (function () {
-  console.log("[Prompt+ Sentry] Content script loaded.");
+  console.log("[Prompt+ Architect] Content script loaded.");
 
   function getTargetInput() {
     // ChatGPT
@@ -110,7 +110,7 @@ ${cleanText}
       <div class="prompt-plus-modal">
         <div class="prompt-plus-modal-header">
           <div class="prompt-plus-modal-title">
-            <span>⚡ Prompt+ Sentry Assistant</span>
+            <span>⚡ Prompt+ Architect Assistant</span>
           </div>
           <button class="prompt-plus-modal-close" id="prompt-plus-close">&times;</button>
         </div>
@@ -140,7 +140,7 @@ ${cleanText}
           </div>
 
           <div>
-            <div class="prompt-plus-section-label">✨ Optimized Sentry Prompt (Ready for AI Submission)</div>
+            <div class="prompt-plus-section-label">✨ Optimized Architect Prompt (Ready for AI Submission)</div>
             <div class="prompt-plus-text-box" id="prompt-plus-enhanced-box" contenteditable="true">${escapeHtml(enhancedText)}</div>
           </div>
         </div>

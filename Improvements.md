@@ -50,7 +50,7 @@ Suggested Execution Order
 3. Phase 3 (API Consistency): #16-22 — unify response format, add OpenAPI, versioning
 4. Phase 4 (Features): #23-25, #27-33 — complete missing CRUD, improve schemas, add observability
 
-To transform Prompt+ from a standalone web dashboard into an ecosystem like Promptive Sentry, here are the top recommended improvements, ordered by impact:
+To transform Prompt+ from a standalone web dashboard into an ecosystem like Promptive Architect, here are the top recommended improvements, ordered by impact:
 
 1. 🧩 Build a Companion Browser Extension (Chrome / Firefox / Edge)
 Goal: Allow users to access Prompt+ features without switching tabs away from ChatGPT, Claude, or Gemini.

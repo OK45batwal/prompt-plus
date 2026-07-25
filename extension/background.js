@@ -1,7 +1,7 @@
-// Prompt+ Sentry Background Service Worker
+// Prompt+ Architect Background Service Worker
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("[Prompt+ Sentry Extension] Installed successfully.");
+  console.log("[Prompt+ Architect Extension] Installed successfully.");
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
