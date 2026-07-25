@@ -151,6 +151,14 @@ function LoginForm() {
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
+        <div className="flex justify-end mb-3">
+          <Link
+            href="/forgot-password"
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            Forgot password?
+          </Link>
+        </div>
         <button
           type="submit"
           disabled={isLoading}

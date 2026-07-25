@@ -20,6 +20,8 @@ model User {
   updatedAt           DateTime       @updatedAt @map("updated_at")
   lastLoginAt         DateTime?      @map("last_login_at")
   deletedAt           DateTime?      @map("deleted_at")
+  resetToken          String?        @unique @map("reset_token")
+  resetTokenExpiry    DateTime?      @map("reset_token_expiry")
   accounts            Account[]
   analytics           Analytics[]
   apiKeys             ApiKey[]
