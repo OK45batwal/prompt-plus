@@ -354,8 +354,8 @@ export default function PromptBuilderPage() {
 
             {/* Real-Time Token & Cost Estimation Counter */}
             <div className="mt-2 p-2.5 rounded-lg border bg-card text-xs space-y-2">
-              <div className="flex items-center justify-between text-muted-foreground">
-                <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center justify-between text-muted-foreground gap-1">
+                  <div className="flex flex-wrap items-center gap-3">
                   <span className="flex items-center gap-1 font-medium text-foreground">
                     <Zap className="h-3.5 w-3.5 text-amber-500" /> ~{estimatedTokens} Tokens
                   </span>
@@ -395,7 +395,7 @@ export default function PromptBuilderPage() {
           </div>
 
           {/* Options */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Tone</label>
               <select

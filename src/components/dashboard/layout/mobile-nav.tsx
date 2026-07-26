@@ -22,7 +22,7 @@ export function MobileNav() {
   };
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-card">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-card pb-safe">
       <div className="flex items-center justify-around h-14">
         {tabs.map((tab) => (
           <Link

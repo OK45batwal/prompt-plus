@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Bell, Moon, Sun, Menu, User, Settings, Key, LogOut } from "lucide-react";
+import { Search, Bell, Moon, Sun, Menu, User, Settings, Key, LogOut, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
-import { useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore, useRef, useEffect } from "react";
 import { signOut } from "next-auth/react";
 
 interface HeaderProps {
@@ -27,7 +27,13 @@ export function Header({ onMenuClick }: HeaderProps) {
   const router = useRouter();
   const { setTheme, resolvedTheme } = useTheme();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+
+  useEffect(() => {
+    if (searchOpen && searchRef.current) searchRef.current.focus();
+  }, [searchOpen]);
 
   const getPageTitle = () => {
     if (pathname === "/dashboard") return "Dashboard";
@@ -38,7 +44,7 @@ export function Header({ onMenuClick }: HeaderProps) {
     if (pathname === "/dashboard/compare") return "Compare";
     if (pathname === "/dashboard/analytics") return "Analytics";
     if (pathname === "/dashboard/templates") return "Templates";
-    if (pathname === "/dashboard/settings") return "Settings & Profile";
+    if (pathname === "/dashboard/settings") return "Settings";
     return "Dashboard";
   };
 
@@ -47,7 +53,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="h-14 border-b bg-card flex items-center px-4 gap-4">
+    <header className="h-14 border-b bg-card flex items-center px-4 gap-3 shrink-0">
       {/* Mobile Menu */}
       <Button
         variant="ghost"
@@ -59,7 +65,7 @@ export function Header({ onMenuClick }: HeaderProps) {
       </Button>
 
       {/* Page Title */}
-      <h1 className="font-medium text-sm hidden sm:block">{getPageTitle()}</h1>
+      <h1 className="font-medium text-sm truncate">{getPageTitle()}</h1>
 
       {/* Spacer */}
       <div className="flex-1" />
@@ -69,9 +75,29 @@ export function Header({ onMenuClick }: HeaderProps) {
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         <Input
           placeholder="Search... ⌘K"
-          className="h-8 w-[200px] pl-8 text-xs bg-accent/50 border-0 focus-visible:ring-1"
+          className="h-8 w-[160px] lg:w-[200px] pl-8 text-xs bg-accent/50 border-0 focus-visible:ring-1"
         />
       </div>
+
+      {/* Mobile search expand */}
+      {searchOpen && (
+        <div className="absolute inset-0 z-50 flex items-center bg-card px-4 sm:hidden">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <input
+              ref={searchRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search..."
+              className="h-9 w-full rounded-lg border bg-background pl-9 pr-3 text-sm outline-none focus:border-ring"
+            />
+          </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8 ml-2" onClick={() => { setSearchOpen(false); setSearchQuery(""); }}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex items-center gap-1">
@@ -84,7 +110,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           <Search className="h-4 w-4" />
         </Button>
 
-        {/* Dynamic Theme Toggle Button */}
+        {/* Theme Toggle */}
         <Button
           variant="ghost"
           size="icon"

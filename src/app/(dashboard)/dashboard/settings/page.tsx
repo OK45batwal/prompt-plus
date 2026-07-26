@@ -191,7 +191,7 @@ export default function SettingsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Sidebar */}
-        <div className="space-y-1">
+        <div className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible pb-1 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
           {tabs.map((tab) => (
             <button
               key={tab.id}
