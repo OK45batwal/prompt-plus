@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, Plus, Grid, List } from "lucide-react";
+import { Search, Plus, Grid, List, Book } from "lucide-react";
 
 interface Prompt {
   id: string;
@@ -84,9 +84,18 @@ export default function LibraryPage() {
       </div>
 
       {/* Prompts */}
-      {filteredPrompts.length === 0 ? (
+      {prompts.length === 0 && !search && filterCategory === "all" ? (
+        <div className="text-center py-16">
+          <Book className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">No prompts saved yet</p>
+          <p className="text-xs text-muted-foreground mt-1">Create your first prompt to get started</p>
+          <Link href="/dashboard/new" className="mt-4 inline-flex h-8 items-center justify-center rounded-lg bg-foreground text-background px-3 text-xs font-medium hover:bg-foreground/90 transition-colors">
+            <Plus className="h-3.5 w-3.5 mr-1" /> New Prompt
+          </Link>
+        </div>
+      ) : filteredPrompts.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-sm text-muted-foreground">No prompts found</p>
+          <p className="text-sm text-muted-foreground">No prompts match your search</p>
         </div>
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

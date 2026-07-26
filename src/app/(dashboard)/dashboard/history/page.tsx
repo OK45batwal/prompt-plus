@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Clock, RotateCcw, ChevronDown, Check } from "lucide-react";
+import { Search, Clock, RotateCcw, ChevronDown, Check, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 interface HistoryItem {
   id: string;
@@ -56,10 +57,18 @@ export default function HistoryPage() {
         </div>
 
         {/* History List */}
-        {filteredHistory.length === 0 ? (
-          <div className="text-center py-12">
+        {history.length === 0 && !search ? (
+          <div className="text-center py-16">
             <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No history found</p>
+            <p className="text-sm text-muted-foreground">No history yet</p>
+            <p className="text-xs text-muted-foreground mt-1">Your prompt enhancements will appear here</p>
+            <Link href="/dashboard/new" className="mt-4 inline-flex h-8 items-center justify-center rounded-lg bg-foreground text-background px-3 text-xs font-medium hover:bg-foreground/90 transition-colors">
+              <Sparkles className="h-3.5 w-3.5 mr-1" /> New Enhancement
+            </Link>
+          </div>
+        ) : filteredHistory.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-sm text-muted-foreground">No history matches your search</p>
           </div>
         ) : (
           <div className="space-y-2">
