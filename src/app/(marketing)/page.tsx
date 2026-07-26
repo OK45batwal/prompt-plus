@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowRight, Sparkles, BarChart3, BookOpen, Shield } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
+import { auth } from "@/lib/auth/config";
 
 const features = [
   {
@@ -48,7 +50,9 @@ const steps = [
   },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await auth();
+  if (session?.user?.id) redirect("/dashboard");
   return (
     <div className="min-h-screen">
       {/* Navigation */}

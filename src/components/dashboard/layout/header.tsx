@@ -173,7 +173,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                     // ignore
                   }
                 }
-                await signOut({ callbackUrl: "/login" });
+                await signOut({ callbackUrl: "/" });
               }}
               className="cursor-pointer gap-2 text-destructive focus:text-destructive"
             >
