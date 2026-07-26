@@ -75,7 +75,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-32 pb-20 px-4">
+      <section className="pt-32 pb-20 px-4 animate-slide-up">
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs text-muted-foreground mb-6">
             <span className="h-1.5 w-1.5 rounded-full bg-foreground animate-pulse" />
@@ -90,17 +90,17 @@ export default function LandingPage() {
             Transform simple ideas into professional, AI-optimized prompts.
             Free to use with your own API keys.
           </p>
-          <div className="mt-8 flex items-center justify-center gap-3">
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/signup"
-              className="h-9 inline-flex items-center justify-center rounded-lg bg-foreground text-background px-4 text-sm font-medium hover:bg-foreground/90 transition-colors"
+              className="h-9 w-full sm:w-auto inline-flex items-center justify-center rounded-lg bg-foreground text-background px-4 text-sm font-medium hover:bg-foreground/90 transition-colors"
             >
               Start for Free
               <ArrowRight className="h-4 w-4 ml-2" />
             </Link>
             <Link
               href="/dashboard/new"
-              className="h-9 inline-flex items-center justify-center rounded-lg border px-4 text-sm font-medium hover:bg-accent transition-colors"
+              className="h-9 w-full sm:w-auto inline-flex items-center justify-center rounded-lg border px-4 text-sm font-medium hover:bg-accent transition-colors"
             >
               Start Building
             </Link>
@@ -111,15 +111,15 @@ export default function LandingPage() {
       {/* How It Works */}
       <section className="py-20 px-4 border-t">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-12 animate-slide-up">
             <h2 className="text-2xl font-semibold tracking-tight">How it works</h2>
             <p className="text-muted-foreground mt-2">
               Four steps to a perfect prompt.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 animate-stagger">
             {steps.map((step) => (
-              <div key={step.step} className="text-center">
+              <div key={step.step} className="text-center hover-lift">
                 <div className="text-xs font-mono text-muted-foreground mb-2">
                   {step.step}
                 </div>
@@ -136,17 +136,17 @@ export default function LandingPage() {
       {/* Features */}
       <section className="py-20 px-4 border-t">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-12 animate-slide-up">
             <h2 className="text-2xl font-semibold tracking-tight">Features</h2>
             <p className="text-muted-foreground mt-2">
               Everything you need to craft the perfect prompt.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-stagger">
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="p-6 rounded-xl border hover:border-foreground/20 transition-colors"
+                className="p-6 rounded-xl border hover:border-foreground/20 transition-colors hover-lift"
               >
                 <feature.icon className="h-5 w-5 mb-3" />
                 <h3 className="font-medium text-sm">{feature.title}</h3>
@@ -160,7 +160,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4 border-t">
+      <section className="py-20 px-4 border-t animate-slide-up">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl font-semibold tracking-tight">
             Ready to write better prompts?
@@ -170,7 +170,7 @@ export default function LandingPage() {
           </p>
           <Link
             href="/signup"
-            className="h-9 inline-flex items-center justify-center rounded-lg bg-foreground text-background px-4 text-sm font-medium hover:bg-foreground/90 transition-colors"
+            className="h-9 w-full sm:w-auto inline-flex items-center justify-center rounded-lg bg-foreground text-background px-4 text-sm font-medium hover:bg-foreground/90 transition-colors"
           >
             Get Started Free
             <ArrowRight className="h-4 w-4 ml-2" />

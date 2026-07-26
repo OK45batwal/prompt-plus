@@ -55,12 +55,12 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div>
         <h3 className="font-semibold text-sm mb-3">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 animate-stagger">
           {quickActions.map((action) => (
             <Link
               key={action.title}
               href={action.href}
-              className={`p-4 rounded-lg border hover:border-foreground/20 transition-colors group ${
+              className={`p-4 rounded-lg border hover:border-foreground/20 transition-colors group hover-lift ${
                 action.primary ? "bg-foreground text-background" : "bg-card"
               }`}
             >

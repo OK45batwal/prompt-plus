@@ -166,8 +166,8 @@ export default function TemplatesPage() {
 
       <div className="max-w-6xl">
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3 mb-4">
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
+          <div className="relative w-full sm:flex-1 sm:max-w-sm">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
@@ -181,7 +181,7 @@ export default function TemplatesPage() {
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="h-9 px-2 rounded-lg border bg-background text-sm outline-none focus:border-ring"
+            className="h-9 w-full sm:w-auto px-2 rounded-lg border bg-background text-sm outline-none focus:border-ring"
           >
             {categories.map((c) => (
               <option key={c} value={c}>{c === "all" ? "All Categories" : c}</option>
@@ -191,7 +191,7 @@ export default function TemplatesPage() {
           <button
             type="button"
             onClick={() => setOnlyOfficial(!onlyOfficial)}
-            className={`h-9 px-3 rounded-lg border text-xs font-medium inline-flex items-center gap-1.5 transition-colors ${
+            className={`h-9 w-full sm:w-auto px-3 rounded-lg border text-xs font-medium inline-flex items-center justify-center gap-1.5 transition-colors shrink-0 ${
               onlyOfficial
                 ? "bg-foreground text-background border-foreground"
                 : "bg-background text-muted-foreground hover:text-foreground"
@@ -203,9 +203,9 @@ export default function TemplatesPage() {
         </div>
 
         {/* Templates Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {templates.map((template) => (
-            <div key={template.id} className="p-4 rounded-lg border bg-card hover:border-foreground/20 transition-colors flex flex-col justify-between">
+            <div key={template.id} className="p-4 rounded-lg border bg-card hover:border-foreground/20 transition-colors hover-lift flex flex-col justify-between">
               <div>
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">

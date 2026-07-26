@@ -95,7 +95,7 @@ export default function ComparePage() {
       <div className="max-w-6xl">
         {mode === "side-by-side" ? (
           /* Side-by-Side View */
-          <div className={`grid gap-4 ${items.length === 2 ? "grid-cols-1 md:grid-cols-2" : items.length === 3 ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"}`}>
+          <div className={`grid gap-4 ${items.length === 2 ? "grid-cols-1 md:grid-cols-2" : items.length === 3 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"}`}>
             {items.map((item, index) => (
               <div key={item.id} className="rounded-lg border bg-card overflow-hidden">
                 <div className="p-3 border-b flex items-center justify-between">

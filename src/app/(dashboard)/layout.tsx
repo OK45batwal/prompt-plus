@@ -5,5 +5,5 @@ export default function DashboardLayoutWrapper({
 }: {
   children: React.ReactNode;
 }) {
-  return <DashboardLayout>{children}</DashboardLayout>;
+  return <DashboardLayout><div className="animate-fade-in">{children}</div></DashboardLayout>;
 }

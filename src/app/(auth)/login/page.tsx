@@ -201,7 +201,9 @@ export default function LoginPage() {
       {/* Main */}
       <main className="flex-1 flex items-center justify-center p-4">
         <Suspense fallback={<div className="text-center text-sm">Loading...</div>}>
-          <LoginForm />
+          <div className="animate-fade-in w-full max-w-sm">
+            <LoginForm />
+          </div>
         </Suspense>
       </main>
     </div>
