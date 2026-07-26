@@ -6,7 +6,7 @@ export default function ContactPage() {
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-3xl font-semibold tracking-tight">Contact</h1>
-          <p className="text-muted-foreground mt-2">Have a question or feedback? We'd love to hear from you.</p>
+          <p className="text-muted-foreground mt-2">Have a question or feedback? We&apos;d love to hear from you.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <a
