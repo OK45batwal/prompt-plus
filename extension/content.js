@@ -77,6 +77,14 @@
     });
   }
 
+  function positionWrap(wrap, target) {
+    const rect = target.element.getBoundingClientRect();
+    if (!rect || rect.width === 0) { requestAnimationFrame(() => positionWrap(wrap, target)); return; }
+    wrap.style.position = "fixed";
+    wrap.style.bottom = (window.innerHeight - rect.bottom + 8) + "px";
+    wrap.style.right = (window.innerWidth - rect.right + 8) + "px";
+  }
+
   function injectButton() {
     if (document.querySelector(".pp-wrap")) return;
     const target = getTargetInput();
@@ -131,10 +139,11 @@
       });
     }
 
-    if (target.element.parentElement) {
-      target.element.parentElement.style.position = "relative";
-      target.element.parentElement.appendChild(wrap);
-    }
+    document.body.appendChild(wrap);
+    requestAnimationFrame(() => positionWrap(wrap, target));
+    window.addEventListener("scroll", () => positionWrap(wrap, target), { passive: true });
+    window.addEventListener("resize", () => positionWrap(wrap, target), { passive: true });
+    setInterval(() => positionWrap(wrap, target), 2000);
   }
 
   function showToast(msg) {
@@ -221,15 +230,13 @@
   style.textContent = `
 
 .pp-wrap {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
+  position: fixed;
   z-index: 999999;
-  pointer-events: none;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
+  pointer-events: auto;
 }
 .pp-wrap * { pointer-events: auto; }
 
