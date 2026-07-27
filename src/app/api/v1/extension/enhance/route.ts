@@ -6,7 +6,7 @@ import { buildArchitectMetaPrompt } from "@/lib/llm/meta-prompt";
 const extensionEnhanceSchema = z.object({
   text: z.string().min(1).max(10000),
   apiKey: z.string().min(5),
-  provider: z.enum(["openai", "anthropic", "openrouter"]).optional(),
+  provider: z.enum(["openai", "anthropic", "openrouter", "nvidia"]).optional(),
   model: z.string().optional(),
   category: z.string().optional(),
   tone: z.string().optional(),
@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
 
   const { text, apiKey, provider, model, category, tone, length } = parseResult.data;
 
-  const resolvedProvider: "openai" | "anthropic" | "openrouter" =
-    provider || (model?.includes("claude") ? "anthropic" : model?.includes("/") ? "openrouter" : "openai");
+  const resolvedProvider: "openai" | "anthropic" | "openrouter" | "nvidia" =
+    provider || (model?.includes("claude") ? "anthropic" : model?.includes("/") ? "openrouter" : model?.includes("nvidia") ? "nvidia" : "openai");
 
   const { metaPrompt, systemInstruction } = buildArchitectMetaPrompt(text, category, tone, length);
 

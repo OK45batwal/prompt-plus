@@ -21,6 +21,13 @@ type Model =
   | "openrouter-gemini-flash-free"
   | "openrouter-deepseek-r1-free"
   | "openrouter-qwen-coder-free"
+  | "openrouter-mistral-small-free"
+  | "openrouter-phi3-free"
+  | "openrouter-hermes3-free"
+  | "nvidia-llama3"
+  | "nvidia-nemotron"
+  | "nvidia-gemma2"
+  | "nvidia-mistral"
   | "gpt-4"
   | "claude-3"
   | "gemini-pro"
@@ -69,6 +76,13 @@ const models: { id: Model; name: string; icon: string; free: boolean; provider?:
   { id: "openrouter-gemini-flash-free", name: "Gemini 2.0 Flash (OpenRouter Free)", icon: "⚡", free: true, provider: "openrouter", rawModel: "google/gemini-2.0-flash-exp:free" },
   { id: "openrouter-deepseek-r1-free", name: "DeepSeek R1 (OpenRouter Free)", icon: "🧠", free: true, provider: "openrouter", rawModel: "deepseek/deepseek-r1:free" },
   { id: "openrouter-qwen-coder-free", name: "Qwen 2.5 Coder 32B (OpenRouter Free)", icon: "💻", free: true, provider: "openrouter", rawModel: "qwen/qwen-2.5-coder-32b-instruct:free" },
+  { id: "openrouter-mistral-small-free", name: "Mistral Small 24B (OpenRouter Free)", icon: "🌬️", free: true, provider: "openrouter", rawModel: "mistralai/mistral-small-24b-instruct-2501:free" },
+  { id: "openrouter-phi3-free", name: "Phi-3 Mini 128K (OpenRouter Free)", icon: "🔬", free: true, provider: "openrouter", rawModel: "microsoft/phi-3-mini-128k-instruct:free" },
+  { id: "openrouter-hermes3-free", name: "Hermes 3 405B (OpenRouter Free)", icon: "🏛️", free: true, provider: "openrouter", rawModel: "nousresearch/hermes-3-llama-3.1-405b:free" },
+  { id: "nvidia-llama3", name: "Llama 3.3 70B (NVIDIA)", icon: "🦙", free: true, provider: "nvidia", rawModel: "nvidia/llama-3.3-70b-instruct" },
+  { id: "nvidia-nemotron", name: "Nemotron 70B (NVIDIA)", icon: "⚡", free: true, provider: "nvidia", rawModel: "nvidia/llama-3.1-nemotron-70b-instruct" },
+  { id: "nvidia-gemma2", name: "Gemma 2 27B (NVIDIA)", icon: "🔷", free: true, provider: "nvidia", rawModel: "google/gemma-2-27b-it" },
+  { id: "nvidia-mistral", name: "Mistral 7B (NVIDIA)", icon: "🌬️", free: true, provider: "nvidia", rawModel: "mistralai/mistral-7b-instruct-v0.3" },
   { id: "gpt-4", name: "GPT-4o / GPT-4", icon: "🟢", free: true },
   { id: "claude-3", name: "Claude 3.5 Sonnet", icon: "🟣", free: true },
   { id: "gemini-pro", name: "Gemini 1.5 Pro", icon: "🔵", free: true },
@@ -152,7 +166,7 @@ export default function PromptBuilderPage() {
         if (raw) {
           const localMap = JSON.parse(raw);
           const targetProv = selectedModelData?.provider || "openai";
-          userApiKey = localMap[targetProv] || localMap["openrouter"] || localMap["openai"] || localMap["anthropic"];
+          userApiKey = localMap[targetProv] || localMap["openrouter"] || localMap["openai"] || localMap["anthropic"] || localMap["nvidia"];
         }
       } catch {
         // ignore

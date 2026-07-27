@@ -34,7 +34,7 @@ export const enhancePromptSchema = z.object({
     .min(1, "text is required")
     .max(10000, "Text is too long (max 10,000 characters)"),
   model: z.string().optional(),
-  provider: z.enum(["openai", "anthropic", "google", "openrouter", "local"]).optional(),
+  provider: z.enum(["openai", "anthropic", "google", "openrouter", "nvidia", "local"]).optional(),
   category: z.string().optional(),
   tone: z.string().optional(),
   length: z.string().optional(),

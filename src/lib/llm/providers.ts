@@ -1,5 +1,5 @@
 export interface LLMRequestOptions {
-  provider: "openai" | "anthropic" | "openrouter" | "google";
+  provider: "openai" | "anthropic" | "openrouter" | "google" | "nvidia";
   apiKey: string;
   model?: string;
   systemPrompt?: string;
@@ -37,6 +37,7 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
 
   const isOpenRouter = provider === "openrouter";
   const isAnthropic = provider === "anthropic";
+  const isNvidia = provider === "nvidia";
 
   const model =
     options.model ||
@@ -50,6 +51,8 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
     ? "https://openrouter.ai/api/v1/chat/completions"
     : isAnthropic
     ? "https://api.anthropic.com/v1/messages"
+    : isNvidia
+    ? "https://integrate.api.nvidia.com/v1/chat/completions"
     : "https://api.openai.com/v1/chat/completions";
 
   const headers: Record<string, string> = {

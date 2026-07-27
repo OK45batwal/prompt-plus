@@ -38,7 +38,7 @@ export const POST = withAuth(
 
     const targetProvider =
       reqProvider ||
-      (model?.includes("claude") ? "anthropic" : model?.includes("openrouter") || model?.includes("/") ? "openrouter" : "openai");
+      (model?.includes("claude") ? "anthropic" : model?.includes("nvidia") ? "nvidia" : model?.includes("openrouter") || model?.includes("/") ? "openrouter" : "openai");
 
     const userApiKeyRow = await getDb().apiKey.findFirst({
       where: {

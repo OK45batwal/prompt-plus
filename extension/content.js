@@ -199,10 +199,26 @@
               '<div class="pp-card-h">Model</div>' +
               '<div class="pp-model-select">' +
                 '<select id="pp-model" class="pp-select">' +
-                  '<option value="gpt-4o-mini" selected>GPT-4o Mini</option>' +
-                  '<option value="gpt-4o">GPT-4o</option>' +
-                  '<option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>' +
-                  '<option value="gemini-1-5-pro">Gemini 1.5 Pro</option>' +
+                  '<optgroup label="OpenRouter Free">' +
+                    '<option value="meta-llama/llama-3.3-70b-instruct:free::openrouter" selected>Llama 3.3 70B</option>' +
+                    '<option value="google/gemini-2.0-flash-exp:free::openrouter">Gemini 2.0 Flash</option>' +
+                    '<option value="deepseek/deepseek-r1:free::openrouter">DeepSeek R1</option>' +
+                    '<option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder 32B</option>' +
+                    '<option value="mistralai/mistral-small-24b-instruct-2501:free::openrouter">Mistral Small 24B</option>' +
+                    '<option value="microsoft/phi-3-mini-128k-instruct:free::openrouter">Phi-3 Mini 128K</option>' +
+                    '<option value="nousresearch/hermes-3-llama-3.1-405b:free::openrouter">Hermes 3 405B</option>' +
+                  '</optgroup>' +
+                  '<optgroup label="OpenRouter Paid">' +
+                    '<option value="openai/gpt-4o::openrouter">GPT-4o</option>' +
+                    '<option value="anthropic/claude-3-5-sonnet-20241022::openrouter">Claude 3.5 Sonnet</option>' +
+                    '<option value="google/gemini-1.5-pro::openrouter">Gemini 1.5 Pro</option>' +
+                  '</optgroup>' +
+                  '<optgroup label="NVIDIA">' +
+                    '<option value="nvidia/llama-3.3-70b-instruct::nvidia">Llama 3.3 70B (NV)</option>' +
+                    '<option value="nvidia/llama-3.1-nemotron-70b-instruct::nvidia">Nemotron 70B</option>' +
+                    '<option value="google/gemma-2-27b-it::nvidia">Gemma 2 27B (NV)</option>' +
+                    '<option value="mistralai/mistral-7b-instruct-v0.3::nvidia">Mistral 7B (NV)</option>' +
+                  '</optgroup>' +
                 '</select>' +
               '</div>' +
             '</div>' +
@@ -395,7 +411,12 @@
     if (enhancedCard) enhancedCard.style.display = "none";
 
     try {
-      const res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text });
+      const modelVal = document.getElementById("pp-model")?.value || "gpt-4o-mini";
+      const parts = modelVal.split("::");
+      const model = parts[0];
+      const provider = parts[1] || "openai";
+
+      const res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider });
       if (!res || !res.success) throw new Error(res?.error || "Failed");
 
       currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";

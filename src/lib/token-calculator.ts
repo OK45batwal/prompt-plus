@@ -12,6 +12,7 @@ export const MODEL_PRICING: ModelPricing[] = [
   { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI", inputCostPer1M: 2.50, outputCostPer1M: 10.00 },
   { id: "claude-3-5-sonnet", name: "Claude 3.5 Sonnet", provider: "Anthropic", inputCostPer1M: 3.00, outputCostPer1M: 15.00 },
   { id: "gemini-1-5-pro", name: "Gemini 1.5 Pro", provider: "Google", inputCostPer1M: 1.25, outputCostPer1M: 5.00 },
+  { id: "nvidia-free", name: "NVIDIA Free Models", provider: "NVIDIA", inputCostPer1M: 0.00, outputCostPer1M: 0.00 },
 ];
 
 /**
