@@ -120,12 +120,6 @@ export function getProviders(): Provider[] {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
-  secret: secret || "development-fallback-secret-key-32-chars",
-  trustHost: true,
   providers: getProviders(),
-  session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
 });
 

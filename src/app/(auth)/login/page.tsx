@@ -41,7 +41,6 @@ function LoginForm() {
         setError("Invalid email or password");
       } else {
         router.push("/dashboard");
-        router.refresh();
       }
     } catch {
       setError("An unexpected error occurred. Please try again.");
