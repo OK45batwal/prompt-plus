@@ -1,177 +1,162 @@
-// Prompt+ Architect In-Page Content Script for ChatGPT, Claude, and Gemini
-
 (function () {
-  console.log("[Prompt+ Architect] Content script loaded.");
+  let pendingTarget = null;
 
   function getTargetInput() {
-    // ChatGPT
     let el = document.querySelector("#prompt-textarea, textarea[data-id='root']");
     if (el) return { element: el, type: "chatgpt" };
-
-    // Claude
     el = document.querySelector("div[contenteditable='true'].ProseMirror, textarea");
-    if (el && window.location.hostname.includes("claude")) return { element: el, type: "claude" };
-
-    // Gemini
+    if (el && location.hostname.includes("claude")) return { element: el, type: "claude" };
     el = document.querySelector("div[contenteditable='true'], textarea");
-    if (el && window.location.hostname.includes("gemini")) return { element: el, type: "gemini" };
-
-    // Fallback: any visible textarea or contenteditable
+    if (el && location.hostname.includes("gemini")) return { element: el, type: "gemini" };
     const textarea = document.querySelector("textarea");
     if (textarea) return { element: textarea, type: "generic" };
-
     return null;
   }
 
-  function getPromptText(target) {
+  function getText(target) {
     if (!target) return "";
-    if (target.element.tagName.toLowerCase() === "textarea" || target.element.tagName.toLowerCase() === "input") {
-      return target.element.value || "";
-    }
-    return target.element.innerText || target.element.textContent || "";
+    const el = target.element;
+    return el.tagName === "TEXTAREA" || el.tagName === "INPUT"
+      ? el.value
+      : el.innerText || el.textContent || "";
   }
 
-  function setPromptText(target, newText) {
+  function setText(target, text) {
     if (!target) return;
     const el = target.element;
-
-    if (el.tagName.toLowerCase() === "textarea" || el.tagName.toLowerCase() === "input") {
-      el.value = newText;
+    if (el.tagName === "TEXTAREA" || el.tagName === "INPUT") {
+      el.value = text;
       el.dispatchEvent(new Event("input", { bubbles: true }));
       el.dispatchEvent(new Event("change", { bubbles: true }));
     } else if (el.isContentEditable) {
-      el.innerText = newText;
+      el.innerText = text;
       el.dispatchEvent(new Event("input", { bubbles: true }));
     }
   }
 
-  function buildSmartEnhancedPrompt(rawText) {
-    const cleanText = rawText.trim();
-    if (!cleanText) return "";
-
-    return `### Role & Objective
-You are an elite subject matter expert and strategic AI assistant. Your objective is to thoroughly answer, process, and execute the following request with maximum precision, rigor, and clarity.
-
-### User Request / Core Input
-${cleanText}
-
-### Execution Guidelines
-1. Analyze the core objective to identify key deliverables, technical requirements, and implicit constraints.
-2. Provide a structured, step-by-step response that directly addresses all instructions.
-3. Highlight critical edge cases, key takeaways, and production-grade code or content where applicable.
-4. Eliminate fluff, generic disclaimers, or vague generalizations.
-
-### Output Constraints & Format
-- Structure the output using clean Markdown headers, bullet lists, and code blocks.
-- Ensure all recommendations, logic, and code snippets are fully actionable and ready for production use.`;
+  function escapeHtml(str) {
+    const d = document.createElement("div");
+    d.textContent = str;
+    return d.innerHTML;
   }
 
-  function injectEnhanceButton() {
-    if (document.querySelector(".prompt-plus-enhance-btn")) return;
-
+  function injectButton() {
+    if (document.querySelector(".pp-btn")) return;
     const target = getTargetInput();
     if (!target) return;
 
     const btn = document.createElement("button");
-    btn.className = "prompt-plus-enhance-btn";
-    btn.innerHTML = `
-      <svg viewBox="0 0 24 24">
-        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-      </svg>
-      <span>⚡ Enhance with Prompt+</span>
-    `;
-
+    btn.className = "pp-btn";
+    btn.innerHTML =
+      '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Prompt+</span>';
     btn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-
-      const rawPrompt = getPromptText(target);
-      if (!rawPrompt.trim()) {
-        alert("Please enter a prompt in the chat input first!");
+      pendingTarget = target;
+      const raw = getText(target);
+      if (!raw.trim()) {
+        showToast("Please enter a prompt first");
         return;
       }
-
-      openModal(target, rawPrompt);
+      openModal(target, raw);
     });
-
     const parent = target.element.parentElement || document.body;
     parent.insertBefore(btn, target.element);
   }
 
-  function openModal(target, rawPrompt) {
-    const existing = document.querySelector(".prompt-plus-overlay");
+  function showToast(msg) {
+    const t = document.createElement("div");
+    t.textContent = msg;
+    Object.assign(t.style, {
+      position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
+      background: "#1e293b", color: "#f1f5f9", padding: "10px 20px", borderRadius: "10px",
+      fontSize: "13px", zIndex: "99999999", boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+      border: "1px solid #334155", fontFamily: "-apple-system, sans-serif",
+    });
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2500);
+  }
+
+  function openModal(target, rawText) {
+    const existing = document.querySelector(".pp-overlay");
     if (existing) existing.remove();
 
-    const enhancedText = buildSmartEnhancedPrompt(rawPrompt);
-
     const overlay = document.createElement("div");
-    overlay.className = "prompt-plus-overlay";
-    overlay.innerHTML = `
-      <div class="prompt-plus-modal">
-        <div class="prompt-plus-modal-header">
-          <div class="prompt-plus-modal-title">
-            <span>⚡ Prompt+ Architect Assistant</span>
-          </div>
-          <button class="prompt-plus-modal-close" id="prompt-plus-close">&times;</button>
-        </div>
-        <div class="prompt-plus-modal-body">
-          <div class="prompt-plus-scores">
-            <div class="prompt-plus-score-card">
-              <div class="prompt-plus-score-num">96</div>
-              <div class="prompt-plus-score-lbl">Structure</div>
-            </div>
-            <div class="prompt-plus-score-card">
-              <div class="prompt-plus-score-num">92</div>
-              <div class="prompt-plus-score-lbl">Clarity</div>
-            </div>
-            <div class="prompt-plus-score-card">
-              <div class="prompt-plus-score-num">94</div>
-              <div class="prompt-plus-score-lbl">Constraints</div>
-            </div>
-            <div class="prompt-plus-score-card">
-              <div class="prompt-plus-score-num">95</div>
-              <div class="prompt-plus-score-lbl">Actionability</div>
-            </div>
-          </div>
-
-          <div>
-            <div class="prompt-plus-section-label">Original Prompt</div>
-            <div class="prompt-plus-text-box" style="max-height: 80px;">${escapeHtml(rawPrompt)}</div>
-          </div>
-
-          <div>
-            <div class="prompt-plus-section-label">✨ Optimized Architect Prompt (Ready for AI Submission)</div>
-            <div class="prompt-plus-text-box" id="prompt-plus-enhanced-box" contenteditable="true">${escapeHtml(enhancedText)}</div>
-          </div>
-        </div>
-        <div class="prompt-plus-modal-footer">
-          <button class="prompt-plus-btn-secondary" id="prompt-plus-cancel">Cancel</button>
-          <button class="prompt-plus-btn-primary" id="prompt-plus-insert">🚀 Replace & Insert into Chat</button>
-        </div>
-      </div>
-    `;
+    overlay.className = "pp-overlay";
+    overlay.innerHTML =
+      '<div class="pp-modal">' +
+        '<div class="pp-h">' +
+          '<div class="pp-h-title"><span class="pp-h-icon">P</span> Prompt+ Architect</div>' +
+          '<button class="pp-h-close">&times;</button>' +
+        '</div>' +
+        '<div class="pp-b">' +
+          '<div class="pp-section"><div class="pp-section-label">Original</div><div class="pp-box pp-orig">' + escapeHtml(rawText) + '</div></div>' +
+          '<div class="pp-section">' +
+            '<div class="pp-section-label">Enhanced</div>' +
+            '<div class="pp-box pp-enhanced" id="pp-enhanced" contenteditable="true">' +
+              '<div class="pp-loading"><span class="pp-spinner"></span> Enhancing with AI...</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="pp-f">' +
+          '<button class="pp-btn-sec" id="pp-cancel">Cancel</button>' +
+          '<button class="pp-btn-pri" id="pp-insert" disabled>Replace &amp; Insert</button>' +
+        '</div>' +
+      '</div>';
 
     document.body.appendChild(overlay);
 
-    document.getElementById("prompt-plus-close").onclick = () => overlay.remove();
-    document.getElementById("prompt-plus-cancel").onclick = () => overlay.remove();
+    const enhancedBox = document.getElementById("pp-enhanced");
+    const insertBtn = document.getElementById("pp-insert");
 
-    document.getElementById("prompt-plus-insert").onclick = () => {
-      const editedText = document.getElementById("prompt-plus-enhanced-box").innerText;
-      setPromptText(target, editedText);
+    overlay.querySelector(".pp-h-close").onclick = () => overlay.remove();
+    document.getElementById("pp-cancel").onclick = () => overlay.remove();
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+
+    insertBtn.onclick = () => {
+      const edited = enhancedBox.innerText;
+      if (edited) setText(target, edited);
       overlay.remove();
     };
+
+    chrome.runtime.sendMessage({ action: "enhancePrompt", text: rawText }, (res) => {
+      if (chrome.runtime.lastError || !res || !res.success) {
+        enhancedBox.innerHTML =
+          '<div style="color:#f87171;font-size:13px;">Enhancement failed. Try the popup or dashboard.</div>';
+        insertBtn.disabled = true;
+        return;
+      }
+      const enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
+      enhancedBox.textContent = enhanced;
+      insertBtn.disabled = false;
+    });
   }
 
-  function escapeHtml(str) {
-    return str
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
+  const style = document.createElement("style");
+  style.textContent =
+    ".pp-btn{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff!important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:18px;border:1px solid rgba(255,255,255,.15);cursor:pointer;box-shadow:0 4px 12px rgba(99,102,241,.3);transition:all .15s;z-index:999999;margin:6px 0;user-select:none}" +
+    ".pp-btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(99,102,241,.45);filter:brightness(1.1)}" +
+    ".pp-overlay{position:fixed;inset:0;background:rgba(15,23,42,.65);backdrop-filter:blur(6px);z-index:99999999;display:flex;align-items:center;justify-content:center;opacity:0;animation:ppFadeIn .2s forwards ease-out}" +
+    "@keyframes ppFadeIn{to{opacity:1}}" +
+    ".pp-modal{width:90%;max-width:680px;max-height:85vh;background:#1e293b;border:1px solid #334155;border-radius:16px;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;box-shadow:0 20px 50px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden}" +
+    ".pp-h{padding:14px 18px;background:#0f172a;border-bottom:1px solid #334155;display:flex;align-items:center;justify-content:space-between}" +
+    ".pp-h-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}" +
+    ".pp-h-icon{width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}" +
+    ".pp-h-close{background:none;border:none;color:#64748b;font-size:22px;cursor:pointer;padding:2px 6px;border-radius:4px;line-height:1}" +
+    ".pp-h-close:hover{color:#fff;background:#334155}" +
+    ".pp-b{padding:18px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px}" +
+    ".pp-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin-bottom:5px}" +
+    ".pp-box{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.6;color:#e2e8f0;white-space:pre-wrap;word-break:break-word;max-height:200px;overflow-y:auto}" +
+    ".pp-loading{display:flex;align-items:center;gap:8px;color:#64748b;font-size:13px}" +
+    ".pp-spinner{display:inline-block;width:14px;height:14px;border:2px solid #334155;border-top-color:#6366f1;border-radius:50%;animation:ppSpin .6s linear infinite}" +
+    "@keyframes ppSpin{to{transform:rotate(360deg)}}" +
+    ".pp-f{padding:14px 18px;background:#0f172a;border-top:1px solid #334155;display:flex;align-items:center;justify-content:flex-end;gap:10px}" +
+    ".pp-btn-sec{background:#334155;color:#f8fafc;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}" +
+    ".pp-btn-sec:hover{background:#475569}" +
+    ".pp-btn-pri{background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}" +
+    ".pp-btn-pri:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.1)}" +
+    ".pp-btn-pri:disabled{opacity:.4;cursor:not-allowed}";
+  document.head.appendChild(style);
 
-  // Poll for input fields
-  setInterval(injectEnhanceButton, 1500);
+  setInterval(injectButton, 1500);
 })();
