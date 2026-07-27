@@ -1,17 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const SESSION_COOKIES = ["__Secure-authjs.session-token", "__Secure-next-auth.session-token", "authjs.session-token", "next-auth.session-token"];
-
 export function proxy(req: NextRequest) {
   const requestId = req.headers.get("x-request-id") || crypto.randomUUID();
-
-  if (req.nextUrl.pathname.startsWith("/dashboard")) {
-    const hasCookie = SESSION_COOKIES.some(name => req.cookies.get(name)?.value);
-    if (!hasCookie) {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-  }
 
   const reqHeaders = new Headers(req.headers);
   reqHeaders.set("x-request-id", requestId);
