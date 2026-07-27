@@ -67,4 +67,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     return true;
   }
+
+  if (request.action === "getSettings") {
+    chrome.storage.local.get(STORAGE_KEY, (data) => {
+      sendResponse({ settings: data[STORAGE_KEY] || {} });
+    });
+    return true;
+  }
+
+  if (request.action === "saveSettings") {
+    chrome.storage.local.get(STORAGE_KEY, (data) => {
+      const cur = data[STORAGE_KEY] || {};
+      Object.assign(cur, request.settings);
+      chrome.storage.local.set({ [STORAGE_KEY]: cur }, () => sendResponse({ success: true }));
+    });
+    return true;
+  }
 });

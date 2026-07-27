@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Key, Bell, Palette, Save, Eye, EyeOff, Check, ExternalLink, Trash2, Loader2 } from "lucide-react";
+import { User, Key, Bell, Palette, Save, Eye, EyeOff, Check, ExternalLink, Trash2, Loader2, AlertTriangle } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
 type SettingsTab = "profile" | "api-keys" | "preferences" | "notifications";
 
-type ProviderInfo = { id: "openai" | "anthropic" | "google" | "openrouter"; name: string; placeholder: string; url: string };
+type ProviderInfo = { id: "openai" | "anthropic" | "google" | "openrouter" | "nvidia"; name: string; placeholder: string; url: string };
 const providers: ProviderInfo[] = [
   { id: "openai", name: "OpenAI", placeholder: "sk-...", url: "https://platform.openai.com/api-keys" },
   { id: "anthropic", name: "Anthropic", placeholder: "sk-ant-...", url: "https://console.anthropic.com/settings/keys" },
   { id: "google", name: "Google AI", placeholder: "AIza...", url: "https://makersuite.google.com/app/apikey" },
   { id: "openrouter", name: "OpenRouter", placeholder: "sk-or-v1-...", url: "https://openrouter.ai/keys" },
+  { id: "nvidia", name: "NVIDIA", placeholder: "nvapi-...", url: "https://build.nvidia.com" },
 ];
 
 type ToggleDef = { id: string; title: string; description: string };
@@ -27,6 +28,117 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () =>
     <button onClick={onChange} className={`w-10 h-6 rounded-full transition-colors ${checked ? "bg-foreground" : "bg-muted"}`}>
       <div className={`w-4 h-4 rounded-full bg-background transition-transform ${checked ? "translate-x-5" : "translate-x-1"}`} />
     </button>
+  );
+}
+
+function ChangePasswordForm() {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [message, setMessage] = useState<{ text: string; err: boolean } | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 8) { setMessage({ text: "Password must be at least 8 characters", err: true }); return; }
+    setLoading(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setMessage({ text: "Password updated", err: false });
+      setCurrentPassword("");
+      setNewPassword("");
+    } catch (err) {
+      setMessage({ text: err instanceof Error ? err.message : "Failed to update password", err: true });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <input
+        type="password"
+        placeholder="Current password"
+        value={currentPassword}
+        onChange={(e) => setCurrentPassword(e.target.value)}
+        required
+        className="h-9 w-full rounded-lg border bg-background px-3 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring"
+      />
+      <input
+        type="password"
+        placeholder="New password (8+ characters)"
+        value={newPassword}
+        onChange={(e) => setNewPassword(e.target.value)}
+        required
+        minLength={8}
+        className="h-9 w-full rounded-lg border bg-background px-3 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring"
+      />
+      {message && (
+        <p className={`text-xs ${message.err ? "text-red-500" : "text-green-500"}`}>{message.text}</p>
+      )}
+      <button
+        type="submit"
+        disabled={loading}
+        className="h-8 px-3 rounded-lg bg-foreground text-background text-xs font-medium hover:bg-foreground/90 transition-colors disabled:opacity-50"
+      >
+        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Update Password"}
+      </button>
+    </form>
+  );
+}
+
+function DeleteAccountSection() {
+  const [confirmText, setConfirmText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ text: string; err: boolean } | null>(null);
+
+  const handleDelete = async () => {
+    if (confirmText !== "DELETE") return;
+    setLoading(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/auth/delete-account", { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed");
+      }
+      await signOut({ callbackUrl: "/" });
+    } catch (err) {
+      setMessage({ text: err instanceof Error ? err.message : "Failed to delete account", err: true });
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="p-4 rounded-lg border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/20 space-y-3">
+      <p className="text-xs text-muted-foreground">
+        Permanently delete your account and all data. This cannot be undone.
+      </p>
+      <input
+        type="text"
+        placeholder='Type "DELETE" to confirm'
+        value={confirmText}
+        onChange={(e) => setConfirmText(e.target.value)}
+        className="h-9 w-full rounded-lg border bg-background px-3 text-sm outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+      />
+      {message && (
+        <p className={`text-xs ${message.err ? "text-red-500" : "text-green-500"}`}>{message.text}</p>
+      )}
+      <button
+        onClick={handleDelete}
+        disabled={confirmText !== "DELETE" || loading}
+        className="h-8 px-3 rounded-lg bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+      >
+        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <AlertTriangle className="h-3.5 w-3.5" />}
+        Delete Account
+      </button>
+    </div>
   );
 }
 
@@ -233,7 +345,8 @@ export default function SettingsPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-9 w-full rounded-lg border bg-background px-3 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring"
+                    disabled
+                    className="h-9 w-full rounded-lg border bg-background px-3 text-sm outline-none opacity-60 cursor-not-allowed"
                   />
                 </div>
                 <div>
@@ -248,6 +361,20 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <hr className="border-t" />
+
+              <div>
+                <h3 className="font-semibold text-sm mb-3">Change Password</h3>
+                <ChangePasswordForm />
+              </div>
+
+              <hr className="border-t" />
+
+              <div>
+                <h3 className="font-semibold text-sm mb-3 text-red-600">Danger Zone</h3>
+                <DeleteAccountSection />
               </div>
             </div>
           )}

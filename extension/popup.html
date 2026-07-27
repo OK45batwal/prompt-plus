@@ -74,6 +74,22 @@
     .f a { color: #6366f1; text-decoration: none; }
     .msg { font-size: 11px; color: #10b981; display: none; align-items: center; gap: 4px; margin-top: 6px; }
     .msg.err { color: #f87171; }
+    .model-select {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      color: #e2e8f0;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .model-select:focus { border-color: rgba(99,102,241,0.4); }
+    .model-select optgroup { background: #1e293b; color: #94a3b8; font-size: 11px; }
+    .model-select option { background: #0f172a; color: #e2e8f0; }
     .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.15); border-top-color: #fff; border-radius: 50%; animation: s 0.6s linear infinite; vertical-align: middle; }
     @keyframes s { to { transform: rotate(360deg); } }
   </style>
@@ -85,6 +101,19 @@
   </div>
   <div class="c">
     <textarea id="input" placeholder="Paste prompt to enhance..."></textarea>
+    <select id="model-select" class="model-select">
+      <optgroup label="OpenRouter Free">
+        <option value="meta-llama/llama-3.3-70b-instruct:free::openrouter" selected>Llama 3.3 70B</option>
+        <option value="google/gemini-2.0-flash-exp:free::openrouter">Gemini 2.0 Flash</option>
+        <option value="deepseek/deepseek-r1:free::openrouter">DeepSeek R1</option>
+        <option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder</option>
+      </optgroup>
+      <optgroup label="Paid">
+        <option value="gpt-4o-mini::openai">GPT-4o Mini</option>
+        <option value="gpt-4o::openai">GPT-4o</option>
+        <option value="claude-3-5-sonnet-20241022::anthropic">Claude 3.5 Sonnet</option>
+      </optgroup>
+    </select>
     <button class="btn" id="enhance-btn">Enhance</button>
     <div class="msg" id="msg"></div>
     <div class="api">

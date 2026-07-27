@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       if (!result.sent) {
         return NextResponse.json({
           fallback: true,
-          resetUrl,
+          resetUrl: token,
           message: "Email service unavailable. Use the direct link below to reset your password.",
         });
       }

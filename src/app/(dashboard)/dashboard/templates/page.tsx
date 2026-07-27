@@ -91,13 +91,15 @@ export default function TemplatesPage() {
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [onlyOfficial, setOnlyOfficial] = useState(false);
-  const [templates, setTemplates] = useState<TemplateItem[]>(mockFallbackTemplates);
+  const [templates, setTemplates] = useState<TemplateItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     let isMounted = true;
     async function load() {
+      setLoading(true);
       try {
         const params = new URLSearchParams();
         if (filterCategory !== "all") params.set("category", filterCategory);
@@ -109,16 +111,20 @@ export default function TemplatesPage() {
           const json = await res.json();
           if (Array.isArray(json.data) && json.data.length > 0) {
             setTemplates(json.data);
+          } else {
+            setTemplates(mockFallbackTemplates);
           }
+        } else if (isMounted) {
+          setTemplates(mockFallbackTemplates);
         }
       } catch {
-        // Keep fallbacks if API fails
+        if (isMounted) setTemplates(mockFallbackTemplates);
+      } finally {
+        if (isMounted) setLoading(false);
       }
     }
     load();
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [filterCategory, search, onlyOfficial]);
 
   const copyTemplate = async (template: TemplateItem) => {
@@ -203,61 +209,84 @@ export default function TemplatesPage() {
         </div>
 
         {/* Templates Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {templates.map((template) => (
-            <div key={template.id} className="p-4 rounded-lg border bg-card hover:border-foreground/20 transition-colors hover-lift flex flex-col justify-between">
-              <div>
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                      {getIcon(template.category)}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <h3 className="font-medium text-sm">{template.title}</h3>
-                        {template.isOfficial && (
-                          <span title="Official Template">
-                            <BadgeCheck className="h-4 w-4 text-blue-500 shrink-0" />
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground">{template.usageCount.toLocaleString()} uses</p>
-                    </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="p-4 rounded-lg border bg-card animate-pulse">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-muted" />
+                  <div className="flex-1">
+                    <div className="h-4 w-24 bg-muted rounded mb-1" />
+                    <div className="h-3 w-16 bg-muted rounded" />
                   </div>
-                  <button
-                    onClick={() => toggleFavorite(template.id)}
-                    className="p-1 hover:bg-accent rounded"
-                  >
-                    <Star className={`h-4 w-4 ${favorites[template.id] ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`} />
-                  </button>
                 </div>
-                <p className="text-xs text-muted-foreground mb-3">{template.description}</p>
-                <div className="flex items-center gap-1 mb-3">
-                  {template.model && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted">{template.model}</span>
-                  )}
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted">{template.category}</span>
+                <div className="h-3 w-full bg-muted rounded mb-1" />
+                <div className="h-3 w-3/4 bg-muted rounded mb-3" />
+                <div className="flex gap-1 mb-3">
+                  <div className="h-4 w-12 bg-muted rounded" />
+                  <div className="h-4 w-16 bg-muted rounded" />
                 </div>
+                <div className="h-8 w-full bg-muted rounded" />
               </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {templates.map((template) => (
+              <div key={template.id} className="p-4 rounded-lg border bg-card hover:border-foreground/20 transition-colors hover-lift flex flex-col justify-between">
+                <div>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                        {getIcon(template.category)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="font-medium text-sm">{template.title}</h3>
+                          {template.isOfficial && (
+                            <span title="Official Template">
+                              <BadgeCheck className="h-4 w-4 text-blue-500 shrink-0" />
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{template.usageCount.toLocaleString()} uses</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => toggleFavorite(template.id)}
+                      className="p-1 hover:bg-accent rounded"
+                    >
+                      <Star className={`h-4 w-4 ${favorites[template.id] ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`} />
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">{template.description}</p>
+                  <div className="flex items-center gap-1 mb-3">
+                    {template.model && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted">{template.model}</span>
+                    )}
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted">{template.category}</span>
+                  </div>
+                </div>
 
-              <button
-                type="button"
-                onClick={() => copyTemplate(template)}
-                className="w-full h-8 inline-flex items-center justify-center rounded-lg border text-xs font-medium hover:bg-accent transition-colors"
-              >
-                {copiedId === template.id ? (
-                  <>
-                    <Check className="h-3.5 w-3.5 mr-1 text-green-600" /> Copied & Counted
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-3.5 w-3.5 mr-1" /> Use Template
-                  </>
-                )}
-              </button>
-            </div>
-          ))}
-        </div>
+                <button
+                  type="button"
+                  onClick={() => copyTemplate(template)}
+                  className="w-full h-8 inline-flex items-center justify-center rounded-lg border text-xs font-medium hover:bg-accent transition-colors"
+                >
+                  {copiedId === template.id ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 mr-1 text-green-600" /> Copied & Counted
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5 mr-1" /> Use Template
+                    </>
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

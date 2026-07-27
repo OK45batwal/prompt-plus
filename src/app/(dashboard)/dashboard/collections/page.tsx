@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Folder, Edit, Trash2, X } from "lucide-react";
 
 interface Collection {
@@ -15,29 +15,59 @@ interface Collection {
 
 export default function CollectionsPage() {
   const [collections, setCollections] = useState<Collection[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showNewModal, setShowNewModal] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
 
-  const deleteCollection = (id: string) => {
-    setCollections(collections.filter((c) => c.id !== id));
+  const fetchCollections = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/v1/collections");
+      const json = await res.json();
+      const data: Collection[] = (json.data || []).map((item: Record<string, unknown>) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description || "",
+        promptCount: item.prompt_count ?? 0,
+        icon: item.icon || "📁",
+        color: item.color || "#6b7280",
+        createdAt: item.createdAt,
+      }));
+      setCollections(data);
+    } catch {
+      setCollections([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const createCollection = () => {
+  useEffect(() => {
+    fetchCollections();
+  }, []);
+
+  const deleteCollection = async (id: string) => {
+    try {
+      await fetch(`/api/v1/collections/${id}`, { method: "DELETE" });
+      setCollections((prev) => prev.filter((c) => c.id !== id));
+    } catch {
+    }
+  };
+
+  const createCollection = async () => {
     if (!newName.trim()) return;
-    const newCollection: Collection = {
-      id: `new-${Date.now()}`,
-      name: newName,
-      description: newDescription,
-      promptCount: 0,
-      icon: "📁",
-      color: "#6b7280",
-      createdAt: new Date().toISOString(),
-    };
-    setCollections([newCollection, ...collections]);
-    setNewName("");
-    setNewDescription("");
-    setShowNewModal(false);
+    try {
+      await fetch("/api/v1/collections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName, description: newDescription }),
+      });
+      setNewName("");
+      setNewDescription("");
+      setShowNewModal(false);
+      await fetchCollections();
+    } catch {
+    }
   };
 
   return (
@@ -55,8 +85,23 @@ export default function CollectionsPage() {
         </button>
       </div>
 
-      {/* Collections Grid */}
-      {collections.length === 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="p-4 rounded-lg border bg-card animate-pulse">
+              <div className="flex items-start gap-2 mb-3">
+                <div className="w-8 h-8 bg-muted rounded" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-4 bg-muted rounded w-3/4" />
+                  <div className="h-3 bg-muted rounded w-1/2" />
+                </div>
+              </div>
+              <div className="h-3 bg-muted rounded w-full mb-3" />
+              <div className="h-1 bg-muted rounded w-full" />
+            </div>
+          ))}
+        </div>
+      ) : collections.length === 0 ? (
         <div className="text-center py-12">
           <Folder className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">No collections yet</p>
@@ -109,7 +154,6 @@ export default function CollectionsPage() {
         </div>
       )}
 
-      {/* New Collection Modal */}
       {showNewModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-sm bg-background rounded-lg border p-4">

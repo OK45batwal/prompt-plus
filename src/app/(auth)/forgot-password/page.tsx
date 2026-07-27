@@ -69,12 +69,12 @@ export default function ForgotPasswordPage() {
                   <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/50 text-left">
                     <input
                       readOnly
-                      value={fallback.resetUrl}
+                      value={`${window.location.origin}/reset-password/${fallback.resetUrl}`}
                       className="flex-1 bg-transparent text-xs truncate outline-none"
                     />
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(fallback.resetUrl);
+                        navigator.clipboard.writeText(`${window.location.origin}/reset-password/${fallback.resetUrl}`);
                         setCopied(true);
                         setTimeout(() => setCopied(false), 2000);
                       }}
@@ -83,7 +83,7 @@ export default function ForgotPasswordPage() {
                       {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                     </button>
                     <a
-                      href={fallback.resetUrl}
+                      href={`${window.location.origin}/reset-password/${fallback.resetUrl}`}
                       className="shrink-0 h-7 w-7 inline-flex items-center justify-center rounded hover:bg-accent transition-colors"
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
