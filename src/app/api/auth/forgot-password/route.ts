@@ -24,7 +24,15 @@ export async function POST(request: NextRequest) {
       });
 
       const resetUrl = `${request.nextUrl.origin}/reset-password/${token}`;
-      await sendResetEmail(normalizedEmail, resetUrl);
+      const result = await sendResetEmail(normalizedEmail, resetUrl);
+
+      if (!result.sent) {
+        return NextResponse.json({
+          fallback: true,
+          resetUrl,
+          message: "Email service unavailable. Use the direct link below to reset your password.",
+        });
+      }
     }
 
     return NextResponse.json({

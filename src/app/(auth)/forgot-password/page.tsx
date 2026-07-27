@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Mail, ArrowRight, Loader2, Check } from "lucide-react";
+import { Mail, ArrowRight, Loader2, Check, Copy, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/ui/logo";
 
@@ -11,6 +11,8 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [fallback, setFallback] = useState<{ resetUrl: string; message: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,9 +26,13 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const data = await res.json();
         setError(data.error || "Something went wrong");
+      } else if (data.fallback) {
+        setFallback(data);
+        setSent(true);
       } else {
         setSent(true);
       }
@@ -53,16 +59,45 @@ export default function ForgotPasswordPage() {
           </div>
 
           {sent ? (
-            <div className="text-center">
-              <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
+            <div className="text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
                 <Check className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
-              <p className="text-sm text-muted-foreground">
-                If an account with that email exists, a reset link has been sent. Check your inbox.
-              </p>
+              {fallback ? (
+                <>
+                  <p className="text-sm text-muted-foreground">{fallback.message}</p>
+                  <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/50 text-left">
+                    <input
+                      readOnly
+                      value={fallback.resetUrl}
+                      className="flex-1 bg-transparent text-xs truncate outline-none"
+                    />
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(fallback.resetUrl);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      className="shrink-0 h-7 w-7 inline-flex items-center justify-center rounded hover:bg-accent transition-colors"
+                    >
+                      {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                    <a
+                      href={fallback.resetUrl}
+                      className="shrink-0 h-7 w-7 inline-flex items-center justify-center rounded hover:bg-accent transition-colors"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  If an account with that email exists, a reset link has been sent. Check your inbox.
+                </p>
+              )}
               <Link
                 href="/login"
-                className="mt-6 inline-flex h-9 items-center justify-center rounded-lg bg-foreground text-background px-4 text-sm font-medium hover:bg-foreground/90 transition-colors"
+                className="inline-flex h-9 items-center justify-center rounded-lg bg-foreground text-background px-4 text-sm font-medium hover:bg-foreground/90 transition-colors"
               >
                 Back to login
               </Link>
