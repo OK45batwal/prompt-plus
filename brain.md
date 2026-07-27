@@ -3,6 +3,73 @@
 ## Overview
 Full-stack Next.js 16 app for writing, analyzing, scoring, enhancing, and sharing AI prompts. Users paste raw prompts → get AI-powered analysis (intent, complexity, missing elements), scoring (6-dimension quality), and enhancement (meta-prompt compiler). Supports OpenAI, Anthropic, OpenRouter, Google. Has a Chrome extension for in-place prompt optimization inside ChatGPT/Claude/Gemini.
 
+## End-to-End Prompt Flow (Extension → Backend → AI → Extension)
+
+```
+User Types Prompt
+        │
+        ▼
+Content Script
+(Reads prompt from ChatGPT/Gemini/Claude input)
+        │
+        ▼
+Background Service Worker
+(Sends POST to enhance-ai API — tries prod URL first, falls back to localhost)
+        │
+        ▼
+Prompt+ Backend API (POST /api/v1/prompts/enhance-ai)
+        │
+        ▼
+with-auth HOF
+• Validates JWT session (if available)
+• CSRF origin/referer check
+• Body schema validation via Zod
+        │
+        ▼
+Rate Limit Check
+(In-memory token bucket, 20 req/day per user)
+        │
+        ▼
+API Key Resolution
+1. User-provided key in request body
+2. Stored encrypted key in DB (AES-256-GCM decrypted)
+3. Fallback env var (OPENROUTER > ANTHROPIC > OPENAI)
+        │
+        ▼
+buildArchitectMetaPrompt()
+(8-step meta-prompt compiler: intent analysis → missing element detection → structured framework)
+        │
+        ▼
+callLLM() — AI Router
+• OpenAI: chat/completions (system + user messages)
+• Anthropic: messages API (system param)
+• OpenRouter: chat/completions + custom headers
+        │
+        ▼
+Selected LLM (GPT-4o Mini / Claude / etc.)
+        │
+        ▼
+Enhanced Prompt Response
+        │
+        ▼
+Backend Post-Processing
+• Saves Version snapshot (if promptId provided)
+• Logs to UsageLog (tokens, latency, provider, success)
+• Increments API key usage count
+        │
+        ▼
+Response sent back to Background Worker → Content Script
+        │
+        ▼
+Modal displays enhanced text → User edits if needed
+        │
+        ▼
+Replace & Insert into Chat Input
+        │
+        ▼
+User Clicks Send
+```
+
 ## Stack
 - **Framework**: Next.js 16 (App Router), React 19, TypeScript 5
 - **Database**: PostgreSQL (Prisma ORM + Neon serverless adapter via `@neondatabase/serverless`)
