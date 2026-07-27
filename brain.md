@@ -217,11 +217,11 @@ docs/                   # Architecture, component hierarchy, workflows, database
 
 ## Chrome Extension
 - Manifest v3, injects into ChatGPT, Claude.ai, and Gemini
-- **Content script**: Detects chat input fields, injects a "Prompt+" pill button. On click, opens a modal showing original text + calls real API for enhancement via background.js (with loading spinner). Replace & Insert button puts result back into chat.
+- **Content script**: Detects chat input fields, injects a floating pill button at bottom-right corner of input (`pp-wrap`). Button has a diamond sparkle icon with subtle glow animation + "Prompt+" label, frosted glass background. On click, opens modal → calls real API → Replace & Insert.
 - **Popup**: Quick optimizer — paste prompt → calls API → auto-copies to clipboard. Inline success/error feedback (no alerts).
 - **Background**: Fetches `enhance-ai` API (tries `prompt-plus-three.vercel.app` first, falls back to `localhost:3000`). 15s timeout.
 - Targets: `https://chatgpt.com/*`, `https://claude.ai/*`, `https://gemini.google.com/*`
-- All styling is inline within content.js (no external content.css)
+- Button design: frosted glass (`backdrop-filter: blur`), subtle glow pulse animation on the icon, entrance slide-up animation, hover expands brightness/border. All styling inline in content.js.
 
 ## Config & Env Vars
 - `.env` — DATABASE_URL, AUTH_SECRET/NEXTAUTH_SECRET, ENCRYPTION_KEY

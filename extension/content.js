@@ -1,6 +1,4 @@
 (function () {
-  let pendingTarget = null;
-
   function getTargetInput() {
     let el = document.querySelector("#prompt-textarea, textarea[data-id='root']");
     if (el) return { element: el, type: "chatgpt" };
@@ -41,27 +39,40 @@
   }
 
   function injectButton() {
-    if (document.querySelector(".pp-btn")) return;
+    if (document.querySelector(".pp-wrap")) return;
     const target = getTargetInput();
     if (!target) return;
 
-    const btn = document.createElement("button");
-    btn.className = "pp-btn";
-    btn.innerHTML =
-      '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Prompt+</span>';
+    const wrap = document.createElement("div");
+    wrap.className = "pp-wrap";
+
+    wrap.innerHTML =
+      '<button class="pp-btn" title="Enhance with Prompt+ AI">' +
+        '<svg class="pp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+          '<path d="M12 2l1.5 6.5L20 10l-6.5 1.5L12 18l-1.5-6.5L4 10l6.5-1.5z"/>' +
+          '<circle cx="19" cy="5" r="1" fill="currentColor"/>' +
+          '<circle cx="5" cy="19" r="1" fill="currentColor"/>' +
+          '<circle cx="20" cy="18" r="0.8" fill="currentColor"/>' +
+        '</svg>' +
+        '<span class="pp-label">Prompt+</span>' +
+      '</button>';
+
+    const btn = wrap.querySelector("button");
     btn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      pendingTarget = target;
       const raw = getText(target);
       if (!raw.trim()) {
-        showToast("Please enter a prompt first");
+        showToast("Enter a prompt first");
         return;
       }
       openModal(target, raw);
     });
-    const parent = target.element.parentElement || document.body;
-    parent.insertBefore(btn, target.element);
+
+    if (target.element.parentElement) {
+      target.element.parentElement.style.position = "relative";
+      target.element.parentElement.appendChild(wrap);
+    }
   }
 
   function showToast(msg) {
@@ -69,12 +80,17 @@
     t.textContent = msg;
     Object.assign(t.style, {
       position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
-      background: "#1e293b", color: "#f1f5f9", padding: "10px 20px", borderRadius: "10px",
-      fontSize: "13px", zIndex: "99999999", boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-      border: "1px solid #334155", fontFamily: "-apple-system, sans-serif",
+      background: "#0f172a", color: "#f1f5f9", padding: "10px 20px", borderRadius: "12px",
+      fontSize: "13px", zIndex: "99999999", boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+      border: "1px solid #1e293b", fontFamily: "-apple-system, sans-serif",
+      backdropFilter: "blur(8px)",
     });
     document.body.appendChild(t);
-    setTimeout(() => t.remove(), 2500);
+    setTimeout(() => {
+      t.style.transition = "opacity .3s";
+      t.style.opacity = "0";
+      setTimeout(() => t.remove(), 300);
+    }, 2200);
   }
 
   function openModal(target, rawText) {
@@ -86,7 +102,14 @@
     overlay.innerHTML =
       '<div class="pp-modal">' +
         '<div class="pp-h">' +
-          '<div class="pp-h-title"><span class="pp-h-icon">P</span> Prompt+ Architect</div>' +
+          '<div class="pp-h-title">' +
+            '<svg class="pp-h-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+              '<path d="M12 2l1.5 6.5L20 10l-6.5 1.5L12 18l-1.5-6.5L4 10l6.5-1.5z"/>' +
+              '<circle cx="19" cy="5" r="1" fill="currentColor"/>' +
+              '<circle cx="5" cy="19" r="1" fill="currentColor"/>' +
+            '</svg>' +
+            'Prompt+ Architect' +
+          '</div>' +
           '<button class="pp-h-close">&times;</button>' +
         '</div>' +
         '<div class="pp-b">' +
@@ -133,29 +156,247 @@
   }
 
   const style = document.createElement("style");
-  style.textContent =
-    ".pp-btn{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff!important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:18px;border:1px solid rgba(255,255,255,.15);cursor:pointer;box-shadow:0 4px 12px rgba(99,102,241,.3);transition:all .15s;z-index:999999;margin:6px 0;user-select:none}" +
-    ".pp-btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(99,102,241,.45);filter:brightness(1.1)}" +
-    ".pp-overlay{position:fixed;inset:0;background:rgba(15,23,42,.65);backdrop-filter:blur(6px);z-index:99999999;display:flex;align-items:center;justify-content:center;opacity:0;animation:ppFadeIn .2s forwards ease-out}" +
-    "@keyframes ppFadeIn{to{opacity:1}}" +
-    ".pp-modal{width:90%;max-width:680px;max-height:85vh;background:#1e293b;border:1px solid #334155;border-radius:16px;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;box-shadow:0 20px 50px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden}" +
-    ".pp-h{padding:14px 18px;background:#0f172a;border-bottom:1px solid #334155;display:flex;align-items:center;justify-content:space-between}" +
-    ".pp-h-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}" +
-    ".pp-h-icon{width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}" +
-    ".pp-h-close{background:none;border:none;color:#64748b;font-size:22px;cursor:pointer;padding:2px 6px;border-radius:4px;line-height:1}" +
-    ".pp-h-close:hover{color:#fff;background:#334155}" +
-    ".pp-b{padding:18px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px}" +
-    ".pp-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin-bottom:5px}" +
-    ".pp-box{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.6;color:#e2e8f0;white-space:pre-wrap;word-break:break-word;max-height:200px;overflow-y:auto}" +
-    ".pp-loading{display:flex;align-items:center;gap:8px;color:#64748b;font-size:13px}" +
-    ".pp-spinner{display:inline-block;width:14px;height:14px;border:2px solid #334155;border-top-color:#6366f1;border-radius:50%;animation:ppSpin .6s linear infinite}" +
-    "@keyframes ppSpin{to{transform:rotate(360deg)}}" +
-    ".pp-f{padding:14px 18px;background:#0f172a;border-top:1px solid #334155;display:flex;align-items:center;justify-content:flex-end;gap:10px}" +
-    ".pp-btn-sec{background:#334155;color:#f8fafc;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}" +
-    ".pp-btn-sec:hover{background:#475569}" +
-    ".pp-btn-pri{background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}" +
-    ".pp-btn-pri:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.1)}" +
-    ".pp-btn-pri:disabled{opacity:.4;cursor:not-allowed}";
+  style.textContent = `
+
+.pp-wrap {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 999999;
+  pointer-events: none;
+}
+.pp-wrap * { pointer-events: auto; }
+
+.pp-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px 5px 8px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #a5b4fc;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.15);
+  transition: all 0.2s ease;
+  user-select: none;
+  animation: ppEntrance 0.35s ease-out;
+}
+
+@keyframes ppEntrance {
+  from { opacity: 0; transform: scale(0.85) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.pp-btn:hover {
+  color: #e0e7ff;
+  background: rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+  transform: translateY(-1px);
+}
+
+.pp-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.pp-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  color: #818cf8;
+  animation: ppGlow 2s ease-in-out infinite;
+}
+
+@keyframes ppGlow {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+.pp-label {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.pp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 99999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  animation: ppFadeIn 0.2s forwards ease-out;
+}
+
+@keyframes ppFadeIn { to { opacity: 1; } }
+
+.pp-modal {
+  width: 90%;
+  max-width: 680px;
+  max-height: 85vh;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  color: #f8fafc;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: ppModalIn 0.2s ease-out;
+}
+
+@keyframes ppModalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.pp-h {
+  padding: 14px 18px;
+  background: #0f172a;
+  border-bottom: 1px solid #334155;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pp-h-title {
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e0e7ff;
+}
+
+.pp-h-icon {
+  width: 18px;
+  height: 18px;
+  color: #818cf8;
+}
+
+.pp-h-close {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: all 0.15s;
+}
+
+.pp-h-close:hover {
+  color: #fff;
+  background: #334155;
+}
+
+.pp-b {
+  padding: 18px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pp-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 5px;
+}
+
+.pp-box {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #e2e8f0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.pp-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.pp-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #334155;
+  border-top-color: #818cf8;
+  border-radius: 50%;
+  animation: ppSpin 0.6s linear infinite;
+}
+
+@keyframes ppSpin { to { transform: rotate(360deg); } }
+
+.pp-f {
+  padding: 14px 18px;
+  background: #0f172a;
+  border-top: 1px solid #334155;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pp-btn-sec {
+  background: #334155;
+  color: #f8fafc;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pp-btn-sec:hover { background: #475569; }
+
+.pp-btn-pri {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pp-btn-pri:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+}
+
+.pp-btn-pri:disabled { opacity: 0.4; cursor: not-allowed; }
+  `;
   document.head.appendChild(style);
 
   setInterval(injectButton, 1500);
