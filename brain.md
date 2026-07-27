@@ -222,6 +222,7 @@ docs/                   # Architecture, component hierarchy, workflows, database
 - **Background**: Fetches `enhance-ai` API (tries `prompt-plus-three.vercel.app` first, falls back to `localhost:3000`). 15s timeout.
 - Targets: `https://chatgpt.com/*`, `https://claude.ai/*`, `https://gemini.google.com/*`
 - Button design: frosted glass (`backdrop-filter: blur`), subtle glow pulse animation on the icon, entrance slide-up animation, hover expands brightness/border. All styling inline in content.js.
+- **Credit bar**: Below the Prompt+ button, a thin 3px progress bar + "N/20" text showing remaining daily free-tier credits. Stored in `chrome.storage.local`, resets after 24h. Color shifts: green (>50%), yellow (>20%), red (≤20%). Decrements on each enhance click.
 
 ## Config & Env Vars
 - `.env` — DATABASE_URL, AUTH_SECRET/NEXTAUTH_SECRET, ENCRYPTION_KEY
