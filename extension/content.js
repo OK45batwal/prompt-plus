@@ -92,7 +92,7 @@
       const col = getCreditColor(r, t);
 
       wrap.innerHTML =
-        '<button class="pp-btn" title="Enhance with Prompt+ AI">' +
+        '<button type="button" class="pp-btn" title="Enhance with Prompt+ AI">' +
           '<svg class="pp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
             '<path d="M12 2l1.5 6.5L20 10l-6.5 1.5L12 18l-1.5-6.5L4 10l6.5-1.5z"/>' +
             '<circle cx="19" cy="5" r="1" fill="currentColor"/>' +
