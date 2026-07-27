@@ -42,7 +42,27 @@ export default function CollectionsPage() {
   };
 
   useEffect(() => {
-    fetchCollections();
+    const load = async () => {
+      try {
+        const res = await fetch("/api/v1/collections");
+        const json = await res.json();
+        const data: Collection[] = (json.data || []).map((item: Record<string, unknown>) => ({
+          id: item.id,
+          name: item.name,
+          description: item.description || "",
+          promptCount: item.prompt_count ?? 0,
+          icon: item.icon || "📁",
+          color: item.color || "#6b7280",
+          createdAt: item.createdAt,
+        }));
+        setCollections(data);
+      } catch {
+        setCollections([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, []);
 
   const deleteCollection = async (id: string) => {
