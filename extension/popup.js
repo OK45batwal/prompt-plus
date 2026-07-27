@@ -7,6 +7,19 @@ const copyBtn = document.getElementById("copy-btn");
 const successMsg = document.getElementById("success-msg");
 const errorMsg = document.getElementById("error-msg");
 const errorText = document.getElementById("error-text");
+const apiKeyInput = document.getElementById("api-key-input");
+const saveKeyBtn = document.getElementById("save-key-btn");
+const keyStatus = document.getElementById("key-status");
+const keyStatusText = document.getElementById("key-status-text");
+
+function switchTab(name) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
+  document.querySelectorAll(".panel").forEach(p => p.classList.toggle("active", p.id === "panel-" + name));
+}
+
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => switchTab(tab.dataset.tab));
+});
 
 function showLoading(show) {
   enhanceBtn.disabled = show;
@@ -22,6 +35,37 @@ function showError(msg) {
   setTimeout(() => { errorMsg.style.display = "none"; }, 4000);
 }
 
+function updateKeyStatus(hasKey) {
+  if (hasKey) {
+    keyStatus.className = "key-status";
+    keyStatusText.textContent = "API key saved";
+  } else {
+    keyStatus.className = "key-status missing";
+    keyStatusText.textContent = "No API key set";
+  }
+}
+
+chrome.runtime.sendMessage({ action: "getApiKey" }, (res) => {
+  if (res && res.apiKey) {
+    apiKeyInput.value = res.apiKey;
+    updateKeyStatus(true);
+  }
+});
+
+saveKeyBtn.addEventListener("click", () => {
+  const key = apiKeyInput.value.trim();
+  if (!key) {
+    updateKeyStatus(false);
+    return;
+  }
+  chrome.runtime.sendMessage({ action: "saveApiKey", apiKey: key }, (res) => {
+    if (res && res.success) {
+      updateKeyStatus(true);
+      switchTab("enhance");
+    }
+  });
+});
+
 async function enhancePrompt(text) {
   showLoading(true);
   output.style.display = "none";
@@ -29,10 +73,7 @@ async function enhancePrompt(text) {
   errorMsg.style.display = "none";
 
   try {
-    const res = await chrome.runtime.sendMessage({
-      action: "enhancePrompt",
-      text,
-    });
+    const res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text });
     if (!res || !res.success) {
       throw new Error(res?.error || "Enhancement failed");
     }
@@ -51,10 +92,7 @@ async function enhancePrompt(text) {
 
 enhanceBtn.addEventListener("click", () => {
   const text = input.value.trim();
-  if (!text) {
-    showError("Please enter a prompt first");
-    return;
-  }
+  if (!text) { showError("Please enter a prompt first"); return; }
   enhancePrompt(text);
 });
 

@@ -16,15 +16,18 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 16px;
+      padding: 12px 16px;
       border-bottom: 1px solid #1e293b;
     }
     .logo { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; }
     .logo-icon { width: 20px; height: 20px; border-radius: 6px; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; }
-    .status { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #64748b; }
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #10b981; }
-    .content { padding: 14px 16px; }
-    label { display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .tabs { display: flex; border-bottom: 1px solid #1e293b; }
+    .tab { flex: 1; padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+    .tab.active { color: #818cf8; border-bottom-color: #818cf8; }
+    .tab:hover { color: #a5b4fc; }
+    .panel { display: none; padding: 14px 16px; }
+    .panel.active { display: block; }
+    label { display: block; font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
     textarea {
       width: 100%;
       height: 88px;
@@ -42,9 +45,23 @@
     }
     textarea:focus { border-color: #6366f1; }
     textarea::placeholder { color: #475569; }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      height: 38px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #f1f5f9;
+      padding: 0 12px;
+      font-size: 13px;
+      font-family: monospace;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus { border-color: #6366f1; }
+    input::placeholder { color: #475569; }
     .actions { display: flex; gap: 8px; margin-top: 10px; }
     .btn {
-      flex: 1;
       padding: 9px 0;
       border: none;
       border-radius: 8px;
@@ -57,14 +74,15 @@
       justify-content: center;
       gap: 6px;
     }
-    .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
+    .btn-primary { flex: 1; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
     .btn-primary:hover { filter: brightness(1.12); }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
-    .btn-secondary { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+    .btn-secondary { flex: 0 0 auto; padding: 9px 14px; background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
     .btn-secondary:hover { background: #334155; color: #f1f5f9; }
+    .btn-save { width: 100%; margin-top: 10px; }
     .output {
       display: none;
-      margin-top: 12px;
+      margin-top: 10px;
       background: #1e293b;
       border: 1px solid #334155;
       border-radius: 8px;
@@ -74,23 +92,18 @@
     .output-header span { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; }
     .output-header button { background: none; border: none; color: #64748b; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
     .output-header button:hover { color: #10b981; }
-    .output-body {
-      padding: 12px;
-      font-size: 12px;
-      line-height: 1.6;
-      color: #e2e8f0;
-      white-space: pre-wrap;
-      word-break: break-word;
-      max-height: 200px;
-      overflow-y: auto;
-    }
+    .output-body { padding: 12px; font-size: 12px; line-height: 1.6; color: #e2e8f0; white-space: pre-wrap; word-break: break-word; max-height: 200px; overflow-y: auto; }
     .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #475569; border-top-color: #6366f1; border-radius: 50%; animation: spin 0.6s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .success-msg { font-size: 12px; color: #10b981; display: none; align-items: center; gap: 4px; margin-top: 8px; }
-    .error-msg { font-size: 12px; color: #f87171; display: none; align-items: center; gap: 4px; margin-top: 8px; }
-    .footer { padding: 10px 16px; border-top: 1px solid #1e293b; text-align: center; font-size: 10px; color: #475569; }
+    .msg { font-size: 12px; display: none; align-items: center; gap: 4px; margin-top: 8px; }
+    .msg-success { color: #10b981; }
+    .msg-error { color: #f87171; }
+    .hint { font-size: 11px; color: #64748b; margin-top: 4px; line-height: 1.4; }
+    .footer { padding: 8px 16px; border-top: 1px solid #1e293b; text-align: center; font-size: 10px; color: #475569; }
     .footer a { color: #6366f1; text-decoration: none; }
     .footer a:hover { text-decoration: underline; }
+    .key-status { font-size: 12px; color: #10b981; display: flex; align-items: center; gap: 4px; margin-top: 6px; }
+    .key-status.missing { color: #f87171; }
   </style>
 </head>
 <body>
@@ -99,16 +112,17 @@
       <div class="logo-icon">P</div>
       <span>Prompt+</span>
     </div>
-    <div class="status">
-      <span class="status-dot"></span>
-      <span>Connected</span>
-    </div>
   </div>
 
-  <div class="content">
+  <div class="tabs">
+    <div class="tab active" data-tab="enhance">Enhance</div>
+    <div class="tab" data-tab="settings">Settings</div>
+  </div>
+
+  <!-- Enhance Panel -->
+  <div class="panel active" id="panel-enhance">
     <label for="quick-input">Quick Prompt Optimizer</label>
     <textarea id="quick-input" placeholder="Paste a prompt and enhance it instantly..."></textarea>
-
     <div class="actions">
       <button class="btn btn-primary" id="enhance-btn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
@@ -116,16 +130,14 @@
       </button>
       <button class="btn btn-secondary" id="clear-btn">Clear</button>
     </div>
-
-    <div class="success-msg" id="success-msg">
+    <div class="msg msg-success" id="success-msg">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       Copied to clipboard
     </div>
-    <div class="error-msg" id="error-msg">
+    <div class="msg msg-error" id="error-msg">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
       <span id="error-text">Something went wrong</span>
     </div>
-
     <div class="output" id="output">
       <div class="output-header">
         <span>Enhanced Prompt</span>
@@ -138,8 +150,20 @@
     </div>
   </div>
 
+  <!-- Settings Panel -->
+  <div class="panel" id="panel-settings">
+    <label for="api-key-input">Your OpenAI / Anthropic API Key</label>
+    <input type="password" id="api-key-input" placeholder="sk-... or sk-ant-..." />
+    <div class="key-status missing" id="key-status">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      <span id="key-status-text">No API key set</span>
+    </div>
+    <button class="btn btn-primary btn-save" id="save-key-btn">Save Key</button>
+    <div class="hint">Your key is stored in your browser's local storage and only sent to the Prompt+ API to call the LLM. It is never stored on our servers.</div>
+  </div>
+
   <div class="footer">
-    <a href="#" id="open-dashboard" target="_blank">Open Dashboard</a> &middot;
+    <a href="#" id="open-dashboard">Dashboard</a> &middot;
     <a href="https://prompt-plus-three.vercel.app" target="_blank">Web App</a>
   </div>
 

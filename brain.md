@@ -14,26 +14,15 @@ Content Script
         │
         ▼
 Background Service Worker
-(Sends POST to enhance-ai API — tries prod URL first, falls back to localhost)
+(Reads API key from chrome.storage, sends POST to extension/enhance API — tries prod URL first, falls back to localhost)
         │
         ▼
-Prompt+ Backend API (POST /api/v1/prompts/enhance-ai)
+Prompt+ Backend API (POST /api/v1/extension/enhance)
         │
         ▼
-with-auth HOF
-• Validates JWT session (if available)
-• CSRF origin/referer check
+extension/enhance endpoint (no session required)
 • Body schema validation via Zod
-        │
-        ▼
-Rate Limit Check
-(In-memory token bucket, 20 req/day per user)
-        │
-        ▼
-API Key Resolution
-1. User-provided key in request body
-2. Stored encrypted key in DB (AES-256-GCM decrypted)
-3. Fallback env var (OPENROUTER > ANTHROPIC > OPENAI)
+• Uses the API key provided by extension directly (no DB lookup)
         │
         ▼
 buildArchitectMetaPrompt()
@@ -95,6 +84,7 @@ src/
                         # compare/, analytics/, settings/, templates/
     api/
       v1/               # REST API
+        extension/        # Extension-specific: enhance/ (no-session endpoint for Chrome extension)
         prompts/        # GET/POST (list/create), [id]/ (get/soft-delete),
                         # enhance-ai/ (main AI enhancement), analyze/, score/,
                         # share/, enhance-all/
@@ -211,6 +201,9 @@ docs/                   # Architecture, component hierarchy, workflows, database
 ### `/usage`
 - `GET` — User usage stats (total, by action, by model, daily trends)
 
+### `/extension/enhance`
+- `POST` — No-auth endpoint for the Chrome extension. Accepts `{ text, apiKey, provider?, model?, category?, tone?, length? }`. Validates with Zod, calls `buildArchitectMetaPrompt()` + `callLLM()` with the provided API key. No DB writes. Returns `{ data: { enhanced, provider, model } }`.
+
 ### `/health`
 - Simple health check (static response)
 
@@ -286,7 +279,8 @@ docs/                   # Architecture, component hierarchy, workflows, database
 - Manifest v3, injects into ChatGPT, Claude.ai, and Gemini
 - **Content script**: Detects chat input fields, injects a floating pill button at bottom-right corner of input (`pp-wrap`). Button has a diamond sparkle icon with subtle glow animation + "Prompt+" label, frosted glass background. On click, opens modal → calls real API → Replace & Insert.
 - **Popup**: Quick optimizer — paste prompt → calls API → auto-copies to clipboard. Inline success/error feedback (no alerts).
-- **Background**: Fetches `enhance-ai` API (tries `prompt-plus-three.vercel.app` first, falls back to `localhost:3000`). 15s timeout.
+- **Background**: Fetches `/api/v1/extension/enhance` (tries prod first, then localhost). 20s timeout. Reads API key from `chrome.storage.local` (`pp_settings.apiKey`) and passes it to the endpoint. Also handles `saveApiKey` / `getApiKey` messages.
+- **Popup**: Two tabs — "Enhance" (quick optimizer) and "Settings" (API key input, stored in `chrome.storage.local`, never sent to Prompt+ servers).
 - Targets: `https://chatgpt.com/*`, `https://claude.ai/*`, `https://gemini.google.com/*`
 - Button design: frosted glass (`backdrop-filter: blur`), subtle glow pulse animation on the icon, entrance slide-up animation, hover expands brightness/border. All styling inline in content.js.
 - **Credit bar**: Below the Prompt+ button, a thin 3px progress bar + "N/20" text showing remaining daily free-tier credits. Stored in `chrome.storage.local`, resets after 24h. Color shifts: green (>50%), yellow (>20%), red (≤20%). Decrements on each enhance click.
