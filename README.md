@@ -1,20 +1,23 @@
 <div align="center">
-  <img src="./public/logo.png" alt="Prompt+ Logo" width="180" style="margin-bottom: 8px;">
-  <h1 align="center" style="font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em;">⚡ Prompt+</h1>
-  <p align="center" style="font-size: 1.1rem; color: #64748b; max-width: 520px;">
-    Transform raw ideas into production-grade, AI-optimized prompts<br>
-    — right inside ChatGPT, Claude, and Gemini.
-  </p>
+  <a href="https://prompt-plus-three.vercel.app">
+    <img src="./public/logo.png" alt="Prompt+" width="160">
+  </a>
+  <br>
+  <a href="https://prompt-plus-three.vercel.app">
+    <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=800&size=32&duration=3000&pause=800&color=818CF8&center=true&vCenter=true&width=320&lines=Prompt%2B;AI+Prompt+Optimizer;7+Free+OpenRouter+Models;NVIDIA+Free+Models;Chrome+Extension" alt="Typing SVG">
+  </a>
+  <br>
+  <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=400&size=16&duration=4000&pause=1200&color=94A3B8&center=true&vCenter=true&width=480&lines=Transform+raw+ideas+into+production-grade+prompts;Works+inside+ChatGPT%2C+Claude+%26+Gemini;8-step+architectural+pipeline+%E2%80%A2+Real-time+analytics" alt="Subtitle">
 </div>
 
 <br>
 
 <p align="center">
   <a href="https://prompt-plus-three.vercel.app">
-    <img src="https://img.shields.io/badge/Website-Live-22c55e?style=for-the-badge&logo=vercel&logoColor=white" alt="Website">
+    <img src="https://img.shields.io/badge/Website-6366f1?style=for-the-badge&logo=vercel&logoColor=white" alt="Website">
   </a>
-  <a href="https://chrome.google.com/webstore">
-    <img src="https://img.shields.io/badge/Extension-Chrome-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome Extension">
+  <a href="#extension">
+    <img src="https://img.shields.io/badge/Extension-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Extension">
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge" alt="License">
@@ -25,20 +28,42 @@
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> •
-  <a href="#pipeline">How It Works</a> •
-  <a href="#screenshots">Screenshots</a> •
-  <a href="#tech-stack">Tech Stack</a> •
-  <a href="#getting-started">Getting Started</a> •
+  <a href="#features">Features</a> <kbd>·</kbd>
+  <a href="#pipeline">Pipeline</a> <kbd>·</kbd>
+  <a href="#screenshots">Screenshots</a> <kbd>·</kbd>
+  <a href="#tech">Tech Stack</a> <kbd>·</kbd>
+  <a href="#quickstart">Quickstart</a> <kbd>·</kbd>
   <a href="#extension">Extension</a>
 </p>
 
 <br>
 
+<!-- HERO SHOWCASE -->
 <div align="center">
-  <img src="./public/screenshots/dashboard-light.png" alt="Prompt+ Dashboard" width="95%" style="border-radius: 12px; box-shadow: 0 8px 40px rgba(0,0,0,0.12);">
+  <table>
+    <tr>
+      <td align="center"><b>☀️ Light Dashboard</b></td>
+      <td align="center"><b>🌙 Dark Dashboard</b></td>
+    </tr>
+    <tr>
+      <td><img src="./public/screenshots/dashboard-light.png" alt="Light" width="100%" style="border-radius: 10px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);"></td>
+      <td><img src="./public/screenshots/dashboard-dark.png" alt="Dark" width="100%" style="border-radius: 10px; box-shadow: 0 4px 24px rgba(0,0,0,0.08);"></td>
+    </tr>
+  </table>
   <br>
-  <em>Prompt+ Dashboard — dark/light theme, analytics, and prompt builder</em>
+  <table>
+    <tr>
+      <td align="center"><b>⚡ Prompt Builder</b></td>
+      <td align="center"><b>📚 Library</b></td>
+      <td align="center"><b>📁 Collections</b></td>
+    </tr>
+    <tr>
+      <td><img src="./public/screenshots/new-prompt.png" alt="Builder" width="100%" style="border-radius: 8px;"></td>
+      <td><img src="./public/screenshots/library.png" alt="Library" width="100%" style="border-radius: 8px;"></td>
+      <td><img src="./public/screenshots/collections.png" alt="Collections" width="100%" style="border-radius: 8px;"></td>
+    </tr>
+  </table>
+  <p><em>Prompt+ Dashboard — analytics, prompt builder, library, and collections</em></p>
 </div>
 
 <br>
@@ -49,120 +74,144 @@
 
 <table>
   <tr>
-    <td width="50%">
-      <h3>🧠 8‑Step Prompt Pipeline</h3>
-      <p>Raw input → intent analysis → gap detection → meta-prompt compilation → AI rewrite → quality validation. Every prompt is architecturally restructured, not just reworded.</p>
+    <td width="33%" align="center">
+      <br>
+      <code>🧠</code>
+      <h3>8‑Step Pipeline</h3>
+      <p>Intent analysis → gap detection → meta-prompt compilation → AI rewrite → quality validation. Not just reworded — architecturally restructured.</p>
     </td>
-    <td width="50%">
-      <h3>🔌 Chrome Extension</h3>
-      <p>Floating sparkle button on ChatGPT, Claude & Gemini. Opens a 420px glass‑morphism side panel with prompt analysis, model selection, and one‑click replace.</p>
+    <td width="33%" align="center">
+      <br>
+      <code>🔌</code>
+      <h3>Chrome Extension</h3>
+      <p>Floating FAB on ChatGPT, Claude & Gemini. Glass‑morphism side panel with analysis, model selection, and one‑click replace.</p>
     </td>
-  </tr>
-  <tr>
-    <td>
-      <h3>🦙 7 Free OpenRouter Models</h3>
-      <p>Llama 3.3 70B, Gemini 2.0 Flash, DeepSeek R1, Qwen 2.5 Coder 32B, Mistral Small 24B, Phi-3 Mini 128K, Hermes 3 405B — all free, rate‑limited.</p>
-    </td>
-    <td>
-      <h3>🖥️ NVIDIA Free Models</h3>
-      <p>Llama 3.3 70B, Nemotron 70B, Gemma 2 27B, Mistral 7B — via the NVIDIA API. Add your NVIDIA API key in Settings and access them from any page or extension.</p>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <h3>📊 Analytics Dashboard</h3>
-      <p>Daily and monthly usage tracking with progress bars. Average quality scores, total enhancements, and usage trends — all real‑time.</p>
-    </td>
-    <td>
-      <h3>🔐 Encrypted API Keys</h3>
-      <p>Per‑provider key management with AES‑256‑GCM encryption at rest. Save keys for OpenAI, Anthropic, OpenRouter, Google, and NVIDIA — never share them.</p>
+    <td width="33%" align="center">
+      <br>
+      <code>🦙</code>
+      <h3>7 Free Models</h3>
+      <p>Llama 3.3 70B · Gemini 2.0 Flash · DeepSeek R1 · Qwen 2.5 Coder · Mistral Small · Phi-3 Mini · Hermes 3 405B — all via OpenRouter.</p>
     </td>
   </tr>
   <tr>
-    <td>
-      <h3>📚 Library & Collections</h3>
-      <p>Save prompts to your personal library. Organize into topic collections. Search, filter by category, favorite, and reuse with one click.</p>
+    <td width="33%" align="center">
+      <br>
+      <code>🖥️</code>
+      <h3>NVIDIA Free Tier</h3>
+      <p>Llama 3.3 70B · Nemotron 70B · Gemma 2 27B · Mistral 7B — via the NVIDIA API. Add your key in Settings and use from any page or extension.</p>
     </td>
-    <td>
-      <h3>🎯 6‑Dimension Scoring</h3>
-      <p>Real‑time evaluation across Clarity, Specificity, Structure, Context, Constraints, and Actionability. Score ring visualization in the extension panel.</p>
+    <td width="33%" align="center">
+      <br>
+      <code>📊</code>
+      <h3>Analytics</h3>
+      <p>Daily/monthly usage with progress bars. Average scores, total enhancements, trends — all real‑time.</p>
+    </td>
+    <td width="33%" align="center">
+      <br>
+      <code>🔐</code>
+      <h3>Encrypted Keys</h3>
+      <p>Per‑provider key management with AES‑256‑GCM encryption. OpenAI · Anthropic · OpenRouter · Google · NVIDIA.</p>
     </td>
   </tr>
   <tr>
-    <td>
-      <h3>🌓 Dark / Light Theme</h3>
-      <p>System‑aware theme with manual override. High‑contrast in both modes. All UI components respect the active theme.</p>
+    <td width="33%" align="center">
+      <br>
+      <code>📚</code>
+      <h3>Library & Collections</h3>
+      <p>Save prompts. Organize into collections. Search, filter, favorite, and reuse with one click.</p>
     </td>
-    <td>
-      <h3>🔑 OAuth Ready</h3>
-      <p>Google and GitHub login support. Drop‑in env vars enable social auth. The UI auto‑hides OAuth buttons when providers aren't configured.</p>
+    <td width="33%" align="center">
+      <br>
+      <code>🎯</code>
+      <h3>6‑Dimension Scoring</h3>
+      <p>Real‑time evaluation: Clarity · Specificity · Structure · Context · Constraints · Actionability. Score ring in the extension panel.</p>
+    </td>
+    <td width="33%" align="center">
+      <br>
+      <code>🌓</code>
+      <h3>Dark / Light Theme</h3>
+      <p>System‑aware with manual override. High‑contrast in both modes.</p>
     </td>
   </tr>
 </table>
 
 ---
 
-<h2 id="pipeline">⚡ Prompt Enhancement Pipeline</h2>
-
-Every prompt passes through an automated 8‑step architectural pipeline:
+<h2 id="pipeline">⚡ Pipeline</h2>
 
 <div align="center">
 
-| Step | Component | What Happens |
-|------|-----------|--------------|
-| **1** | Input Acquisition | Captures raw user input from the dashboard or extension |
-| **2** | Intent Analysis | NLP‑style classification — detects intent, domain, task type, complexity |
-| **3** | Gap Detection | Identifies missing elements: role, context, constraints, audience, tone, examples, output format |
-| **4** | Meta‑Prompt Compilation | Builds hidden meta-instructions that guide the AI without altering user intent |
-| **5** | Provider Dispatch | Routes to selected model — OpenRouter, NVIDIA, OpenAI, or Anthropic |
-| **6** | Architectural Rewrite | AI restructures the prompt with Role, Instructions, Constraints, and Variables |
-| **7** | Quality Validation | 6‑metric audit — checks completeness, boundaries, actionability, structure |
-| **8** | Delivery | Shows enhanced prompt with Copy / Edit / Save / Insert into chat |
+```
+Input ──→ Intent Analysis ──→ Gap Detection ──→ Meta-Prompt Compilation
+                                                  │
+              ┌────────────────────────────────────┘
+              ▼
+        Provider Dispatch ──→ Architectural Rewrite ──→ Quality Audit ──→ Delivery
+        (OpenRouter · NVIDIA · OpenAI · Anthropic)       (6‑metric)       (Copy/Replace/Save)
+```
+
+</div>
+
+| # | Stage | Description |
+|---|-------|-------------|
+| 1 | **Input Acquisition** | Raw prompt from dashboard or extension FAB |
+| 2 | **Intent Analysis** | Classifies domain, task type, complexity level |
+| 3 | **Gap Detection** | Finds missing role, context, constraints, audience, tone, examples, format |
+| 4 | **Meta-Prompt Compilation** | Builds hidden instructions that guide the AI while preserving user intent |
+| 5 | **Provider Dispatch** | Routes to selected model: OpenRouter (free), NVIDIA, OpenAI, or Anthropic |
+| 6 | **Architectural Rewrite** | AI restructures with Role, Instructions, Constraints, Variables |
+| 7 | **Quality Validation** | 6‑metric audit: completeness, boundaries, actionability, structure |
+| 8 | **Delivery** | Enhanced prompt with Copy · Edit · Save · Insert into chat |
+
+---
+
+<h2 id="tech">🛠️ Tech Stack</h2>
+
+<div align="center">
+
+| Layer | Technology |
+|-------|------------|
+| **Framework** | Next.js 16 (App Router) |
+| **Language** | TypeScript 5 (Strict Mode) |
+| **Styling** | Tailwind CSS v4 + shadcn/ui + Lucide Icons |
+| **Authentication** | NextAuth.js v5 (JWT · Bcrypt · Google · GitHub) |
+| **Database** | PostgreSQL + Prisma ORM |
+| **AI Providers** | OpenRouter · NVIDIA · OpenAI · Anthropic |
+| **Extension** | Manifest V3 Chrome Extension |
+| **Testing** | Vitest |
+| **Security** | AES-256-GCM · Rate Limiting · CSRF · Request ID Tracing |
+
+<br>
+
+<p>
+  <img src="https://img.shields.io/badge/Next.js_16-000000?style=flat-square&logo=nextdotjs&logoColor=white" alt="Next.js">
+  <img src="https://img.shields.io/badge/TypeScript_5-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Tailwind_CSS_v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind">
+  <img src="https://img.shields.io/badge/Prisma-2D3748?style=flat-square&logo=prisma&logoColor=white" alt="Prisma">
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/NextAuth.js-000000?style=flat-square&logo=nextauth&logoColor=white" alt="NextAuth.js">
+</p>
 
 </div>
 
 ---
 
-<h2 id="screenshots">🖼️ Screenshots</h2>
+<h2 id="screenshots">🖼️ Gallery</h2>
 
 <div align="center">
 
-### ☀️ Light & 🌙 Dark Theme
-
-<table width="100%">
+<table>
   <tr>
-    <td width="50%" align="center"><b>☀️ Light Dashboard</b></td>
-    <td width="50%" align="center"><b>🌙 Dark Dashboard</b></td>
+    <td align="center"><b>⚡ Prompt Builder</b></td>
+    <td align="center"><b>📚 Prompt Library</b></td>
   </tr>
   <tr>
-    <td><img src="./public/screenshots/dashboard-light.png" alt="Light Dashboard" width="100%" style="border-radius: 8px;"></td>
-    <td><img src="./public/screenshots/dashboard-dark.png" alt="Dark Dashboard" width="100%" style="border-radius: 8px;"></td>
-  </tr>
-</table>
-
-<br>
-
-### ⚡ Prompt Builder & 📚 Library
-
-<table width="100%">
-  <tr>
-    <td width="50%" align="center"><b>⚡ Prompt Builder</b></td>
-    <td width="50%" align="center"><b>📚 Prompt Library</b></td>
-  </tr>
-  <tr>
-    <td><img src="./public/screenshots/new-prompt.png" alt="Prompt Builder" width="100%" style="border-radius: 8px;"></td>
+    <td><img src="./public/screenshots/new-prompt.png" alt="Builder" width="100%" style="border-radius: 8px;"></td>
     <td><img src="./public/screenshots/library.png" alt="Library" width="100%" style="border-radius: 8px;"></td>
   </tr>
-</table>
-
-<br>
-
-### 📁 Collections & 📱 Mobile
-
-<table width="100%">
   <tr>
-    <td width="50%" align="center"><b>📁 Collections</b></td>
-    <td width="50%" align="center"><b>📱 Mobile View</b></td>
+    <td align="center"><b>📁 Collections</b></td>
+    <td align="center"><b>📱 Mobile</b></td>
   </tr>
   <tr>
     <td><img src="./public/screenshots/collections.png" alt="Collections" width="100%" style="border-radius: 8px;"></td>
@@ -174,29 +223,10 @@ Every prompt passes through an automated 8‑step architectural pipeline:
 
 ---
 
-<h2 id="tech-stack">🛠️ Tech Stack</h2>
+<h2 id="quickstart">🚀 Quickstart</h2>
 
-<div align="center">
-
-| Layer | Technology |
-|-------|-----------|
-| **Framework** | Next.js 16 (App Router) |
-| **Language** | TypeScript 5 (Strict Mode) |
-| **Styling** | Tailwind CSS v4 + shadcn/ui + Lucide Icons |
-| **Auth** | NextAuth.js v5 (JWT, Bcrypt, Google, GitHub) |
-| **Database** | PostgreSQL + Prisma ORM |
-| **AI** | OpenRouter API · NVIDIA API · OpenAI API · Anthropic API |
-| **Extension** | Manifest V3 Chrome Extension |
-| **Testing** | Vitest |
-| **Security** | AES-256-GCM · Rate Limiting · CSRF · Request ID Tracing |
-
-</div>
-
----
-
-<h2 id="getting-started">🚀 Getting Started</h2>
-
-<h3>Local Development</h3>
+<details>
+<summary><b>🐳 Local Development</b></summary>
 
 ```bash
 # Clone & install
@@ -206,59 +236,77 @@ npm install
 
 # Configure environment
 cp .env.example .env
-# Edit .env with your DATABASE_URL and API keys
+# Edit DATABASE_URL and API keys in .env
 
-# Database setup
+# Database
 npx prisma migrate dev
 
-# Start dev server
+# Start
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-<h3>Running Tests</h3>
+</details>
+
+<details>
+<summary><b>🧪 Run Tests</b></summary>
 
 ```bash
 npm test
 ```
 
-<h3>Environment Variables</h3>
+</details>
+
+<details>
+<summary><b>🔑 Environment Variables</b></summary>
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `NEXTAUTH_SECRET` | Yes | JWT signing secret (min 32 chars) |
-| `GOOGLE_CLIENT_ID` | No | For Google OAuth login |
-| `GOOGLE_CLIENT_SECRET` | No | For Google OAuth login |
-| `GITHUB_CLIENT_ID` | No | For GitHub OAuth login |
-| `GITHUB_CLIENT_SECRET` | No | For GitHub OAuth login |
-| `OPENAI_API_KEY` | No | Fallback AI provider key |
-| `OPENROUTER_API_KEY` | No | Fallback AI provider key |
-| `ANTHROPIC_API_KEY` | No | Fallback AI provider key |
-| `RESEND_API_KEY` | No | For password reset emails |
-| `ENCRYPTION_KEY` | No | AES-256 key for API key storage |
+| `DATABASE_URL` | ✅ | PostgreSQL connection string |
+| `NEXTAUTH_SECRET` | ✅ | JWT secret (min 32 chars) |
+| `GOOGLE_CLIENT_ID` | — | Google OAuth |
+| `GOOGLE_CLIENT_SECRET` | — | Google OAuth |
+| `GITHUB_CLIENT_ID` | — | GitHub OAuth |
+| `GITHUB_CLIENT_SECRET` | — | GitHub OAuth |
+| `OPENAI_API_KEY` | — | Fallback AI key |
+| `OPENROUTER_API_KEY` | — | Fallback AI key |
+| `ANTHROPIC_API_KEY` | — | Fallback AI key |
+| `RESEND_API_KEY` | — | Password reset emails |
+| `ENCRYPTION_KEY` | — | AES-256 key for API key storage |
+
+</details>
 
 ---
 
 <h2 id="extension">🔌 Chrome Extension</h2>
 
-Inject Prompt+ directly into **ChatGPT**, **Claude**, and **Gemini**.
+<p align="center">
+  <img src="https://img.shields.io/badge/Platform-ChatGPT-00A67E?style=flat-square&logo=openai&logoColor=white">
+  <img src="https://img.shields.io/badge/Platform-Claude-CC7950?style=flat-square&logo=anthropic&logoColor=white">
+  <img src="https://img.shields.io/badge/Platform-Gemini-4285F4?style=flat-square&logo=google&logoColor=white">
+</p>
 
-### What It Does
+Inject Prompt+ directly into **ChatGPT**, **Claude**, and **Gemini** with a floating sparkle button.
 
-- **Sparkle FAB** — a 36px purple gradient button appears near every input field
-- **420px Side Panel** — slides in from the right with:
-  - Prompt analysis: score ring, intent, complexity, word count
-  - 5 toggleable suggestion categories (Role, Constraints, Format, Context, Examples)
-  - Model selector with 11 models across OpenRouter (free) + NVIDIA + paid
-  - Original / Enhanced preview cards
-  - Copy · Replace · Enhance buttons
-  - History (last 10 prompts)
-  - Settings: dark mode, auto-enhance, optimization level
-- **Popup** — quick enhance with model selector + API key management
+<details>
+<summary><b>📋 Features</b></summary>
 
-### Install
+<br>
+
+| Component | Details |
+|-----------|---------|
+| **FAB** | 36px purple gradient button near every input field |
+| **Side Panel** | 420px glass‑morphism panel with analysis, suggestions, model selector, preview, history, settings |
+| **Analysis** | Score ring · Intent · Complexity · Word count |
+| **Suggestions** | Role · Constraints · Format · Context · Examples |
+| **Models** | 11 models across OpenRouter (7 free) + NVIDIA (4) + paid |
+| **Popup** | Quick enhance + model selector + API key management |
+
+</details>
+
+<details>
+<summary><b>📦 Install</b></summary>
 
 ```bash
 1. Open chrome://extensions
@@ -268,19 +316,31 @@ Inject Prompt+ directly into **ChatGPT**, **Claude**, and **Gemini**.
 5. Visit chatgpt.com, claude.ai, or gemini.google.com
 ```
 
+</details>
+
 ---
 
-## 📊 Project Stats
+<h2 id="stats">📊 Activity</h2>
 
 <p align="center">
-  <img src="https://img.shields.io/github/languages/code-size/OK45batwal/Prompt-plus?style=flat-square&color=6366f1" alt="Code Size">
-  <img src="https://img.shields.io/github/last-commit/OK45batwal/Prompt-plus?style=flat-square&color=22c55e" alt="Last Commit">
-  <img src="https://img.shields.io/github/commit-activity/m/OK45batwal/Prompt-plus?style=flat-square&color=f59e0b" alt="Commit Activity">
+  <img src="https://img.shields.io/github/languages/code-size/OK45batwal/Prompt-plus?style=flat-square&label=Code+Size&color=6366f1" alt="Code Size">
+  <img src="https://img.shields.io/github/last-commit/OK45batwal/Prompt-plus?style=flat-square&label=Last+Commit&color=22c55e" alt="Last Commit">
+  <img src="https://img.shields.io/github/commit-activity/m/OK45batwal/Prompt-plus?style=flat-square&label=Commits%2Fmonth&color=f59e0b" alt="Commit Activity">
+  <img src="https://img.shields.io/github/languages/count/OK45batwal/Prompt-plus?style=flat-square&label=Languages&color=8b5cf6" alt="Languages">
+</p>
+
+<br>
+
+<p align="center">
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=OK45batwal&repo=Prompt-plus&layout=compact&theme=transparent&hide_border=true&title_color=818cf8&text_color=94a3b8&card_width=400" alt="Top Langs">
+  <br>
+  <img src="https://github-readme-stats.vercel.app/api?username=OK45batwal&repo=Prompt-plus&show_icons=true&theme=transparent&hide_border=true&title_color=818cf8&text_color=94a3b8&icon_color=6366f1&card_width=400" alt="Stats">
 </p>
 
 ---
 
 <p align="center">
-  Built with TypeScript, Next.js, and ❤️<br>
+  <sub>Built with TypeScript, Next.js, and ❤️</sub>
+  <br>
   <a href="LICENSE">MIT License</a>
 </p>
