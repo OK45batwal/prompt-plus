@@ -50,10 +50,10 @@ Backend Post-Processing
 Response sent back to Background Worker → Content Script
         │
         ▼
-Modal displays enhanced text → User edits if needed
+Side panel displays enhanced text → User edits if needed
         │
         ▼
-Replace & Insert into Chat Input
+Replace & Insert into Chat Input (or Copy)
         │
         ▼
 User Clicks Send
@@ -84,7 +84,7 @@ src/
                         # compare/, analytics/, settings/, templates/
     api/
       v1/               # REST API
-        extension/        # Extension-specific: enhance/ (no-session endpoint for Chrome extension)
+        extension/        # Extension-specific endpoints: enhance/ (no-session, accepts apiKey in body)
         prompts/        # GET/POST (list/create), [id]/ (get/soft-delete),
                         # enhance-ai/ (main AI enhancement), analyze/, score/,
                         # share/, enhance-all/
@@ -276,14 +276,46 @@ docs/                   # Architecture, component hierarchy, workflows, database
 - Soft-delete pattern for prompts and collections (deletedAt field)
 
 ## Chrome Extension
-- Manifest v3, injects into ChatGPT, Claude.ai, and Gemini
-- **Content script**: Detects chat input fields, injects a floating pill button at bottom-right corner of input (`pp-wrap`). Button has a diamond sparkle icon with subtle glow animation + "Prompt+" label, frosted glass background. On click, opens modal → calls real API → Replace & Insert.
-- **Popup**: Quick optimizer — paste prompt → calls API → auto-copies to clipboard. Inline success/error feedback (no alerts).
-- **Background**: Fetches `/api/v1/extension/enhance` (tries prod first, then localhost). 20s timeout. Reads API key from `chrome.storage.local` (`pp_settings.apiKey`) and passes it to the endpoint. Also handles `saveApiKey` / `getApiKey` messages.
-- **Popup**: Two tabs — "Enhance" (quick optimizer) and "Settings" (API key input, stored in `chrome.storage.local`, never sent to Prompt+ servers).
-- Targets: `https://chatgpt.com/*`, `https://claude.ai/*`, `https://gemini.google.com/*`
-- Button design: frosted glass (`backdrop-filter: blur`), subtle glow pulse animation on the icon, entrance slide-up animation, hover expands brightness/border. All styling inline in content.js.
-- **Credit bar**: Below the Prompt+ button, a thin 3px progress bar + "N/20" text showing remaining daily free-tier credits. Stored in `chrome.storage.local`, resets after 24h. Color shifts: green (>50%), yellow (>20%), red (≤20%). Decrements on each enhance click.
+- Manifest v3, injects into ChatGPT, Claude.ai, and Gemini (and any page with a textarea)
+- **Design**: Modern SaaS dark-first theme. Glassmorphism (`backdrop-filter: blur`), soft shadows, 16–20px rounded corners, 200–300ms smooth animations, purple→blue gradient accents. Inspired by Linear, Raycast, Notion AI, Perplexity.
+
+### UI Components (content.js)
+
+**Floating Sparkle Button (✨ FAB)**
+- 36px circle, purple→blue gradient, mounted on `document.body` via `position: fixed`
+- Positioned at bottom-right of the chat input using `getBoundingClientRect`
+- Scale-in entrance animation, hover scale 1.08, click scale 0.95
+- Repositions on scroll/resize
+
+**Slide-in Side Panel (right panel, 420px)**
+- Opens when clicking the FAB
+- Backdrop overlay + panel slides in from right with `cubic-bezier` spring curve
+- Glass background (`rgba(15,23,42,0.92)` + `backdrop-filter: blur(20px)`)
+- Contains vertically stacked cards:
+
+  1. **Analysis Card** — SVG arc ring showing score (0–100), plus Intent/Complexity/Word count metadata. All computed locally via heuristic (word-count based).
+  
+  2. **Suggestions Card** — 5 togglable checkboxes: Add Role, Constraints, Output Format, Context, Examples. Badge shows count of active suggestions. Checked items use indigo gradient + checkmark.
+  
+  3. **Model Selector** — Styled `<select>` with custom chevron. Options: GPT-4o Mini, GPT-4o, Claude 3.5 Sonnet, Gemini 1.5 Pro.
+  
+  4. **Preview Cards** — Original text (read-only in dark box), Enhanced text (contenteditable, shown after API response). Both support scroll.
+  
+  5. **Action Buttons** — Enhance (primary gradient, shows spinner during API call), Copy, Replace (inserts back into chat). Copy/Replace disabled until enhancement completes.
+  
+  6. **History Card** — Last 10 enhanced prompts (stored in `chrome.storage.local`). Click a history item to load its text back into the editor.
+  
+  7. **Settings Card** (gear icon in header) — Dark Mode toggle, Auto Enhance toggle (triggers enhancement immediately on panel open), Optimization Level select (Basic/Balanced/Advanced). Persisted to `chrome.storage.local`.
+
+- Close via X button, backdrop click, or Escape key
+- All styling inline in content.js (no external CSS files)
+
+### Popup (popup.html/js)
+Minimal quick-enhancer + API key input. Paste prompt → Enhance → auto-copies to clipboard. API key input at bottom, persists to `chrome.storage.local` via background.js. Never sent to Prompt+ servers.
+
+### Background (background.js)
+- Handles `enhancePrompt`: reads API key from `chrome.storage.local`, POSTs to `/api/v1/extension/enhance` (prod URL first, localhost fallback, 20s timeout)
+- Handles `saveApiKey` / `getApiKey`: read/write to `chrome.storage.local`
 
 ## Config & Env Vars
 - `.env` — DATABASE_URL, AUTH_SECRET/NEXTAUTH_SECRET, ENCRYPTION_KEY
