@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
   const { text, apiKey, provider, model, category, tone, length } = parseResult.data;
 
-  let resolvedProvider: "openai" | "anthropic" | "openrouter" =
+  const resolvedProvider: "openai" | "anthropic" | "openrouter" =
     provider || (model?.includes("claude") ? "anthropic" : model?.includes("/") ? "openrouter" : "openai");
 
   const { metaPrompt, systemInstruction } = buildArchitectMetaPrompt(text, category, tone, length);

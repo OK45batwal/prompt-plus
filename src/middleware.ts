@@ -1,26 +1,18 @@
-import { decode } from "@auth/core/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "development-fallback-secret-key-32-chars";
-
-function getTokenCookie(req: NextRequest): { token: string; salt: string } | null {
+function hasSessionCookie(req: NextRequest): boolean {
   for (const name of ["__Secure-authjs.session-token", "__Secure-next-auth.session-token", "authjs.session-token", "next-auth.session-token"]) {
-    const value = req.cookies.get(name)?.value;
-    if (value) return { token: value, salt: name };
+    if (req.cookies.get(name)?.value) return true;
   }
-  return null;
+  return false;
 }
 
 export default async function middleware(req: NextRequest) {
   const requestId = req.headers.get("x-request-id") || crypto.randomUUID();
 
-  const isOnDashboard = req.nextUrl.pathname.startsWith("/dashboard");
-  if (isOnDashboard) {
-    const cookie = getTokenCookie(req);
-    if (!cookie) return NextResponse.redirect(new URL("/login", req.url));
-    const payload = await decode({ token: cookie.token, secret, salt: cookie.salt }).catch(() => null);
-    if (!payload) return NextResponse.redirect(new URL("/login", req.url));
+  if (req.nextUrl.pathname.startsWith("/dashboard") && !hasSessionCookie(req)) {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   const reqHeaders = new Headers(req.headers);
