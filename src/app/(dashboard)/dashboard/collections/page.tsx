@@ -22,7 +22,6 @@ export default function CollectionsPage() {
 
   const fetchCollections = async () => {
     try {
-      setLoading(true);
       const res = await fetch("/api/v1/collections");
       const json = await res.json();
       const data: Collection[] = (json.data || []).map((item: Record<string, unknown>) => ({
