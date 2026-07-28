@@ -155,14 +155,24 @@
       '<div class="pp-side">' +
         '<div class="pp-side-inner">' +
           '<div class="pp-head">' +
-            '<div class="pp-head-l"><span class="pp-head-icon">P</span><span>Prompt+</span></div>' +
+            '<div class="pp-head-l"><span class="pp-head-icon">🛡️</span><span>Prompt+ Sentry</span></div>' +
             '<div class="pp-head-r">' +
+              '<div class="pp-sentry-badge"><span class="pp-pulse-dot"></span><span>Shield Active</span></div>' +
               '<button class="pp-icon-btn" id="pp-settings-btn" title="Settings">' +
                 '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>' +
               '</button>' +
               '<button class="pp-icon-btn" id="pp-close-btn">' +
                 '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
               '</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="pp-chatbot-section">' +
+            '<div class="pp-chatbot-title"><span>Chatbot Connections</span><span style="color:#3b82f6;">4 Live Guards</span></div>' +
+            '<div class="pp-chatbot-bar">' +
+              '<div class="pp-chatbot-card active" title="ChatGPT Active"><span class="pp-status-dot"></span><span>🤖</span><span class="pp-bot-name">ChatGPT</span><span class="pp-bot-cnt">12</span></div>' +
+              '<div class="pp-chatbot-card" title="Claude Active"><span class="pp-status-dot"></span><span>🟣</span><span class="pp-bot-name">Claude</span><span class="pp-bot-cnt">8</span></div>' +
+              '<div class="pp-chatbot-card" title="Gemini Active"><span class="pp-status-dot"></span><span>✨</span><span class="pp-bot-name">Gemini</span><span class="pp-bot-cnt">5</span></div>' +
+              '<div class="pp-chatbot-card" title="DeepSeek Active"><span class="pp-status-dot"></span><span>⚡</span><span class="pp-bot-name">DeepSeek</span><span class="pp-bot-cnt">3</span></div>' +
             '</div>' +
           '</div>' +
           '<div class="pp-body" id="pp-body">' +
@@ -532,6 +542,83 @@
 .pp-head-l { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: #e0e7ff; }
 .pp-head-icon { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg,#6366f1,#8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff; }
 .pp-head-r { display: flex; align-items: center; gap: 4px; }
+
+.pp-sentry-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: rgba(16,185,129,0.12);
+  border: 1px solid rgba(16,185,129,0.3);
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 4px;
+}
+.pp-pulse-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+}
+
+.pp-chatbot-section {
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.pp-chatbot-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pp-chatbot-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.pp-chatbot-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 4px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+.pp-chatbot-card:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.15);
+}
+.pp-chatbot-card.active {
+  background: rgba(59,130,246,0.15);
+  border-color: rgba(59,130,246,0.4);
+}
+.pp-bot-name { font-size: 9px; font-weight: 600; color: #cbd5e1; margin-top: 2px; }
+.pp-bot-cnt { font-size: 9px; font-weight: 700; color: #64748b; margin-top: 2px; }
+.pp-chatbot-card.active .pp-bot-cnt { color: #60a5fa; }
+.pp-status-dot {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #10b981;
+}
 
 .pp-icon-btn {
   background: none; border: none; color: #64748b; cursor: pointer; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.15s;
