@@ -6,6 +6,7 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import { getDb } from "@/lib/db/prisma";
+import { loginSchema, logRejection } from "@/lib/validations/auth";
 
 const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "development-secret-fallback-key-32chars";
 if (process.env.NODE_ENV === "production" && (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET)) {
@@ -93,12 +94,13 @@ export function getProviders(): Provider[] {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        const parsed = loginSchema.safeParse(credentials);
+        if (!parsed.success) {
+          logRejection("login", parsed.error);
           return null;
         }
 
-        const email = (credentials.email as string).toLowerCase().trim();
-        const password = credentials.password as string;
+        const { email, password } = parsed.data;
 
         const user = await getDb().user.findUnique({
           where: { email },
