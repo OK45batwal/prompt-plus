@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { auth } from "@/lib/auth/config";
 import { getDb } from "@/lib/db/prisma";
+import { changePasswordSchema, logRejection } from "@/lib/validations/auth";
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -13,13 +14,16 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  const { currentPassword, newPassword } = body;
-  if (!currentPassword || !newPassword || newPassword.length < 8) {
-    return NextResponse.json({ error: "Invalid passwords" }, { status: 400 });
+  const parsed = changePasswordSchema.safeParse(body);
+  if (!parsed.success) {
+    logRejection("change-password", parsed.error, { userId: session.user.id });
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
+
+  const { currentPassword, newPassword } = parsed.data;
 
   const user = await getDb().user.findUnique({ where: { id: session.user.id } });
   if (!user || !user.passwordHash) {

@@ -1,34 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { getDb } from "@/lib/db/prisma";
+import { signupSchema, logRejection } from "@/lib/validations/auth";
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, password } = body;
+    const parsed = signupSchema.safeParse(body);
 
-    if (!email || typeof email !== "string" || !email.includes("@")) {
+    if (!parsed.success) {
+      logRejection("signup", parsed.error);
       return NextResponse.json(
-        { error: "A valid email address is required" },
+        { error: "Invalid input" },
         { status: 400 }
       );
     }
 
-    if (!password || typeof password !== "string" || password.length < 8) {
-      return NextResponse.json(
-        { error: "Password must be at least 8 characters long" },
-        { status: 400 }
-      );
-    }
-
-    const normalizedEmail = email.toLowerCase().trim();
+    const { name, email, password } = parsed.data;
 
     const existingUser = await getDb().user.findUnique({
-      where: { email: normalizedEmail },
+      where: { email },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "An account with this email already exists" },
+        { error: "Invalid input" },
         { status: 409 }
       );
     }
@@ -37,8 +33,8 @@ export async function POST(request: NextRequest) {
 
     const user = await getDb().user.create({
       data: {
-        name: name ? String(name).trim() : null,
-        email: normalizedEmail,
+        name: name || null,
+        email,
         passwordHash,
         provider: "email",
       },

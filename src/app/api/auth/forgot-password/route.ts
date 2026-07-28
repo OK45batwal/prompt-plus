@@ -2,21 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getDb } from "@/lib/db/prisma";
 import { sendResetEmail } from "@/lib/email";
+import { forgotPasswordSchema, logRejection } from "@/lib/validations/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
-    if (!email || typeof email !== "string") {
+    const body = await request.json();
+    const parsed = forgotPasswordSchema.safeParse(body);
+
+    if (!parsed.success) {
+      logRejection("forgot-password", parsed.error);
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
+    const { email } = parsed.data;
 
-    const user = await getDb().user.findUnique({ where: { email: normalizedEmail } });
+    const user = await getDb().user.findUnique({ where: { email } });
 
     if (user && user.passwordHash) {
       const token = crypto.randomBytes(32).toString("hex");
-      const expiry = new Date(Date.now() + 3600000); // 1 hour
+      const expiry = new Date(Date.now() + 3600000);
 
       await getDb().user.update({
         where: { id: user.id },
@@ -24,7 +28,7 @@ export async function POST(request: NextRequest) {
       });
 
       const resetUrl = `${request.nextUrl.origin}/reset-password/${token}`;
-      const result = await sendResetEmail(normalizedEmail, resetUrl);
+      const result = await sendResetEmail(email, resetUrl);
 
       if (!result.sent) {
         return NextResponse.json({

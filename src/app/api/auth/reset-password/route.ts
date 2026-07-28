@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { getDb } from "@/lib/db/prisma";
+import { resetPasswordSchema, logRejection } from "@/lib/validations/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const { token, password } = await request.json();
+    const body = await request.json();
+    const parsed = resetPasswordSchema.safeParse(body);
 
-    if (!token || typeof token !== "string") {
-      return NextResponse.json({ error: "Token is required" }, { status: 400 });
+    if (!parsed.success) {
+      logRejection("reset-password", parsed.error);
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
-    if (!password || typeof password !== "string" || password.length < 8) {
-      return NextResponse.json(
-        { error: "Password must be at least 8 characters" },
-        { status: 400 }
-      );
-    }
+    const { token, password } = parsed.data;
 
     const user = await getDb().user.findFirst({
       where: {
@@ -25,10 +23,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: "Invalid or expired reset token" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
