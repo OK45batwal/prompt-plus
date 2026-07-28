@@ -9,14 +9,18 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Logo } from "@/components/ui/logo";
 
+import { authenticate } from "./actions";
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const message = searchParams.get("message");
+  const errorParam = searchParams.get("error");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const initialError = errorParam === "CredentialsSignin" ? "Invalid email or password" : null;
+  const [error, setError] = useState<string | null>(initialError);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [providers, setProviders] = useState<{ google: boolean; github: boolean }>({ google: false, github: false });
@@ -30,22 +34,21 @@ function LoginForm() {
     setError(null);
     setIsLoading(true);
 
-    try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
+    const targetUrl = searchParams.get("callbackUrl") || "/dashboard";
 
-      if (result?.error) {
-        setError("Invalid email or password");
-      } else {
-        window.location.href = "/dashboard";
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("redirectTo", targetUrl);
+
+    try {
+      const err = await authenticate(undefined, formData);
+      if (err) {
+        setError(err);
+        setIsLoading(false);
       }
     } catch {
-      setError("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
+      window.location.href = targetUrl;
     }
   };
 

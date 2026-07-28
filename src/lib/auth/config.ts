@@ -7,16 +7,19 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import { getDb } from "@/lib/db/prisma";
 
-const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
-if (process.env.NODE_ENV === "production" && !secret) {
+const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "development-secret-fallback-key-32chars";
+if (process.env.NODE_ENV === "production" && (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET)) {
   throw new Error(
-    "FATAL: NEXTAUTH_SECRET or AUTH_SECRET must be defined in production environment variables."
+    "FATAL: AUTH_SECRET or NEXTAUTH_SECRET environment variable is missing for production deployment."
   );
 }
 
+process.env.AUTH_SECRET = secret;
+process.env.NEXTAUTH_SECRET = secret;
+
 export const authConfig: NextAuthConfig = {
   trustHost: true,
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  secret,
   pages: {
     signIn: "/login",
   },
@@ -27,27 +30,32 @@ export const authConfig: NextAuthConfig = {
   jwt: {
     maxAge: 30 * 24 * 60 * 60,
   },
-  callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user?.id;
-      const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
-
-      if (isOnDashboard) {
-        if (isLoggedIn) return true;
-        return false;
-      }
-      return true;
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" ? "__Secure-authjs.session-token" : "authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
     },
+  },
+  callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: string }).role || "user";
       }
+      if (!token.id && token.sub) {
+        token.id = token.sub;
+      }
       return token;
     },
     async session({ session, token }) {
-      if (session.user && token.id) {
-        session.user.id = token.id as string;
+      const userId = (token.id || token.sub) as string;
+      if (session.user && userId) {
+        session.user.id = userId;
         (session.user as { role?: string }).role = (token.role as string) || "user";
       }
       return session;

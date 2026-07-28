@@ -1,14 +1,20 @@
-import { auth } from "@/lib/auth/config";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export async function proxy(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { nextUrl } = request;
 
   if (nextUrl.pathname.startsWith("/dashboard")) {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.redirect(new URL("/login", request.url));
+    const allCookies = request.cookies.getAll();
+    const hasSessionCookie = allCookies.some((cookie) => {
+      const name = cookie.name.toLowerCase();
+      return name.includes("session-token") || name.includes("session_token");
+    });
+
+    if (!hasSessionCookie) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", nextUrl.pathname);
+      return NextResponse.redirect(loginUrl);
     }
   }
 
@@ -16,5 +22,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/dashboard/:path*"],
 };
+
