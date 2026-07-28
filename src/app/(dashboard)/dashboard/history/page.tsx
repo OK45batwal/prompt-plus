@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Clock, RotateCcw, ChevronDown, Check, Sparkles } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 import Link from "next/link";
 
 interface HistoryItem {
@@ -19,6 +20,7 @@ export default function HistoryPage() {
   const [search, setSearch] = useState("");
   const [history] = useState<HistoryItem[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const filteredHistory = history.filter((item) =>
     item.originalText.toLowerCase().includes(search.toLowerCase()) ||
@@ -28,12 +30,12 @@ export default function HistoryPage() {
   const router = useRouter();
 
   const reusePrompt = (item: HistoryItem) => {
-    // Navigate to builder with this prompt
     router.push(`/dashboard/new?prompt=${encodeURIComponent(item.originalText)}`);
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    toast("Copied to clipboard", "success");
   };
 
   return (

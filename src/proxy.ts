@@ -1,23 +1,19 @@
+import { auth } from "@/lib/auth/config";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-export function proxy(req: NextRequest) {
-  const requestId = req.headers.get("x-request-id") || crypto.randomUUID();
+export default auth((req) => {
+  const { nextUrl } = req;
+  const isLoggedIn = !!req.auth?.user?.id;
 
-  const reqHeaders = new Headers(req.headers);
-  reqHeaders.set("x-request-id", requestId);
+  if (nextUrl.pathname.startsWith("/dashboard") && !isLoggedIn) {
+    const loginUrl = new URL("/login", nextUrl.origin);
+    loginUrl.searchParams.set("callbackUrl", nextUrl.pathname);
+    return NextResponse.redirect(loginUrl);
+  }
 
-  const res = NextResponse.next({ request: { headers: reqHeaders } });
-  res.headers.set("x-request-id", requestId);
-  res.headers.set("X-Frame-Options", "DENY");
-  res.headers.set("X-Content-Type-Options", "nosniff");
-  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.headers.set("X-XSS-Protection", "1; mode=block");
-  res.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-
-  return res;
-}
+  return NextResponse.next();
+});
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/v1/:path*"],
+  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
 };

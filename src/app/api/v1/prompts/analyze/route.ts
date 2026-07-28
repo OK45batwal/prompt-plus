@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
-import { auth } from "@/lib/auth/config";
 import { getDb } from "@/lib/db/prisma";
 import { analyzePromptSchema } from "@/lib/validations/prompts";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { callLLM } from "@/lib/llm/providers";
 import { decrypt } from "@/lib/crypto";
+import { withAuth } from "@/lib/api/with-auth";
+import { jsonResponse } from "@/lib/api/response-headers";
 
 const analysisOutputSchema = z.object({
   intent: z.string().default("content_generation"),
@@ -49,64 +50,61 @@ function heuristicAnalyzePrompt(text: string) {
   };
 }
 
-export async function POST(request: NextRequest) {
-  const session = await auth();
-  const userId = session?.user?.id || "guest_user";
+export const POST = withAuth(
+  async (request: NextRequest, { userId, requestId }) => {
+    const rateCheck = checkRateLimit(userId);
+    if (!rateCheck.allowed) {
+      return jsonResponse(
+        { error: "Daily quota exceeded. Try again tomorrow or add an API key." },
+        { status: 429, headers: { "Retry-After": String(Math.ceil(rateCheck.resetMs / 1000)) }, requestId }
+      );
+    }
 
-  const rateCheck = checkRateLimit(userId);
-  if (!rateCheck.allowed) {
-    return NextResponse.json(
-      { error: "Daily quota exceeded. Try again tomorrow or add an API key." },
-      { status: 429, headers: { "Retry-After": String(Math.ceil(rateCheck.resetMs / 1000)) } }
-    );
-  }
-
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  const parseResult = analyzePromptSchema.safeParse(body);
-  if (!parseResult.success) {
-    return NextResponse.json(
-      { error: "Validation failed", details: parseResult.error.flatten() },
-      { status: 400 }
-    );
-  }
-
-  const { promptId, text } = parseResult.data;
-
-  // Check user keys first, then fallback to env var
-  const userKey = await getDb().apiKey.findFirst({
-    where: { userId, isActive: true },
-  });
-
-  let apiKey: string | undefined;
-  let provider: "openai" | "anthropic" = "openai";
-
-  if (userKey) {
+    let body: unknown;
     try {
-      apiKey = decrypt(userKey.apiKeyEnc);
-      provider = (userKey.provider as "openai" | "anthropic") || "openai";
+      body = await request.json();
     } catch {
-      // ignore bad key
+      return jsonResponse({ error: "Invalid JSON body" }, { status: 400, requestId });
     }
-  }
 
-  if (!apiKey) {
-    apiKey = process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY;
-    if (process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
-      provider = "anthropic";
+    const parseResult = analyzePromptSchema.safeParse(body);
+    if (!parseResult.success) {
+      return jsonResponse(
+        { error: "Validation failed", details: parseResult.error.flatten() },
+        { status: 400, requestId }
+      );
     }
-  }
 
-  if (!apiKey) {
-    return NextResponse.json({ data: { promptId, ...heuristicAnalyzePrompt(text) } });
-  }
+    const { promptId, text } = parseResult.data;
 
-  const systemPrompt = `You are a prompt analysis engine. Analyze the given user prompt and output a JSON object strictly matching this schema:
+    const userKey = await getDb().apiKey.findFirst({
+      where: { userId, isActive: true },
+    });
+
+    let apiKey: string | undefined;
+    let provider: "openai" | "anthropic" = "openai";
+
+    if (userKey) {
+      try {
+        apiKey = decrypt(userKey.apiKeyEnc);
+        provider = (userKey.provider as "openai" | "anthropic") || "openai";
+      } catch {
+        // ignore bad key
+      }
+    }
+
+    if (!apiKey) {
+      apiKey = process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY;
+      if (process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) {
+        provider = "anthropic";
+      }
+    }
+
+    if (!apiKey) {
+      return jsonResponse({ data: { promptId, ...heuristicAnalyzePrompt(text) } }, { requestId });
+    }
+
+    const systemPrompt = `You are a prompt analysis engine. Analyze the given user prompt and output a JSON object strictly matching this schema:
 {
   "intent": string,
   "category": string (e.g. "Blog Post", "Email", "Code", "Social Media", "Tutorial", "Marketing", "other"),
@@ -120,59 +118,59 @@ export async function POST(request: NextRequest) {
 }
 Return ONLY raw valid JSON, with no markdown formatting or commentary.`;
 
-  const startTime = Date.now();
+    const startTime = Date.now();
 
-  try {
-    const response = await callLLM({
-      provider,
-      apiKey,
-      systemPrompt,
-      userPrompt: text,
-      temperature: 0.3,
-      responseFormatJson: true,
-    });
-
-    const latencyMs = Date.now() - startTime;
-
-    await getDb().usageLog.create({
-      data: {
-        userId,
-        promptId: promptId || null,
-        action: "analyze",
+    try {
+      const response = await callLLM({
         provider,
-        model: response.model,
-        tokensIn: response.tokensIn,
-        tokensOut: response.tokensOut,
-        latencyMs,
-        success: true,
-      },
-    }).catch(() => {});
+        apiKey,
+        systemPrompt,
+        userPrompt: text,
+        temperature: 0.3,
+        responseFormatJson: true,
+      });
 
-    // Parse model output
-    const jsonStart = response.content.indexOf("{");
-    const jsonEnd = response.content.lastIndexOf("}");
-    const jsonString = jsonStart !== -1 && jsonEnd !== -1
-      ? response.content.slice(jsonStart, jsonEnd + 1)
-      : response.content;
+      const latencyMs = Date.now() - startTime;
 
-    const rawObj = JSON.parse(jsonString);
-    const validatedOutput = analysisOutputSchema.parse(rawObj);
+      await getDb().usageLog.create({
+        data: {
+          userId,
+          promptId: promptId || null,
+          action: "analyze",
+          provider,
+          model: response.model,
+          tokensIn: response.tokensIn,
+          tokensOut: response.tokensOut,
+          latencyMs,
+          success: true,
+        },
+      }).catch(() => {});
 
-    return NextResponse.json({ data: { promptId, ...validatedOutput } });
-  } catch (error) {
-    console.error("LLM Analysis Error (falling back to heuristic):", error);
+      const jsonStart = response.content.indexOf("{");
+      const jsonEnd = response.content.lastIndexOf("}");
+      const jsonString = jsonStart !== -1 && jsonEnd !== -1
+        ? response.content.slice(jsonStart, jsonEnd + 1)
+        : response.content;
 
-    await getDb().usageLog.create({
-      data: {
-        userId,
-        promptId: promptId || null,
-        action: "analyze",
-        provider,
-        latencyMs: Date.now() - startTime,
-        success: false,
-      },
-    }).catch(() => {});
+      const rawObj = JSON.parse(jsonString);
+      const validatedOutput = analysisOutputSchema.parse(rawObj);
 
-    return NextResponse.json({ data: { promptId, ...heuristicAnalyzePrompt(text) } });
+      return jsonResponse({ data: { promptId, ...validatedOutput } }, { requestId });
+    } catch (error) {
+      console.error("LLM Analysis Error (falling back to heuristic):", error);
+
+      await getDb().usageLog.create({
+        data: {
+          userId,
+          promptId: promptId || null,
+          action: "analyze",
+          provider,
+          latencyMs: Date.now() - startTime,
+          success: false,
+        },
+      }).catch(() => {});
+
+      return jsonResponse({ data: { promptId, ...heuristicAnalyzePrompt(text) } }, { requestId });
+    }
   }
-}
+);

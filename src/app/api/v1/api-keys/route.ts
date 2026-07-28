@@ -1,18 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
-import { auth } from "@/lib/auth/config";
 import { getDb } from "@/lib/db/prisma";
 import { encrypt } from "@/lib/crypto";
+import { withAuth } from "@/lib/api/with-auth";
+import { jsonResponse } from "@/lib/api/response-headers";
 
 const createApiKeySchema = z.object({
   provider: z.enum(["openai", "anthropic", "google", "openrouter"]),
   apiKey: z.string().min(5, "API key must be at least 5 characters"),
 });
 
-export async function GET() {
-  const session = await auth();
-  const userId = session?.user?.id || "guest_user";
-
+export const GET = withAuth(async (_req: NextRequest, { userId, requestId }) => {
   const keys = await getDb().apiKey.findMany({
     where: { userId },
     select: {
@@ -25,63 +23,59 @@ export async function GET() {
     },
   });
 
-  return NextResponse.json({ data: keys });
-}
+  return jsonResponse({ data: keys }, { requestId });
+});
 
-export async function POST(request: NextRequest) {
-  const session = await auth();
-  const userId = session?.user?.id || "guest_user";
+export const POST = withAuth(
+  async (req: NextRequest, { userId, requestId }) => {
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse({ error: "Invalid JSON body" }, { status: 400, requestId });
+    }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    const parseResult = createApiKeySchema.safeParse(body);
+    if (!parseResult.success) {
+      return jsonResponse(
+        { error: "Validation failed", details: parseResult.error.flatten() },
+        { status: 400, requestId }
+      );
+    }
+
+    const { provider, apiKey } = parseResult.data;
+    const apiKeyEnc = encrypt(apiKey);
+
+    await getDb().apiKey.deleteMany({
+      where: { userId, provider },
+    }).catch(() => {});
+
+    const newKey = await getDb().apiKey.create({
+      data: {
+        userId,
+        provider,
+        apiKeyEnc,
+        isActive: true,
+      },
+      select: {
+        id: true,
+        provider: true,
+        isActive: true,
+        createdAt: true,
+      },
+    });
+
+    return jsonResponse({ data: newKey }, { status: 201, requestId });
   }
+);
 
-  const parseResult = createApiKeySchema.safeParse(body);
-  if (!parseResult.success) {
-    return NextResponse.json(
-      { error: "Validation failed", details: parseResult.error.flatten() },
-      { status: 400 }
-    );
-  }
-
-  const { provider, apiKey } = parseResult.data;
-  const apiKeyEnc = encrypt(apiKey);
-
-  // Deactivate existing key for this provider if any
-  await getDb().apiKey.deleteMany({
-    where: { userId, provider },
-  }).catch(() => {});
-
-  const newKey = await getDb().apiKey.create({
-    data: {
-      userId,
-      provider,
-      apiKeyEnc,
-      isActive: true,
-    },
-    select: {
-      id: true,
-      provider: true,
-      isActive: true,
-      createdAt: true,
-    },
-  });
-
-  return NextResponse.json({ data: newKey }, { status: 201 });
-}
-
-export async function DELETE(request: NextRequest) {
-  const session = await auth();
-  const userId = session?.user?.id || "guest_user";
-  const { searchParams } = new URL(request.url);
+export const DELETE = withAuth(async (req: NextRequest, { userId, requestId }) => {
+  const { searchParams } = new URL(req.url);
   const provider = searchParams.get("provider");
   const id = searchParams.get("id");
 
   if (!provider && !id) {
-    return NextResponse.json({ error: "provider or id query parameter required" }, { status: 400 });
+    return jsonResponse({ error: "provider or id query parameter required" }, { status: 400, requestId });
   }
 
   await getDb().apiKey.deleteMany({
@@ -91,5 +85,5 @@ export async function DELETE(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ data: { success: true } });
-}
+  return jsonResponse({ data: { success: true } }, { requestId });
+});

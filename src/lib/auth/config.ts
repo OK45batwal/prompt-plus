@@ -20,6 +20,13 @@ export const authConfig: NextAuthConfig = {
   pages: {
     signIn: "/login",
   },
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60,
+  },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user?.id;

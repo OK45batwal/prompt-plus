@@ -14,6 +14,7 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeft,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
@@ -29,7 +30,7 @@ interface SidebarProps {
 const mainNav = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/dashboard/new", label: "New Prompt", icon: Sparkles, accent: true },
-  { href: "/dashboard/templates", label: "Templates", icon: BookOpen },
+  { href: "/dashboard/templates", label: "Templates", icon: FileText },
 ];
 
 const contentNav = [

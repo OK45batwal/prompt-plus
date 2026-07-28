@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Plus, Folder, Edit, Trash2, X } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 
 interface Collection {
   id: string;
@@ -14,6 +15,7 @@ interface Collection {
 }
 
 export default function CollectionsPage() {
+  const { toast } = useToast();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewModal, setShowNewModal] = useState(false);
@@ -69,7 +71,9 @@ export default function CollectionsPage() {
     try {
       await fetch(`/api/v1/collections/${id}`, { method: "DELETE" });
       setCollections((prev) => prev.filter((c) => c.id !== id));
+      toast("Collection deleted", "success");
     } catch {
+      toast("Failed to delete collection", "error");
     }
   };
 
@@ -85,7 +89,9 @@ export default function CollectionsPage() {
       setNewDescription("");
       setShowNewModal(false);
       await fetchCollections();
+      toast("Collection created", "success");
     } catch {
+      toast("Failed to create collection", "error");
     }
   };
 

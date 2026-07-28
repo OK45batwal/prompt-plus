@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { callLLM } from "@/lib/llm/providers";
 import { buildArchitectMetaPrompt } from "@/lib/llm/meta-prompt";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const extensionEnhanceSchema = z.object({
   text: z.string().min(1).max(10000),
@@ -14,6 +15,18 @@ const extensionEnhanceSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    || request.headers.get("x-real-ip")
+    || "unknown";
+
+  const rateCheck = checkRateLimit(`ext:${ip}`);
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: "Extension daily limit reached. Try again tomorrow." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(rateCheck.resetMs / 1000)) } }
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
