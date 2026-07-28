@@ -2,127 +2,308 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Prompt+</title>
+  <title>Prompt+ Studio Extension</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      width: 320px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #0f172a;
-      color: #f1f5f9;
+      width: 360px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #090d16;
+      color: #f8fafc;
+      overflow-x: hidden;
     }
-    .h { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .h-l { display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 700; }
-    .h-icon { width: 20px; height: 20px; border-radius: 6px; background: linear-gradient(135deg,#6366f1,#8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff; }
-    .h-s { font-size: 11px; color: #10b981; display: flex; align-items: center; gap: 4px; cursor: pointer; }
-    .c { padding: 12px 14px; }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .header-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    }
+    .key-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #94a3b8;
+    }
+    .key-badge.ok { color: #10b981; border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.1); }
+
+    /* Chatbot Target Bar */
+    .chatbot-section {
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .chatbot-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chatbot-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .chatbot-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 4px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+    .chatbot-pill:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    .chatbot-pill.active {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: rgba(59, 130, 246, 0.4);
+    }
+    .chatbot-name {
+      font-size: 10px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-top: 2px;
+    }
+    .chatbot-count {
+      font-size: 9px;
+      color: #64748b;
+      font-weight: 500;
+    }
+    .chatbot-pill.active .chatbot-count {
+      color: #60a5fa;
+    }
+
+    .content { padding: 14px 16px; }
     textarea {
       width: 100%;
-      height: 80px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
+      height: 85px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 12px;
-      color: #f1f5f9;
-      padding: 10px;
+      color: #f8fafc;
+      padding: 10px 12px;
       font-size: 13px;
       line-height: 1.5;
       font-family: inherit;
       resize: none;
       outline: none;
+      transition: border-color 0.15s;
     }
-    textarea:focus { border-color: rgba(99,102,241,0.4); }
+    textarea:focus { border-color: #3b82f6; }
     textarea::placeholder { color: #475569; }
-    .btn {
-      width: 100%;
-      padding: 9px;
-      border: none;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-      margin-top: 8px;
-      background: linear-gradient(135deg,#6366f1,#8b5cf6);
-      color: #fff;
-    }
-    .btn:hover { filter: brightness(1.1); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .api {
-      margin-top: 10px;
-      padding: 10px 12px;
-      background: rgba(255,255,255,0.03);
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.06);
-    }
-    .api input {
-      width: 100%;
-      background: rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 8px;
-      color: #f1f5f9;
-      padding: 7px 10px;
-      font-size: 12px;
-      font-family: monospace;
-      outline: none;
-    }
-    .api input:focus { border-color: rgba(99,102,241,0.4); }
-    .api-l { font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
-    .api-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
-    .api-dot.ok { background: #10b981; }
-    .api-dot.no { background: #f87171; }
-    .f { padding: 8px 14px; border-top: 1px solid rgba(255,255,255,0.06); text-align: center; font-size: 10px; color: #475569; }
-    .f a { color: #6366f1; text-decoration: none; }
-    .msg { font-size: 11px; color: #10b981; display: none; align-items: center; gap: 4px; margin-top: 6px; }
-    .msg.err { color: #f87171; }
+
     .model-select {
       width: 100%;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 10px;
-      color: #e2e8f0;
-      padding: 7px 10px;
+      color: #f8fafc;
+      padding: 8px 10px;
       font-size: 12px;
       font-family: inherit;
       outline: none;
       cursor: pointer;
+      margin-top: 10px;
+    }
+    .model-select optgroup { background: #1e293b; color: #94a3b8; font-size: 11px; }
+    .model-select option { background: #0f172a; color: #f8fafc; }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-top: 10px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .api {
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .api-l {
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .api-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+    .api-dot.ok { background: #10b981; }
+    .api-dot.no { background: #ef4444; }
+
+    .api input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      color: #f8fafc;
+      padding: 7px 10px;
+      font-size: 11px;
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      outline: none;
+    }
+    .api input:focus { border-color: #3b82f6; }
+
+    .msg {
+      font-size: 11px;
+      color: #10b981;
+      display: none;
+      align-items: center;
+      gap: 4px;
       margin-top: 8px;
     }
-    .model-select:focus { border-color: rgba(99,102,241,0.4); }
-    .model-select optgroup { background: #1e293b; color: #94a3b8; font-size: 11px; }
-    .model-select option { background: #0f172a; color: #e2e8f0; }
-    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.15); border-top-color: #fff; border-radius: 50%; animation: s 0.6s linear infinite; vertical-align: middle; }
-    @keyframes s { to { transform: rotate(360deg); } }
+    .msg.err { color: #f87171; }
+
+    .footer {
+      padding: 10px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #64748b;
+    }
+    .footer a { color: #60a5fa; text-decoration: none; font-weight: 500; }
+    .footer a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <div class="h">
-    <div class="h-l"><div class="h-icon">P</div> Prompt+</div>
-    <div class="h-s" id="key-indicator">• No Key</div>
+  <div class="header">
+    <div class="header-logo">
+      <div class="header-icon">P+</div>
+      <span>Prompt+ Studio</span>
+    </div>
+    <div class="key-badge" id="key-indicator">
+      <span class="api-dot no" id="key-dot-top"></span>
+      <span id="key-text">No Key</span>
+    </div>
   </div>
-  <div class="c">
-    <textarea id="input" placeholder="Paste prompt to enhance..."></textarea>
+
+  <!-- Chatbot Integration Bar -->
+  <div class="chatbot-section">
+    <div class="chatbot-title">
+      <span>Chatbot Counters</span>
+      <span style="color: #3b82f6;">4 Active</span>
+    </div>
+    <div class="chatbot-bar">
+      <div class="chatbot-pill active" id="tab-chatgpt" title="ChatGPT Integration">
+        <span style="font-size:12px;">🤖</span>
+        <span class="chatbot-name">ChatGPT</span>
+        <span class="chatbot-count">12 Prompts</span>
+      </div>
+      <div class="chatbot-pill" id="tab-claude" title="Claude Integration">
+        <span style="font-size:12px;">🟣</span>
+        <span class="chatbot-name">Claude</span>
+        <span class="chatbot-count">8 Prompts</span>
+      </div>
+      <div class="chatbot-pill" id="tab-gemini" title="Gemini Integration">
+        <span style="font-size:12px;">✨</span>
+        <span class="chatbot-name">Gemini</span>
+        <span class="chatbot-count">5 Prompts</span>
+      </div>
+      <div class="chatbot-pill" id="tab-deepseek" title="DeepSeek Integration">
+        <span style="font-size:12px;">⚡</span>
+        <span class="chatbot-name">DeepSeek</span>
+        <span class="chatbot-count">3 Prompts</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <textarea id="input" placeholder="Enter prompt to enhance..."></textarea>
+    
     <select id="model-select" class="model-select">
       <optgroup label="OpenRouter Free">
-        <option value="meta-llama/llama-3.3-70b-instruct:free::openrouter" selected>Llama 3.3 70B</option>
-        <option value="google/gemini-2.0-flash-exp:free::openrouter">Gemini 2.0 Flash</option>
-        <option value="deepseek/deepseek-r1:free::openrouter">DeepSeek R1</option>
-        <option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder</option>
+        <option value="meta-llama/llama-3.3-70b-instruct:free::openrouter" selected>Llama 3.3 70B (Free)</option>
+        <option value="google/gemini-2.0-flash-exp:free::openrouter">Gemini 2.0 Flash (Free)</option>
+        <option value="deepseek/deepseek-r1:free::openrouter">DeepSeek R1 (Free)</option>
+        <option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder (Free)</option>
       </optgroup>
-      <optgroup label="Paid">
+      <optgroup label="Direct API Keys">
         <option value="gpt-4o-mini::openai">GPT-4o Mini</option>
         <option value="gpt-4o::openai">GPT-4o</option>
         <option value="claude-3-5-sonnet-20241022::anthropic">Claude 3.5 Sonnet</option>
       </optgroup>
     </select>
-    <button class="btn" id="enhance-btn">Enhance</button>
+
+    <button class="btn" id="enhance-btn">
+      <span>Enhance Prompt</span>
+    </button>
     <div class="msg" id="msg"></div>
+
     <div class="api">
-      <div class="api-l"><span class="api-dot no" id="key-dot"></span> API Key</div>
-      <input type="password" id="key-input" placeholder="sk-... or sk-ant-..." />
+      <div class="api-l">
+        <span class="api-dot no" id="key-dot"></span>
+        <span>OpenRouter / OpenAI / Anthropic Key</span>
+      </div>
+      <input type="password" id="key-input" placeholder="sk-or-... or sk-... or sk-ant-..." />
     </div>
   </div>
-  <div class="f">
-    Side panel available on ChatGPT, Claude & Gemini &middot; <a href="#" id="open-dash">Dashboard</a>
+
+  <div class="footer">
+    <span>Active on ChatGPT, Claude & Gemini</span>
+    <a href="#" id="open-dash">Dashboard →</a>
   </div>
   <script src="popup.js"></script>
 </body>
