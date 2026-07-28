@@ -8,6 +8,8 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-fg);
   --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-fg);
   --color-primary: var(--primary);
@@ -16,47 +18,63 @@
   --color-secondary-foreground: var(--secondary-fg);
   --color-card: var(--card);
   --color-card-foreground: var(--card-fg);
-  --font-sans: "Courier New", "Courier", "Liberation Mono", monospace;
-  --font-mono: "Courier New", "Courier", "Liberation Mono", monospace;
-  --radius: 0;
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-fg);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-fg);
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --radius: 0.75rem;
 }
 
 :root {
-  --bg: #faf6f1;
-  --fg: #1a1a1a;
-  --muted: #e8e0d5;
-  --muted-fg: #6b5e4e;
-  --border: #1a1a1a;
-  --accent: #e63946;
-  --accent-fg: #fff;
+  --bg: #f8fafc;
+  --fg: #0f172a;
+  --card: #ffffff;
+  --card-fg: #0f172a;
+  --popover: #ffffff;
+  --popover-fg: #0f172a;
+  --muted: #f1f5f9;
+  --muted-fg: #64748b;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #2563eb;
+  --accent: #f1f5f9;
+  --accent-fg: #0f172a;
   --primary: #2563eb;
-  --primary-fg: #fff;
-  --secondary: #f59e0b;
-  --secondary-fg: #1a1a1a;
-  --card: #fff;
-  --card-fg: #1a1a1a;
+  --primary-fg: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-fg: #0f172a;
+  --destructive: #ef4444;
+  --destructive-fg: #ffffff;
 }
 
 .dark {
-  --bg: #0f0f0f;
-  --fg: #f0e6d3;
-  --muted: #1f1f1f;
-  --muted-fg: #8a7f70;
-  --border: #f0e6d3;
-  --accent: #ff4757;
-  --accent-fg: #fff;
+  --bg: #090d16;
+  --fg: #f8fafc;
+  --card: #0f172a;
+  --card-fg: #f8fafc;
+  --popover: #0f172a;
+  --popover-fg: #f8fafc;
+  --muted: #1e293b;
+  --muted-fg: #94a3b8;
+  --border: #1e293b;
+  --input: #1e293b;
+  --ring: #3b82f6;
+  --accent: #1e293b;
+  --accent-fg: #f8fafc;
   --primary: #3b82f6;
-  --primary-fg: #fff;
-  --secondary: #fbbf24;
-  --secondary-fg: #0f0f0f;
-  --card: #1a1a1a;
-  --card-fg: #f0e6d3;
+  --primary-fg: #ffffff;
+  --secondary: #1e293b;
+  --secondary-fg: #f8fafc;
+  --destructive: #f87171;
+  --destructive-fg: #ffffff;
 }
 
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: "Courier New", "Courier", "Liberation Mono", monospace;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   line-height: 1.5;
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
