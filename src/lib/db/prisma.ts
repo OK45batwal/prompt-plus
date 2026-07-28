@@ -1,20 +1,15 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaNeonHttp } from "@prisma/adapter-neon";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
 function createPrismaClient(): PrismaClient {
-  const dbUrl = process.env.DATABASE_URL || "file:./dev.db";
-
-  if (dbUrl.startsWith("postgresql://") || dbUrl.startsWith("postgres://")) {
-    const adapter = new PrismaNeonHttp(dbUrl, {});
-    return new PrismaClient({ adapter });
-  }
-
-  const adapter = new PrismaBetterSqlite3({ url: dbUrl });
+  const dbUrl =
+    process.env.DATABASE_URL ||
+    "postgresql://placeholder:placeholder@localhost:5432/placeholder";
+  const adapter = new PrismaNeonHttp(dbUrl, {});
   return new PrismaClient({ adapter });
 }
 
