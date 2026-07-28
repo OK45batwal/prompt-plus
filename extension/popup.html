@@ -2,272 +2,166 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Prompt+ Sentry Extension</title>
+  <title>Prompt+ Extension</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       width: 380px;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #080c14;
-      color: #f8fafc;
+      background: #f8fafc;
+      color: #1e293b;
       overflow-x: hidden;
     }
     
-    /* Top Header Bar */
-    .sentry-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      background: rgba(15, 23, 42, 0.9);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    /* Header */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
     }
-    .sentry-brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-    .sentry-shield-icon {
-      width: 24px;
-      height: 24px;
-      border-radius: 7px;
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #ffffff;
-      box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
-    }
-    .sentry-status-badge {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 9px;
-      border-radius: 20px;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: #10b981;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .pulse-dot {
-      width: 6px;
-      height: 6px;
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-icon {
+      width: 32px; height: 32px;
       border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 8px #10b981;
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+    }
+    .header-info { display: flex; flex-direction: column; gap: 1px; }
+    .header-title { font-size: 14px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; }
+    .header-enc {
+      font-size: 9px; font-weight: 700; color: #10b981;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      display: flex; align-items: center; gap: 3px;
+    }
+    .enc-dot {
+      width: 4px; height: 4px; border-radius: 50%;
+      background: #10b981; box-shadow: 0 0 4px #10b981;
+      display: inline-block;
       animation: pulse 2s infinite;
     }
     @keyframes pulse {
-      0% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.8); }
-      100% { opacity: 1; transform: scale(1); }
+      0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; }
     }
-
-    /* Chatbot Counter Bar (Promptive Sentry Style) */
-    .chatbot-sentry-section {
-      padding: 10px 14px;
-      background: rgba(255, 255, 255, 0.02);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    }
-    .chatbot-sentry-header {
-      font-size: 10px;
-      font-weight: 700;
+    .key-badge {
+      font-size: 10px; font-weight: 600;
+      padding: 3px 8px; border-radius: 20px;
+      background: #f1f5f9; border: 1px solid #e2e8f0;
       color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; gap: 4px;
     }
-    .chatbot-sentry-bar {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-    }
-    .chatbot-card {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 7px 4px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-align: center;
-    }
-    .chatbot-card:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.18);
-      transform: translateY(-1px);
-    }
-    .chatbot-card.active {
-      background: rgba(59, 130, 246, 0.15);
-      border-color: rgba(59, 130, 246, 0.45);
-      box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
-    }
-    .chatbot-icon { font-size: 13px; margin-bottom: 2px; }
-    .chatbot-title-text { font-size: 10px; font-weight: 600; color: #e2e8f0; }
-    .chatbot-badge-count {
-      font-size: 9px;
-      font-weight: 700;
-      color: #64748b;
-      background: rgba(255, 255, 255, 0.06);
-      padding: 1px 5px;
-      border-radius: 6px;
-      margin-top: 3px;
-    }
-    .chatbot-card.active .chatbot-badge-count {
-      color: #60a5fa;
-      background: rgba(59, 130, 246, 0.2);
-    }
-    .status-dot-active {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 5px #10b981;
-    }
+    .key-badge.ok { color: #10b981; border-color: #a7f3d0; background: #ecfdf5; }
 
-    /* Privacy & Metrics Strip */
-    .metrics-strip {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 16px;
-      background: rgba(15, 23, 42, 0.4);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      font-size: 11px;
-      color: #94a3b8;
+    /* Chatbot Counter Bar */
+    .bots-strip {
+      display: flex; gap: 6px;
+      padding: 8px 18px;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
     }
-    .metric-item { display: flex; align-items: center; gap: 4px; }
-    .metric-val { font-weight: 700; color: #f8fafc; }
+    .bot-pill {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+      padding: 6px 4px;
+      border-radius: 8px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      font-size: 10px; font-weight: 600; color: #64748b;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .bot-pill:hover { background: #e2e8f0; }
+    .bot-pill.active {
+      background: #eff6ff;
+      border-color: #93c5fd;
+      color: #2563eb;
+    }
+    .bot-count {
+      font-size: 9px; font-weight: 800;
+      background: #e2e8f0; color: #475569;
+      padding: 0px 4px; border-radius: 5px;
+    }
+    .bot-pill.active .bot-count { background: #dbeafe; color: #2563eb; }
 
-    /* Content Area */
-    .sentry-body { padding: 14px 16px; }
-    
-    .input-wrapper { position: relative; }
+    /* Content */
+    .content { padding: 14px 18px; }
     textarea {
-      width: 100%;
-      height: 90px;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.09);
-      border-radius: 12px;
-      color: #f8fafc;
+      width: 100%; height: 80px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      color: #1e293b;
       padding: 10px 12px;
-      font-size: 13px;
-      line-height: 1.5;
-      font-family: inherit;
-      resize: none;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      font-size: 13px; line-height: 1.5; font-family: inherit;
+      resize: none; outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
     textarea:focus {
       border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.12);
     }
-    textarea::placeholder { color: #475569; }
+    textarea::placeholder { color: #94a3b8; }
 
-    .input-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 4px;
-      font-size: 10px;
-      color: #64748b;
+    .input-meta {
+      display: flex; justify-content: space-between;
+      margin-top: 4px; font-size: 10px; color: #94a3b8;
     }
 
     .model-select {
       width: 100%;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      color: #f8fafc;
-      padding: 8px 10px;
-      font-size: 12px;
-      font-family: inherit;
-      outline: none;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    .model-select optgroup { background: #1e293b; color: #94a3b8; font-size: 11px; }
-    .model-select option { background: #0f172a; color: #f8fafc; }
-
-    .action-btn {
-      width: 100%;
-      padding: 11px;
-      border: none;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      margin-top: 10px;
-      background: linear-gradient(135deg, #2563eb, #7c3aed);
-      color: #ffffff;
-      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-    }
-    .action-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
-    .action-btn:active { transform: translateY(0); }
-    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-    .msg-banner {
-      font-size: 11px;
-      color: #10b981;
-      display: none;
-      align-items: center;
-      gap: 5px;
-      margin-top: 8px;
-      padding: 6px 10px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
       border-radius: 8px;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: #1e293b;
+      padding: 8px 10px;
+      font-size: 12px; font-family: inherit;
+      outline: none; cursor: pointer;
+      margin-top: 10px;
     }
-    .msg-banner.err {
-      color: #f87171;
-      background: rgba(239, 68, 68, 0.1);
-      border-color: rgba(239, 68, 68, 0.2);
+    .model-select optgroup { background: #f8fafc; color: #64748b; font-size: 11px; }
+    .model-select option { background: #ffffff; color: #1e293b; }
+
+    .btn-enhance {
+      width: 100%; padding: 11px;
+      border: none; border-radius: 10px;
+      font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+      margin-top: 10px;
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(37,99,235,0.25);
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      font-family: inherit;
     }
+    .btn-enhance:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-enhance:active { transform: translateY(0); }
+    .btn-enhance:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .msg {
+      font-size: 11px; display: none;
+      align-items: center; gap: 4px; margin-top: 8px;
+      padding: 6px 10px; border-radius: 8px;
+    }
+    .msg.ok { color: #10b981; background: #ecfdf5; border: 1px solid #a7f3d0; }
+    .msg.err { color: #ef4444; background: #fef2f2; border: 1px solid #fecaca; }
 
     .api-card {
-      margin-top: 12px;
-      padding: 10px 12px;
-      background: rgba(255, 255, 255, 0.02);
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      margin-top: 12px; padding: 10px 12px;
+      background: #ffffff; border-radius: 10px;
+      border: 1px solid #e2e8f0;
     }
     .api-label {
-      font-size: 10px;
-      font-weight: 700;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
+      font-size: 10px; font-weight: 700;
+      color: #64748b; text-transform: uppercase;
+      letter-spacing: 0.04em; margin-bottom: 6px;
     }
     .api-card input {
       width: 100%;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.09);
-      border-radius: 8px;
-      color: #f8fafc;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      color: #1e293b;
       padding: 7px 10px;
       font-size: 11px;
       font-family: ui-monospace, SFMono-Regular, monospace;
@@ -275,94 +169,65 @@
     }
     .api-card input:focus { border-color: #3b82f6; }
 
-    /* Footer */
-    .sentry-footer {
-      padding: 10px 16px;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 11px;
-      color: #64748b;
+    .footer {
+      padding: 10px 18px;
+      border-top: 1px solid #e2e8f0;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 11px; color: #94a3b8;
+      background: #ffffff;
     }
-    .sentry-footer a { color: #60a5fa; text-decoration: none; font-weight: 600; }
-    .sentry-footer a:hover { text-decoration: underline; }
+    .footer strong { color: #3b82f6; }
+    .footer a { color: #2563eb; text-decoration: none; font-weight: 600; }
+    .footer a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-
-  <!-- Sentry Header -->
-  <div class="sentry-header">
-    <div class="sentry-brand">
-      <div class="sentry-shield-icon">🛡️</div>
-      <span>Prompt+ Sentry</span>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-icon">⚡</div>
+      <div class="header-info">
+        <div class="header-title">Prompt+ Intelligence</div>
+        <div class="header-enc"><span class="enc-dot"></span> END-TO-END ENCRYPTED</div>
+      </div>
     </div>
-    <div class="sentry-status-badge">
-      <span class="pulse-dot"></span>
-      <span>Shield Active</span>
+    <div class="key-badge" id="key-indicator">
+      <span id="key-text">No Key</span>
     </div>
   </div>
 
-  <!-- Chatbot Counter Bar (Promptive Sentry Inspired) -->
-  <div class="chatbot-sentry-section">
-    <div class="chatbot-sentry-header">
-      <span>Chatbot Connections</span>
-      <span style="color: #3b82f6;">4 Live Guards</span>
+  <!-- Chatbot Counter Bar -->
+  <div class="bots-strip">
+    <div class="bot-pill active" id="tab-chatgpt">
+      <span>🤖</span>
+      <span>ChatGPT</span>
+      <span class="bot-count">12</span>
     </div>
-    <div class="chatbot-sentry-bar">
-      <div class="chatbot-card active" id="tab-chatgpt" title="ChatGPT Integration">
-        <span class="status-dot-active"></span>
-        <span class="chatbot-icon">🤖</span>
-        <span class="chatbot-title-text">ChatGPT</span>
-        <span class="chatbot-badge-count">12</span>
-      </div>
-      <div class="chatbot-card" id="tab-claude" title="Claude Integration">
-        <span class="status-dot-active"></span>
-        <span class="chatbot-icon">🟣</span>
-        <span class="chatbot-title-text">Claude</span>
-        <span class="chatbot-badge-count">8</span>
-      </div>
-      <div class="chatbot-card" id="tab-gemini" title="Gemini Integration">
-        <span class="status-dot-active"></span>
-        <span class="chatbot-icon">✨</span>
-        <span class="chatbot-title-text">Gemini</span>
-        <span class="chatbot-badge-count">5</span>
-      </div>
-      <div class="chatbot-card" id="tab-deepseek" title="DeepSeek Integration">
-        <span class="status-dot-active"></span>
-        <span class="chatbot-icon">⚡</span>
-        <span class="chatbot-title-text">DeepSeek</span>
-        <span class="chatbot-badge-count">3</span>
-      </div>
+    <div class="bot-pill" id="tab-claude">
+      <span>🟣</span>
+      <span>Claude</span>
+      <span class="bot-count">8</span>
+    </div>
+    <div class="bot-pill" id="tab-gemini">
+      <span>✨</span>
+      <span>Gemini</span>
+      <span class="bot-count">5</span>
+    </div>
+    <div class="bot-pill" id="tab-deepseek">
+      <span>⚡</span>
+      <span>DeepSeek</span>
+      <span class="bot-count">3</span>
     </div>
   </div>
 
-  <!-- Metrics & Security Strip -->
-  <div class="metrics-strip">
-    <div class="metric-item">
-      <span>Quality Score:</span>
-      <span class="metric-val" style="color:#10b981;">98/100</span>
+  <!-- Content -->
+  <div class="content">
+    <textarea id="input" placeholder="Paste or type your prompt to enhance..."></textarea>
+    <div class="input-meta">
+      <span id="char-count">0 characters</span>
+      <span>Auto-Format Enabled</span>
     </div>
-    <div class="metric-item">
-      <span>PII Guard:</span>
-      <span class="metric-val" style="color:#60a5fa;">100% Safe</span>
-    </div>
-    <div class="metric-item">
-      <span>Tokens Saved:</span>
-      <span class="metric-val">1.4k</span>
-    </div>
-  </div>
 
-  <!-- Extension Body -->
-  <div class="sentry-body">
-    <div class="input-wrapper">
-      <textarea id="input" placeholder="Paste prompt to optimize with AI Sentry..."></textarea>
-      <div class="input-footer">
-        <span id="char-count">0 characters</span>
-        <span>Auto-Format Enabled</span>
-      </div>
-    </div>
-    
     <select id="model-select" class="model-select">
       <optgroup label="OpenRouter Free Tier">
         <option value="meta-llama/llama-3.3-70b-instruct:free::openrouter" selected>Llama 3.3 70B (Free)</option>
@@ -377,22 +242,21 @@
       </optgroup>
     </select>
 
-    <button class="action-btn" id="enhance-btn">
-      <span>⚡ Enhance Prompt</span>
+    <button class="btn-enhance" id="enhance-btn">
+      <span>⚡</span>
+      <span>Apply Upgrade</span>
+      <span>→</span>
     </button>
-    <div class="msg-banner" id="msg"></div>
+    <div class="msg" id="msg"></div>
 
     <div class="api-card">
-      <div class="api-label">
-        <span class="pulse-dot" id="key-dot" style="width:5px;height:5px;"></span>
-        <span>API Key Vault</span>
-      </div>
+      <div class="api-label">API Key Vault</div>
       <input type="password" id="key-input" placeholder="sk-or-... or sk-... or sk-ant-..." />
     </div>
   </div>
 
-  <div class="sentry-footer">
-    <span>Sentry Guarding Active Tab</span>
+  <div class="footer">
+    <span>Optimized by <strong>Prompt+</strong></span>
     <a href="#" id="open-dash">Dashboard →</a>
   </div>
   <script src="popup.js"></script>

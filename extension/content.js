@@ -72,6 +72,16 @@
     return { score, complexity, intent, wordCount: wc };
   }
 
+  /* Detect which chatbot site we are on */
+  function detectChatbot() {
+    const host = location.hostname;
+    if (host.includes("chatgpt") || host.includes("chat.openai")) return "chatgpt";
+    if (host.includes("claude")) return "claude";
+    if (host.includes("gemini")) return "gemini";
+    if (host.includes("deepseek")) return "deepseek";
+    return null;
+  }
+
   function injectFab() {
     if (document.querySelector(".pp-fab")) return;
     const input = getInput();
@@ -84,9 +94,8 @@
     fab.className = "pp-fab";
     fab.setAttribute("type", "button");
     fab.innerHTML =
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-        '<path d="M12 2l1.5 6.5L20 10l-6.5 1.5L12 18l-1.5-6.5L4 10l6.5-1.5z"/>' +
-      '</svg>';
+      '<span class="pp-fab-icon">⚡</span>' +
+      '<span class="pp-fab-text">Enhance Prompt</span>';
     fab.title = "Open Prompt+";
 
     fab.addEventListener("click", (e) => {
@@ -150,110 +159,116 @@
     panelOpen = true;
     panelEl = document.createElement("div");
     panelEl.className = "pp-panel";
+
+    const activeChatbot = detectChatbot();
+
     panelEl.innerHTML =
       '<div class="pp-backdrop"></div>' +
       '<div class="pp-side">' +
         '<div class="pp-side-inner">' +
+          /* Header */
           '<div class="pp-head">' +
-            '<div class="pp-head-l"><span class="pp-head-icon">🛡️</span><span>Prompt+ Sentry</span></div>' +
-            '<div class="pp-head-r">' +
-              '<div class="pp-sentry-badge"><span class="pp-pulse-dot"></span><span>Shield Active</span></div>' +
-              '<button class="pp-icon-btn" id="pp-settings-btn" title="Settings">' +
-                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>' +
-              '</button>' +
-              '<button class="pp-icon-btn" id="pp-close-btn">' +
-                '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
-              '</button>' +
+            '<div class="pp-head-left">' +
+              '<div class="pp-head-icon">⚡</div>' +
+              '<div class="pp-head-info">' +
+                '<div class="pp-head-title">Prompt+ Intelligence Activated</div>' +
+                '<div class="pp-head-enc"><span class="pp-enc-dot"></span> END-TO-END ENCRYPTED</div>' +
+              '</div>' +
             '</div>' +
+            '<button class="pp-close-btn" id="pp-close-btn">' +
+              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+            '</button>' +
           '</div>' +
-          '<div class="pp-chatbot-section">' +
-            '<div class="pp-chatbot-title"><span>Chatbot Connections</span><span style="color:#3b82f6;">4 Live Guards</span></div>' +
-            '<div class="pp-chatbot-bar">' +
-              '<div class="pp-chatbot-card active" title="ChatGPT Active"><span class="pp-status-dot"></span><span>🤖</span><span class="pp-bot-name">ChatGPT</span><span class="pp-bot-cnt">12</span></div>' +
-              '<div class="pp-chatbot-card" title="Claude Active"><span class="pp-status-dot"></span><span>🟣</span><span class="pp-bot-name">Claude</span><span class="pp-bot-cnt">8</span></div>' +
-              '<div class="pp-chatbot-card" title="Gemini Active"><span class="pp-status-dot"></span><span>✨</span><span class="pp-bot-name">Gemini</span><span class="pp-bot-cnt">5</span></div>' +
-              '<div class="pp-chatbot-card" title="DeepSeek Active"><span class="pp-status-dot"></span><span>⚡</span><span class="pp-bot-name">DeepSeek</span><span class="pp-bot-cnt">3</span></div>' +
-            '</div>' +
+          /* Chatbot Counter Bar */
+          '<div class="pp-bots-strip">' +
+            '<div class="pp-bot-pill' + (activeChatbot === "chatgpt" ? " active" : "") + '"><span>🤖</span><span class="pp-bot-label">ChatGPT</span><span class="pp-bot-count">12</span></div>' +
+            '<div class="pp-bot-pill' + (activeChatbot === "claude" ? " active" : "") + '"><span>🟣</span><span class="pp-bot-label">Claude</span><span class="pp-bot-count">8</span></div>' +
+            '<div class="pp-bot-pill' + (activeChatbot === "gemini" ? " active" : "") + '"><span>✨</span><span class="pp-bot-label">Gemini</span><span class="pp-bot-count">5</span></div>' +
+            '<div class="pp-bot-pill' + (activeChatbot === "deepseek" ? " active" : "") + '"><span>⚡</span><span class="pp-bot-label">DeepSeek</span><span class="pp-bot-count">3</span></div>' +
           '</div>' +
+          /* Tabs */
+          '<div class="pp-tab-bar">' +
+            '<button class="pp-tab active" id="pp-tab-improved">Improved</button>' +
+            '<button class="pp-tab" id="pp-tab-changes">Changes</button>' +
+          '</div>' +
+          /* Scrollable Body */
           '<div class="pp-body" id="pp-body">' +
-            // Analysis Card
-            '<div class="pp-card" id="pp-analysis-card">' +
-              '<div class="pp-analysis-top">' +
-                '<div class="pp-score-ring">' +
-                  '<svg viewBox="0 0 36 36" width="48" height="48">' +
-                    '<path d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2.5"/>' +
-                    '<path id="pp-score-arc" d="M18 2a16 16 0 1 1 0 32 16 16 0 1 1 0-32" fill="none" stroke="#818cf8" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="100 100"/>' +
-                  '</svg>' +
-                  '<span class="pp-score-num" id="pp-score-num">--</span>' +
-                '</div>' +
-                '<div class="pp-analysis-meta">' +
-                  '<div class="pp-meta-row"><span class="pp-meta-lbl">Intent</span><span class="pp-meta-val" id="pp-intent">--</span></div>' +
-                  '<div class="pp-meta-row"><span class="pp-meta-lbl">Complexity</span><span class="pp-meta-val" id="pp-complexity">--</span></div>' +
-                  '<div class="pp-meta-row"><span class="pp-meta-lbl">Words</span><span class="pp-meta-val" id="pp-words">--</span></div>' +
-                '</div>' +
+            /* Original vs Improved split header */
+            '<div class="pp-split-header">' +
+              '<div class="pp-split-label">ORIGINAL</div>' +
+              '<div class="pp-split-label-right">' +
+                '<span>IMPROVED</span>' +
+                '<button class="pp-copy-chip" id="pp-copy-btn" disabled>📋 Copy</button>' +
               '</div>' +
             '</div>' +
-            // Suggestions
-            '<div class="pp-card" id="pp-suggestions-card">' +
-              '<div class="pp-card-h">Suggestions <span class="pp-badge" id="pp-suggestion-count">5</span></div>' +
-              '<div class="pp-suggestions" id="pp-suggestions">' +
-                '<label class="pp-suggestion checked"><input type="checkbox" checked><span class="pp-check"></span><span>Add Role & Persona</span></label>' +
-                '<label class="pp-suggestion checked"><input type="checkbox" checked><span class="pp-check"></span><span>Add Constraints</span></label>' +
-                '<label class="pp-suggestion checked"><input type="checkbox" checked><span class="pp-check"></span><span>Add Output Format</span></label>' +
-                '<label class="pp-suggestion checked"><input type="checkbox" checked><span class="pp-check"></span><span>Add Context</span></label>' +
-                '<label class="pp-suggestion checked"><input type="checkbox" checked><span class="pp-check"></span><span>Add Examples</span></label>' +
+            /* Split view */
+            '<div class="pp-split-view">' +
+              '<div class="pp-split-original" id="pp-original-preview"></div>' +
+              '<div class="pp-split-improved" id="pp-enhanced-preview">' +
+                '<div class="pp-placeholder">Click "Enhance Prompt" below to see AI-optimized result</div>' +
               '</div>' +
             '</div>' +
-            // Model Selector
-            '<div class="pp-card">' +
-              '<div class="pp-card-h">Model</div>' +
-              '<div class="pp-model-select">' +
-                '<select id="pp-model" class="pp-select">' +
-                  '<optgroup label="OpenRouter Free">' +
-                    '<option value="meta-llama/llama-3.3-70b-instruct:free::openrouter" selected>Llama 3.3 70B</option>' +
-                    '<option value="google/gemini-2.0-flash-exp:free::openrouter">Gemini 2.0 Flash</option>' +
-                    '<option value="deepseek/deepseek-r1:free::openrouter">DeepSeek R1</option>' +
-                    '<option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder 32B</option>' +
-                    '<option value="mistralai/mistral-small-24b-instruct-2501:free::openrouter">Mistral Small 24B</option>' +
-                    '<option value="microsoft/phi-3-mini-128k-instruct:free::openrouter">Phi-3 Mini 128K</option>' +
-                    '<option value="nousresearch/hermes-3-llama-3.1-405b:free::openrouter">Hermes 3 405B</option>' +
-                  '</optgroup>' +
-                  '<optgroup label="OpenRouter Paid">' +
-                    '<option value="openai/gpt-4o::openrouter">GPT-4o</option>' +
-                    '<option value="anthropic/claude-3-5-sonnet-20241022::openrouter">Claude 3.5 Sonnet</option>' +
-                    '<option value="google/gemini-1.5-pro::openrouter">Gemini 1.5 Pro</option>' +
-                  '</optgroup>' +
-                  '<optgroup label="NVIDIA">' +
-                    '<option value="nvidia/llama-3.3-70b-instruct::nvidia">Llama 3.3 70B (NV)</option>' +
-                    '<option value="nvidia/llama-3.1-nemotron-70b-instruct::nvidia">Nemotron 70B</option>' +
-                    '<option value="google/gemma-2-27b-it::nvidia">Gemma 2 27B (NV)</option>' +
-                    '<option value="mistralai/mistral-7b-instruct-v0.3::nvidia">Mistral 7B (NV)</option>' +
-                  '</optgroup>' +
-                '</select>' +
+            /* Structured Sections (shown after enhance) */
+            '<div id="pp-structured-sections" style="display:none">' +
+              '<div class="pp-section">' +
+                '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">ROLE</span></div>' +
+                '<div class="pp-section-body" id="pp-role-body">—</div>' +
+              '</div>' +
+              '<div class="pp-section">' +
+                '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">CONTEXT</span></div>' +
+                '<div class="pp-section-body" id="pp-context-body">—</div>' +
+              '</div>' +
+              '<div class="pp-section">' +
+                '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">INSTRUCTIONS</span></div>' +
+                '<div class="pp-section-body" id="pp-instructions-body">—</div>' +
+              '</div>' +
+              '<div class="pp-section">' +
+                '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">CONSTRAINTS</span></div>' +
+                '<div class="pp-section-body" id="pp-constraints-body">—</div>' +
               '</div>' +
             '</div>' +
-            // Preview
-            '<div class="pp-card">' +
-              '<div class="pp-card-h">Original</div>' +
-              '<div class="pp-preview" id="pp-original-preview"></div>' +
+            /* Model Selector */
+            '<div class="pp-model-row">' +
+              '<label class="pp-model-label">Model</label>' +
+              '<select id="pp-model" class="pp-select">' +
+                '<optgroup label="OpenRouter Free">' +
+                  '<option value="meta-llama/llama-3.3-70b-instruct:free::openrouter" selected>Llama 3.3 70B</option>' +
+                  '<option value="google/gemini-2.0-flash-exp:free::openrouter">Gemini 2.0 Flash</option>' +
+                  '<option value="deepseek/deepseek-r1:free::openrouter">DeepSeek R1</option>' +
+                  '<option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder 32B</option>' +
+                  '<option value="mistralai/mistral-small-24b-instruct-2501:free::openrouter">Mistral Small 24B</option>' +
+                  '<option value="microsoft/phi-3-mini-128k-instruct:free::openrouter">Phi-3 Mini 128K</option>' +
+                  '<option value="nousresearch/hermes-3-llama-3.1-405b:free::openrouter">Hermes 3 405B</option>' +
+                '</optgroup>' +
+                '<optgroup label="OpenRouter Paid">' +
+                  '<option value="openai/gpt-4o::openrouter">GPT-4o</option>' +
+                  '<option value="anthropic/claude-3-5-sonnet-20241022::openrouter">Claude 3.5 Sonnet</option>' +
+                  '<option value="google/gemini-1.5-pro::openrouter">Gemini 1.5 Pro</option>' +
+                '</optgroup>' +
+                '<optgroup label="NVIDIA">' +
+                  '<option value="nvidia/llama-3.3-70b-instruct::nvidia">Llama 3.3 70B (NV)</option>' +
+                  '<option value="nvidia/llama-3.1-nemotron-70b-instruct::nvidia">Nemotron 70B</option>' +
+                  '<option value="google/gemma-2-27b-it::nvidia">Gemma 2 27B (NV)</option>' +
+                  '<option value="mistralai/mistral-7b-instruct-v0.3::nvidia">Mistral 7B (NV)</option>' +
+                '</optgroup>' +
+                '<optgroup label="Direct Keys">' +
+                  '<option value="gpt-4o-mini::openai">GPT-4o Mini</option>' +
+                  '<option value="gpt-4o::openai">GPT-4o</option>' +
+                  '<option value="claude-3-5-sonnet-20241022::anthropic">Claude 3.5 Sonnet</option>' +
+                '</optgroup>' +
+              '</select>' +
             '</div>' +
-            '<div class="pp-card" id="pp-enhanced-card" style="display:none">' +
-              '<div class="pp-card-h">Enhanced</div>' +
-              '<div class="pp-preview pp-enhanced-box" id="pp-enhanced-preview" contenteditable="true"></div>' +
-            '</div>' +
-            // Actions
-            '<div class="pp-actions" id="pp-actions">' +
-              '<button class="pp-btn pp-btn-primary" id="pp-enhance-btn">' +
+          '</div>' +
+          /* Footer */
+          '<div class="pp-footer">' +
+            '<div class="pp-footer-credit">Optimized by <strong>Prompt+</strong></div>' +
+            '<div class="pp-footer-actions">' +
+              '<button class="pp-btn-keep" id="pp-keep-btn">Keep Original</button>' +
+              '<button class="pp-btn-apply" id="pp-enhance-btn">' +
                 '<span class="pp-btn-spinner" style="display:none"></span>' +
-                '<span id="pp-enhance-text">Enhance</span>' +
+                '<span id="pp-enhance-text">Apply Upgrade</span>' +
+                '<span>→</span>' +
               '</button>' +
-              '<button class="pp-btn pp-btn-secondary" id="pp-copy-btn" disabled>Copy</button>' +
-              '<button class="pp-btn pp-btn-secondary" id="pp-replace-btn" disabled>Replace</button>' +
-            '</div>' +
-            // History
-            '<div class="pp-card" id="pp-history-card">' +
-              '<div class="pp-card-h">Recent</div>' +
-              '<div class="pp-history" id="pp-history"></div>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -267,42 +282,24 @@
       panelEl.querySelector(".pp-side").style.transform = "translateX(0)";
     });
 
-    // Run analysis
-    const analysis = analyzeLocal(text);
-    const scoreArc = panelEl.querySelector("#pp-score-arc");
-    const scoreNum = panelEl.querySelector("#pp-score-num");
-    const circ = 100;
-    scoreArc.setAttribute("stroke-dasharray", circ + " " + circ);
-    scoreArc.setAttribute("stroke-dashoffset", circ - (analysis.score / 100) * circ);
-    scoreNum.textContent = analysis.score;
-    panelEl.querySelector("#pp-intent").textContent = analysis.intent;
-    panelEl.querySelector("#pp-complexity").textContent = analysis.complexity;
-    panelEl.querySelector("#pp-words").textContent = analysis.wordCount;
+    // Show original text
     panelEl.querySelector("#pp-original-preview").textContent = text;
 
-    // History
-    loadHistory((h) => {
-      const hist = panelEl.querySelector("#pp-history");
-      if (h.length === 0) { hist.innerHTML = '<div class="pp-empty">No recent prompts</div>'; return; }
-      hist.innerHTML = h.map((item, i) =>
-        '<div class="pp-history-item" data-idx="' + i + '">' +
-          '<span>' + escapeHtml(item.text) + '</span>' +
-        '</div>'
-      ).join("");
-    });
-
-    // Suggestions count
-    updateSuggestionCount();
+    // Load model setting
+    if (s && s.model) {
+      const sel = panelEl.querySelector("#pp-model");
+      if (sel) sel.value = s.model;
+    }
 
     // Close
     panelEl.querySelector("#pp-close-btn").onclick = closePanel;
-    panelEl.querySelector("#pp-backdrop")?.addEventListener("click", closePanel);
+    panelEl.querySelector(".pp-backdrop")?.addEventListener("click", closePanel);
     document.addEventListener("keydown", ppEscHandler);
 
-    // Settings toggle
-    panelEl.querySelector("#pp-settings-btn").onclick = () => toggleSettings();
+    // Keep Original
+    panelEl.querySelector("#pp-keep-btn").onclick = closePanel;
 
-    // Enhance
+    // Enhance / Apply Upgrade
     panelEl.querySelector("#pp-enhance-btn").onclick = () => doEnhance(input, text);
 
     // Copy
@@ -310,94 +307,29 @@
       const val = panelEl.querySelector("#pp-enhanced-preview").textContent;
       if (!val) return;
       navigator.clipboard.writeText(val);
-      showToast("Copied");
+      const copyBtn = panelEl.querySelector("#pp-copy-btn");
+      copyBtn.textContent = "✓ Copied";
+      setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 1500);
     };
 
-    // Replace
-    panelEl.querySelector("#pp-replace-btn").onclick = () => {
-      const val = panelEl.querySelector("#pp-enhanced-preview").textContent;
-      if (val) setText(input, val);
-      closePanel();
+    // Tab switching
+    panelEl.querySelector("#pp-tab-improved").onclick = () => {
+      panelEl.querySelector("#pp-tab-improved").classList.add("active");
+      panelEl.querySelector("#pp-tab-changes").classList.remove("active");
+    };
+    panelEl.querySelector("#pp-tab-changes").onclick = () => {
+      panelEl.querySelector("#pp-tab-changes").classList.add("active");
+      panelEl.querySelector("#pp-tab-improved").classList.remove("active");
     };
 
-    // Suggestions toggle
-    panelEl.querySelectorAll(".pp-suggestion input").forEach((cb) => {
-      cb.addEventListener("change", updateSuggestionCount);
+    // Model change saves setting
+    panelEl.querySelector("#pp-model").addEventListener("change", (e) => {
+      saveSettings({ model: e.target.value });
     });
 
-    // History click
-    panelEl.addEventListener("click", (e) => {
-      const item = e.target.closest(".pp-history-item");
-      if (item) {
-        const idx = parseInt(item.dataset.idx);
-        loadHistory((h) => {
-          if (h[idx]) {
-            panelEl.querySelector("#pp-original-preview").textContent = h[idx].text;
-            currentText = h[idx].text;
-          }
-        });
-      }
-    });
-
-    if (settings && settings.autoEnhance) {
+    if (s && s.autoEnhance) {
       doEnhance(input, text);
     }
-  }
-
-  function toggleSettings() {
-    const body = document.getElementById("pp-body");
-    if (!body) return;
-    const existing = body.querySelector(".pp-settings-card");
-    if (existing) { existing.remove(); return; }
-
-    const card = document.createElement("div");
-    card.className = "pp-card pp-settings-card";
-    card.innerHTML =
-      '<div class="pp-card-h">Settings</div>' +
-      '<div class="pp-setting-row">' +
-        '<span>Dark Mode</span>' +
-        '<label class="pp-toggle"><input type="checkbox" ' + (settings?.darkMode !== false ? "checked" : "") + ' id="pp-dark-toggle"><span class="pp-toggle-track"></span></label>' +
-      '</div>' +
-      '<div class="pp-setting-row">' +
-        '<span>Auto Enhance</span>' +
-        '<label class="pp-toggle"><input type="checkbox" ' + (settings?.autoEnhance ? "checked" : "") + ' id="pp-auto-toggle"><span class="pp-toggle-track"></span></label>' +
-      '</div>' +
-      '<div class="pp-setting-row">' +
-        '<span>Optimization</span>' +
-        '<select class="pp-select pp-opt-select" id="pp-opt-level">' +
-          '<option value="basic">Basic</option>' +
-          '<option value="balanced" selected>Balanced</option>' +
-          '<option value="advanced">Advanced</option>' +
-        '</select>' +
-      '</div>';
-
-    body.insertBefore(card, body.querySelector(".pp-actions"));
-
-    card.querySelector("#pp-dark-toggle").addEventListener("change", (e) => {
-      saveSettings({ darkMode: e.target.checked });
-    });
-    card.querySelector("#pp-auto-toggle").addEventListener("change", (e) => {
-      saveSettings({ autoEnhance: e.target.checked });
-    });
-    card.querySelector("#pp-opt-level")?.addEventListener("change", (e) => {
-      saveSettings({ optLevel: e.target.value });
-    });
-  }
-
-  function updateSuggestionCount() {
-    const el = document.getElementById("pp-suggestion-count");
-    if (!el) return;
-    const checked = document.querySelectorAll(".pp-suggestion input:checked").length;
-    el.textContent = checked;
-  }
-
-  function getSelectedSuggestions() {
-    const labels = [];
-    document.querySelectorAll(".pp-suggestion input:checked").forEach((cb) => {
-      const text = cb.closest(".pp-suggestion")?.querySelector("span:last-child")?.textContent;
-      if (text) labels.push(text);
-    });
-    return labels;
   }
 
   let enhancing = false;
@@ -413,12 +345,9 @@
     if (btnText) btnText.textContent = "Enhancing...";
     if (spinner) spinner.style.display = "inline-block";
 
-    const enhancedCard = document.getElementById("pp-enhanced-card");
     const enhancedPreview = document.getElementById("pp-enhanced-preview");
     const copyBtn = document.getElementById("pp-copy-btn");
-    const replaceBtn = document.getElementById("pp-replace-btn");
-
-    if (enhancedCard) enhancedCard.style.display = "none";
+    const sections = document.getElementById("pp-structured-sections");
 
     try {
       const modelVal = document.getElementById("pp-model")?.value || "gpt-4o-mini";
@@ -431,28 +360,71 @@
 
       currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
       if (enhancedPreview) enhancedPreview.textContent = currentEnhanced;
-      if (enhancedCard) enhancedCard.style.display = "block";
       if (copyBtn) copyBtn.disabled = false;
-      if (replaceBtn) replaceBtn.disabled = false;
+
+      // Parse structured sections from enhanced text
+      if (sections) {
+        sections.style.display = "block";
+        parseAndFillSections(currentEnhanced);
+      }
+
+      // Update button to replace mode
+      if (btnText) btnText.textContent = "Apply Upgrade";
+      if (btn) {
+        btn.disabled = false;
+        btn.onclick = () => {
+          if (currentEnhanced) setText(input, currentEnhanced);
+          closePanel();
+        };
+      }
 
       saveHistory(text);
-      loadHistory((h) => {
-        const el = document.getElementById("pp-history");
-        if (!el) return;
-        el.innerHTML = h.map((item, i) =>
-          '<div class="pp-history-item" data-idx="' + i + '">' +
-            '<span>' + escapeHtml(item.text) + '</span>' +
-          '</div>'
-        ).join("");
-      });
     } catch (err) {
       showToast(err.message);
+      if (btnText) btnText.textContent = "Apply Upgrade";
+      if (btn) btn.disabled = false;
     } finally {
       enhancing = false;
-      if (btn) btn.disabled = false;
-      if (btnText) btnText.textContent = "Enhance";
       if (spinner) spinner.style.display = "none";
     }
+  }
+
+  function parseAndFillSections(enhanced) {
+    const roleEl = document.getElementById("pp-role-body");
+    const ctxEl = document.getElementById("pp-context-body");
+    const instEl = document.getElementById("pp-instructions-body");
+    const constEl = document.getElementById("pp-constraints-body");
+
+    // Try to extract structured blocks
+    const lines = enhanced.split("\n");
+    let role = "", context = "", instructions = "", constraints = "";
+    let current = "instructions";
+    for (const line of lines) {
+      const lower = line.toLowerCase().trim();
+      if (lower.startsWith("role:") || lower.startsWith("act as") || lower.startsWith("you are")) {
+        current = "role";
+        role += line.replace(/^(role:|act as|you are)\s*/i, "") + "\n";
+      } else if (lower.startsWith("context:") || lower.startsWith("background:")) {
+        current = "context";
+        context += line.replace(/^(context:|background:)\s*/i, "") + "\n";
+      } else if (lower.startsWith("instructions:") || lower.startsWith("task:")) {
+        current = "instructions";
+        instructions += line.replace(/^(instructions:|task:)\s*/i, "") + "\n";
+      } else if (lower.startsWith("constraints:") || lower.startsWith("rules:") || lower.startsWith("requirements:")) {
+        current = "constraints";
+        constraints += line.replace(/^(constraints:|rules:|requirements:)\s*/i, "") + "\n";
+      } else {
+        if (current === "role") role += line + "\n";
+        else if (current === "context") context += line + "\n";
+        else if (current === "constraints") constraints += line + "\n";
+        else instructions += line + "\n";
+      }
+    }
+
+    if (roleEl) roleEl.textContent = role.trim() || "Auto-assigned by AI optimizer.";
+    if (ctxEl) ctxEl.textContent = context.trim() || "Inferred from prompt content.";
+    if (instEl) instEl.textContent = instructions.trim() || enhanced.slice(0, 200);
+    if (constEl) constEl.textContent = constraints.trim() || "Standard quality constraints applied.";
   }
 
   function ppEscHandler(e) {
@@ -468,404 +440,332 @@
   const style = document.createElement("style");
   style.textContent = `
 
+/* ─── Floating Action Button ─── */
 .pp-fab {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
-  background: linear-gradient(135deg, rgba(99,102,241,0.9), rgba(139,92,246,0.9));
-  color: #fff;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 20px rgba(99,102,241,0.35);
+  gap: 8px;
+  padding: 10px 20px 10px 14px;
+  border-radius: 28px;
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(37,99,235,0.4);
   transition: all 0.2s ease;
   z-index: 999999;
-  backdrop-filter: blur(8px);
-  animation: ppFabIn 0.3s ease-out;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
-
 .pp-fab:hover {
-  transform: scale(1.08);
-  box-shadow: 0 6px 28px rgba(99,102,241,0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(37,99,235,0.55);
 }
-
-.pp-fab:active { transform: scale(0.95); }
+.pp-fab:active { transform: translateY(0); }
+.pp-fab-icon {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
 
 @keyframes ppFabIn {
   from { opacity: 0; transform: scale(0.5); }
   to { opacity: 1; transform: scale(1); }
 }
 
+/* ─── Backdrop ─── */
 .pp-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
   z-index: 99999999;
   opacity: 0;
   transition: opacity 0.25s ease;
 }
 
+/* ─── Side Panel Container ─── */
 .pp-side {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 420px;
-  max-width: 92vw;
+  position: fixed; top: 0; right: 0;
+  width: 520px; max-width: 96vw;
   height: 100vh;
   z-index: 100000000;
   transform: translateX(100%);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
 .pp-side-inner {
   height: 100%;
-  background: rgba(15,23,42,0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-left: 1px solid rgba(99,102,241,0.12);
+  background: #f8fafc;
   display: flex;
   flex-direction: column;
-  box-shadow: -8px 0 40px rgba(0,0,0,0.3);
+  box-shadow: -8px 0 40px rgba(0,0,0,0.15);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #1e293b;
 }
 
+/* ─── Header ─── */
 .pp-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 18px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
 }
-
-.pp-head-l { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: #e0e7ff; }
-.pp-head-icon { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg,#6366f1,#8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff; }
-.pp-head-r { display: flex; align-items: center; gap: 4px; }
-
-.pp-sentry-badge {
-  font-size: 10px;
-  font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 20px;
-  background: rgba(16,185,129,0.12);
-  border: 1px solid rgba(16,185,129,0.3);
-  color: #10b981;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-right: 4px;
-}
-.pp-pulse-dot {
-  width: 5px;
-  height: 5px;
+.pp-head-left { display: flex; align-items: center; gap: 12px; }
+.pp-head-icon {
+  width: 40px; height: 40px;
   border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 6px #10b981;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.3);
 }
-
-.pp-chatbot-section {
-  padding: 10px 16px;
-  background: rgba(255,255,255,0.02);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+.pp-head-info { display: flex; flex-direction: column; gap: 2px; }
+.pp-head-title { font-size: 16px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; }
+.pp-head-enc {
+  font-size: 10px; font-weight: 700; color: #10b981;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  display: flex; align-items: center; gap: 4px;
 }
-.pp-chatbot-title {
-  font-size: 10px;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.pp-enc-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #10b981; box-shadow: 0 0 6px #10b981;
+  display: inline-block;
 }
-.pp-chatbot-bar {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-}
-.pp-chatbot-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 4px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-align: center;
-}
-.pp-chatbot-card:hover {
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(255,255,255,0.15);
-}
-.pp-chatbot-card.active {
-  background: rgba(59,130,246,0.15);
-  border-color: rgba(59,130,246,0.4);
-}
-.pp-bot-name { font-size: 9px; font-weight: 600; color: #cbd5e1; margin-top: 2px; }
-.pp-bot-cnt { font-size: 9px; font-weight: 700; color: #64748b; margin-top: 2px; }
-.pp-chatbot-card.active .pp-bot-cnt { color: #60a5fa; }
-.pp-status-dot {
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #10b981;
-}
-
-.pp-icon-btn {
-  background: none; border: none; color: #64748b; cursor: pointer; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.15s;
-}
-.pp-icon-btn:hover { background: rgba(255,255,255,0.06); color: #e2e8f0; }
-
-.pp-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.pp-body::-webkit-scrollbar { width: 4px; }
-.pp-body::-webkit-scrollbar-track { background: transparent; }
-.pp-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
-
-.pp-card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 16px;
-  padding: 14px 16px;
-}
-
-.pp-card-h {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #64748b;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.pp-badge {
-  font-size: 10px;
-  background: rgba(99,102,241,0.2);
-  color: #a5b4fc;
-  padding: 1px 7px;
-  border-radius: 10px;
-  font-weight: 700;
-}
-
-.pp-analysis-top {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.pp-score-ring { position: relative; width: 48px; height: 48px; flex-shrink: 0; }
-.pp-score-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: #e0e7ff; }
-
-.pp-analysis-meta { flex: 1; display: flex; flex-direction: column; gap: 5px; }
-.pp-meta-row { display: flex; justify-content: space-between; align-items: center; }
-.pp-meta-lbl { font-size: 11px; color: #64748b; }
-.pp-meta-val { font-size: 12px; font-weight: 600; color: #e2e8f0; }
-
-.pp-suggestions { display: flex; flex-direction: column; gap: 6px; }
-
-.pp-suggestion {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #cbd5e1;
-  cursor: pointer;
-  padding: 4px 0;
-  user-select: none;
-}
-
-.pp-suggestion input { display: none; }
-
-.pp-check {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  border: 1.5px solid rgba(255,255,255,0.12);
-  flex-shrink: 0;
-  position: relative;
+.pp-close-btn {
+  background: none; border: none; color: #94a3b8;
+  cursor: pointer; padding: 6px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
   transition: all 0.15s;
 }
+.pp-close-btn:hover { background: #f1f5f9; color: #64748b; }
 
-.pp-suggestion.checked .pp-check {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border-color: #6366f1;
+/* ─── Chatbot Counter Strip ─── */
+.pp-bots-strip {
+  display: flex; gap: 6px;
+  padding: 8px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+.pp-bot-pill {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 6px 4px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  font-size: 11px; font-weight: 600; color: #64748b;
+  cursor: default;
+  transition: all 0.15s;
+}
+.pp-bot-pill.active {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #2563eb;
+}
+.pp-bot-label { font-size: 10px; }
+.pp-bot-count {
+  font-size: 10px; font-weight: 800;
+  background: #e2e8f0; color: #475569;
+  padding: 0px 5px; border-radius: 6px;
+}
+.pp-bot-pill.active .pp-bot-count {
+  background: #dbeafe; color: #2563eb;
 }
 
-.pp-suggestion.checked .pp-check::after {
-  content: "";
-  position: absolute;
-  left: 4px;
-  top: 1px;
-  width: 5px;
-  height: 8px;
-  border: solid #fff;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
+/* ─── Tab Bar ─── */
+.pp-tab-bar {
+  display: flex; gap: 0;
+  padding: 12px 20px 0;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
 }
-
-.pp-suggestion:hover .pp-check { border-color: rgba(99,102,241,0.5); }
-.pp-suggestion:hover { color: #f1f5f9; }
-
-.pp-select {
-  width: 100%;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
-  color: #e2e8f0;
-  padding: 8px 12px;
-  font-size: 13px;
-  font-family: inherit;
-  outline: none;
+.pp-tab {
+  flex: 1; padding: 10px 16px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc; color: #64748b;
+  font-size: 13px; font-weight: 600;
   cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.pp-tab:first-child { border-radius: 20px 0 0 20px; }
+.pp-tab:last-child { border-radius: 0 20px 20px 0; border-left: none; }
+.pp-tab.active {
+  background: #ffffff;
+  border-color: #10b981;
+  color: #10b981;
+}
+
+/* ─── Scrollable Body ─── */
+.pp-body {
+  flex: 1; overflow-y: auto;
+  padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 14px;
+  background: #f8fafc;
+}
+.pp-body::-webkit-scrollbar { width: 4px; }
+.pp-body::-webkit-scrollbar-track { background: transparent; }
+.pp-body::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+
+/* ─── Split View ─── */
+.pp-split-header {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.pp-split-label {
+  font-size: 11px; font-weight: 700; color: #94a3b8;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.pp-split-label-right {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 11px; font-weight: 700; color: #2563eb;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.pp-copy-chip {
+  font-size: 11px; font-weight: 600;
+  padding: 3px 8px; border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #fff; color: #475569;
+  cursor: pointer; transition: all 0.15s;
+  font-family: inherit;
+}
+.pp-copy-chip:hover { background: #f1f5f9; }
+.pp-copy-chip:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.pp-split-view {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+.pp-split-original, .pp-split-improved {
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  min-height: 60px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.pp-split-original {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+.pp-split-improved {
+  background: #ffffff;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.pp-placeholder { color: #94a3b8; font-style: italic; font-size: 12px; }
+
+/* ─── Structured Sections ─── */
+.pp-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.pp-section-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+}
+.pp-section-bar {
+  width: 3px; height: 18px;
+  border-radius: 2px;
+  background: #2563eb;
+}
+.pp-section-title {
+  font-size: 12px; font-weight: 800; color: #0f172a;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.pp-section-body {
+  font-size: 13px; line-height: 1.7; color: #475569;
+  white-space: pre-wrap; word-break: break-word;
+}
+
+/* ─── Model Row ─── */
+.pp-model-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.pp-model-label {
+  font-size: 12px; font-weight: 700; color: #64748b;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+.pp-select {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #1e293b;
+  padding: 8px 30px 8px 12px;
+  font-size: 13px; font-family: inherit;
+  outline: none; cursor: pointer;
   transition: border-color 0.15s;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
 }
+.pp-select:hover { border-color: #93c5fd; }
+.pp-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
 
-.pp-select:hover { border-color: rgba(99,102,241,0.3); }
-.pp-select:focus { border-color: rgba(99,102,241,0.5); }
-
-.pp-preview {
-  font-size: 12px;
-  line-height: 1.6;
-  color: #94a3b8;
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-height: 120px;
-  overflow-y: auto;
-  padding: 8px;
-  background: rgba(0,0,0,0.2);
-  border-radius: 8px;
+/* ─── Footer ─── */
+.pp-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  flex-shrink: 0;
 }
-
-.pp-enhanced-box {
-  color: #e2e8f0;
-  max-height: 200px;
+.pp-footer-credit {
+  font-size: 12px; color: #94a3b8;
 }
+.pp-footer-credit strong { color: #3b82f6; }
 
-.pp-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
+.pp-footer-actions { display: flex; gap: 8px; }
 
-.pp-btn {
-  padding: 9px 16px;
-  border: none;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 600;
+.pp-btn-keep {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  font-size: 13px; font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
   font-family: inherit;
 }
+.pp-btn-keep:hover { background: #f1f5f9; }
 
-.pp-btn-primary {
-  flex: 1;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: #fff;
-  min-width: 100px;
+.pp-btn-apply {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  color: #ffffff;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 6px;
+  font-family: inherit;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.3);
 }
-
-.pp-btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
-.pp-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: none; }
-
-.pp-btn-secondary {
-  flex: 1;
-  background: rgba(255,255,255,0.04);
-  color: #94a3b8;
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.pp-btn-secondary:hover { background: rgba(255,255,255,0.08); color: #e2e8f0; }
-.pp-btn-secondary:disabled { opacity: 0.35; cursor: not-allowed; }
+.pp-btn-apply:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.pp-btn-apply:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 .pp-btn-spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255,255,255,0.2);
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
   border-top-color: #fff;
   border-radius: 50%;
   animation: ppSpin 0.6s linear infinite;
 }
-
 @keyframes ppSpin { to { transform: rotate(360deg); } }
-
-.pp-history { display: flex; flex-direction: column; gap: 4px; }
-.pp-history-item {
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-size: 12px;
-  color: #94a3b8;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.pp-history-item:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
-.pp-empty { font-size: 12px; color: #475569; text-align: center; padding: 8px; }
-
-.pp-setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 0;
-  font-size: 13px;
-  color: #cbd5e1;
-}
-
-.pp-toggle { position: relative; cursor: pointer; }
-.pp-toggle input { display: none; }
-.pp-toggle-track {
-  display: block;
-  width: 36px;
-  height: 20px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 12px;
-  transition: background 0.2s;
-  position: relative;
-}
-.pp-toggle-track::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 16px;
-  height: 16px;
-  background: #64748b;
-  border-radius: 50%;
-  transition: all 0.2s;
-}
-.pp-toggle input:checked + .pp-toggle-track { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
-.pp-toggle input:checked + .pp-toggle-track::after { left: 18px; background: #fff; }
-
-.pp-opt-select { width: auto; min-width: 100px; padding: 6px 28px 6px 10px; font-size: 12px; }
   `;
   document.head.appendChild(style);
 
