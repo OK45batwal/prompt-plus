@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, Book, History, Folder, LayoutTemplate, GitCompare, ArrowRight } from "lucide-react";
+import { Sparkles, Book, History, Folder, LayoutTemplate, GitCompare, ArrowRight, Zap, TrendingUp, Key } from "lucide-react";
 
 const quickActions = [
   {
@@ -45,38 +45,103 @@ const quickActions = [
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-6">
-      {/* Welcome */}
-      <div>
-        <h2 className="text-lg font-semibold">Welcome back</h2>
-        <p className="text-sm text-muted-foreground">Transform your prompts into powerful, AI-optimized instructions.</p>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Hero Welcome */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-accent/60 via-card to-accent/30 border shadow-sm">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Welcome back</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Transform simple text into high-performance, AI-optimized instructions.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/new"
+          className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-xl bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-all shadow-sm active:scale-95 shrink-0"
+        >
+          <Sparkles className="h-4 w-4" />
+          Create Prompt
+        </Link>
+      </div>
+
+      {/* Quick Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-4 rounded-xl border bg-card/60 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Generations</span>
+            <Zap className="h-4 w-4 text-emerald-500" />
+          </div>
+          <p className="text-xl sm:text-2xl font-bold mt-2">12</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">+4 this week</p>
+        </div>
+        <div className="p-4 rounded-xl border bg-card/60 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Saved Prompts</span>
+            <Book className="h-4 w-4 text-blue-500" />
+          </div>
+          <p className="text-xl sm:text-2xl font-bold mt-2">8</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">In 2 collections</p>
+        </div>
+        <div className="p-4 rounded-xl border bg-card/60 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Quality Score</span>
+            <TrendingUp className="h-4 w-4 text-amber-500" />
+          </div>
+          <p className="text-xl sm:text-2xl font-bold mt-2">94%</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">Avg optimization</p>
+        </div>
+        <div className="p-4 rounded-xl border bg-card/60 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Daily Limit</span>
+            <Key className="h-4 w-4 text-purple-500" />
+          </div>
+          <p className="text-xl sm:text-2xl font-bold mt-2">5/20</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">Free tier quota</p>
+        </div>
       </div>
 
       {/* Quick Actions */}
       <div>
-        <h3 className="font-semibold text-sm mb-3">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 animate-stagger">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-base tracking-tight">Quick Actions</h3>
+          <span className="text-xs text-muted-foreground">Select a workflow</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {quickActions.map((action) => (
             <Link
               key={action.title}
               href={action.href}
-              className={`p-4 rounded-lg border hover:border-foreground/20 transition-colors group hover-lift ${
-                action.primary ? "bg-foreground text-background" : "bg-card"
+              className={`p-4 rounded-xl border transition-all duration-200 group hover:shadow-md hover:-translate-y-0.5 ${
+                action.primary
+                  ? "bg-foreground text-background shadow-sm hover:bg-foreground/95"
+                  : "bg-card hover:border-foreground/20"
               }`}
             >
               <div className="flex items-start justify-between">
-                <action.icon className={`h-5 w-5 ${action.primary ? "text-background" : "text-muted-foreground"}`} />
-                <ArrowRight className={`h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity ${
-                  action.primary ? "text-background" : "text-muted-foreground"
-                }`} />
+                <div
+                  className={`p-2 rounded-lg ${
+                    action.primary
+                      ? "bg-background/20 text-background"
+                      : "bg-accent text-foreground"
+                  }`}
+                >
+                  <action.icon className="h-5 w-5" />
+                </div>
+                <ArrowRight
+                  className={`h-4 w-4 opacity-0 group-hover:opacity-100 transition-all duration-200 transform group-hover:translate-x-0.5 ${
+                    action.primary ? "text-background" : "text-muted-foreground"
+                  }`}
+                />
               </div>
-              <h4 className={`font-medium text-sm mt-3 ${action.primary ? "text-background" : ""}`}>{action.title}</h4>
-              <p className={`text-xs mt-1 ${action.primary ? "text-background/70" : "text-muted-foreground"}`}>{action.description}</p>
+              <h4 className={`font-semibold text-sm mt-3 ${action.primary ? "text-background" : ""}`}>
+                {action.title}
+              </h4>
+              <p className={`text-xs mt-1 leading-relaxed ${action.primary ? "text-background/80" : "text-muted-foreground"}`}>
+                {action.description}
+              </p>
             </Link>
           ))}
         </div>
       </div>
-
     </div>
   );
 }

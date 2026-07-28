@@ -25,6 +25,8 @@ import { Separator } from "@/components/ui/separator";
 interface SidebarProps {
   collapsed?: boolean;
   onToggle?: () => void;
+  isMobile?: boolean;
+  className?: string;
 }
 
 const mainNav = [
@@ -48,7 +50,7 @@ const accountNav = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
-export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
+export function Sidebar({ collapsed = false, onToggle, isMobile = false, className }: SidebarProps) {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
@@ -59,8 +61,11 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "hidden lg:flex flex-col border-r bg-card transition-all duration-300",
-        collapsed ? "w-[68px]" : "w-[240px]"
+        isMobile
+          ? "flex flex-col h-full w-full bg-card"
+          : "hidden lg:flex flex-col border-r bg-card transition-all duration-300",
+        !isMobile && (collapsed ? "w-[68px]" : "w-[240px]"),
+        className
       )}
     >
       {/* Logo */}

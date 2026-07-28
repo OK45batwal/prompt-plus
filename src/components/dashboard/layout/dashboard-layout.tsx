@@ -20,8 +20,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Sidebar Sheet */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-[260px] p-0">
-          <Sidebar onToggle={() => setMobileOpen(false)} />
+        <SheetContent side="left" className="w-[260px] p-0 border-r">
+          <Sidebar isMobile={true} onToggle={() => setMobileOpen(false)} />
         </SheetContent>
       </Sheet>
 
