@@ -456,6 +456,8 @@ npm run lint
 | `OPENAI_API_KEY` | 💡 | Optional fallback OpenAI key | `sk-...` |
 | `ANTHROPIC_API_KEY` | 💡 | Optional fallback Anthropic key | `sk-ant-...` |
 | `ENCRYPTION_KEY` | 💡 | AES-256 secret for user key vault | `32_byte_secret_key` |
+| `RESEND_API_KEY` | 💡 | Resend API key for password reset emails | `re_...` |
+| `SMTP_FROM` | 💡 | Verified sender domain for Resend | `Prompt+ <noreply@your-domain.com>` |
 
 <br>
 

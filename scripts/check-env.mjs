@@ -44,6 +44,17 @@ if (!dbUrl) {
   console.log(`✅ DATABASE_URL is configured (${dbUrl.startsWith("file:") ? "SQLite" : "PostgreSQL/Neon"}).`);
 }
 
+const resendKey = process.env.RESEND_API_KEY;
+if (resendKey) {
+  const smtpFrom = process.env.SMTP_FROM;
+  if (!smtpFrom) {
+    warnings.push("⚠️ RESEND_API_KEY is set but SMTP_FROM is missing. Emails will use the test domain @resend.dev — real deliveries will fail.");
+  } else if (smtpFrom.includes("@resend.dev")) {
+    warnings.push("⚠️ SMTP_FROM uses @resend.dev (test domain). Set it to a domain verified in your Resend dashboard for production email delivery.");
+  }
+  console.log("✅ Resend email is configured.");
+}
+
 if (errors.length > 0) {
   console.error("\nDeployment environment check failed:");
   errors.forEach(e => console.error(e));
