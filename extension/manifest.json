@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Prompt+ Architect AI - Prompt Optimizer & Assistant",
-  "version": "1.0.0",
-  "description": "Transform simple prompts into professional, AI-optimized instructions directly inside ChatGPT, Claude, and Gemini.",
+  "version": "1.1.0",
+  "description": "Transform simple prompts into professional, AI-optimized instructions directly inside ChatGPT, Claude, Gemini, and DeepSeek.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -17,13 +17,25 @@
   },
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "contextMenus"
   ],
+  "commands": {
+    "enhance-prompt": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+P",
+        "mac": "Command+Shift+P"
+      },
+      "description": "Open Prompt+ enhance panel"
+    }
+  },
   "host_permissions": [
     "https://chatgpt.com/*",
     "https://chat.openai.com/*",
     "https://claude.ai/*",
     "https://gemini.google.com/*",
+    "https://chat.deepseek.com/*",
+    "https://deepseek.com/*",
     "http://localhost:3000/*",
     "https://*.vercel.app/*"
   ],
@@ -33,7 +45,9 @@
         "https://chatgpt.com/*",
         "https://chat.openai.com/*",
         "https://claude.ai/*",
-        "https://gemini.google.com/*"
+        "https://gemini.google.com/*",
+        "https://chat.deepseek.com/*",
+        "https://deepseek.com/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"

@@ -148,7 +148,19 @@ export default function CollectionsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-1 hover:bg-accent rounded">
+                  <button onClick={() => {
+                    const newName = prompt("New name for this collection:", collection.name);
+                    if (newName && newName.trim()) {
+                      fetch(`/api/v1/collections/${collection.id}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ name: newName.trim() }),
+                      }).then(() => {
+                        setCollections((prev) => prev.map((c) => c.id === collection.id ? { ...c, name: newName.trim() } : c));
+                        toast("Collection renamed", "success");
+                      }).catch(() => toast("Failed to rename", "error"));
+                    }
+                  }} className="p-1 hover:bg-accent rounded">
                     <Edit className="h-3.5 w-3.5 text-muted-foreground" />
                   </button>
                   <button
@@ -169,7 +181,7 @@ export default function CollectionsPage() {
                     className="h-full rounded-full"
                     style={{
                       backgroundColor: collection.color,
-                      width: `${Math.min(100, (collection.promptCount / 20) * 100)}%`,
+                      width: `${Math.min(100, collections.length > 0 ? (collection.promptCount / Math.max(...collections.map((c) => c.promptCount))) * 100 : 0)}%`,
                     }}
                   />
                 </div>

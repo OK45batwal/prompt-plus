@@ -158,6 +158,7 @@ export default function SettingsPage() {
   const [defaultTone, setDefaultTone] = useState("");
   const [autoEnhance, setAutoEnhance] = useState(false);
   const [toggles, setToggles] = useState<Record<string, boolean>>({ email: true, usage: true, digest: false });
+  const [planData, setPlanData] = useState<{ used: number; limit: number; remaining: number } | null>(null);
 
   useEffect(() => {
     if (session?.user?.name || session?.user?.email) {
@@ -166,6 +167,9 @@ export default function SettingsPage() {
         if (session?.user?.email) setEmail(session.user.email);
       });
     }
+    fetch("/api/v1/usage").then((r) => r.json()).then((j) => {
+      if (j.data?.daily) setPlanData(j.data.daily);
+    }).catch(() => {});
   }, [session?.user?.name, session?.user?.email]);
 
   useEffect(() => {
@@ -362,7 +366,7 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium">Free Tier</p>
-                        <p className="text-xs text-muted-foreground">20 enhancements per day</p>
+                        <p className="text-xs text-muted-foreground">{planData ? `${planData.used} / ${planData.limit} enhancements used today` : "Loading..."}</p>
                       </div>
                       <span className="text-xs px-2 py-1 rounded bg-muted">Current</span>
                     </div>

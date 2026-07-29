@@ -77,12 +77,7 @@
       border-color: #93c5fd;
       color: #2563eb;
     }
-    .bot-count {
-      font-size: 9px; font-weight: 800;
-      background: #e2e8f0; color: #475569;
-      padding: 0px 4px; border-radius: 5px;
-    }
-    .bot-pill.active .bot-count { background: #dbeafe; color: #2563eb; }
+    .bot-pill.active { background: #eff6ff; border-color: #93c5fd; color: #2563eb; }
 
     /* Content */
     .content { padding: 14px 18px; }
@@ -188,7 +183,7 @@
       <div class="header-icon">⚡</div>
       <div class="header-info">
         <div class="header-title">Prompt+ Intelligence</div>
-        <div class="header-enc"><span class="enc-dot"></span> END-TO-END ENCRYPTED</div>
+        <div class="header-enc"><span class="enc-dot"></span> SECURE</div>
       </div>
     </div>
     <div class="key-badge" id="key-indicator">
@@ -201,22 +196,18 @@
     <div class="bot-pill active" id="tab-chatgpt">
       <span>🤖</span>
       <span>ChatGPT</span>
-      <span class="bot-count">12</span>
     </div>
     <div class="bot-pill" id="tab-claude">
       <span>🟣</span>
       <span>Claude</span>
-      <span class="bot-count">8</span>
     </div>
     <div class="bot-pill" id="tab-gemini">
       <span>✨</span>
       <span>Gemini</span>
-      <span class="bot-count">5</span>
     </div>
     <div class="bot-pill" id="tab-deepseek">
       <span>⚡</span>
       <span>DeepSeek</span>
-      <span class="bot-count">3</span>
     </div>
   </div>
 
@@ -225,7 +216,6 @@
     <textarea id="input" placeholder="Paste or type your prompt to enhance..."></textarea>
     <div class="input-meta">
       <span id="char-count">0 characters</span>
-      <span>Auto-Format Enabled</span>
     </div>
 
     <select id="model-select" class="model-select">

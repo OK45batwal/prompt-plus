@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Plus, X, Copy, Check, GitCompare, LayoutGrid } from "lucide-react";
 import { PromptDiff } from "@/components/dashboard/prompt-diff";
 
@@ -17,6 +17,7 @@ export default function ComparePage() {
     { id: "2", text: "", score: 0 },
   ]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const scoreTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const addItem = () => {
     if (items.length >= 4) return;
@@ -29,26 +30,36 @@ export default function ComparePage() {
   };
 
   const updateItem = (id: string, text: string) => {
-    setItems(items.map((item) => {
-      if (item.id === id) {
-        let score = 50;
-        const wordCount = text.split(/\s+/).filter(Boolean).length;
-        const lowerText = text.toLowerCase();
+    if (scoreTimers.current[id]) clearTimeout(scoreTimers.current[id]);
 
-        if (wordCount > 10) score += 10;
-        if (wordCount > 30) score += 10;
-        if (wordCount > 50) score += 5;
+    setItems((prev) => prev.map((item) => item.id === id ? { ...item, text } : item));
 
-        if (lowerText.includes("specific") || lowerText.includes("exactly")) score += 10;
-        if (/\d/.test(text)) score += 5;
-        if (lowerText.includes("example")) score += 5;
-        if (lowerText.includes("step")) score += 5;
-        if (lowerText.includes("list")) score += 5;
-
-        return { ...item, text, score: Math.min(100, score) };
-      }
-      return item;
-    }));
+    if (text.trim().length > 10) {
+      scoreTimers.current[id] = setTimeout(async () => {
+        try {
+          const res = await fetch("/api/v1/prompts/score", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text }),
+          });
+          const json = await res.json();
+          const score = json.data?.total || 0;
+          setItems((prev) => prev.map((item) => item.id === id ? { ...item, score } : item));
+        } catch {
+          // fallback: heuristic score
+          let score = 50;
+          const wc = text.split(/\s+/).length;
+          if (wc > 10) score += 10;
+          if (wc > 30) score += 10;
+          if (text.toLowerCase().includes("specific")) score += 10;
+          if (/\d/.test(text)) score += 5;
+          if (text.toLowerCase().includes("example")) score += 5;
+          setItems((prev) => prev.map((item) => item.id === id ? { ...item, score: Math.min(100, score) } : item));
+        }
+      }, 800);
+    } else {
+      setItems((prev) => prev.map((item) => item.id === id ? { ...item, score: 0 } : item));
+    }
   };
 
   const copyToClipboard = (text: string, id: string) => {

@@ -151,6 +151,7 @@
 
   function closePanel() {
     if (panelEl) { panelEl.remove(); panelEl = null; panelOpen = false; }
+    document.removeEventListener("keydown", ppEscHandler);
   }
 
   let settings = null;
@@ -172,7 +173,7 @@
               '<div class="pp-head-icon">⚡</div>' +
               '<div class="pp-head-info">' +
                 '<div class="pp-head-title">Prompt+ Intelligence Activated</div>' +
-                '<div class="pp-head-enc"><span class="pp-enc-dot"></span> END-TO-END ENCRYPTED</div>' +
+                '<div class="pp-head-enc"><span class="pp-enc-dot"></span> SECURE</div>' +
               '</div>' +
             '</div>' +
             '<button class="pp-close-btn" id="pp-close-btn">' +
@@ -181,19 +182,12 @@
           '</div>' +
           /* Chatbot Counter Bar */
           '<div class="pp-bots-strip">' +
-            '<div class="pp-bot-pill' + (activeChatbot === "chatgpt" ? " active" : "") + '"><span>🤖</span><span class="pp-bot-label">ChatGPT</span><span class="pp-bot-count">12</span></div>' +
-            '<div class="pp-bot-pill' + (activeChatbot === "claude" ? " active" : "") + '"><span>🟣</span><span class="pp-bot-label">Claude</span><span class="pp-bot-count">8</span></div>' +
-            '<div class="pp-bot-pill' + (activeChatbot === "gemini" ? " active" : "") + '"><span>✨</span><span class="pp-bot-label">Gemini</span><span class="pp-bot-count">5</span></div>' +
-            '<div class="pp-bot-pill' + (activeChatbot === "deepseek" ? " active" : "") + '"><span>⚡</span><span class="pp-bot-label">DeepSeek</span><span class="pp-bot-count">3</span></div>' +
+            '<div class="pp-bot-pill' + (activeChatbot === "chatgpt" ? " active" : "") + '"><span>🤖</span><span class="pp-bot-label">ChatGPT</span></div>' +
+            '<div class="pp-bot-pill' + (activeChatbot === "claude" ? " active" : "") + '"><span>🟣</span><span class="pp-bot-label">Claude</span></div>' +
+            '<div class="pp-bot-pill' + (activeChatbot === "gemini" ? " active" : "") + '"><span>✨</span><span class="pp-bot-label">Gemini</span></div>' +
+            '<div class="pp-bot-pill' + (activeChatbot === "deepseek" ? " active" : "") + '"><span>⚡</span><span class="pp-bot-label">DeepSeek</span></div>' +
           '</div>' +
-          /* Tabs */
-          '<div class="pp-tab-bar">' +
-            '<button class="pp-tab active" id="pp-tab-improved">Improved</button>' +
-            '<button class="pp-tab" id="pp-tab-changes">Changes</button>' +
-          '</div>' +
-          /* Scrollable Body */
-          '<div class="pp-body" id="pp-body">' +
-            /* Original vs Improved split header */
+          /* Split header */
             '<div class="pp-split-header">' +
               '<div class="pp-split-label">ORIGINAL</div>' +
               '<div class="pp-split-label-right">' +
@@ -205,7 +199,7 @@
             '<div class="pp-split-view">' +
               '<div class="pp-split-original" id="pp-original-preview"></div>' +
               '<div class="pp-split-improved" id="pp-enhanced-preview">' +
-                '<div class="pp-placeholder">Click "Enhance Prompt" below to see AI-optimized result</div>' +
+                '<div class="pp-placeholder">Click "Apply Upgrade" below to see the AI-optimized result</div>' +
               '</div>' +
             '</div>' +
             /* Structured Sections (shown after enhance) */
@@ -296,8 +290,20 @@
     panelEl.querySelector(".pp-backdrop")?.addEventListener("click", closePanel);
     document.addEventListener("keydown", ppEscHandler);
 
-    // Keep Original
-    panelEl.querySelector("#pp-keep-btn").onclick = closePanel;
+    // Chatbot pills — open chatbot site
+    const botUrls = { chatgpt: "https://chatgpt.com", claude: "https://claude.ai", gemini: "https://gemini.google.com", deepseek: "https://chat.deepseek.com" };
+    panelEl.querySelectorAll(".pp-bot-pill").forEach((pill) => {
+      const idx = Array.from(pill.parentElement.children).indexOf(pill);
+      const url = Object.values(botUrls)[idx];
+      if (url) pill.style.cursor = "pointer";
+      pill.addEventListener("click", (e) => { e.stopPropagation(); if (url) window.open(url, "_blank"); });
+    });
+
+    // Keep Original — inserts original text into input
+    panelEl.querySelector("#pp-keep-btn").onclick = () => {
+      if (currentText) setText(input, currentText);
+      closePanel();
+    };
 
     // Enhance / Apply Upgrade
     panelEl.querySelector("#pp-enhance-btn").onclick = () => doEnhance(input, text);
@@ -312,24 +318,10 @@
       setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 1500);
     };
 
-    // Tab switching
-    panelEl.querySelector("#pp-tab-improved").onclick = () => {
-      panelEl.querySelector("#pp-tab-improved").classList.add("active");
-      panelEl.querySelector("#pp-tab-changes").classList.remove("active");
-    };
-    panelEl.querySelector("#pp-tab-changes").onclick = () => {
-      panelEl.querySelector("#pp-tab-changes").classList.add("active");
-      panelEl.querySelector("#pp-tab-improved").classList.remove("active");
-    };
-
     // Model change saves setting
     panelEl.querySelector("#pp-model").addEventListener("change", (e) => {
       saveSettings({ model: e.target.value });
     });
-
-    if (s && s.autoEnhance) {
-      doEnhance(input, text);
-    }
   }
 
   let enhancing = false;
@@ -338,12 +330,16 @@
     if (enhancing) return;
     enhancing = true;
 
+    const fab = document.querySelector(".pp-fab");
+    const fabOrig = fab?.innerHTML || "";
+
     const btn = document.getElementById("pp-enhance-btn");
     const btnText = document.getElementById("pp-enhance-text");
     const spinner = btn?.querySelector(".pp-btn-spinner");
     if (btn) btn.disabled = true;
     if (btnText) btnText.textContent = "Enhancing...";
     if (spinner) spinner.style.display = "inline-block";
+    if (fab) fab.innerHTML = '<span class="pp-fab-icon">⌛</span><span class="pp-fab-text">Enhancing...</span>';
 
     const enhancedPreview = document.getElementById("pp-enhanced-preview");
     const copyBtn = document.getElementById("pp-copy-btn");
@@ -386,6 +382,7 @@
     } finally {
       enhancing = false;
       if (spinner) spinner.style.display = "none";
+      if (fab) fab.innerHTML = fabOrig;
     }
   }
 
@@ -421,10 +418,10 @@
       }
     }
 
-    if (roleEl) roleEl.textContent = role.trim() || "Auto-assigned by AI optimizer.";
-    if (ctxEl) ctxEl.textContent = context.trim() || "Inferred from prompt content.";
+    if (roleEl) roleEl.textContent = role.trim() || "";
+    if (ctxEl) ctxEl.textContent = context.trim() || "";
     if (instEl) instEl.textContent = instructions.trim() || enhanced.slice(0, 200);
-    if (constEl) constEl.textContent = constraints.trim() || "Standard quality constraints applied.";
+    if (constEl) constEl.textContent = constraints.trim() || "";
   }
 
   function ppEscHandler(e) {
@@ -558,7 +555,7 @@
   background: #f1f5f9;
   border: 1px solid #e2e8f0;
   font-size: 11px; font-weight: 600; color: #64748b;
-  cursor: default;
+  cursor: pointer;
   transition: all 0.15s;
 }
 .pp-bot-pill.active {
@@ -567,39 +564,6 @@
   color: #2563eb;
 }
 .pp-bot-label { font-size: 10px; }
-.pp-bot-count {
-  font-size: 10px; font-weight: 800;
-  background: #e2e8f0; color: #475569;
-  padding: 0px 5px; border-radius: 6px;
-}
-.pp-bot-pill.active .pp-bot-count {
-  background: #dbeafe; color: #2563eb;
-}
-
-/* ─── Tab Bar ─── */
-.pp-tab-bar {
-  display: flex; gap: 0;
-  padding: 12px 20px 0;
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-  flex-shrink: 0;
-}
-.pp-tab {
-  flex: 1; padding: 10px 16px;
-  border: 1.5px solid #e2e8f0;
-  background: #f8fafc; color: #64748b;
-  font-size: 13px; font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  font-family: inherit;
-}
-.pp-tab:first-child { border-radius: 20px 0 0 20px; }
-.pp-tab:last-child { border-radius: 0 20px 20px 0; border-left: none; }
-.pp-tab.active {
-  background: #ffffff;
-  border-color: #10b981;
-  color: #10b981;
-}
 
 /* ─── Scrollable Body ─── */
 .pp-body {
@@ -769,7 +733,26 @@
   `;
   document.head.appendChild(style);
 
-  // Prevent multiple instances
-  if (document.querySelector(".pp-fab")) return;
-  setInterval(injectFab, 1500);
+  // Watch for input fields appearing/changing on the page
+  const observer = new MutationObserver(() => {
+    if (!document.querySelector(".pp-fab")) injectFab();
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+  injectFab();
+
+  // Listen for messages from background (context menu, keyboard shortcut)
+  chrome.runtime.onMessage.addListener((request) => {
+    if (request.action === "toggleEnhancePanel") {
+      if (panelEl) { closePanel(); return; }
+      currentTarget = getInput();
+      currentText = getText(currentTarget);
+      if (currentText.trim()) openPanel();
+    }
+    if (request.action === "openEnhancePanel" && request.text) {
+      currentTarget = getInput();
+      currentText = request.text;
+      setText(currentTarget, request.text);
+      openPanel();
+    }
+  });
 })();

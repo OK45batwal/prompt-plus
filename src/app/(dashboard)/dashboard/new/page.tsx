@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Sparkles,
   Copy,
@@ -125,6 +125,13 @@ export default function PromptBuilderPage() {
   const [copied, setCopied] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [showCostBreakdown, setShowCostBreakdown] = useState(false);
+  const [remainingToday, setRemainingToday] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch("/api/v1/usage").then((r) => r.json()).then((j) => {
+      setRemainingToday(j.data?.daily?.remaining ?? null);
+    }).catch(() => {});
+  }, []);
 
   // Context Memory Blocks State
   const [availableBlocks] = useState<ContextBlock[]>(() => getSavedContextBlocks());
@@ -305,7 +312,7 @@ export default function PromptBuilderPage() {
           <h2 className="font-semibold text-sm">Prompt Builder</h2>
           <p className="text-xs text-muted-foreground">Transform your ideas into optimized prompts</p>
         </div>
-        <span className="text-xs text-muted-foreground">5 free remaining today</span>
+        <span className="text-xs text-muted-foreground">{remainingToday !== null ? `${remainingToday} free remaining today` : ""}</span>
       </div>
 
       {errorNotice && (

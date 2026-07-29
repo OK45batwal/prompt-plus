@@ -14,79 +14,6 @@ interface TemplateItem {
   prompt: string;
 }
 
-const mockFallbackTemplates: TemplateItem[] = [
-  {
-    id: "blog-post",
-    title: "Blog Post",
-    description: "Generate engaging blog posts with proper structure",
-    category: "Blog Post",
-    model: "gpt-4",
-    usageCount: 1250,
-    isOfficial: true,
-    prompt: "Write a comprehensive blog post about [TOPIC].\n\nTarget audience: [AUDIENCE]\nTone: [TONE]\nLength: [LENGTH]\n\nInclude:\n- Engaging introduction\n- Well-structured sections with headers\n- Practical examples\n- Key takeaways\n- SEO-friendly structure",
-  },
-  {
-    id: "email-campaign",
-    title: "Email Campaign",
-    description: "Create professional email sequences",
-    category: "Email",
-    model: "claude-3",
-    usageCount: 890,
-    isOfficial: true,
-    prompt: "Write a professional email for [PURPOSE].\n\nSender: [COMPANY]\nRecipient: [AUDIENCE]\nGoal: [OBJECTIVE]\n\nInclude:\n- Compelling subject line\n- Clear, concise body\n- Strong call-to-action\n- Professional sign-off",
-  },
-  {
-    id: "code-review",
-    title: "Code Review",
-    description: "Get detailed code review feedback",
-    category: "Code",
-    model: "gpt-4",
-    usageCount: 756,
-    isOfficial: true,
-    prompt: "Review the following code for [LANGUAGE]:\n\n[CODE]\n\nProvide feedback on:\n- Code quality and readability\n- Performance optimization\n- Security vulnerabilities\n- Best practices\n- Suggested improvements",
-  },
-  {
-    id: "social-media",
-    title: "Social Media Post",
-    description: "Create engaging social media content",
-    category: "Social Media",
-    model: "gemini-pro",
-    usageCount: 1580,
-    isOfficial: false,
-    prompt: "Create a [PLATFORM] post about [TOPIC].\n\nBrand voice: [TONE]\nAudience: [AUDIENCE]\nGoal: [OBJECTIVE]\n\nInclude:\n- Hook in first line\n- Relevant hashtags\n- Call-to-action\n- Emoji usage",
-  },
-  {
-    id: "technical-doc",
-    title: "Technical Documentation",
-    description: "Write clear technical documentation",
-    category: "Tutorial",
-    model: "claude-3",
-    usageCount: 445,
-    isOfficial: true,
-    prompt: "Write technical documentation for [FEATURE/API].\n\nAudience: [DEVELOPER_LEVEL]\nFormat: [FORMAT]\n\nInclude:\n- Overview\n- Getting started guide\n- Code examples\n- API reference\n- Troubleshooting",
-  },
-  {
-    id: "product-description",
-    title: "Product Description",
-    description: "Write compelling product descriptions",
-    category: "Marketing",
-    model: "gpt-4",
-    usageCount: 920,
-    isOfficial: false,
-    prompt: "Write a product description for [PRODUCT].\n\nFeatures: [FEATURES]\nTarget audience: [AUDIENCE]\nUnique selling point: [USP]\n\nInclude:\n- Attention-grabbing headline\n- Key benefits\n- Specifications\n- Social proof elements\n- Call-to-action",
-  },
-  {
-    id: "finance-analysis",
-    title: "Financial Valuation & Risk Analysis",
-    description: "Perform deep-dive financial modeling, DCF valuation, and risk assessment",
-    category: "Finance & Banking",
-    model: "gpt-4",
-    usageCount: 1420,
-    isOfficial: true,
-    prompt: "Act as a Chartered Financial Analyst (CFA). Conduct a comprehensive financial valuation and risk analysis for [COMPANY/ASSET].\n\nInclude:\n- Key Financial Ratios (P/E, EV/EBITDA, Debt-to-Equity)\n- Discounted Cash Flow (DCF) assumptions and sensitivity analysis\n- Industry macro risks & competitive moat evaluation\n- Strategic recommendations & target price range",
-  },
-];
-
 export default function TemplatesPage() {
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -109,16 +36,12 @@ export default function TemplatesPage() {
         const res = await fetch(`/api/v1/templates?${params.toString()}`);
         if (res.ok && isMounted) {
           const json = await res.json();
-          if (Array.isArray(json.data) && json.data.length > 0) {
-            setTemplates(json.data);
-          } else {
-            setTemplates(mockFallbackTemplates);
-          }
+          setTemplates(Array.isArray(json.data) ? json.data : []);
         } else if (isMounted) {
-          setTemplates(mockFallbackTemplates);
+          setTemplates([]);
         }
       } catch {
-        if (isMounted) setTemplates(mockFallbackTemplates);
+        if (isMounted) setTemplates([]);
       } finally {
         if (isMounted) setLoading(false);
       }

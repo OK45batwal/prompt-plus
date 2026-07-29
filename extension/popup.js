@@ -7,6 +7,13 @@ const keyIndicator = document.getElementById("key-indicator");
 const modelSelect = document.getElementById("model-select");
 const charCount = document.getElementById("char-count");
 
+const CHATBOT_URLS = {
+  chatgpt: "https://chatgpt.com",
+  claude: "https://claude.ai",
+  gemini: "https://gemini.google.com",
+  deepseek: "https://chat.deepseek.com",
+};
+
 const chatbotPills = {
   chatgpt: document.getElementById("tab-chatgpt"),
   claude: document.getElementById("tab-claude"),
@@ -27,6 +34,16 @@ function updateKeyUI(has) {
   if (keyIndicator) keyIndicator.className = "key-badge" + (has ? " ok" : "");
 }
 
+// Detect active chatbot tab and highlight pill
+chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
+  const url = tabs[0]?.url || "";
+  Object.entries(CHATBOT_URLS).forEach(([key, baseUrl]) => {
+    const pill = chatbotPills[key];
+    if (!pill) return;
+    if (url.startsWith(baseUrl)) pill.classList.add("active");
+  });
+});
+
 // Character counter
 input?.addEventListener("input", () => {
   if (charCount) {
@@ -35,13 +52,12 @@ input?.addEventListener("input", () => {
   }
 });
 
-// Chatbot pill selection
-Object.keys(chatbotPills).forEach((botKey) => {
-  const pill = chatbotPills[botKey];
+// Chatbot pill — open chatbot site in new tab
+Object.entries(chatbotPills).forEach(([botKey, pill]) => {
   if (!pill) return;
   pill.addEventListener("click", () => {
-    Object.values(chatbotPills).forEach((p) => p && p.classList.remove("active"));
-    pill.classList.add("active");
+    const url = CHATBOT_URLS[botKey];
+    if (url) chrome.tabs.create({ url });
   });
 });
 
@@ -60,13 +76,24 @@ chrome.runtime?.sendMessage?.({ action: "getSettings" }, (res) => {
   }
 });
 
-// Save API key
+// Save API key with format validation
 keyInput?.addEventListener("change", () => {
   const k = keyInput.value.trim();
-  if (!k) { updateKeyUI(false); return; }
+  if (!k) { updateKeyUI(false); keyInput.style.borderColor = ""; return; }
+  const valid = k.startsWith("sk-") || k.startsWith("sk-or-") || k.startsWith("sk-ant-") || k.startsWith("nvapi-");
+  if (!valid) {
+    keyInput.style.borderColor = "#ef4444";
+    showMsg("Invalid key format (expected sk-..., sk-or-..., sk-ant-..., or nvapi-...)", true);
+    return;
+  }
+  keyInput.style.borderColor = "#10b981";
   chrome.runtime.sendMessage({ action: "saveApiKey", apiKey: k }, (r) => {
     if (r && r.success) updateKeyUI(true);
   });
+});
+
+keyInput?.addEventListener("input", () => {
+  keyInput.style.borderColor = "";
 });
 
 // Save model selection

@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Sparkles, Book, History, Folder, LayoutTemplate, GitCompare, ArrowRight, Zap, TrendingUp, Key } from "lucide-react";
+import { Sparkles, Book, History, Folder, LayoutTemplate, GitCompare, ArrowRight, Zap, TrendingUp, Key, Loader2 } from "lucide-react";
 
 const quickActions = [
   {
@@ -44,6 +45,20 @@ const quickActions = [
 ];
 
 export default function DashboardPage() {
+  const [usage, setUsage] = useState<{ daily: { used: number; limit: number; remaining: number }; totalPrompts: number; totalEnhancements: number; averageScore: number; monthly: { used: number } } | null>(null);
+  const [collectionsCount, setCollectionsCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/v1/usage").then((r) => r.json()),
+      fetch("/api/v1/collections?pageSize=1").then((r) => r.json()),
+    ]).then(([usageJson, collJson]) => {
+      setUsage(usageJson.data);
+      setCollectionsCount(collJson.total || 0);
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Hero Welcome */}
@@ -70,23 +85,23 @@ export default function DashboardPage() {
             <span className="text-xs font-medium text-muted-foreground">Generations</span>
             <Zap className="h-4 w-4 text-emerald-500" />
           </div>
-          <p className="text-xl sm:text-2xl font-bold mt-2">12</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">+4 this week</p>
+          <p className="text-xl sm:text-2xl font-bold mt-2">{loading ? <Loader2 className="h-5 w-5 animate-spin" /> : usage?.totalEnhancements || 0}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">{loading ? "" : `${usage?.monthly?.used || 0} this month`}</p>
         </div>
         <div className="p-4 rounded-xl border bg-card/60 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Saved Prompts</span>
             <Book className="h-4 w-4 text-blue-500" />
           </div>
-          <p className="text-xl sm:text-2xl font-bold mt-2">8</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">In 2 collections</p>
+          <p className="text-xl sm:text-2xl font-bold mt-2">{loading ? <Loader2 className="h-5 w-5 animate-spin" /> : usage?.totalPrompts || 0}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">{loading ? "" : `In ${collectionsCount} collections`}</p>
         </div>
         <div className="p-4 rounded-xl border bg-card/60 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Quality Score</span>
             <TrendingUp className="h-4 w-4 text-amber-500" />
           </div>
-          <p className="text-xl sm:text-2xl font-bold mt-2">94%</p>
+          <p className="text-xl sm:text-2xl font-bold mt-2">{loading ? <Loader2 className="h-5 w-5 animate-spin" /> : `${usage?.averageScore || 0}%`}</p>
           <p className="text-[11px] text-muted-foreground mt-0.5">Avg optimization</p>
         </div>
         <div className="p-4 rounded-xl border bg-card/60 backdrop-blur-sm">
@@ -94,7 +109,7 @@ export default function DashboardPage() {
             <span className="text-xs font-medium text-muted-foreground">Daily Limit</span>
             <Key className="h-4 w-4 text-purple-500" />
           </div>
-          <p className="text-xl sm:text-2xl font-bold mt-2">5/20</p>
+          <p className="text-xl sm:text-2xl font-bold mt-2">{loading ? <Loader2 className="h-5 w-5 animate-spin" /> : `${usage?.daily?.remaining || 0}/${usage?.daily?.limit || 20}`}</p>
           <p className="text-[11px] text-muted-foreground mt-0.5">Free tier quota</p>
         </div>
       </div>
