@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
   if (typeof isOfficial === "boolean") where.isOfficial = isOfficial;
   if (search) {
     where.OR = [
-      { title: { contains: search } },
-      { description: { contains: search } },
+      { title: { contains: search, mode: "insensitive" as const } },
+      { description: { contains: search, mode: "insensitive" as const } },
     ];
   }
 
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { name, description, prompt, category, models, isOfficial } = parseResult.data;
+  const { name, description, prompt, category, models } = parseResult.data;
   const variables = extractTemplateVariables(prompt);
 
   const template = await getDb().template.create({
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       prompt,
       variables,
       model: models?.[0] || null,
-      isOfficial: isOfficial || false,
+      isOfficial: false,
     },
   });
 

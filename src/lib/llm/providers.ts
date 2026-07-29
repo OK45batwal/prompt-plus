@@ -78,7 +78,13 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
         ...(responseFormatJson ? { response_format: { type: "json_object" } } : {}),
       };
 
-  const res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+  const res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body), signal: controller.signal }).catch((err: unknown) => {
+    clearTimeout(timeout);
+    throw new LLMError(err instanceof Error && err.name === "AbortError" ? "Request timed out after 30s" : `${provider} request failed`, provider);
+  });
+  clearTimeout(timeout);
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {

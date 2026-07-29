@@ -41,5 +41,7 @@ export async function POST(request: NextRequest) {
     data: { passwordHash },
   });
 
+  await getDb().session.deleteMany({ where: { userId: user.id } });
+
   return NextResponse.json({ message: "Password updated" });
 }
