@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { getDb } from "@/lib/db/prisma";
 import { signupSchema, logRejection } from "@/lib/validations/auth";
-import { generateOtp, hashOtp } from "@/lib/auth/otp";
+import { generateOtp, hashOtp, buildVerifyToken } from "@/lib/auth/otp";
 import { sendOtpEmail } from "@/lib/email";
 import { logger } from "@/lib/logger";
 
@@ -35,9 +35,8 @@ export async function POST(request: NextRequest) {
         email,
         passwordHash,
         provider: "email",
-        emailOtp: otpHash,
-        emailOtpExpiry: expiry,
-        emailOtpAttempts: 0,
+        resetToken: buildVerifyToken(otpHash),
+        resetTokenExpiry: expiry,
       },
     });
 

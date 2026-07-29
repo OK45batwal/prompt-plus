@@ -4,12 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma db push && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
     "postinstall": "prisma generate",
-"db:push": "prisma db push --skip-generate",
     "check-env": "node scripts/check-env.mjs"
   },
   "dependencies": {

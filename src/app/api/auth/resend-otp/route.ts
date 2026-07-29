@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getDb } from "@/lib/db/prisma";
-import { generateOtp, hashOtp } from "@/lib/auth/otp";
+import { generateOtp, hashOtp, buildVerifyToken } from "@/lib/auth/otp";
 import { sendOtpEmail } from "@/lib/email";
 import { logger } from "@/lib/logger";
 
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     await getDb().user.update({
       where: { id: user.id },
-      data: { emailOtp: otpHash, emailOtpExpiry: expiry, emailOtpAttempts: 0 },
+      data: { resetToken: buildVerifyToken(otpHash), resetTokenExpiry: expiry },
     });
 
     const result = await sendOtpEmail(email, otp, "Verify your Prompt+ email", "Here's your new verification code.");

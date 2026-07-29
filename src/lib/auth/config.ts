@@ -110,7 +110,7 @@ export function getProviders(): Provider[] {
           return null;
         }
 
-        if (user.emailOtp && !user.emailVerified) {
+        if (user.resetToken?.startsWith("ev:") && !user.emailVerified) {
           return null;
         }
 

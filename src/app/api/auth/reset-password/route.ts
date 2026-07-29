@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { getDb } from "@/lib/db/prisma";
-import { verifyOtp } from "@/lib/auth/otp";
+import { verifyOtp, stripPrefix, isResetToken } from "@/lib/auth/otp";
 
 const schema = z.object({
   email: z.string().email(),
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     const user = await getDb().user.findUnique({ where: { email } });
 
-    if (!user || !user.resetToken || !user.resetTokenExpiry) {
+    if (!user || !user.resetToken || !user.resetTokenExpiry || !isResetToken(user.resetToken)) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Code expired. Request a new one." }, { status: 400 });
     }
 
-    if (!verifyOtp(otp, user.resetToken)) {
+    if (!verifyOtp(otp, stripPrefix(user.resetToken))) {
       return NextResponse.json({ error: "Invalid code" }, { status: 400 });
     }
 

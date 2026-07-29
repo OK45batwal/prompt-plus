@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db/prisma";
 import { sendOtpEmail } from "@/lib/email";
 import { forgotPasswordSchema, logRejection } from "@/lib/validations/auth";
-import { generateOtp, hashOtp } from "@/lib/auth/otp";
+import { generateOtp, hashOtp, buildResetToken } from "@/lib/auth/otp";
 import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
       await getDb().user.update({
         where: { id: user.id },
-        data: { resetToken: otpHash, resetTokenExpiry: expiry },
+        data: { resetToken: buildResetToken(otpHash), resetTokenExpiry: expiry },
       });
 
       const result = await sendOtpEmail(email, otp, "Reset your Prompt+ password", "You requested a password reset.");
