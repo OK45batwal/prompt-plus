@@ -240,7 +240,7 @@
                   '<option value="google/gemini-1.5-pro::openrouter">Gemini 1.5 Pro</option>' +
                 '</optgroup>' +
                 '<optgroup label="NVIDIA">' +
-                  '<option value="nvidia/llama-3.3-70b-instruct::nvidia">Llama 3.3 70B (NV)</option>' +
+                  '<option value="meta/llama-3.3-70b-instruct::nvidia">Llama 3.3 70B (NV)</option>' +
                   '<option value="nvidia/llama-3.1-nemotron-70b-instruct::nvidia">Nemotron 70B</option>' +
                   '<option value="google/gemma-2-27b-it::nvidia">Gemma 2 27B (NV)</option>' +
                   '<option value="mistralai/mistral-7b-instruct-v0.3::nvidia">Mistral 7B (NV)</option>' +
