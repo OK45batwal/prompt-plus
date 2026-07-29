@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Clock, RotateCcw, ChevronDown, Check, Sparkles } from "lucide-react";
+import { Search, Clock, RotateCcw, ChevronDown, Check, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import Link from "next/link";
 
@@ -18,9 +18,29 @@ interface HistoryItem {
 
 export default function HistoryPage() {
   const [search, setSearch] = useState("");
-  const [history] = useState<HistoryItem[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetch("/api/v1/prompts?pageSize=50")
+      .then((r) => r.json())
+      .then((json) => {
+        const items = (json.data || []).map((p: { id: string; originalText: string; enhancedText: string | null; model: string; score: unknown; createdAt: string }) => ({
+          id: p.id,
+          originalText: p.originalText,
+          enhancedText: p.enhancedText || "",
+          model: p.model,
+          originalScore: 0,
+          enhancedScore: (p.score as { total?: number })?.total || 0,
+          timestamp: new Date(p.createdAt).toLocaleDateString(),
+        }));
+        setHistory(items);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   const filteredHistory = history.filter((item) =>
     item.originalText.toLowerCase().includes(search.toLowerCase()) ||
@@ -42,7 +62,7 @@ export default function HistoryPage() {
     <div className="space-y-4">
       <div>
         <h2 className="font-semibold text-sm">History</h2>
-        <p className="text-xs text-muted-foreground">{history.length} items</p>
+        <p className="text-xs text-muted-foreground">{loading ? "Loading..." : `${history.length} items`}</p>
       </div>
 
       <div className="max-w-4xl">
@@ -59,7 +79,11 @@ export default function HistoryPage() {
         </div>
 
         {/* History List */}
-        {history.length === 0 && !search ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : history.length === 0 && !search ? (
           <div className="text-center py-16">
             <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">No history yet</p>

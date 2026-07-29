@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth/config";
 import { getDb } from "@/lib/db/prisma";
 import { paginationSchema } from "@/lib/validations/common";
 import { createCollectionSchema } from "@/lib/validations/collections";
+import { withAuth } from "@/lib/api/with-auth";
+import { jsonResponse } from "@/lib/api/response-headers";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -52,39 +54,25 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ data, total, page, pageSize, hasMore: offset + pageSize < total });
 }
 
-export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const POST = withAuth(
+  async (req, context) => {
+    const { userId, requestId, body } = context;
+    const { name, description, color, icon } = body!;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON request body" }, { status: 400 });
-  }
+    const collection = await getDb().collection.create({
+      data: {
+        userId,
+        name,
+        description: description || null,
+        color: color || "#000",
+        icon: icon || "folder",
+      },
+    });
 
-  const parseResult = createCollectionSchema.safeParse(body);
-  if (!parseResult.success) {
-    return NextResponse.json(
-      { error: "Validation failed", details: parseResult.error.flatten() },
-      { status: 400 }
+    return jsonResponse(
+      { data: { id: collection.id, name: collection.name, description: collection.description, color: collection.color, icon: collection.icon } },
+      { status: 201, requestId }
     );
-  }
-
-  const { name, description, color, icon } = parseResult.data;
-  const userId = session.user.id;
-
-  const collection = await getDb().collection.create({
-    data: {
-      userId,
-      name,
-      description: description || null,
-      color: color || "#000",
-      icon: icon || "folder",
-    },
-  });
-
-  return NextResponse.json({ data: { id: collection.id, name: collection.name, description: collection.description, color: collection.color, icon: collection.icon } }, { status: 201 });
-}
+  },
+  { schema: createCollectionSchema }
+);

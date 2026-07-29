@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
+import { z } from "zod";
 import { auth } from "@/lib/auth/config";
 import { getDb } from "@/lib/db/prisma";
+import { withAuth } from "@/lib/api/with-auth";
+import { jsonResponse } from "@/lib/api/response-headers";
 
 export async function GET() {
   const session = await auth();
@@ -97,40 +100,33 @@ export async function GET() {
   });
 }
 
-export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+const trackActionSchema = z.object({
+  action: z.string().min(1).max(50),
+  promptId: z.string().optional(),
+  details: z.record(z.string(), z.unknown()).optional(),
+});
 
-  const userId = session.user.id;
+export const POST = withAuth(
+  async (req, context) => {
+    const { userId, requestId, body } = context;
+    const { action, promptId, details } = body!;
 
-  let body: { action?: string; promptId?: string; details?: Record<string, unknown> };
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
+    const event = await getDb().analytics.create({
+      data: {
+        userId,
+        promptId: promptId || null,
+        action,
+        metadata: details ? JSON.parse(JSON.stringify(details)) : undefined,
+      },
+    });
 
-  const { action, promptId, details } = body;
-  if (!action) {
-    return NextResponse.json({ error: "action is required" }, { status: 400 });
-  }
-
-  const analyticsEvent = await getDb().analytics.create({
-    data: {
-      userId,
-      promptId: promptId || null,
-      action: String(action),
-      metadata: details ? JSON.parse(JSON.stringify(details)) : undefined,
-    },
-  });
-
-  return NextResponse.json({
-    data: {
-      id: analyticsEvent.id,
-      action: analyticsEvent.action,
-      timestamp: analyticsEvent.createdAt.toISOString(),
-    },
-  }, { status: 201 });
-}
+    return jsonResponse({
+      data: {
+        id: event.id,
+        action: event.action,
+        timestamp: event.createdAt.toISOString(),
+      },
+    }, { status: 201, requestId });
+  },
+  { schema: trackActionSchema }
+);

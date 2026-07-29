@@ -60,3 +60,39 @@ export function resetRateLimit(userId: string) {
   userBuckets.delete(userId);
 }
 
+const ipBuckets = new Map<string, { count: number; resetAt: number }>();
+
+export function checkIpRateLimit(
+  key: string,
+  limit: number,
+  windowMs: number
+): { allowed: boolean; remaining: number; resetMs: number } {
+  const now = Date.now();
+  let bucket = ipBuckets.get(key);
+
+  if (!bucket || now >= bucket.resetAt) {
+    bucket = { count: 1, resetAt: now + windowMs };
+    ipBuckets.set(key, bucket);
+    return { allowed: true, remaining: limit - 1, resetMs: windowMs };
+  }
+
+  bucket.count++;
+  return {
+    allowed: bucket.count <= limit,
+    remaining: Math.max(0, limit - bucket.count),
+    resetMs: bucket.resetAt - now,
+  };
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, bucket] of ipBuckets) {
+    if (now >= bucket.resetAt) ipBuckets.delete(key);
+  }
+  if (userBuckets.size > 0) {
+    for (const [key, bucket] of userBuckets) {
+      if (now - bucket.lastRefill > DAY_MS * 2) userBuckets.delete(key);
+    }
+  }
+}, 60000).unref();
+

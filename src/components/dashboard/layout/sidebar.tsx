@@ -15,6 +15,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   FileText,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
@@ -26,6 +27,7 @@ interface SidebarProps {
   collapsed?: boolean;
   onToggle?: () => void;
   isMobile?: boolean;
+  isAdmin?: boolean;
   className?: string;
 }
 
@@ -50,7 +52,7 @@ const accountNav = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
-export function Sidebar({ collapsed = false, onToggle, isMobile = false, className }: SidebarProps) {
+export function Sidebar({ collapsed = false, onToggle, isMobile = false, isAdmin = false, className }: SidebarProps) {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
@@ -147,6 +149,24 @@ export function Sidebar({ collapsed = false, onToggle, isMobile = false, classNa
               {!collapsed && <span>{item.label}</span>}
             </Link>
           ))}
+
+          <Separator className="my-2" />
+
+          {/* Admin (only visible to admin) */}
+          {isAdmin && (
+            <Link
+              href="/dashboard/admin"
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                isActive("/dashboard/admin")
+                  ? "bg-accent text-accent-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+              )}
+            >
+              <Shield className="h-4 w-4 shrink-0" />
+              {!collapsed && <span>Admin</span>}
+            </Link>
+          )}
 
           <Separator className="my-2" />
 

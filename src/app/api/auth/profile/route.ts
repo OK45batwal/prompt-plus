@@ -1,29 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth/config";
+import { z } from "zod";
 import { getDb } from "@/lib/db/prisma";
+import { withAuth } from "@/lib/api/with-auth";
+import { jsonResponse } from "@/lib/api/response-headers";
 
-export async function PATCH(request: NextRequest) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+const updateProfileSchema = z.object({
+  name: z.string().trim().max(100).optional(),
+});
 
-    const body = await request.json();
+export const PATCH = withAuth(
+  async (req, context) => {
+    const { userId, requestId, body } = context;
     const data: Record<string, unknown> = {};
+    if (body?.name !== undefined) data.name = body.name;
 
-    if (typeof body.name === "string" && body.name.trim().length <= 100) {
-      data.name = body.name.trim();
-    }
+    const dbResult = await getDb().user.update({ where: { id: userId }, data, select: { name: true } });
 
-    if (Object.keys(data).length === 0) {
-      return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
-    }
-
-    await getDb().user.update({ where: { id: session.user.id }, data });
-
-    return NextResponse.json({ message: "Profile updated" });
-  } catch {
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
-  }
-}
+    return jsonResponse({ message: "Profile updated", data: dbResult }, { requestId });
+  },
+  { schema: updateProfileSchema }
+);

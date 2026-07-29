@@ -1,19 +1,20 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth/config";
 import { getDb } from "@/lib/db/prisma";
+import { withAuth } from "@/lib/api/with-auth";
+import { jsonResponse } from "@/lib/api/response-headers";
+import { checkRateLimit } from "@/lib/rate-limit";
 
-export async function DELETE() {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const DELETE = withAuth(
+  async (_req, { userId, requestId }) => {
+    const rl = checkRateLimit(userId, 1);
+    if (!rl.allowed) {
+      return jsonResponse({ error: "Too many attempts. Try again later." }, { status: 429, rateLimit: rl, requestId });
     }
 
-    await getDb().user.delete({ where: { id: session.user.id } });
+    await getDb().user.update({
+      where: { id: userId },
+      data: { deletedAt: new Date(), email: `deleted-${userId}@promptplus.placeholder`, name: null, passwordHash: null, resetToken: null, resetTokenExpiry: null },
+    });
 
-    return NextResponse.json({ message: "Account deleted" });
-  } catch (error) {
-    console.error("Delete account error:", error);
-    return NextResponse.json({ error: "Failed to delete account" }, { status: 500 });
+    return jsonResponse({ message: "Account deleted" }, { requestId });
   }
-}
+);

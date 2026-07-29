@@ -49,12 +49,15 @@ export const POST = withAuth(
     });
 
     let apiKey: string | undefined = userApiKey;
-    let resolvedProvider: "openai" | "anthropic" | "openrouter" =
-      targetProvider === "openrouter"
-        ? "openrouter"
-        : targetProvider === "anthropic"
-        ? "anthropic"
-        : "openai";
+    let resolvedProvider = targetProvider === "openrouter"
+      ? "openrouter" as const
+      : targetProvider === "anthropic"
+      ? "anthropic" as const
+      : targetProvider === "nvidia"
+      ? "nvidia" as const
+      : targetProvider === "google"
+      ? "google" as const
+      : "openai" as const;
 
     if (!apiKey && userApiKeyRow) {
       try {

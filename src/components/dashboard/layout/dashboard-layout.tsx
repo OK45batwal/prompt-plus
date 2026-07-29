@@ -6,7 +6,7 @@ import { Header } from "./header";
 import { MobileNav } from "./mobile-nav";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
-export function DashboardLayout({ children }: { children: React.ReactNode }) {
+export function DashboardLayout({ children, isAdmin }: { children: React.ReactNode; isAdmin?: boolean }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -16,12 +16,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        isAdmin={isAdmin}
       />
 
       {/* Mobile Sidebar Sheet */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="w-[260px] p-0 border-r">
-          <Sidebar isMobile={true} onToggle={() => setMobileOpen(false)} />
+          <Sidebar isMobile={true} onToggle={() => setMobileOpen(false)} isAdmin={isAdmin} />
         </SheetContent>
       </Sheet>
 

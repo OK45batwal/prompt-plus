@@ -12,5 +12,8 @@ export default async function DashboardLayoutWrapper({
     redirect("/login");
   }
 
-  return <DashboardLayout><div className="animate-fade-in">{children}</div></DashboardLayout>;
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const isAdmin = !!(adminEmail && session.user.email === adminEmail);
+
+  return <DashboardLayout isAdmin={isAdmin}><div className="animate-fade-in">{children}</div></DashboardLayout>;
 }

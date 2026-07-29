@@ -227,7 +227,7 @@ export default function PromptBuilderPage() {
         enhancedScoreRes.json().catch(() => ({})),
       ]);
 
-      setResult({
+      const resultData = {
         original: {
           text: prompt,
           score: scoreData.data?.total || 0,
@@ -241,7 +241,38 @@ export default function PromptBuilderPage() {
         },
         scoring: scoreData.data || { total: 0, dimensions: { clarity: 0, specificity: 0, structure: 0, context: 0, length: 0, actionability: 0 }, strengths: [], weaknesses: [], recommendations: [] },
         enhancedScoring: enhancedScoreData.data || { total: 0, dimensions: { clarity: 0, specificity: 0, structure: 0, context: 0, length: 0, actionability: 0 }, strengths: [], weaknesses: [], recommendations: [] },
-      });
+      };
+      setResult(resultData);
+
+      // Save prompt and results to the server
+      try {
+        const createRes = await fetch("/api/v1/prompts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            originalText: fullPrompt,
+            model: selectedModelData?.rawModel || selectedModel,
+            category: selectedCategory || null,
+            tone: selectedTone || null,
+            length: selectedLength || null,
+          }),
+        });
+        const createJson = await createRes.json();
+        const promptId = createJson.data?.id;
+        if (promptId) {
+          await fetch(`/api/v1/prompts/${promptId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              enhancedText: finalEnhancedText,
+              score: resultData.scoring,
+              analysis: resultData.original.analysis,
+            }),
+          });
+        }
+      } catch {
+        // saving is best-effort, don't block the UI
+      }
     } catch (error) {
       console.error("Enhancement failed:", error);
       setErrorNotice("Network error. Please try again.");

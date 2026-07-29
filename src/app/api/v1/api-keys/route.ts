@@ -6,7 +6,7 @@ import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 
 const createApiKeySchema = z.object({
-  provider: z.enum(["openai", "anthropic", "google", "openrouter"]),
+  provider: z.enum(["openai", "anthropic", "google", "openrouter", "nvidia"]),
   apiKey: z.string().min(5, "API key must be at least 5 characters"),
 });
 

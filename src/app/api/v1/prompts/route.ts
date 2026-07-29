@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth/config";
 import { getDb } from "@/lib/db/prisma";
 import { paginationSchema } from "@/lib/validations/common";
 import { createPromptSchema } from "@/lib/validations/prompts";
+import { withAuth } from "@/lib/api/with-auth";
+import { jsonResponse } from "@/lib/api/response-headers";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -54,40 +56,26 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ data: prompts, total, page, pageSize, hasMore: offset + pageSize < total });
 }
 
-export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const POST = withAuth(
+  async (req, context) => {
+    const { userId, requestId, body } = context;
+    const { originalText, model, category, tone, length } = body!;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON request body" }, { status: 400 });
-  }
+    const prompt = await getDb().prompt.create({
+      data: {
+        userId,
+        originalText,
+        model,
+        category: category || null,
+        tone: tone || null,
+        length: length || null,
+      },
+    });
 
-  const parseResult = createPromptSchema.safeParse(body);
-  if (!parseResult.success) {
-    return NextResponse.json(
-      { error: "Validation failed", details: parseResult.error.flatten() },
-      { status: 400 }
+    return jsonResponse(
+      { data: { id: prompt.id, originalText: prompt.originalText, model: prompt.model, category: prompt.category, tone: prompt.tone, length: prompt.length, createdAt: prompt.createdAt } },
+      { status: 201, requestId }
     );
-  }
-
-  const { originalText, model, category, tone, length } = parseResult.data;
-  const userId = session.user.id;
-
-  const prompt = await getDb().prompt.create({
-    data: {
-      userId,
-      originalText,
-      model,
-      category: category || null,
-      tone: tone || null,
-      length: length || null,
-    },
-  });
-
-  return NextResponse.json({ data: { id: prompt.id, originalText: prompt.originalText, model: prompt.model, category: prompt.category, tone: prompt.tone, length: prompt.length, createdAt: prompt.createdAt } }, { status: 201 });
-}
+  },
+  { schema: createPromptSchema }
+);

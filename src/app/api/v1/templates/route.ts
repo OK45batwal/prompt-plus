@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth/config";
 import { getDb } from "@/lib/db/prisma";
 import { getTemplatesQuerySchema, createTemplateSchema } from "@/lib/validations/templates";
+import { withAuth } from "@/lib/api/with-auth";
+import { jsonResponse } from "@/lib/api/response-headers";
 
 export const revalidate = 3600; // Cache template listings for 1 hour
 
@@ -62,54 +63,38 @@ export function extractTemplateVariables(prompt: string): Array<{ name: string; 
   return Array.from(varsMap.values());
 }
 
-export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const POST = withAuth(
+  async (req, context) => {
+    const { userId, requestId, body } = context;
+    const { name, description, prompt, category, models } = body!;
+    const variables = extractTemplateVariables(prompt);
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON request body" }, { status: 400 });
-  }
-
-  const parseResult = createTemplateSchema.safeParse(body);
-  if (!parseResult.success) {
-    return NextResponse.json(
-      { error: "Validation failed", details: parseResult.error.flatten() },
-      { status: 400 }
-    );
-  }
-
-  const { name, description, prompt, category, models } = parseResult.data;
-  const variables = extractTemplateVariables(prompt);
-
-  const template = await getDb().template.create({
-    data: {
-      title: name,
-      description: description || null,
-      category: category || "other",
-      prompt,
-      variables,
-      model: models?.[0] || null,
-      isOfficial: false,
-    },
-  });
-
-  return NextResponse.json(
-    {
+    const template = await getDb().template.create({
       data: {
-        id: template.id,
-        name: template.title,
-        description: template.description,
-        prompt: template.prompt,
+        title: name,
+        description: description || null,
+        category: category || "other",
+        prompt,
         variables,
-        category: template.category,
-        isOfficial: template.isOfficial,
+        model: models?.[0] || null,
+        isOfficial: false,
       },
-    },
-    { status: 201 }
-  );
-}
+    });
+
+    return jsonResponse(
+      {
+        data: {
+          id: template.id,
+          name: template.title,
+          description: template.description,
+          prompt: template.prompt,
+          variables,
+          category: template.category,
+          isOfficial: template.isOfficial,
+        },
+      },
+      { status: 201, requestId }
+    );
+  },
+  { schema: createTemplateSchema }
+);
