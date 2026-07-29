@@ -110,6 +110,10 @@ export function getProviders(): Provider[] {
           return null;
         }
 
+        if (!user.emailVerified) {
+          return null;
+        }
+
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) {
           return null;

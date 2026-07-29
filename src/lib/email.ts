@@ -19,45 +19,32 @@ function createTransporter() {
   return null;
 }
 
-export async function sendResetEmail(email: string, resetUrl: string): Promise<{ sent: boolean; error?: string }> {
+export async function sendOtpEmail(
+  email: string,
+  otp: string,
+  subject: string,
+  intro: string,
+): Promise<{ sent: boolean; error?: string }> {
+  const text = `${intro}\n\nYour verification code is: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you didn't request this, ignore this email.`;
   const transporter = createTransporter();
   if (transporter) {
     try {
-      await transporter.sendMail({
-        from,
-        to: email,
-        subject: "Reset your Prompt+ password",
-        text: `Reset your password by clicking this link: ${resetUrl}\n\nThis link expires in 1 hour.\n\nIf you didn't request a password reset, ignore this email.`,
-      });
+      await transporter.sendMail({ from, to: email, subject, text });
       return { sent: true };
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown SMTP error";
-      logger.error("SMTP send failed", { from, to: email, error: msg });
+      logger.error("SMTP OTP send failed", { to: email, error: msg });
       return { sent: false, error: msg };
     }
   }
-
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    return { sent: false, error: "No email provider configured — set SMTP_HOST or RESEND_API_KEY" };
-  }
-
+  if (!apiKey) return { sent: false, error: "No email provider configured" };
   const resend = new Resend(apiKey);
   try {
-    const { error } = await resend.emails.send({
-      from,
-      to: email,
-      subject: "Reset your Prompt+ password",
-      text: `Reset your password by clicking this link: ${resetUrl}\n\nThis link expires in 1 hour.\n\nIf you didn't request a password reset, ignore this email.`,
-    });
-    if (error) {
-      logger.error("Resend send failed", { from, to: email, error: error.message });
-      return { sent: false, error: error.message };
-    }
+    const { error } = await resend.emails.send({ from, to: email, subject, text });
+    if (error) return { sent: false, error: error.message };
     return { sent: true };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    logger.error("Resend send threw", { from, to: email, error: msg });
-    return { sent: false, error: msg };
+    return { sent: false, error: err instanceof Error ? err.message : "Unknown error" };
   }
 }

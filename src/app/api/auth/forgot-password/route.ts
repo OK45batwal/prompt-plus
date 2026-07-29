@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
 import { getDb } from "@/lib/db/prisma";
-import { sendResetEmail } from "@/lib/email";
+import { sendOtpEmail } from "@/lib/email";
 import { forgotPasswordSchema, logRejection } from "@/lib/validations/auth";
+import { generateOtp, hashOtp } from "@/lib/auth/otp";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,33 +16,25 @@ export async function POST(request: NextRequest) {
     }
 
     const { email } = parsed.data;
-
     const user = await getDb().user.findUnique({ where: { email } });
 
     if (user && user.passwordHash) {
-      const token = crypto.randomBytes(32).toString("hex");
-      const expiry = new Date(Date.now() + 3600000);
+      const otp = generateOtp();
+      const otpHash = hashOtp(otp);
+      const expiry = new Date(Date.now() + 600000);
 
       await getDb().user.update({
         where: { id: user.id },
-        data: { resetToken: token, resetTokenExpiry: expiry },
+        data: { resetToken: otpHash, resetTokenExpiry: expiry },
       });
 
-      const resetUrl = `${request.nextUrl.origin}/reset-password/${token}`;
-      const result = await sendResetEmail(email, resetUrl);
-
+      const result = await sendOtpEmail(email, otp, "Reset your Prompt+ password", "You requested a password reset.");
       if (!result.sent) {
-        return NextResponse.json({
-          fallback: true,
-          resetUrl: token,
-          message: "Email service unavailable. Use the direct link below to reset your password.",
-        });
+        logger.error("Failed to send reset OTP", { email, error: result.error });
       }
     }
 
-    return NextResponse.json({
-      message: "If an account with that email exists, a reset link has been sent.",
-    });
+    return NextResponse.json({ message: "If an account with that email exists, a code has been sent." });
   } catch {
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }

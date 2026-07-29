@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { getDb } from "@/lib/db/prisma";
 import { signupSchema, logRejection } from "@/lib/validations/auth";
+import { generateOtp, hashOtp } from "@/lib/auth/otp";
+import { sendOtpEmail } from "@/lib/email";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,45 +13,42 @@ export async function POST(request: NextRequest) {
 
     if (!parsed.success) {
       logRejection("signup", parsed.error);
-      return NextResponse.json(
-        { error: "Invalid input" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
     const { name, email, password } = parsed.data;
 
-    const existingUser = await getDb().user.findUnique({
-      where: { email },
-    });
+    const existingUser = await getDb().user.findUnique({ where: { email } });
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: "Invalid input" },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: "Invalid input" }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
+    const otp = generateOtp();
+    const otpHash = hashOtp(otp);
+    const expiry = new Date(Date.now() + 600000);
 
-    const user = await getDb().user.create({
+    await getDb().user.create({
       data: {
         name: name || null,
         email,
         passwordHash,
         provider: "email",
+        emailOtp: otpHash,
+        emailOtpExpiry: expiry,
+        emailOtpAttempts: 0,
       },
     });
 
+    const result = await sendOtpEmail(email, otp, "Verify your Prompt+ email", "Welcome to Prompt+!");
+
+    if (!result.sent) {
+      logger.error("Failed to send verification OTP", { email, error: result.error });
+    }
+
     return NextResponse.json(
-      {
-        data: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          createdAt: user.createdAt,
-        },
-      },
+      { needsVerification: true, email },
       { status: 201 }
     );
   } catch (error) {
