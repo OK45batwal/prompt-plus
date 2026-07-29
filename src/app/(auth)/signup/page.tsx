@@ -71,13 +71,7 @@ export default function SignupPage() {
       }
 
       setVerified(true);
-      const result = await signIn("credentials", { email, password, redirect: false });
-      if (result?.error) {
-        router.push("/login?message=Email verified. Please log in.");
-      } else {
-        router.push("/dashboard");
-        router.refresh();
-      }
+      router.push("/login?message=Email verified. Please log in.");
     } catch (err) {
       setOtpError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
