@@ -1,10 +1,13 @@
 <div align="center">
   <a href="https://prompt-plus-7md4ow7pu-unkown3.vercel.app">
-    <img src="./public/logo.png" alt="Prompt+ Logo" width="140">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="./public/logo.png">
+      <img src="./public/logo.png" alt="Prompt+" width="160">
+    </picture>
   </a>
   <br>
   <a href="https://prompt-plus-7md4ow7pu-unkown3.vercel.app">
-    <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=800&size=34&duration=3000&pause=800&color=3B82F6&center=true&vCenter=true&width=450&lines=Prompt%2B+Studio+v2.0;AI+Prompt+Engineering+Platform;ChatGPT+%C2%B7+Claude+%C2%B7+Gemini+%C2%B7+DeepSeek;8-Step+Compiler+Pipeline" alt="Typing SVG">
+    <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=800&size=34&duration=3000&pause=800&color=3B82F6&center=true&vCenter=true&width=500&lines=Prompt%2B+Studio+v2.0;AI+Prompt+Engineering+Platform;ChatGPT+%C2%B7+Claude+%C2%B7+Gemini+%C2%B7+DeepSeek;8-Step+Compiler+Pipeline;6-Dimension+Quality+Audit" alt="Typing SVG">
   </a>
   <br>
   <p>
@@ -13,23 +16,28 @@
 
   <p align="center">
     <a href="https://prompt-plus-7md4ow7pu-unkown3.vercel.app">
-      <img src="https://img.shields.io/badge/Production-Live%20Vercel-3b82f6?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel Deployment">
+      <img src="https://img.shields.io/badge/Production-Live%20Vercel-3b82f6?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel">
     </a>
     <a href="#extension">
       <img src="https://img.shields.io/badge/Extension-v2.0.0-8b5cf6?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome Extension">
     </a>
     <a href="LICENSE">
-      <img src="https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge" alt="MIT License">
+      <img src="https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge" alt="MIT">
     </a>
     <a href="https://github.com/OK45batwal/Prompt-plus">
-      <img src="https://img.shields.io/github/stars/OK45batwal/Prompt-plus?style=for-the-badge&logo=github&color=f59e0b" alt="GitHub Stars">
+      <img src="https://img.shields.io/github/stars/OK45batwal/Prompt-plus?style=for-the-badge&logo=github&color=f59e0b" alt="Stars">
+    </a>
+    <a href="https://github.com/OK45batwal/Prompt-plus/actions">
+      <img src="https://img.shields.io/github/actions/workflow/status/OK45batwal/Prompt-plus/ci.yml?style=for-the-badge&logo=githubactions&label=CI&color=22c55e" alt="CI">
     </a>
   </p>
 
   <p align="center">
     <a href="#features">Features</a> <kbd>•</kbd>
+    <a href="#screenshots">Screenshots</a> <kbd>•</kbd>
     <a href="#pipeline">8-Step Pipeline</a> <kbd>•</kbd>
-    <a href="#extension">Extension & Chatbot Bar</a> <kbd>•</kbd>
+    <a href="#extension">Extension</a> <kbd>•</kbd>
+    <a href="#api">API</a> <kbd>•</kbd>
     <a href="#tech-stack">Tech Stack</a> <kbd>•</kbd>
     <a href="#quickstart">Quickstart</a> <kbd>•</kbd>
     <a href="#deployment">Deployment</a>
@@ -94,6 +102,57 @@
 
 ---
 
+## 📸 Screenshots
+
+<div align="center">
+  <table>
+    <tr>
+      <td width="50%"><img src="./public/screenshots/dashboard-light.png" alt="Dashboard Light" width="100%"></td>
+      <td width="50%"><img src="./public/screenshots/dashboard-dark.png" alt="Dashboard Dark" width="100%"></td>
+    </tr>
+    <tr>
+      <td colspan="2" align="center"><em>Dashboard — Light & Dark Mode</em></td>
+    </tr>
+  </table>
+
+  <br>
+
+  <table>
+    <tr>
+      <td width="33%"><img src="./public/screenshots/new-prompt.png" alt="New Prompt" width="100%"></td>
+      <td width="33%"><img src="./public/screenshots/library.png" alt="Prompt Library" width="100%"></td>
+      <td width="33%"><img src="./public/screenshots/collections.png" alt="Collections" width="100%"></td>
+    </tr>
+    <tr>
+      <td align="center"><em>Prompt Enhancement</em></td>
+      <td align="center"><em>Prompt Library</em></td>
+      <td align="center"><em>Collections</em></td>
+    </tr>
+  </table>
+
+  <br>
+
+  <table>
+    <tr>
+      <td width="50%"><img src="./public/screenshots/dashboard-mobile.png" alt="Mobile View" width="60%"></td>
+      <td width="50%" valign="middle" align="left">
+        <h3>📱 Responsive Design</h3>
+        <p>Full-featured mobile experience with:</p>
+        <ul>
+          <li>Slide-out navigation drawer</li>
+          <li>Touch-optimized prompt editor</li>
+          <li>Responsive collection grids</li>
+          <li>Mobile-friendly quality scorecards</li>
+        </ul>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<br>
+
+---
+
 ## 🔄 8-Step Prompt Compilation Pipeline
 
 Prompt+ does not execute simple search-and-replace. Every prompt passes through an 8-stage architectural optimization workflow:
@@ -120,6 +179,47 @@ flowchart LR
 | **06** | **Architectural Rewrite** | Restructures prompt into clean XML/Markdown sections (*Role*, *Context*, *Instructions*, *Constraints*, *Variables*). |
 | **07** | **6-Metric Quality Audit** | Calculates 100-point score across Clarity, Specificity, Structure, Context, Constraints, and Actionability. |
 | **08** | **Delivery & Sync** | Instantly inserts into target chatbot textfield or saves snapshot to user Library and Collections. |
+
+<br>
+
+---
+
+## ✨ Features
+
+### Core Platform
+
+| Feature | Description |
+| :--- | :--- |
+| **AI-Powered Enhancement** | Transforms vague ideas into structured, role-assigned, constraint-rich prompts using LLMs. |
+| **Side-by-Side Model Lab** | Compare outputs across OpenAI (GPT-4o), Claude, and Gemini simultaneously with version history. |
+| **6-Dimension Quality Scoring** | Real-time 100-point evaluation: Clarity, Specificity, Structure, Context, Constraints, Actionability. |
+| **Prompt Library** | Save, search, filter, and organize every prompt you've enhanced with full-text search. |
+| **Collections** | Group prompts into color-coded collections with custom icons and descriptions. |
+| **Version History** | Every enhancement generates a versioned snapshot; full diff history tracked per prompt. |
+| **Templates** | Pre-built prompt templates by category (Code, Content, Analysis, Images) with variable substitution. |
+| **Sharing** | Generate share links with unique tokens for public prompt access. |
+| **BYO API Key** | Bring your own OpenAI, Anthropic, or OpenRouter key — stored encrypted with AES-256-GCM. |
+| **Usage Tracking** | Token counts, latency, cost estimates, and success/failure rates per request. |
+| **Rate Limiting** | Server-enforced daily caps per user; bypassed when using personal API keys. |
+
+### Chrome Extension
+
+| Feature | Description |
+| :--- | :--- |
+| **Chatbot Counter Bar** | Live status pills and prompt counters for ChatGPT, Claude, Gemini, DeepSeek. |
+| **Floating Action Button** | 36px purple gradient sparkle trigger auto-positioned next to prompt textareas. |
+| **Glassmorphic Side Panel** | 420px overlay with 6-metric quality score rings, role suggestions, one-click replace. |
+| **Keyboard Shortcut** | `⌘+Shift+K` to open the enhancement panel from any page. |
+
+### Authentication & Security
+
+| Feature | Description |
+| :--- | :--- |
+| **Email + OAuth** | Register with email/password (bcrypt, cost factor 12) or OAuth providers (Google, GitHub). |
+| **Password Reset** | Token-based reset flow with expiration; emails sent via Resend. |
+| **API Key Vault** | AES-256-GCM encrypted storage for user-provided API keys. |
+| **CSRF Protection** | Header-based CSRF validation on all mutation endpoints. |
+| **Rate Limiting** | Token bucket algorithm per user per route. |
 
 <br>
 
@@ -158,6 +258,56 @@ The **Prompt+ Browser Extension (Manifest V3)** embeds directly into **ChatGPT**
 
 ---
 
+## 🛠️ API Reference
+
+All API endpoints are prefixed with `/api`. Authenticated endpoints require a valid NextAuth session.
+
+### Auth Endpoints
+
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :---: |
+| `POST` | `/api/auth/signup` | Register a new user | ✗ |
+| `POST` | `/api/auth/providers` | List available auth providers | ✗ |
+| `POST` | `/api/auth/change-password` | Change current password | ✓ |
+| `POST` | `/api/auth/forgot-password` | Request password reset email | ✗ |
+| `POST` | `/api/auth/reset-password` | Reset password with token | ✗ |
+| `POST` | `/api/auth/delete-account` | Delete user account | ✓ |
+| `GET` | `/api/auth/[...nextauth]` | NextAuth session handler | ✗ |
+
+### V1 Endpoints (Authenticated)
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/prompts` | List prompts (pagination, search, filter) |
+| `POST` | `/api/v1/prompts` | Create a new prompt |
+| `GET` | `/api/v1/prompts/[id]` | Get single prompt |
+| `PUT` | `/api/v1/prompts/[id]` | Update prompt |
+| `DELETE` | `/api/v1/prompts/[id]` | Delete prompt |
+| `GET` | `/api/v1/prompts/[id]/versions` | List version history |
+| `POST` | `/api/v1/prompts/enhance-ai` | **Core** — Enhance prompt via LLM |
+| `POST` | `/api/v1/prompts/analyze` | Analyze prompt intent & complexity |
+| `POST` | `/api/v1/prompts/score` | Score prompt quality |
+| `POST` | `/api/v1/prompts/share` | Generate share token |
+| `GET/POST` | `/api/v1/collections` | List / create collections |
+| `GET/PUT/DELETE` | `/api/v1/collections/[id]` | Single collection CRUD |
+| `GET/POST` | `/api/v1/templates` | List / create templates |
+| `GET/PUT/DELETE` | `/api/v1/templates/[id]` | Single template CRUD |
+| `POST` | `/api/v1/templates/[id]/use` | Increment template usage |
+| `GET` | `/api/v1/api-keys` | List user API keys |
+| `GET` | `/api/v1/usage` | Usage statistics |
+| `POST` | `/api/v1/extension/enhance` | Extension enhancement endpoint |
+
+### Health
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/health` | Server health check |
+| `GET` | `/api/v1/health` | V1 health check |
+
+<br>
+
+---
+
 ## 🛠️ Tech Stack & Architecture
 
 <div align="center">
@@ -167,24 +317,40 @@ The **Prompt+ Browser Extension (Manifest V3)** embeds directly into **ChatGPT**
       <td>Next.js 16 (App Router, Turbopack), React 19, TypeScript 5, Tailwind CSS v4, Lucide Icons</td>
     </tr>
     <tr>
+      <td><b>UI Primitives</b></td>
+      <td>Base UI (Radix), class-variance-authority, tailwind-merge, clsx</td>
+    </tr>
+    <tr>
+      <td><b>Theming</b></td>
+      <td>next-themes (dark / light / system)</td>
+    </tr>
+    <tr>
       <td><b>Auth & Middleware</b></td>
-      <td>NextAuth.js v5 (Auth.js), JWT Session Strategy, Server Actions, Edge Proxy Routing</td>
+      <td>NextAuth.js v5 (Auth.js), bcrypt (cost 12), JWT Session Strategy</td>
     </tr>
     <tr>
       <td><b>Database & ORM</b></td>
-      <td>Prisma ORM v7, PostgreSQL (Neon Serverless HTTP Adapter) & SQLite fallback</td>
+      <td>Prisma ORM v7, PostgreSQL (Neon Serverless HTTP) & SQLite fallback</td>
+    </tr>
+    <tr>
+      <td><b>Validation</b></td>
+      <td>Zod v4 — server-side schema validation on all auth & API routes</td>
     </tr>
     <tr>
       <td><b>AI Model Providers</b></td>
-      <td>OpenRouter API (7 free models), NVIDIA API, OpenAI API, Anthropic Claude API</td>
+      <td>OpenRouter (7 free models), NVIDIA API, OpenAI API, Anthropic Claude API</td>
     </tr>
     <tr>
       <td><b>Security & Vault</b></td>
       <td>AES-256-GCM API Key Encryption, Rate Limiting (Token Bucket), CSRF Header Validation</td>
     </tr>
     <tr>
-      <td><b>Testing & Deployment</b></td>
-      <td>Vitest, Vercel Serverless Platform, GitHub Actions CI/CD Pipeline</td>
+      <td><b>Email</b></td>
+      <td>Resend + Nodemailer (password resets, notifications)</td>
+    </tr>
+    <tr>
+      <td><b>Testing & CI</b></td>
+      <td>Vitest v4, Vercel Serverless Platform, GitHub Actions CI/CD Pipeline</td>
     </tr>
   </table>
 </div>
@@ -193,11 +359,45 @@ The **Prompt+ Browser Extension (Manifest V3)** embeds directly into **ChatGPT**
 
 ---
 
+## 📦 Data Model
+
+```mermaid
+erDiagram
+    User ||--o{ Prompt : creates
+    User ||--o{ Collection : owns
+    User ||--o{ ApiKey : stores
+    User ||--o{ UsageLog : generates
+    User ||--o{ Analytics : tracks
+    Prompt ||--o{ Version : versions
+    Prompt ||--o{ Analysis : analyzed
+    Prompt }o--|| Collection : belongs-to
+```
+
+| Model | Description |
+| :--- | :--- |
+| **User** | Email/password (bcrypt), OAuth accounts, avatar, soft-delete, reset tokens |
+| **Prompt** | Original & enhanced text, model used, category, tags, quality score, share token |
+| **Version** | Text snapshots with score diffs per enhancement |
+| **Analysis** | Intent classification, complexity, entities, missing context, suggestions |
+| **Collection** | Named folders with color/icon for organizing prompts |
+| **Template** | Pre-built prompt templates with variable slots |
+| **ApiKey** | AES-256-GCM encrypted user API keys per provider |
+| **UsageLog** | Action audit trail: provider, model, tokens, latency |
+| **Analytics** | Event tracking with JSON metadata |
+
+<br>
+
+---
+
 ## 🚀 Quickstart & Local Setup
 
 ### Prerequisites
-* **Node.js**: `v20.x` or higher
-* **npm**: `v10.x` or higher
+
+| Requirement | Version |
+| :--- | :--- |
+| **Node.js** | `v20.x` or higher |
+| **npm** | `v10.x` or higher |
+| **Git** | `v2.x` or higher |
 
 ```bash
 # 1. Clone repository
@@ -230,14 +430,15 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🧪 Testing & Verification
 
-Run the full automated Vitest unit and integration test suite:
-
 ```bash
-# Run Vitest test suite (37/37 tests passing)
+# Run full Vitest suite
 npm test
 
-# Run Next.js production build check
+# Run production build check
 npm run build
+
+# Run linter
+npm run lint
 ```
 
 <br>
@@ -246,7 +447,7 @@ npm run build
 
 ## 🔑 Environment Variables Reference
 
-| Environment Variable | Required | Description | Example |
+| Variable | Required | Description | Example |
 | :--- | :---: | :--- | :--- |
 | `AUTH_SECRET` | ✅ | NextAuth v5 session JWT secret | `32+_random_character_string` |
 | `NEXTAUTH_SECRET` | ✅ | NextAuth v5 fallback JWT secret | `32+_random_character_string` |
@@ -265,7 +466,13 @@ npm run build
 Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
 
 <div align="center">
-  <sub>Designed & Developed with Next.js 16, TypeScript, and ❤️</sub>
+  <sub>Built with Next.js 16, TypeScript, Tailwind CSS v4, and ❤️</sub>
   <br>
-  <a href="https://prompt-plus-7md4ow7pu-unkown3.vercel.app"><strong>Visit Live Website →</strong></a>
+  <sub>Designed & developed by <a href="https://github.com/OK45batwal">OK45batwal</a></sub>
+  <br><br>
+  <a href="https://prompt-plus-7md4ow7pu-unkown3.vercel.app"><strong>🌐 Visit Live Website →</strong></a>
+  <br>
+  <a href="https://github.com/OK45batwal/Prompt-plus">
+    <img src="https://img.shields.io/github/stars/OK45batwal/Prompt-plus?style=social" alt="GitHub">
+  </a>
 </div>
