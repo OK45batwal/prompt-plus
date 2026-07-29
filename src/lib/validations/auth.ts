@@ -12,8 +12,6 @@ export const emailSchema = z
   .email()
   .transform((e) => e.toLowerCase().trim());
 
-export type PaginationQuery = z.infer<typeof paginationSchema>;
-
 export const signupSchema = z.object({
   name: z.string().trim().max(100).transform(stripHtml).optional().default(""),
   email: z.string().min(1).max(255).email().transform((e) => e.toLowerCase().trim()),
@@ -36,13 +34,13 @@ export const resetPasswordSchema = z.object({
 });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email("Email is required"),
+  email: z.string().email("Invalid email address").toLowerCase().trim(),
 });
 
 export function logRejection(route: string, error: z.ZodError, extra?: Record<string, unknown>) {
   logger.warn(`Auth validation rejected`, {
     route,
-    issues: error.issues.map((i) => ({ path: i.path.join("."), code: i.code })),
+    issues: error.issues.map((i) => ({ path: i.path.join("."), code: i.code, message: i.message })),
     ...extra,
   });
 }

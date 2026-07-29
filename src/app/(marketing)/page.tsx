@@ -5,21 +5,16 @@ import Link from "next/link";
 import {
   Sparkles,
   ArrowRight,
-  Zap,
   CheckCircle2,
-  Shield,
   BarChart3,
   Layers,
   Terminal,
   Cpu,
-  Star,
   Copy,
   Check,
   Wand2,
   ArrowUpRight,
   Sliders,
-  Code2,
-  FileText,
   Bot
 } from "lucide-react";
 
@@ -90,7 +85,6 @@ const modelBadges = [
 
 export default function LandingPage() {
   const [selectedDemoIndex, setSelectedDemoIndex] = useState(0);
-  const [customInput, setCustomInput] = useState("");
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -217,17 +211,17 @@ export default function LandingPage() {
             <div className="flex flex-col justify-between p-4 rounded-xl bg-muted/40 border border-border/60">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-amber-500" />
-                    Original Input
-                  </span>
-                  <span className="text-xs text-amber-600 dark:text-amber-400 font-medium bg-amber-500/10 px-2 py-0.5 rounded">
-                    Score: 45/100 (Basic)
-                  </span>
-                </div>
-                <p className="text-sm font-mono text-foreground/90 bg-background/60 p-3.5 rounded-lg border leading-relaxed">
-                  "{activeDemo.original}"
-                </p>
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-amber-500" />
+            Original Input
+          </span>
+          <span className="text-xs text-amber-600 dark:text-amber-400 font-medium bg-amber-500/10 px-2 py-0.5 rounded">
+            Score: 45/100 (Basic)
+          </span>
+        </div>
+        <p className="text-sm font-mono text-foreground/90 bg-background/60 p-3.5 rounded-lg border leading-relaxed">
+          &quot;{activeDemo.original}&quot;
+        </p>
               </div>
               <div className="mt-4 pt-3 border-t border-border/50 text-xs text-muted-foreground flex items-center justify-between">
                 <span>Vague instructions</span>

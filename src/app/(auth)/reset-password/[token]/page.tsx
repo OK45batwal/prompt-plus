@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Lock, Eye, EyeOff, Loader2, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/ui/logo";
 
 export default function ResetPasswordPage() {
   const { token } = useParams<{ token: string }>();
-  const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);

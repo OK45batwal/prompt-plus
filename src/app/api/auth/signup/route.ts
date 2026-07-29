@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     const existingUser = await getDb().user.findUnique({
       where: { email },
-    };
+    });
 
     if (existingUser) {
       return NextResponse.json(
