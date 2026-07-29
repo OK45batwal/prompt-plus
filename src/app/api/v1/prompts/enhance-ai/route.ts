@@ -68,16 +68,21 @@ export const POST = withAuth(
     }
 
     if (!apiKey) {
-      if (resolvedProvider === "openrouter" && process.env.OPENROUTER_API_KEY) {
+      if (resolvedProvider === "nvidia" && process.env.NVIDIA_API_KEY) {
+        apiKey = process.env.NVIDIA_API_KEY;
+      } else if (resolvedProvider === "openrouter" && process.env.OPENROUTER_API_KEY) {
         apiKey = process.env.OPENROUTER_API_KEY;
       } else if (resolvedProvider === "anthropic" && process.env.ANTHROPIC_API_KEY) {
         apiKey = process.env.ANTHROPIC_API_KEY;
-      } else if (process.env.OPENAI_API_KEY) {
-        apiKey = process.env.OPENAI_API_KEY;
-        resolvedProvider = "openai";
+      } else if (process.env.NVIDIA_API_KEY) {
+        apiKey = process.env.NVIDIA_API_KEY;
+        resolvedProvider = "nvidia";
       } else if (process.env.OPENROUTER_API_KEY) {
         apiKey = process.env.OPENROUTER_API_KEY;
         resolvedProvider = "openrouter";
+      } else if (process.env.OPENAI_API_KEY) {
+        apiKey = process.env.OPENAI_API_KEY;
+        resolvedProvider = "openai";
       } else if (process.env.ANTHROPIC_API_KEY) {
         apiKey = process.env.ANTHROPIC_API_KEY;
         resolvedProvider = "anthropic";

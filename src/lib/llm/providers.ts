@@ -25,7 +25,7 @@ export class LLMError extends Error {
 }
 
 export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> {
-  const {
+  let {
     provider,
     apiKey,
     systemPrompt = "You are a helpful AI assistant.",
@@ -35,6 +35,29 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
     responseFormatJson = false,
   } = options;
 
+  // Auto-detect key prefix mismatch to prevent 401 errors
+  if (provider === "nvidia" && !apiKey.startsWith("nvapi-")) {
+    if (apiKey.startsWith("sk-or-")) {
+      provider = "openrouter";
+      options.model = options.model?.includes("llama") ? "meta-llama/llama-3.3-70b-instruct:free" : "meta-llama/llama-3.3-70b-instruct:free";
+    } else if (apiKey.startsWith("sk-ant-")) {
+      provider = "anthropic";
+      options.model = "claude-3-5-sonnet-20241022";
+    } else if (apiKey.startsWith("sk-")) {
+      provider = "openai";
+      options.model = "gpt-4o-mini";
+    }
+  } else if (provider === "openrouter" && apiKey.startsWith("nvapi-")) {
+    provider = "nvidia";
+    options.model = "nvidia/llama-3.3-70b-instruct";
+  } else if (provider === "openai" && apiKey.startsWith("nvapi-")) {
+    provider = "nvidia";
+    options.model = "nvidia/llama-3.3-70b-instruct";
+  } else if (provider === "openai" && apiKey.startsWith("sk-or-")) {
+    provider = "openrouter";
+    options.model = "meta-llama/llama-3.3-70b-instruct:free";
+  }
+
   const isOpenRouter = provider === "openrouter";
   const isAnthropic = provider === "anthropic";
   const isNvidia = provider === "nvidia";
@@ -42,9 +65,11 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
   const model =
     options.model ||
     (isOpenRouter
-      ? "openai/gpt-4o-mini"
+      ? "meta-llama/llama-3.3-70b-instruct:free"
       : isAnthropic
       ? "claude-3-5-sonnet-20241022"
+      : isNvidia
+      ? "nvidia/llama-3.3-70b-instruct"
       : "gpt-4o-mini");
 
   const url = isOpenRouter
@@ -88,6 +113,16 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
+    if (res.status === 401) {
+      const hint = isNvidia
+        ? "Invalid NVIDIA API Key (expected nvapi-...). Please check your key in API Vault or choose an OpenRouter free model."
+        : isOpenRouter
+        ? "Invalid OpenRouter API Key (expected sk-or-...). Check your key in API Vault."
+        : isAnthropic
+        ? "Invalid Anthropic API Key (expected sk-ant-...). Check your key in API Vault."
+        : "Invalid OpenAI API Key (expected sk-...). Check your key in API Vault.";
+      throw new LLMError(hint, provider, 401);
+    }
     const errMsg = data.error?.message || `${provider} API error (${res.status})`;
     throw new LLMError(errMsg, provider, res.status);
   }
