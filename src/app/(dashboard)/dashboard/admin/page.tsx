@@ -17,6 +17,17 @@ interface AdminStats {
   recentLogs: { id: string; userId: string; action: string; provider: string | null; model: string | null; success: boolean; tokensIn: number | null; tokensOut: number | null; createdAt: string }[];
 }
 
+const StatCard = ({ label, value, sub, icon: Icon, color }: { label: string; value: string | number; sub?: string; icon: typeof Users; color: string }) => (
+  <div className="p-4 rounded-xl border bg-card">
+    <div className="flex items-center justify-between mb-2">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <Icon className={`h-4 w-4 ${color}`} />
+    </div>
+    <p className="text-2xl font-bold">{value}</p>
+    {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
+  </div>
+);
+
 export default function AdminPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,17 +63,6 @@ export default function AdminPage() {
   }
 
   if (!stats) return null;
-
-  const StatCard = ({ label, value, sub, icon: Icon, color }: { label: string; value: string | number; sub?: string; icon: typeof Users; color: string }) => (
-    <div className="p-4 rounded-xl border bg-card">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
-        <Icon className={`h-4 w-4 ${color}`} />
-      </div>
-      <p className="text-2xl font-bold">{value}</p>
-      {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
-    </div>
-  );
 
   return (
     <div className="space-y-6 max-w-6xl">

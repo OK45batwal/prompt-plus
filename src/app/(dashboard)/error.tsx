@@ -1,5 +1,4 @@
 "use client";
-import { Logo } from "@/components/ui/logo";
 
 export default function DashboardError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (

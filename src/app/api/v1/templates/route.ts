@@ -65,7 +65,7 @@ export function extractTemplateVariables(prompt: string): Array<{ name: string; 
 
 export const POST = withAuth(
   async (req, context) => {
-    const { userId, requestId, body } = context;
+    const { requestId, body } = context;
     const { name, description, prompt, category, models } = body!;
     const variables = extractTemplateVariables(prompt);
 
