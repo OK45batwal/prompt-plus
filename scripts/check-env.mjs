@@ -44,15 +44,26 @@ if (!dbUrl) {
   console.log(`✅ DATABASE_URL is configured (${dbUrl.startsWith("file:") ? "SQLite" : "PostgreSQL/Neon"}).`);
 }
 
+const smtpHost = process.env.SMTP_HOST;
+const smtpUser = process.env.SMTP_USER;
+const smtpPass = process.env.SMTP_PASS;
+if (smtpHost && smtpUser && smtpPass) {
+  console.log("✅ SMTP email is configured.");
+} else if (smtpHost || smtpUser || smtpPass) {
+  warnings.push("⚠️ SMTP is partially configured — set SMTP_HOST, SMTP_USER, and SMTP_PASS to enable.");
+}
+
 const resendKey = process.env.RESEND_API_KEY;
-if (resendKey) {
+if (resendKey && !smtpHost) {
   const smtpFrom = process.env.SMTP_FROM;
   if (!smtpFrom) {
     warnings.push("⚠️ RESEND_API_KEY is set but SMTP_FROM is missing. Emails will use the test domain @resend.dev — real deliveries will fail.");
   } else if (smtpFrom.includes("@resend.dev")) {
     warnings.push("⚠️ SMTP_FROM uses @resend.dev (test domain). Set it to a domain verified in your Resend dashboard for production email delivery.");
   }
-  console.log("✅ Resend email is configured.");
+  console.log("✅ Resend email is configured (fallback).");
+} else if (!smtpHost && !resendKey) {
+  warnings.push("⚠️ No email provider configured. Password reset emails will not work. Set SMTP_HOST+SMTP_USER+SMTP_PASS or RESEND_API_KEY.");
 }
 
 if (errors.length > 0) {
