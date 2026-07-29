@@ -2,15 +2,20 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Prompt+ Extension</title>
+  <title>Prompt+ Architect AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      width: 380px;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      width: 390px;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #f8fafc;
-      color: #1e293b;
+      color: #0f172a;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
     
     /* Header */
@@ -19,161 +24,228 @@
       padding: 14px 18px;
       background: #ffffff;
       border-bottom: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
     .header-left { display: flex; align-items: center; gap: 10px; }
     .header-icon {
-      width: 32px; height: 32px;
-      border-radius: 50%;
+      width: 34px; height: 34px;
+      border-radius: 10px;
       background: linear-gradient(135deg, #2563eb, #3b82f6);
       display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
-      box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+      font-size: 16px; color: #ffffff;
+      box-shadow: 0 3px 10px rgba(37,99,235,0.3);
+      flex-shrink: 0;
     }
     .header-info { display: flex; flex-direction: column; gap: 1px; }
     .header-title { font-size: 14px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; }
     .header-enc {
-      font-size: 9px; font-weight: 700; color: #10b981;
-      text-transform: uppercase; letter-spacing: 0.05em;
-      display: flex; align-items: center; gap: 3px;
+      font-size: 10px; font-weight: 700; color: #10b981;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      display: flex; align-items: center; gap: 4px;
     }
     .enc-dot {
-      width: 4px; height: 4px; border-radius: 50%;
-      background: #10b981; box-shadow: 0 0 4px #10b981;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.8);
       display: inline-block;
       animation: pulse 2s infinite;
     }
     @keyframes pulse {
-      0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; }
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
     }
     .key-badge {
       font-size: 10px; font-weight: 600;
-      padding: 3px 8px; border-radius: 20px;
-      background: #f1f5f9; border: 1px solid #e2e8f0;
+      padding: 4px 10px; border-radius: 20px;
+      background: #f1f5f9; border: 1px solid #cbd5e1;
       color: #64748b;
-      display: flex; align-items: center; gap: 4px;
+      display: flex; align-items: center; gap: 5px;
+      transition: all 0.2s ease;
     }
-    .key-badge.ok { color: #10b981; border-color: #a7f3d0; background: #ecfdf5; }
+    .key-badge.ok { color: #059669; border-color: #a7f3d0; background: #ecfdf5; }
 
     /* Chatbot Counter Bar */
     .bots-strip {
       display: flex; gap: 6px;
-      padding: 8px 18px;
+      padding: 10px 18px;
       background: #ffffff;
       border-bottom: 1px solid #e2e8f0;
     }
     .bot-pill {
       flex: 1;
       display: flex; align-items: center; justify-content: center; gap: 4px;
-      padding: 6px 4px;
+      padding: 7px 4px;
       border-radius: 8px;
-      background: #f1f5f9;
+      background: #f8fafc;
       border: 1px solid #e2e8f0;
-      font-size: 10px; font-weight: 600; color: #64748b;
-      cursor: pointer; transition: all 0.15s;
+      font-size: 11px; font-weight: 600; color: #64748b;
+      cursor: pointer; transition: all 0.15s ease;
+      user-select: none;
     }
-    .bot-pill:hover { background: #e2e8f0; }
+    .bot-pill:hover { background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; transform: translateY(-1px); }
     .bot-pill.active {
       background: #eff6ff;
       border-color: #93c5fd;
       color: #2563eb;
+      box-shadow: 0 1px 3px rgba(37,99,235,0.1);
     }
-    .bot-pill.active { background: #eff6ff; border-color: #93c5fd; color: #2563eb; }
 
-    /* Content */
-    .content { padding: 14px 18px; }
+    /* Content Area */
+    .content { padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; }
+    
+    .input-wrapper { position: relative; width: 100%; }
     textarea {
-      width: 100%; height: 80px;
+      width: 100%; height: 90px;
       background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      color: #1e293b;
-      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      color: #0f172a;
+      padding: 12px 14px;
       font-size: 13px; line-height: 1.5; font-family: inherit;
       resize: none; outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
     textarea:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59,130,246,0.12);
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
     }
     textarea::placeholder { color: #94a3b8; }
 
     .input-meta {
-      display: flex; justify-content: space-between;
-      margin-top: 4px; font-size: 10px; color: #94a3b8;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 2px; font-size: 11px; color: #64748b; font-weight: 500;
     }
+    .input-actions { display: flex; gap: 8px; align-items: center; }
+    .action-chip {
+      background: #f1f5f9; border: 1px solid #e2e8f0;
+      color: #475569; padding: 2px 7px; border-radius: 6px;
+      font-size: 10px; font-weight: 600; cursor: pointer;
+      transition: all 0.15s; font-family: inherit;
+    }
+    .action-chip:hover { background: #e2e8f0; color: #0f172a; }
 
-    .model-select {
+    /* Control Grid */
+    .controls-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .select-wrapper { position: relative; }
+    select {
       width: 100%;
       background: #ffffff;
-      border: 1px solid #e2e8f0;
+      border: 1px solid #cbd5e1;
       border-radius: 8px;
-      color: #1e293b;
-      padding: 8px 10px;
-      font-size: 12px; font-family: inherit;
+      color: #0f172a;
+      padding: 8px 28px 8px 10px;
+      font-size: 12px; font-weight: 500; font-family: inherit;
       outline: none; cursor: pointer;
-      margin-top: 10px;
+      appearance: none;
+      transition: all 0.15s ease;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
     }
-    .model-select optgroup { background: #f8fafc; color: #64748b; font-size: 11px; }
-    .model-select option { background: #ffffff; color: #1e293b; }
+    select:hover { border-color: #94a3b8; }
+    select:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.12); }
+    select optgroup { font-weight: 700; color: #64748b; background: #f8fafc; }
+    select option { font-weight: 400; color: #0f172a; background: #ffffff; }
 
+    /* Enhance Button */
     .btn-enhance {
-      width: 100%; padding: 11px;
-      border: none; border-radius: 10px;
+      width: 100%; padding: 12px;
+      border: none; border-radius: 12px;
       font-size: 13px; font-weight: 700;
-      cursor: pointer; transition: all 0.15s;
-      margin-top: 10px;
+      cursor: pointer; transition: all 0.15s ease;
       background: linear-gradient(135deg, #1d4ed8, #2563eb);
       color: #ffffff;
-      box-shadow: 0 2px 10px rgba(37,99,235,0.25);
-      display: flex; align-items: center; justify-content: center; gap: 6px;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
       font-family: inherit;
+      letter-spacing: -0.01em;
     }
-    .btn-enhance:hover { filter: brightness(1.1); transform: translateY(-1px); }
-    .btn-enhance:active { transform: translateY(0); }
-    .btn-enhance:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-enhance:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(37,99,235,0.4); }
+    .btn-enhance:active { transform: translateY(0); box-shadow: 0 2px 6px rgba(37,99,235,0.3); }
+    .btn-enhance:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* Output / Result Preview Card */
+    .result-card {
+      display: none; flex-direction: column; gap: 8px;
+      background: #ffffff; border: 1px solid #cbd5e1;
+      border-radius: 12px; padding: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      animation: fadeIn 0.2s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .result-header { display: flex; justify-content: space-between; align-items: center; }
+    .result-title { font-size: 11px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.05em; }
+    .result-body {
+      font-size: 12px; line-height: 1.6; color: #1e293b;
+      max-height: 140px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+      background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;
+    }
+    .result-actions { display: flex; gap: 6px; justify-content: flex-end; }
+    .btn-result {
+      padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;
+      border: 1px solid #e2e8f0; background: #ffffff; color: #475569;
+      cursor: pointer; transition: all 0.15s; font-family: inherit;
+    }
+    .btn-result:hover { background: #f1f5f9; color: #0f172a; }
+    .btn-result.primary { background: #2563eb; color: #ffffff; border: none; }
+    .btn-result.primary:hover { background: #1d4ed8; }
 
     .msg {
-      font-size: 11px; display: none;
-      align-items: center; gap: 4px; margin-top: 8px;
-      padding: 6px 10px; border-radius: 8px;
+      font-size: 11px; font-weight: 500; display: none;
+      align-items: center; gap: 6px;
+      padding: 8px 12px; border-radius: 8px;
     }
-    .msg.ok { color: #10b981; background: #ecfdf5; border: 1px solid #a7f3d0; }
-    .msg.err { color: #ef4444; background: #fef2f2; border: 1px solid #fecaca; }
+    .msg.ok { color: #059669; background: #ecfdf5; border: 1px solid #a7f3d0; }
+    .msg.err { color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; }
 
+    /* API Vault Card */
     .api-card {
-      margin-top: 12px; padding: 10px 12px;
+      padding: 10px 12px;
       background: #ffffff; border-radius: 10px;
       border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
     }
     .api-label {
       font-size: 10px; font-weight: 700;
       color: #64748b; text-transform: uppercase;
-      letter-spacing: 0.04em; margin-bottom: 6px;
+      letter-spacing: 0.05em; margin-bottom: 6px;
+      display: flex; justify-content: space-between; align-items: center;
     }
+    .api-input-container { position: relative; display: flex; align-items: center; }
     .api-card input {
       width: 100%;
       background: #f8fafc;
-      border: 1px solid #e2e8f0;
+      border: 1px solid #cbd5e1;
       border-radius: 6px;
-      color: #1e293b;
-      padding: 7px 10px;
+      color: #0f172a;
+      padding: 7px 32px 7px 10px;
       font-size: 11px;
       font-family: ui-monospace, SFMono-Regular, monospace;
-      outline: none;
+      outline: none; transition: border-color 0.15s;
     }
-    .api-card input:focus { border-color: #3b82f6; }
+    .api-card input:focus { border-color: #2563eb; background: #ffffff; }
+    .toggle-key-eye {
+      position: absolute; right: 8px; background: none; border: none;
+      color: #64748b; cursor: pointer; font-size: 13px; padding: 2px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .toggle-key-eye:hover { color: #0f172a; }
 
+    /* Footer */
     .footer {
       padding: 10px 18px;
       border-top: 1px solid #e2e8f0;
       display: flex; align-items: center; justify-content: space-between;
-      font-size: 11px; color: #94a3b8;
+      font-size: 11px; color: #64748b; font-weight: 500;
       background: #ffffff;
     }
-    .footer strong { color: #3b82f6; }
-    .footer a { color: #2563eb; text-decoration: none; font-weight: 600; }
-    .footer a:hover { text-decoration: underline; }
+    .footer strong { color: #2563eb; }
+    .footer a { color: #2563eb; text-decoration: none; font-weight: 600; transition: color 0.15s; }
+    .footer a:hover { color: #1d4ed8; text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -182,8 +254,8 @@
     <div class="header-left">
       <div class="header-icon">⚡</div>
       <div class="header-info">
-        <div class="header-title">Prompt+ Intelligence</div>
-        <div class="header-enc"><span class="enc-dot"></span> SECURE</div>
+        <div class="header-title">Prompt+ Architect</div>
+        <div class="header-enc"><span class="enc-dot"></span> SECURE API</div>
       </div>
     </div>
     <div class="key-badge" id="key-indicator">
@@ -193,19 +265,19 @@
 
   <!-- Chatbot Counter Bar -->
   <div class="bots-strip">
-    <div class="bot-pill active" id="tab-chatgpt">
+    <div class="bot-pill" id="tab-chatgpt" title="Open ChatGPT">
       <span>🤖</span>
       <span>ChatGPT</span>
     </div>
-    <div class="bot-pill" id="tab-claude">
+    <div class="bot-pill" id="tab-claude" title="Open Claude">
       <span>🟣</span>
       <span>Claude</span>
     </div>
-    <div class="bot-pill" id="tab-gemini">
+    <div class="bot-pill" id="tab-gemini" title="Open Gemini">
       <span>✨</span>
       <span>Gemini</span>
     </div>
-    <div class="bot-pill" id="tab-deepseek">
+    <div class="bot-pill" id="tab-deepseek" title="Open DeepSeek">
       <span>⚡</span>
       <span>DeepSeek</span>
     </div>
@@ -213,35 +285,75 @@
 
   <!-- Content -->
   <div class="content">
-    <textarea id="input" placeholder="Paste or type your prompt to enhance..."></textarea>
-    <div class="input-meta">
-      <span id="char-count">0 characters</span>
+    <div class="input-wrapper">
+      <textarea id="input" placeholder="Type or paste your prompt to optimize with AI..."></textarea>
+      <div class="input-meta">
+        <span id="char-count">0 chars • 0 words</span>
+        <div class="input-actions">
+          <button class="action-chip" id="paste-btn" title="Paste from Clipboard">📋 Paste</button>
+          <button class="action-chip" id="clear-btn" style="display:none;" title="Clear text">✕ Clear</button>
+        </div>
+      </div>
     </div>
 
-    <select id="model-select" class="model-select">
-      <optgroup label="OpenRouter Free Tier">
-        <option value="meta-llama/llama-3.3-70b-instruct:free::openrouter" selected>Llama 3.3 70B (Free)</option>
-        <option value="google/gemini-2.0-flash-exp:free::openrouter">Gemini 2.0 Flash (Free)</option>
-        <option value="deepseek/deepseek-r1:free::openrouter">DeepSeek R1 (Free)</option>
-        <option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder (Free)</option>
-      </optgroup>
-      <optgroup label="Direct API Keys">
-        <option value="gpt-4o-mini::openai">GPT-4o Mini</option>
-        <option value="gpt-4o::openai">GPT-4o</option>
-        <option value="claude-3-5-sonnet-20241022::anthropic">Claude 3.5 Sonnet</option>
-      </optgroup>
-    </select>
+    <!-- Controls Grid -->
+    <div class="controls-grid">
+      <div class="select-wrapper">
+        <select id="model-select">
+          <optgroup label="OpenRouter Free Tier">
+            <option value="meta-llama/llama-3.3-70b-instruct:free::openrouter" selected>Llama 3.3 70B (Free)</option>
+            <option value="google/gemini-2.0-flash-exp:free::openrouter">Gemini 2.0 Flash (Free)</option>
+            <option value="deepseek/deepseek-r1:free::openrouter">DeepSeek R1 (Free)</option>
+            <option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder (Free)</option>
+          </optgroup>
+          <optgroup label="Direct API Keys">
+            <option value="gpt-4o-mini::openai">GPT-4o Mini</option>
+            <option value="gpt-4o::openai">GPT-4o</option>
+            <option value="claude-3-5-sonnet-20241022::anthropic">Claude 3.5 Sonnet</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="select-wrapper">
+        <select id="tone-select">
+          <option value="Balanced" selected>Tone: Balanced</option>
+          <option value="Professional">Tone: Professional</option>
+          <option value="Technical">Tone: Technical</option>
+          <option value="Concise">Tone: Concise</option>
+          <option value="Creative">Tone: Creative</option>
+        </select>
+      </div>
+    </div>
 
     <button class="btn-enhance" id="enhance-btn">
       <span>⚡</span>
-      <span>Apply Upgrade</span>
+      <span id="btn-label">Apply Upgrade</span>
       <span>→</span>
     </button>
+
     <div class="msg" id="msg"></div>
 
+    <!-- Result Card -->
+    <div class="result-card" id="result-card">
+      <div class="result-header">
+        <span class="result-title">✨ Enhanced Result</span>
+      </div>
+      <div class="result-body" id="result-body"></div>
+      <div class="result-actions">
+        <button class="btn-result" id="copy-result-btn">📋 Copy Enhanced</button>
+      </div>
+    </div>
+
+    <!-- API Key Vault -->
     <div class="api-card">
-      <div class="api-label">API Key Vault</div>
-      <input type="password" id="key-input" placeholder="sk-or-... or sk-... or sk-ant-..." />
+      <div class="api-label">
+        <span>API Key Vault</span>
+        <span style="font-size:9px; font-weight:400; color:#64748b;">Local Storage</span>
+      </div>
+      <div class="api-input-container">
+        <input type="password" id="key-input" placeholder="sk-or-... or sk-... or sk-ant-..." />
+        <button class="toggle-key-eye" id="toggle-key-btn" type="button" title="Toggle password visibility">👁️</button>
+      </div>
     </div>
   </div>
 
