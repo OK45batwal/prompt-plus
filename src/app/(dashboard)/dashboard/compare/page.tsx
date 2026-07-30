@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import { Plus, X, Copy, Check, GitCompare, LayoutGrid } from "lucide-react";
 import { PromptDiff } from "@/components/dashboard/prompt-diff";
 

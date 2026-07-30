@@ -25,8 +25,8 @@ export class LLMError extends Error {
 }
 
 export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> {
-  let {
-    provider,
+  let provider = options.provider;
+  const {
     apiKey,
     systemPrompt = "You are a helpful AI assistant.",
     userPrompt,
