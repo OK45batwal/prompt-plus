@@ -246,10 +246,6 @@
             '<div class="pp-bot-pill' + (activeChatbot === "gemini" ? " active" : "") + '"><span>✨</span><span class="pp-bot-label">Gemini</span></div>' +
             '<div class="pp-bot-pill' + (activeChatbot === "deepseek" ? " active" : "") + '"><span>⚡</span><span class="pp-bot-label">DeepSeek</span></div>' +
           '</div>' +
-          '<div class="pp-token-bar" id="pp-token-bar">' +
-            '<div class="pp-token-label"><span>Context: <strong id="pp-token-used">0</strong> / <strong id="pp-token-limit">128K</strong> tokens</span><span id="pp-token-pct">0%</span></div>' +
-            '<div class="pp-token-track"><div class="pp-token-fill" id="pp-token-fill" style="width:0%"></div></div>' +
-          '</div>' +
           '<div class="pp-body" id="pp-body">' +
             '<div class="pp-split-header">' +
               '<div class="pp-split-label">ORIGINAL</div>' +
@@ -312,6 +308,10 @@
                 '</optgroup>' +
               '</select>' +
             '</div>' +
+          '</div>' +
+          '<div class="pp-token-bar" id="pp-token-bar">' +
+            '<div class="pp-token-label"><span>Context: <strong id="pp-token-used">0</strong> / <strong id="pp-token-limit">128K</strong> tokens</span><span id="pp-token-pct">0%</span></div>' +
+            '<div class="pp-token-track"><div class="pp-token-fill" id="pp-token-fill" style="width:0%"></div></div>' +
           '</div>' +
           '<div class="pp-footer">' +
             '<div class="pp-footer-credit">Powered by <strong>Prompt+</strong></div>' +
@@ -540,7 +540,7 @@
 .pp-bot-pill.active { background: rgba(124,58,237,0.15); border-color: rgba(124,58,237,0.4); color: #c4b5fd; box-shadow: 0 0 12px rgba(124,58,237,0.15); }
 .pp-bot-label { font-size: 10px; }
 
-.pp-token-bar { padding: 8px 20px 6px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
+.pp-token-bar { padding: 8px 20px 6px; background: rgba(255,255,255,0.02); border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
 .pp-token-label { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #64748b; margin-bottom: 5px; letter-spacing: 0.02em; }
 .pp-token-label strong { color: #a78bfa; font-weight: 700; }
 .pp-token-track { height: 4px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
@@ -626,6 +626,10 @@
       currentText = request.text;
       setText(currentTarget, request.text);
       openPanel();
+    }
+    if (request.action === "getTokenInfo") {
+      sendResponse?.({ ...getTokenInfo() });
+      return true;
     }
     if (request.action === "injectEnhanced") {
       const input = getInput();

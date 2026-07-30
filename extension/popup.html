@@ -171,6 +171,20 @@
     .api-card input:focus { border-color: #7C3AED; }
     .api-card input::placeholder { color: #475569; }
 
+    .token-bar {
+      padding: 8px 18px 6px;
+      background: rgba(255,255,255,0.02);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .token-label {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 9px; color: #64748b; margin-bottom: 4px;
+      letter-spacing: 0.02em;
+    }
+    .token-label strong { color: #a78bfa; font-weight: 700; }
+    .token-track { height: 3px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+    .token-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #34d399, #7C3AED); transition: width 0.6s ease; }
+
     .footer {
       padding: 10px 18px;
       border-top: 1px solid rgba(255,255,255,0.06);
@@ -242,6 +256,14 @@
       <div class="api-label">API Key</div>
       <input type="password" id="key-input" placeholder="sk-or-... or nvapi-..." />
     </div>
+  </div>
+
+  <div class="token-bar" id="token-bar" style="display:none">
+    <div class="token-label">
+      <span>Context: <strong id="pop-token-used">0</strong> / <strong id="pop-token-limit">128K</strong> tokens</span>
+      <span id="pop-token-pct">0%</span>
+    </div>
+    <div class="token-track"><div class="token-fill" id="pop-token-fill" style="width:0%"></div></div>
   </div>
 
   <div class="footer">

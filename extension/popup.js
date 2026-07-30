@@ -187,6 +187,35 @@ btn?.addEventListener("click", async () => {
   }
 });
 
+// Token bar
+function updatePopupTokenBar(info) {
+  const bar = document.getElementById("token-bar");
+  const usedEl = document.getElementById("pop-token-used");
+  const limitEl = document.getElementById("pop-token-limit");
+  const pctEl = document.getElementById("pop-token-pct");
+  const fill = document.getElementById("pop-token-fill");
+  if (!bar || !info) { if (bar) bar.style.display = "none"; return; }
+  bar.style.display = "block";
+  usedEl.textContent = info.used.toLocaleString();
+  limitEl.textContent = (info.limit / 1000).toFixed(0) + "K";
+  pctEl.textContent = info.pct + "%";
+  fill.style.width = info.pct + "%";
+  fill.style.background = info.pct > 80 ? "linear-gradient(90deg, #f59e0b, #ef4444)" : "linear-gradient(90deg, #34d399, #7C3AED)";
+}
+
+function fetchTokenInfo() {
+  chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
+    if (!tabs?.[0]?.id) return;
+    chrome.tabs.sendMessage(tabs[0].id, { action: "getTokenInfo" }, (res) => {
+      if (chrome.runtime.lastError || !res) { updatePopupTokenBar(null); return; }
+      updatePopupTokenBar(res);
+    });
+  });
+}
+
+fetchTokenInfo();
+setInterval(fetchTokenInfo, 3000);
+
 document.getElementById("open-dash")?.addEventListener("click", (e) => {
   e.preventDefault();
   chrome.tabs.create({ url: "https://prompt-plus-three.vercel.app/dashboard" });
