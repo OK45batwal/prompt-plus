@@ -115,8 +115,10 @@
     fab.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      currentTarget = input;
-      currentText = getText(input);
+      const el = getInput() || input;
+      if (!el || !el.parentElement) { showToast("No input field found"); return; }
+      currentTarget = el;
+      currentText = getText(el);
       if (!currentText.trim()) { showToast("Enter a prompt first"); return; }
       if (currentMode === "self") {
         doSelfEnhance(currentTarget, currentText);
