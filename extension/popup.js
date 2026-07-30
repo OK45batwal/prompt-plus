@@ -16,6 +16,7 @@ const modeDevice = document.getElementById("mode-device");
 const modeServer = document.getElementById("mode-server");
 
 let currentMode = "self";
+console.log("[Prompt+] input element:", input, "charCount:", charCount);
 
 function showMsg(text, err) {
   if (!msg) return;
