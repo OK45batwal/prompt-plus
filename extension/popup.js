@@ -1,43 +1,27 @@
 const input = document.getElementById("input");
 const btn = document.getElementById("enhance-btn");
-const btnLabel = document.getElementById("btn-label");
+const btnIcon = document.getElementById("btn-icon");
+const btnText = document.getElementById("btn-text");
 const msg = document.getElementById("msg");
 const keyInput = document.getElementById("key-input");
 const keyText = document.getElementById("key-text");
 const keyIndicator = document.getElementById("key-indicator");
-const toggleKeyBtn = document.getElementById("toggle-key-btn");
 const modelSelect = document.getElementById("model-select");
-const toneSelect = document.getElementById("tone-select");
 const charCount = document.getElementById("char-count");
-const clearBtn = document.getElementById("clear-btn");
-const pasteBtn = document.getElementById("paste-btn");
+const modeLabel = document.getElementById("mode-label");
+const apiCard = document.getElementById("api-card");
 
-const resultCard = document.getElementById("result-card");
-const resultBody = document.getElementById("result-body");
-const copyResultBtn = document.getElementById("copy-result-btn");
+const modeSelf = document.getElementById("mode-self");
+const modeServer = document.getElementById("mode-server");
 
-let currentEnhancedText = "";
-
-const CHATBOT_URLS = {
-  chatgpt: "https://chatgpt.com",
-  claude: "https://claude.ai",
-  gemini: "https://gemini.google.com",
-  deepseek: "https://chat.deepseek.com",
-};
-
-const chatbotPills = {
-  chatgpt: document.getElementById("tab-chatgpt"),
-  claude: document.getElementById("tab-claude"),
-  gemini: document.getElementById("tab-gemini"),
-  deepseek: document.getElementById("tab-deepseek"),
-};
+let currentMode = "self";
 
 function showMsg(text, err) {
   if (!msg) return;
   msg.textContent = text;
   msg.className = "msg " + (err ? "err" : "ok");
   msg.style.display = "flex";
-  setTimeout(() => { msg.style.display = "none"; }, 3500);
+  setTimeout(() => { msg.style.display = "none"; }, 3000);
 }
 
 function updateKeyUI(has) {
@@ -45,73 +29,51 @@ function updateKeyUI(has) {
   if (keyIndicator) keyIndicator.className = "key-badge" + (has ? " ok" : "");
 }
 
-function updateTextMeta() {
-  if (!input) return;
-  const val = input.value;
-  const len = val.length;
-  const words = val.trim() ? val.trim().split(/\s+/).length : 0;
-  if (charCount) {
-    charCount.textContent = `${len} chars • ${words} word${words === 1 ? "" : "s"}`;
+function setMode(mode) {
+  currentMode = mode;
+  modeSelf.classList.toggle("active", mode === "self");
+  modeServer.classList.toggle("active", mode === "server");
+
+  if (mode === "self") {
+    btnIcon.textContent = "✨";
+    btnText.textContent = "Self-Enhance";
+    modelSelect.style.display = "none";
+    apiCard.style.display = "none";
+    modeLabel.textContent = "Self mode — injected directly into chatbot";
+  } else {
+    btnIcon.textContent = "⚡";
+    btnText.textContent = "Apply Upgrade";
+    modelSelect.style.display = "";
+    apiCard.style.display = "";
+    modeLabel.textContent = "Server mode — enhanced via AI API";
   }
-  if (clearBtn) {
-    clearBtn.style.display = len > 0 ? "inline-block" : "none";
-  }
+  chrome.runtime.sendMessage({ action: "saveSettings", settings: { mode } });
 }
 
-// Active tab detection
-chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
-  const url = tabs[0]?.url || "";
-  Object.entries(CHATBOT_URLS).forEach(([key, baseUrl]) => {
-    const pill = chatbotPills[key];
-    if (!pill) return;
-    if (url.startsWith(baseUrl)) pill.classList.add("active");
-  });
-});
-
-// Character and Word counter
-input?.addEventListener("input", updateTextMeta);
-
-// Clear button
-clearBtn?.addEventListener("click", () => {
-  if (input) {
-    input.value = "";
-    updateTextMeta();
-    input.focus();
+input?.addEventListener("input", () => {
+  if (charCount) {
+    const len = input.value.length;
+    charCount.textContent = `${len} character${len === 1 ? "" : "s"}`;
   }
 });
 
-// Paste button
-pasteBtn?.addEventListener("click", async () => {
-  try {
-    const text = await navigator.clipboard.readText();
-    if (text && input) {
-      input.value = text;
-      updateTextMeta();
-      showMsg("Pasted from clipboard!");
-    }
-  } catch {
-    showMsg("Clipboard access denied", true);
-  }
+// Mode toggle
+modeSelf?.addEventListener("click", () => setMode("self"));
+modeServer?.addEventListener("click", () => setMode("server"));
+
+// Load settings
+chrome.runtime?.sendMessage?.({ action: "getSettings" }, (res) => {
+  const s = res?.settings || {};
+  if (s.mode) setMode(s.mode);
+  if (s.model && modelSelect) modelSelect.value = s.model;
 });
 
-// Eye toggle for API key input
-toggleKeyBtn?.addEventListener("click", () => {
-  if (!keyInput) return;
-  const isPass = keyInput.type === "password";
-  keyInput.type = isPass ? "text" : "password";
-  toggleKeyBtn.textContent = isPass ? "🙈" : "👁️";
+// Save model selection
+modelSelect?.addEventListener("change", () => {
+  chrome.runtime.sendMessage({ action: "saveSettings", settings: { model: modelSelect.value } });
 });
 
-// Chatbot pills click handlers
-Object.entries(chatbotPills).forEach(([botKey, pill]) => {
-  if (!pill) return;
-  pill.addEventListener("click", () => {
-    const url = CHATBOT_URLS[botKey];
-    if (url) chrome.tabs.create({ url });
-  });
-});
-
-// Load saved API key & settings
+// API key
 chrome.runtime?.sendMessage?.({ action: "getApiKey" }, (res) => {
   if (res && res.apiKey) {
     if (keyInput) keyInput.value = res.apiKey;
@@ -119,14 +81,6 @@ chrome.runtime?.sendMessage?.({ action: "getApiKey" }, (res) => {
   }
 });
 
-chrome.runtime?.sendMessage?.({ action: "getSettings" }, (res) => {
-  if (res && res.settings) {
-    if (res.settings.model && modelSelect) modelSelect.value = res.settings.model;
-    if (res.settings.tone && toneSelect) toneSelect.value = res.settings.tone;
-  }
-});
-
-// Save API key with validation
 keyInput?.addEventListener("change", () => {
   const k = keyInput.value.trim();
   if (!k) { updateKeyUI(false); keyInput.style.borderColor = ""; return; }
@@ -136,84 +90,61 @@ keyInput?.addEventListener("change", () => {
     showMsg("Invalid format (expected sk-..., sk-or-..., sk-ant-..., or nvapi-...)", true);
     return;
   }
-  keyInput.style.borderColor = "#10b981";
+  keyInput.style.borderColor = "#34d399";
   chrome.runtime.sendMessage({ action: "saveApiKey", apiKey: k }, (r) => {
-    if (r && r.success) {
-      updateKeyUI(true);
-      showMsg("API Key saved securely!");
-    }
+    if (r && r.success) updateKeyUI(true);
   });
 });
 
-keyInput?.addEventListener("input", () => {
-  if (keyInput) keyInput.style.borderColor = "";
-});
+keyInput?.addEventListener("input", () => { keyInput.style.borderColor = ""; });
 
-// Save settings on dropdown change
-modelSelect?.addEventListener("change", () => {
-  chrome.runtime.sendMessage({ action: "saveSettings", settings: { model: modelSelect.value } });
-});
-
-toneSelect?.addEventListener("change", () => {
-  chrome.runtime.sendMessage({ action: "saveSettings", settings: { tone: toneSelect.value } });
-});
-
-// Enhance Prompt
+// Enhance
 btn?.addEventListener("click", async () => {
-  const text = input ? input.value.trim() : "";
-  if (!text) { showMsg("Enter or paste a prompt first", true); return; }
-  
-  btn.disabled = true;
-  if (btnLabel) btnLabel.textContent = "Enhancing...";
+  const text = input.value.trim();
+  if (!text) { showMsg("Enter a prompt first", true); return; }
 
-  const modelVal = modelSelect ? modelSelect.value : "gpt-4o-mini";
-  const toneVal = toneSelect ? toneSelect.value : "Balanced";
+  if (currentMode === "self") {
+    // Inject meta-prompt into the active chatbot tab
+    const [tab] = await chrome.tabs?.query({ active: true, currentWindow: true }) || [];
+    if (!tab?.id) { showMsg("No active tab found", true); return; }
+    chrome.tabs.sendMessage(tab.id, { action: "selfEnhance", text }, (res) => {
+      if (chrome.runtime.lastError) {
+        showMsg("Open a chatbot tab first (ChatGPT/Claude/Gemini/DeepSeek)", true);
+        return;
+      }
+      if (res?.success) {
+        showMsg("Meta-prompt injected! Submit in the chatbot.");
+        window.close();
+      } else {
+        showMsg(res?.error || "Failed. Open a chatbot tab.", true);
+      }
+    });
+    return;
+  }
+
+  // Server mode
+  btn.disabled = true;
+  btn.innerHTML = '<span>⚡</span><span>Enhancing...</span>';
+
+  const modelVal = modelSelect.value;
   const parts = modelVal.split("::");
   const model = parts[0];
   const provider = parts[1] || "openai";
 
   try {
-    const res = await chrome.runtime.sendMessage({
-      action: "enhancePrompt",
-      text,
-      model,
-      provider,
-      tone: toneVal,
-    });
-
-    if (!res || !res.success) throw new Error(res?.error || "Enhancement failed");
-
-    currentEnhancedText = res.data?.data?.enhanced || res.data?.enhanced || "";
-    
-    // Copy to clipboard
-    await navigator.clipboard.writeText(currentEnhancedText);
-
-    // Show result card
-    if (resultCard && resultBody) {
-      resultBody.textContent = currentEnhancedText;
-      resultCard.style.display = "flex";
-    }
-
+    const res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider });
+    if (!res || !res.success) throw new Error(res?.error || "Failed");
+    const enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
+    await navigator.clipboard.writeText(enhanced);
     showMsg("Enhanced & copied to clipboard!");
   } catch (e) {
     showMsg(e.message, true);
   } finally {
     btn.disabled = false;
-    if (btnLabel) btnLabel.textContent = "Apply Upgrade";
+    btn.innerHTML = '<span>⚡</span><span>Apply Upgrade</span><span>→</span>';
   }
 });
 
-// Copy Result button inside Result Card
-copyResultBtn?.addEventListener("click", async () => {
-  if (!currentEnhancedText) return;
-  await navigator.clipboard.writeText(currentEnhancedText);
-  copyResultBtn.textContent = "✓ Copied!";
-  setTimeout(() => {
-    copyResultBtn.textContent = "📋 Copy Enhanced";
-  }, 2000);
-});
-
-// Open dashboard tab
 document.getElementById("open-dash")?.addEventListener("click", (e) => {
   e.preventDefault();
   chrome.tabs.create({ url: "https://prompt-plus-three.vercel.app/dashboard" });

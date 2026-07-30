@@ -6,6 +6,14 @@
   let currentTarget = null;
   let currentText = "";
   let currentEnhanced = "";
+  let currentMode = "server";
+
+  const META_PROMPTS = {
+    chatgpt: "Before responding, analyze and improve this prompt to make it more specific, structured, and effective. Then answer the improved version. Original: ",
+    claude: "I'd like you to first reflect on and improve this request before answering. Rewrite it to be more detailed and well-structured, then respond. Original: ",
+    gemini: "Analyze and improve this prompt first, then respond to the enhanced version. Original: ",
+    deepseek: "Before responding, analyze and improve this prompt to make it more specific, structured, and effective. Then answer the improved version. Original: ",
+  };
 
   function getInput() {
     let el = document.querySelector("#prompt-textarea, textarea[data-id='root']");
@@ -14,7 +22,7 @@
     if (el && location.hostname.includes("claude")) return el;
     el = document.querySelector("div[contenteditable='true'], textarea");
     if (el && location.hostname.includes("gemini")) return el;
-    return document.querySelector("textarea, div[contenteditable='true']");
+    return document.querySelector("textarea");
   }
 
   function getText(el) {
@@ -28,12 +36,9 @@
       el.value = text;
       el.dispatchEvent(new Event("input", { bubbles: true }));
       el.dispatchEvent(new Event("change", { bubbles: true }));
-      el.dispatchEvent(new Event("blur", { bubbles: true }));
     } else if (el.isContentEditable) {
       el.innerText = text;
       el.dispatchEvent(new Event("input", { bubbles: true }));
-      el.dispatchEvent(new Event("change", { bubbles: true }));
-      el.dispatchEvent(new Event("blur", { bubbles: true }));
     }
   }
 
@@ -51,6 +56,11 @@
     });
   }
 
+  function loadHistory(cb) {
+    if (!chrome?.storage?.local) { cb([]); return; }
+    chrome.storage.local.get(HISTORY_KEY, (d) => cb(d[HISTORY_KEY] || []));
+  }
+
   function saveHistory(item) {
     if (!chrome?.storage?.local) return;
     chrome.storage.local.get(HISTORY_KEY, (d) => {
@@ -60,7 +70,16 @@
     });
   }
 
-  /* Detect which chatbot site we are on */
+  function analyzeLocal(text) {
+    const wc = text.split(/\s+/).length;
+    const score = Math.min(95, Math.max(20, Math.round(wc * 1.8 + 20)));
+    const complexity = wc < 10 ? "Low" : wc < 30 ? "Medium" : "High";
+    const intent = text.includes("code") || text.includes("function") || text.includes("script") ? "Code" :
+                   text.includes("email") || text.includes("write") ? "Writing" :
+                   text.includes("analyze") || text.includes("explain") ? "Analysis" : "General";
+    return { score, complexity, intent, wordCount: wc };
+  }
+
   function detectChatbot() {
     const host = location.hostname;
     if (host.includes("chatgpt") || host.includes("chat.openai")) return "chatgpt";
@@ -68,6 +87,13 @@
     if (host.includes("gemini")) return "gemini";
     if (host.includes("deepseek")) return "deepseek";
     return null;
+  }
+
+  function doSelfEnhance(input, text) {
+    const bot = detectChatbot() || "chatgpt";
+    const prefix = META_PROMPTS[bot] || META_PROMPTS.chatgpt;
+    setText(input, prefix + text);
+    showToast("✨ Meta-prompt injected! Submit to enhance.");
   }
 
   function injectFab() {
@@ -82,17 +108,21 @@
     fab.className = "pp-fab";
     fab.setAttribute("type", "button");
     fab.innerHTML =
-      '<span class="pp-fab-icon">⚡</span>' +
+      '<span class="pp-fab-icon">✦</span>' +
       '<span class="pp-fab-text">Enhance Prompt</span>';
-    fab.title = "Open Prompt+ Architect";
+    fab.title = "Open Prompt+";
 
     fab.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       currentTarget = input;
       currentText = getText(input);
-      if (!currentText.trim()) { showToast("Enter or paste a prompt first"); return; }
-      openPanel();
+      if (!currentText.trim()) { showToast("Enter a prompt first"); return; }
+      if (currentMode === "self") {
+        doSelfEnhance(currentTarget, currentText);
+      } else {
+        openPanel();
+      }
     });
 
     fab.style.position = "fixed";
@@ -106,32 +136,34 @@
   function positionFab(fab, input) {
     const rect = input.getBoundingClientRect();
     if (!rect || rect.width === 0) return;
-    fab.style.bottom = (window.innerHeight - rect.bottom + 12) + "px";
-    fab.style.right = (window.innerWidth - rect.right + 12) + "px";
+    fab.style.bottom = (window.innerHeight - rect.bottom + 10) + "px";
+    fab.style.right = (window.innerWidth - rect.right + 10) + "px";
   }
 
   function showToast(msg) {
     const t = document.createElement("div");
-    t.className = "pp-toast";
     t.textContent = msg;
+    Object.assign(t.style, {
+      position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
+      background: "rgba(15,23,42,0.9)", color: "#f1f5f9", padding: "10px 20px", borderRadius: "14px",
+      fontSize: "13px", zIndex: "100000001", boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+      border: "1px solid rgba(124,58,237,0.3)", fontFamily: "-apple-system, sans-serif",
+      backdropFilter: "blur(12px)", transition: "opacity 0.3s",
+    });
     document.body.appendChild(t);
-    requestAnimationFrame(() => { t.style.opacity = "1"; t.style.transform = "translateX(-50%) translateY(0)"; });
-    setTimeout(() => {
-      t.style.opacity = "0";
-      t.style.transform = "translateX(-50%) translateY(10px)";
-      setTimeout(() => t.remove(), 300);
-    }, 2400);
+    setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 300); }, 2000);
   }
 
   function openPanel() {
     if (panelEl) { closePanel(); return; }
-    const input = currentTarget || getInput();
-    const text = currentText || getText(input);
-    if (!text.trim()) { showToast("Enter a prompt first"); return; }
+    const input = currentTarget;
+    const text = currentText;
+    if (!text.trim()) return;
 
     settings = null;
     loadSettings((s) => {
       settings = s;
+      currentMode = s.mode || "server";
       renderPanel(input, text, settings);
     });
   }
@@ -154,36 +186,78 @@
       '<div class="pp-backdrop"></div>' +
       '<div class="pp-side">' +
         '<div class="pp-side-inner">' +
-          /* Header */
           '<div class="pp-head">' +
             '<div class="pp-head-left">' +
-              '<div class="pp-head-icon">⚡</div>' +
+              '<div class="pp-head-icon">✦</div>' +
               '<div class="pp-head-info">' +
                 '<div class="pp-head-title">Prompt+ Intelligence</div>' +
-                '<div class="pp-head-enc"><span class="pp-enc-dot"></span> SECURE API</div>' +
+                '<div class="pp-head-enc"><span class="pp-enc-dot"></span> SECURE</div>' +
               '</div>' +
             '</div>' +
-            '<button class="pp-close-btn" id="pp-close-btn" title="Close Panel (Esc)">' +
+            '<button class="pp-close-btn" id="pp-close-btn">' +
               '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
             '</button>' +
           '</div>' +
-          /* Chatbot Counter Bar */
           '<div class="pp-bots-strip">' +
             '<div class="pp-bot-pill' + (activeChatbot === "chatgpt" ? " active" : "") + '"><span>🤖</span><span class="pp-bot-label">ChatGPT</span></div>' +
             '<div class="pp-bot-pill' + (activeChatbot === "claude" ? " active" : "") + '"><span>🟣</span><span class="pp-bot-label">Claude</span></div>' +
             '<div class="pp-bot-pill' + (activeChatbot === "gemini" ? " active" : "") + '"><span>✨</span><span class="pp-bot-label">Gemini</span></div>' +
             '<div class="pp-bot-pill' + (activeChatbot === "deepseek" ? " active" : "") + '"><span>⚡</span><span class="pp-bot-label">DeepSeek</span></div>' +
           '</div>' +
-          /* Main Body */
-          '<div class="pp-body">' +
-            /* Options Controls */
-            '<div class="pp-controls-row">' +
+          '<div class="pp-body" id="pp-body">' +
+            '<div class="pp-split-header">' +
+              '<div class="pp-split-label">ORIGINAL</div>' +
+              '<div class="pp-split-label-right">' +
+                '<span>IMPROVED</span>' +
+                '<button class="pp-copy-chip" id="pp-copy-btn" disabled>📋 Copy</button>' +
+              '</div>' +
+            '</div>' +
+            '<div class="pp-split-view">' +
+              '<div class="pp-split-original" id="pp-original-preview"></div>' +
+              '<div class="pp-split-improved" id="pp-enhanced-preview">' +
+                '<div class="pp-placeholder">Click "Apply Upgrade" below to see the AI-optimized result</div>' +
+              '</div>' +
+            '</div>' +
+            '<div id="pp-structured-sections" style="display:none">' +
+              '<div class="pp-section">' +
+                '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">ROLE</span></div>' +
+                '<div class="pp-section-body" id="pp-role-body">—</div>' +
+              '</div>' +
+              '<div class="pp-section">' +
+                '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">CONTEXT</span></div>' +
+                '<div class="pp-section-body" id="pp-context-body">—</div>' +
+              '</div>' +
+              '<div class="pp-section">' +
+                '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">INSTRUCTIONS</span></div>' +
+                '<div class="pp-section-body" id="pp-instructions-body">—</div>' +
+              '</div>' +
+              '<div class="pp-section">' +
+                '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">CONSTRAINTS</span></div>' +
+                '<div class="pp-section-body" id="pp-constraints-body">—</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="pp-model-row">' +
+              '<label class="pp-model-label">Model</label>' +
               '<select id="pp-model" class="pp-select">' +
                 '<optgroup label="OpenRouter Free">' +
                   '<option value="meta-llama/llama-3.3-70b-instruct:free::openrouter" selected>Llama 3.3 70B</option>' +
                   '<option value="google/gemini-2.0-flash-exp:free::openrouter">Gemini 2.0 Flash</option>' +
                   '<option value="deepseek/deepseek-r1:free::openrouter">DeepSeek R1</option>' +
-                  '<option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder</option>' +
+                  '<option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder 32B</option>' +
+                  '<option value="mistralai/mistral-small-24b-instruct-2501:free::openrouter">Mistral Small 24B</option>' +
+                  '<option value="microsoft/phi-3-mini-128k-instruct:free::openrouter">Phi-3 Mini 128K</option>' +
+                  '<option value="nousresearch/hermes-3-llama-3.1-405b:free::openrouter">Hermes 3 405B</option>' +
+                '</optgroup>' +
+                '<optgroup label="OpenRouter Paid">' +
+                  '<option value="openai/gpt-4o::openrouter">GPT-4o</option>' +
+                  '<option value="anthropic/claude-3-5-sonnet-20241022::openrouter">Claude 3.5 Sonnet</option>' +
+                  '<option value="google/gemini-1.5-pro::openrouter">Gemini 1.5 Pro</option>' +
+                '</optgroup>' +
+                '<optgroup label="NVIDIA">' +
+                  '<option value="meta/llama-3.3-70b-instruct::nvidia">Llama 3.3 70B (NV)</option>' +
+                  '<option value="nvidia/llama-3.1-nemotron-70b-instruct::nvidia">Nemotron 70B</option>' +
+                  '<option value="google/gemma-2-27b-it::nvidia">Gemma 2 27B (NV)</option>' +
+                  '<option value="mistralai/mistral-7b-instruct-v0.3::nvidia">Mistral 7B (NV)</option>' +
                 '</optgroup>' +
                 '<optgroup label="Direct Keys">' +
                   '<option value="gpt-4o-mini::openai">GPT-4o Mini</option>' +
@@ -191,53 +265,10 @@
                   '<option value="claude-3-5-sonnet-20241022::anthropic">Claude 3.5 Sonnet</option>' +
                 '</optgroup>' +
               '</select>' +
-              '<select id="pp-tone" class="pp-select">' +
-                '<option value="Balanced" selected>Tone: Balanced</option>' +
-                '<option value="Professional">Tone: Professional</option>' +
-                '<option value="Technical">Tone: Technical</option>' +
-                '<option value="Concise">Tone: Concise</option>' +
-                '<option value="Creative">Tone: Creative</option>' +
-              '</select>' +
-            '</div>' +
-
-            /* Split Header */
-            '<div class="pp-split-header">' +
-              '<div class="pp-split-label">ORIGINAL PROMPT</div>' +
-              '<div class="pp-split-label-right">' +
-                '<span>IMPROVED RESULT</span>' +
-                '<button class="pp-copy-chip" id="pp-copy-btn" disabled>📋 Copy</button>' +
-              '</div>' +
-            '</div>' +
-            /* Split view */
-            '<div class="pp-split-view">' +
-              '<div class="pp-split-original" id="pp-original-preview"></div>' +
-              '<div class="pp-split-improved" id="pp-enhanced-preview">' +
-                '<div class="pp-placeholder">Click "Apply Upgrade" below to generate AI-optimized prompt structure</div>' +
-              '</div>' +
-            '</div>' +
-            /* Structured Sections */
-            '<div id="pp-structured-sections" style="display:none">' +
-              '<div class="pp-section">' +
-                '<div class="pp-section-head"><div class="pp-section-bar" style="background:#2563eb;"></div><span class="pp-section-title">ROLE</span></div>' +
-                '<div class="pp-section-body" id="pp-role-body">—</div>' +
-              '</div>' +
-              '<div class="pp-section">' +
-                '<div class="pp-section-head"><div class="pp-section-bar" style="background:#3b82f6;"></div><span class="pp-section-title">CONTEXT</span></div>' +
-                '<div class="pp-section-body" id="pp-context-body">—</div>' +
-              '</div>' +
-              '<div class="pp-section">' +
-                '<div class="pp-section-head"><div class="pp-section-bar" style="background:#10b981;"></div><span class="pp-section-title">INSTRUCTIONS</span></div>' +
-                '<div class="pp-section-body" id="pp-instructions-body">—</div>' +
-              '</div>' +
-              '<div class="pp-section">' +
-                '<div class="pp-section-head"><div class="pp-section-bar" style="background:#f59e0b;"></div><span class="pp-section-title">CONSTRAINTS</span></div>' +
-                '<div class="pp-section-body" id="pp-constraints-body">—</div>' +
-              '</div>' +
             '</div>' +
           '</div>' +
-          /* Footer */
           '<div class="pp-footer">' +
-            '<div class="pp-footer-credit">Optimized by <strong>Prompt+</strong></div>' +
+            '<div class="pp-footer-credit">Powered by <strong>Prompt+</strong></div>' +
             '<div class="pp-footer-actions">' +
               '<button class="pp-btn-keep" id="pp-keep-btn">Keep Original</button>' +
               '<button class="pp-btn-apply" id="pp-enhance-btn">' +
@@ -252,33 +283,22 @@
 
     document.body.appendChild(panelEl);
 
-    // Animate in
     requestAnimationFrame(() => {
       panelEl.querySelector(".pp-backdrop").style.opacity = "1";
       panelEl.querySelector(".pp-side").style.transform = "translateX(0)";
     });
 
-    // Show original text
     panelEl.querySelector("#pp-original-preview").textContent = text;
 
-    // Load stored settings
-    if (s) {
-      if (s.model) {
-        const sel = panelEl.querySelector("#pp-model");
-        if (sel) sel.value = s.model;
-      }
-      if (s.tone) {
-        const selTone = panelEl.querySelector("#pp-tone");
-        if (selTone) selTone.value = s.tone;
-      }
+    if (s && s.model) {
+      const sel = panelEl.querySelector("#pp-model");
+      if (sel) sel.value = s.model;
     }
 
-    // Close handlers
     panelEl.querySelector("#pp-close-btn").onclick = closePanel;
     panelEl.querySelector(".pp-backdrop")?.addEventListener("click", closePanel);
     document.addEventListener("keydown", ppEscHandler);
 
-    // Chatbot pills
     const botUrls = { chatgpt: "https://chatgpt.com", claude: "https://claude.ai", gemini: "https://gemini.google.com", deepseek: "https://chat.deepseek.com" };
     panelEl.querySelectorAll(".pp-bot-pill").forEach((pill) => {
       const idx = Array.from(pill.parentElement.children).indexOf(pill);
@@ -287,31 +307,24 @@
       pill.addEventListener("click", (e) => { e.stopPropagation(); if (url) window.open(url, "_blank"); });
     });
 
-    // Keep Original
     panelEl.querySelector("#pp-keep-btn").onclick = () => {
       if (currentText) setText(input, currentText);
       closePanel();
     };
 
-    // Enhance / Apply Upgrade
     panelEl.querySelector("#pp-enhance-btn").onclick = () => doEnhance(input, text);
 
-    // Copy
     panelEl.querySelector("#pp-copy-btn").onclick = () => {
       const val = panelEl.querySelector("#pp-enhanced-preview").textContent;
       if (!val) return;
       navigator.clipboard.writeText(val);
       const copyBtn = panelEl.querySelector("#pp-copy-btn");
-      copyBtn.textContent = "✓ Copied!";
-      setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 1800);
+      copyBtn.textContent = "✓ Copied";
+      setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 1500);
     };
 
-    // Store settings when changed
     panelEl.querySelector("#pp-model").addEventListener("change", (e) => {
       saveSettings({ model: e.target.value });
-    });
-    panelEl.querySelector("#pp-tone").addEventListener("change", (e) => {
-      saveSettings({ tone: e.target.value });
     });
   }
 
@@ -338,38 +351,34 @@
 
     try {
       const modelVal = document.getElementById("pp-model")?.value || "gpt-4o-mini";
-      const toneVal = document.getElementById("pp-tone")?.value || "Balanced";
       const parts = modelVal.split("::");
       const model = parts[0];
       const provider = parts[1] || "openai";
 
-      const res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tone: toneVal });
-      if (!res || !res.success) throw new Error(res?.error || "Enhancement failed");
+      const res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider });
+      if (!res || !res.success) throw new Error(res?.error || "Failed");
 
       currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
       if (enhancedPreview) enhancedPreview.textContent = currentEnhanced;
       if (copyBtn) copyBtn.disabled = false;
 
-      // Structured sections parsing
       if (sections) {
         sections.style.display = "block";
         parseAndFillSections(currentEnhanced);
       }
 
-      // Update button to Replace mode
-      if (btnText) btnText.textContent = "Insert into Page";
+      if (btnText) btnText.textContent = "Apply Upgrade";
       if (btn) {
         btn.disabled = false;
         btn.onclick = () => {
           if (currentEnhanced) setText(input, currentEnhanced);
-          showToast("Inserted enhanced prompt into editor!");
           closePanel();
         };
       }
 
       saveHistory(text);
     } catch (err) {
-      showToast(err.message || "Failed to enhance prompt");
+      showToast(err.message);
       if (btnText) btnText.textContent = "Apply Upgrade";
       if (btn) btn.disabled = false;
     } finally {
@@ -388,7 +397,6 @@
     const lines = enhanced.split("\n");
     let role = "", context = "", instructions = "", constraints = "";
     let current = "instructions";
-
     for (const line of lines) {
       const lower = line.toLowerCase().trim();
       if (lower.startsWith("role:") || lower.startsWith("act as") || lower.startsWith("you are")) {
@@ -411,326 +419,132 @@
       }
     }
 
-    if (roleEl) roleEl.textContent = role.trim() || "Not specified";
-    if (ctxEl) ctxEl.textContent = context.trim() || "Standard context";
-    if (instEl) instEl.textContent = instructions.trim() || enhanced;
-    if (constEl) constEl.textContent = constraints.trim() || "None specified";
+    if (roleEl) roleEl.textContent = role.trim() || "";
+    if (ctxEl) ctxEl.textContent = context.trim() || "";
+    if (instEl) instEl.textContent = instructions.trim() || enhanced.slice(0, 200);
+    if (constEl) constEl.textContent = constraints.trim() || "";
   }
 
   function ppEscHandler(e) {
     if (e.key === "Escape") closePanel();
   }
 
+  function escapeHtml(str) {
+    const d = document.createElement("div");
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
   const style = document.createElement("style");
   style.textContent = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+.pp-fab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px 10px 14px;
+  border-radius: 28px;
+  border: none;
+  background: linear-gradient(135deg, #7C3AED, #EC4899);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+  transition: all 0.2s ease;
+  z-index: 999999;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.pp-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(124,58,237,0.55); }
+.pp-fab:active { transform: translateY(0); }
+.pp-fab-icon { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; }
 
-  /* ─── Toast Notification ─── */
-  .pp-toast {
-    position: fixed; bottom: 28px; left: 50%;
-    transform: translateX(-50%) translateY(10px);
-    background: rgba(15, 23, 42, 0.92);
-    color: #f8fafc;
-    padding: 10px 20px;
-    border-radius: 12px;
-    font-size: 13px; font-weight: 600;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    z-index: 100000001;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-    border: 1px solid rgba(255,255,255,0.12);
-    backdrop-filter: blur(12px);
-    opacity: 0;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    pointer-events: none;
-  }
+.pp-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99999999; opacity: 0; transition: opacity 0.25s ease; }
 
-  /* ─── Floating Action Button ─── */
-  .pp-fab {
-    display: flex; align-items: center; gap: 8px;
-    padding: 10px 18px;
-    border-radius: 24px;
-    border: 1px solid rgba(255,255,255,0.2);
-    background: linear-gradient(135deg, #1d4ed8, #2563eb);
-    color: #ffffff;
-    cursor: pointer;
-    box-shadow: 0 4px 18px rgba(37,99,235,0.4);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    z-index: 999999;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    font-size: 13px; font-weight: 700;
-    letter-spacing: -0.01em;
-  }
-  .pp-fab:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 6px 24px rgba(37,99,235,0.55);
-  }
-  .pp-fab:active { transform: translateY(0) scale(0.98); }
-  .pp-fab-icon {
-    width: 24px; height: 24px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.22);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px;
-  }
+.pp-side { position: fixed; top: 0; right: 0; width: 520px; max-width: 96vw; height: 100vh; z-index: 100000000; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.pp-side-inner { height: 100%; background: linear-gradient(135deg, #1a0a2e 0%, #16213e 100%); display: flex; flex-direction: column; box-shadow: -8px 0 40px rgba(0,0,0,0.3); font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #e2e8f0; }
 
-  /* ─── Backdrop ─── */
-  .pp-backdrop {
-    position: fixed; inset: 0;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(4px);
-    z-index: 99999999;
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
+.pp-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(255,255,255,0.04); border-bottom: 1px solid rgba(124,58,237,0.2); flex-shrink: 0; }
+.pp-head-left { display: flex; align-items: center; gap: 12px; }
+.pp-head-icon { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #7C3AED, #EC4899); display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 12px rgba(124,58,237,0.4); }
+.pp-head-info { display: flex; flex-direction: column; gap: 2px; }
+.pp-head-title { font-size: 16px; font-weight: 700; color: #f1f5f9; letter-spacing: -0.02em; }
+.pp-head-enc { font-size: 10px; font-weight: 700; color: #34d399; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 4px; }
+.pp-enc-dot { width: 5px; height: 5px; border-radius: 50%; background: #34d399; box-shadow: 0 0 8px #34d399; display: inline-block; }
+.pp-close-btn { background: none; border: none; color: #64748b; cursor: pointer; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.pp-close-btn:hover { background: rgba(255,255,255,0.06); color: #94a3b8; }
 
-  /* ─── Side Panel Container ─── */
-  .pp-side {
-    position: fixed; top: 0; right: 0;
-    width: 530px; max-width: 96vw;
-    height: 100vh;
-    z-index: 100000000;
-    transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .pp-side-inner {
-    height: 100%;
-    background: #f8fafc;
-    display: flex; flex-direction: column;
-    box-shadow: -8px 0 40px rgba(0,0,0,0.15);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    color: #0f172a;
-  }
+.pp-bots-strip { display: flex; gap: 6px; padding: 8px 20px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
+.pp-bot-pill { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 6px 4px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); font-size: 11px; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.15s; }
+.pp-bot-pill:hover { background: rgba(255,255,255,0.08); }
+.pp-bot-pill.active { background: rgba(124,58,237,0.12); border-color: rgba(124,58,237,0.4); color: #c4b5fd; }
+.pp-bot-label { font-size: 10px; }
 
-  /* ─── Header ─── */
-  .pp-head {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 20px;
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
-    flex-shrink: 0;
-  }
-  .pp-head-left { display: flex; align-items: center; gap: 12px; }
-  .pp-head-icon {
-    width: 38px; height: 38px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #2563eb, #3b82f6);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px; color: #fff;
-    box-shadow: 0 3px 10px rgba(37,99,235,0.3);
-  }
-  .pp-head-info { display: flex; flex-direction: column; gap: 2px; }
-  .pp-head-title { font-size: 15px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; }
-  .pp-head-enc {
-    font-size: 10px; font-weight: 700; color: #10b981;
-    text-transform: uppercase; letter-spacing: 0.06em;
-    display: flex; align-items: center; gap: 4px;
-  }
-  .pp-enc-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.8);
-    display: inline-block;
-  }
-  .pp-close-btn {
-    background: none; border: none; color: #64748b;
-    cursor: pointer; padding: 6px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s;
-  }
-  .pp-close-btn:hover { background: #f1f5f9; color: #0f172a; }
+.pp-body { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+.pp-body::-webkit-scrollbar { width: 4px; }
+.pp-body::-webkit-scrollbar-track { background: transparent; }
+.pp-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
 
-  /* ─── Chatbot Strip ─── */
-  .pp-bots-strip {
-    display: flex; gap: 6px;
-    padding: 8px 20px;
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
-    flex-shrink: 0;
-  }
-  .pp-bot-pill {
-    flex: 1;
-    display: flex; align-items: center; justify-content: center; gap: 5px;
-    padding: 7px 4px;
-    border-radius: 8px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    font-size: 11px; font-weight: 600; color: #64748b;
-    cursor: pointer; transition: all 0.15s;
-  }
-  .pp-bot-pill.active {
-    background: #eff6ff;
-    border-color: #93c5fd;
-    color: #2563eb;
-  }
-  .pp-bot-label { font-size: 11px; }
+.pp-split-header { display: flex; justify-content: space-between; align-items: center; }
+.pp-split-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; }
+.pp-split-label-right { display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 700; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.06em; }
+.pp-copy-chip { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.06); color: #94a3b8; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+.pp-copy-chip:hover { background: rgba(255,255,255,0.1); }
+.pp-copy-chip:disabled { opacity: 0.3; cursor: not-allowed; }
 
-  /* ─── Scrollable Body ─── */
-  .pp-body {
-    flex: 1; overflow-y: auto;
-    padding: 16px 20px;
-    display: flex; flex-direction: column; gap: 14px;
-    background: #f8fafc;
-  }
-  .pp-body::-webkit-scrollbar { width: 5px; }
-  .pp-body::-webkit-scrollbar-track { background: transparent; }
-  .pp-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.pp-split-view { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pp-split-original, .pp-split-improved { padding: 14px; border-radius: 12px; font-size: 13px; line-height: 1.7; min-height: 60px; white-space: pre-wrap; word-break: break-word; }
+.pp-split-original { background: rgba(255,255,255,0.04); color: #94a3b8; border: 1px solid rgba(255,255,255,0.06); }
+.pp-split-improved { background: rgba(255,255,255,0.06); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1); }
+.pp-placeholder { color: #64748b; font-style: italic; font-size: 12px; }
 
-  .pp-controls-row {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-  }
+.pp-section { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; }
+.pp-section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.pp-section-bar { width: 3px; height: 18px; border-radius: 2px; background: #a78bfa; }
+.pp-section-title { font-size: 12px; font-weight: 800; color: #f1f5f9; text-transform: uppercase; letter-spacing: 0.05em; }
+.pp-section-body { font-size: 13px; line-height: 1.7; color: #94a3b8; white-space: pre-wrap; word-break: break-word; }
 
-  /* ─── Split View ─── */
-  .pp-split-header {
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .pp-split-label {
-    font-size: 11px; font-weight: 700; color: #64748b;
-    text-transform: uppercase; letter-spacing: 0.06em;
-  }
-  .pp-split-label-right {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 11px; font-weight: 700; color: #2563eb;
-    text-transform: uppercase; letter-spacing: 0.06em;
-  }
-  .pp-copy-chip {
-    font-size: 11px; font-weight: 600;
-    padding: 4px 10px; border-radius: 6px;
-    border: 1px solid #cbd5e1;
-    background: #ffffff; color: #475569;
-    cursor: pointer; transition: all 0.15s;
-    font-family: inherit;
-  }
-  .pp-copy-chip:hover { background: #f1f5f9; color: #0f172a; }
-  .pp-copy-chip:disabled { opacity: 0.4; cursor: not-allowed; }
+.pp-model-row { display: flex; align-items: center; gap: 10px; }
+.pp-model-label { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0; }
+.pp-select { flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #e2e8f0; padding: 8px 30px 8px 12px; font-size: 13px; font-family: inherit; outline: none; cursor: pointer; transition: border-color 0.15s; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+.pp-select:hover { border-color: rgba(124,58,237,0.4); }
+.pp-select:focus { border-color: #7C3AED; box-shadow: 0 0 0 2px rgba(124,58,237,0.15); }
+.pp-select optgroup { background: #1a0a2e; color: #94a3b8; }
+.pp-select option { background: #1a0a2e; color: #e2e8f0; }
 
-  .pp-split-view {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-  }
-  .pp-split-original, .pp-split-improved {
-    padding: 14px;
-    border-radius: 12px;
-    font-size: 13px; line-height: 1.6;
-    min-height: 100px; max-height: 220px; overflow-y: auto;
-    white-space: pre-wrap; word-break: break-word;
-  }
-  .pp-split-original {
-    background: #f1f5f9;
-    color: #475569;
-    border: 1px solid #e2e8f0;
-  }
-  .pp-split-improved {
-    background: #ffffff;
-    color: #0f172a;
-    border: 1px solid #cbd5e1;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-  }
-  .pp-placeholder { color: #94a3b8; font-style: italic; font-size: 12px; }
+.pp-footer { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: rgba(255,255,255,0.04); border-top: 1px solid rgba(124,58,237,0.2); flex-shrink: 0; }
+.pp-footer-credit { font-size: 12px; color: #64748b; }
+.pp-footer-credit strong { color: #a78bfa; }
+.pp-footer-actions { display: flex; gap: 8px; }
 
-  /* ─── Structured Sections ─── */
-  .pp-section {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 14px;
-    margin-top: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-  }
-  .pp-section-head {
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: 8px;
-  }
-  .pp-section-bar {
-    width: 4px; height: 16px;
-    border-radius: 2px;
-  }
-  .pp-section-title {
-    font-size: 11px; font-weight: 800; color: #0f172a;
-    text-transform: uppercase; letter-spacing: 0.06em;
-  }
-  .pp-section-body {
-    font-size: 12.5px; line-height: 1.6; color: #334155;
-    white-space: pre-wrap; word-break: break-word;
-  }
+.pp-btn-keep { padding: 10px 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #94a3b8; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+.pp-btn-keep:hover { background: rgba(255,255,255,0.06); color: #e2e8f0; }
 
-  /* ─── Select Dropdowns ─── */
-  .pp-select {
-    width: 100%;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    color: #0f172a;
-    padding: 8px 30px 8px 10px;
-    font-size: 12px; font-weight: 500; font-family: inherit;
-    outline: none; cursor: pointer; transition: all 0.15s;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-  }
-  .pp-select:hover { border-color: #94a3b8; }
-  .pp-select:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.15); }
+.pp-btn-apply { padding: 10px 20px; border-radius: 10px; border: none; background: linear-gradient(135deg, #7C3AED, #EC4899); color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; font-family: inherit; box-shadow: 0 2px 12px rgba(124,58,237,0.3); }
+.pp-btn-apply:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.pp-btn-apply:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-  /* ─── Footer ─── */
-  .pp-footer {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 20px;
-    background: #ffffff;
-    border-top: 1px solid #e2e8f0;
-    flex-shrink: 0;
-  }
-  .pp-footer-credit {
-    font-size: 12px; color: #64748b; font-weight: 500;
-  }
-  .pp-footer-credit strong { color: #2563eb; }
-
-  .pp-footer-actions { display: flex; gap: 8px; }
-
-  .pp-btn-keep {
-    padding: 10px 18px;
-    border-radius: 10px;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #475569;
-    font-size: 13px; font-weight: 600;
-    cursor: pointer; transition: all 0.15s;
-    font-family: inherit;
-  }
-  .pp-btn-keep:hover { background: #f1f5f9; color: #0f172a; }
-
-  .pp-btn-apply {
-    padding: 10px 20px;
-    border-radius: 10px;
-    border: none;
-    background: linear-gradient(135deg, #1d4ed8, #2563eb);
-    color: #ffffff;
-    font-size: 13px; font-weight: 700;
-    cursor: pointer; transition: all 0.15s;
-    display: flex; align-items: center; gap: 6px;
-    font-family: inherit;
-    box-shadow: 0 3px 10px rgba(37,99,235,0.3);
-  }
-  .pp-btn-apply:hover { filter: brightness(1.08); transform: translateY(-1px); }
-  .pp-btn-apply:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-  .pp-btn-spinner {
-    width: 14px; height: 14px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: ppSpin 0.6s linear infinite;
-  }
-  @keyframes ppSpin { to { transform: rotate(360deg); } }
+.pp-btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: ppSpin 0.6s linear infinite; }
+@keyframes ppSpin { to { transform: rotate(360deg); } }
   `;
   document.head.appendChild(style);
 
-  // Observer to re-inject FAB if DOM updates
   const observer = new MutationObserver(() => {
     if (!document.querySelector(".pp-fab")) injectFab();
   });
   observer.observe(document.body, { childList: true, subtree: true });
   injectFab();
 
-  // Listen for messages from background script
-  chrome.runtime.onMessage.addListener((request) => {
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "selfEnhance") {
+      const input = getInput();
+      if (!input) { sendResponse?.({ success: false, error: "No chatbot input field found on this page" }); return true; }
+      currentTarget = input;
+      currentText = request.text;
+      doSelfEnhance(input, request.text);
+      sendResponse?.({ success: true });
+      return true;
+    }
     if (request.action === "toggleEnhancePanel") {
       if (panelEl) { closePanel(); return; }
       currentTarget = getInput();
