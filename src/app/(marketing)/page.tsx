@@ -1,17 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import {
   Sparkles,
   ArrowRight,
-  CheckCircle2,
   BarChart3,
   Layers,
   Terminal,
   Cpu,
-  Copy,
-  Check,
   Wand2,
   ArrowUpRight,
   Sliders,
@@ -19,33 +15,6 @@ import {
   Puzzle,
   ExternalLink
 } from "lucide-react";
-
-const sampleDemos = [
-  {
-    category: "Software Development",
-    original: "Write a React component for a data table.",
-    enhanced:
-      "Act as a Principal Frontend Engineer specializing in Next.js 16 and TypeScript. Build a highly performant, accessible data table component featuring:\n• Server-side pagination & sorting\n• Column visibility toggles & sticky headers\n• Accessible ARIA roles & keyboard navigation\n• Zero third-party runtime bloat using Tailwind CSS",
-    score: 98,
-    timeSaved: "15 mins",
-  },
-  {
-    category: "Content Creation",
-    original: "Write a blog post about AI in marketing.",
-    enhanced:
-      "Act as a Tech Journalist for Wired. Draft a 1,200-word data-driven article analyzing the shift to generative AI in B2B marketing funnel optimization. Include:\n• 3 case studies with verified ROI metrics\n• Nuanced analysis of ethical considerations & bias\n• Actionable framework for CMOs implementing AI tools in 2026",
-    score: 96,
-    timeSaved: "30 mins",
-  },
-  {
-    category: "Data Analysis",
-    original: "Help me analyze this customer churn data.",
-    enhanced:
-      "Act as a Senior Product Data Scientist. Analyze the provided quarterly customer churn CSV dataset to:\n1. Identify statistical correlations between onboarding step completion and 30-day retention.\n2. Construct a predictive cohort matrix grouped by acquisition channel.\n3. Formulate 3 high-impact product experiments to reduce mid-funnel churn.",
-    score: 99,
-    timeSaved: "45 mins",
-  },
-];
 
 const features = [
   {
@@ -86,25 +55,6 @@ const modelBadges = [
 ];
 
 export default function LandingPage() {
-  const [selectedDemoIndex, setSelectedDemoIndex] = useState(0);
-  const [isEnhancing, setIsEnhancing] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const activeDemo = sampleDemos[selectedDemoIndex];
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(activeDemo.enhanced);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleSimulateEnhance = () => {
-    setIsEnhancing(true);
-    setTimeout(() => {
-      setIsEnhancing(false);
-    }, 600);
-  };
-
   return (
     <div className="relative overflow-hidden selection:bg-primary/20 selection:text-primary">
       {/* Background Mesh Glow Effects */}
@@ -170,114 +120,6 @@ export default function LandingPage() {
                   <span>{m.name}</span>
                 </div>
               ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Interactive Live Demo Playground Section */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              See the Transformation in Action
-            </h2>
-            <p className="text-sm sm:text-base text-muted-foreground mt-2">
-              Select an example domain below to watch Prompt+ convert basic text into an elite prompt.
-            </p>
-          </div>
-
-          {/* Category Tabs */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
-            {sampleDemos.map((demo, idx) => (
-              <button
-                key={demo.category}
-                onClick={() => {
-                  setSelectedDemoIndex(idx);
-                  handleSimulateEnhance();
-                }}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
-                  selectedDemoIndex === idx
-                    ? "bg-foreground text-background shadow-md scale-105"
-                    : "bg-card border text-muted-foreground hover:text-foreground hover:bg-accent"
-                }`}
-              >
-                {demo.category}
-              </button>
-            ))}
-          </div>
-
-          {/* Interactive Card Container */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 rounded-2xl border bg-card/80 backdrop-blur-xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
-            {/* Before (Original) */}
-            <div className="flex flex-col justify-between p-4 rounded-xl bg-muted/40 border border-border/60">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-amber-500" />
-            Original Input
-          </span>
-          <span className="text-xs text-amber-600 dark:text-amber-400 font-medium bg-amber-500/10 px-2 py-0.5 rounded">
-            Score: 45/100 (Basic)
-          </span>
-        </div>
-        <p className="text-sm font-mono text-foreground/90 bg-background/60 p-3.5 rounded-lg border leading-relaxed">
-          &quot;{activeDemo.original}&quot;
-        </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-border/50 text-xs text-muted-foreground flex items-center justify-between">
-                <span>Vague instructions</span>
-                <span>High hallucination risk</span>
-              </div>
-            </div>
-
-            {/* After (Enhanced) */}
-            <div className="flex flex-col justify-between p-4 rounded-xl bg-primary/5 border border-primary/20 relative">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
-                    Prompt+ Refined Output
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3" /> Score: {activeDemo.score}/100
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  className={`transition-opacity duration-300 ${
-                    isEnhancing ? "opacity-30 blur-2xs" : "opacity-100"
-                  }`}
-                >
-                  <pre className="text-xs font-sans text-foreground bg-background p-3.5 rounded-lg border whitespace-pre-wrap leading-relaxed max-h-[220px] overflow-y-auto">
-                    {activeDemo.enhanced}
-                  </pre>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-primary/10 flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">
-                  ⏱ Saves approx. <strong className="text-foreground">{activeDemo.timeSaved}</strong> of iteration
-                </span>
-                <button
-                  onClick={handleCopy}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border text-xs font-medium hover:bg-accent transition-colors active:scale-95"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="h-3.5 w-3.5 text-emerald-500" />
-                      <span>Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span>Copy Prompt</span>
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
           </div>
         </div>

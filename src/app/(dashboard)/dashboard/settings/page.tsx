@@ -157,8 +157,19 @@ export default function SettingsPage() {
   const [defaultModel, setDefaultModel] = useState("gpt-4");
   const [defaultTone, setDefaultTone] = useState("");
   const [autoEnhance, setAutoEnhance] = useState(false);
-  const [toggles, setToggles] = useState<Record<string, boolean>>({ email: true, usage: true, digest: false });
+  const defaultToggles = () => {
+    if (typeof window === "undefined") return { email: true, usage: true, digest: false };
+    try {
+      const saved = localStorage.getItem("pp_notification_prefs");
+      return saved ? JSON.parse(saved) : { email: true, usage: true, digest: false };
+    } catch { return { email: true, usage: true, digest: false }; }
+  };
+  const [toggles, setToggles] = useState<Record<string, boolean>>(defaultToggles);
   const [planData, setPlanData] = useState<{ used: number; limit: number; remaining: number } | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem("pp_notification_prefs", JSON.stringify(toggles));
+  }, [toggles]);
 
   useEffect(() => {
     if (session?.user?.name || session?.user?.email) {

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ExternalLink, Puzzle, Zap, Sparkles, Copy, Layers } from "lucide-react";
 
 const steps = [
-  { icon: Puzzle, title: "Install", desc: "Add the Prompt+ extension from the Chrome Web Store (or load unpacked in dev mode)." },
+  { icon: Puzzle, title: "Install", desc: "Load the unpacked extension from the extension/ folder in Chrome dev mode." },
   { icon: Sparkles, title: "Open a Chat", desc: "Visit ChatGPT, Claude, Gemini, or DeepSeek. A floating Prompt+ button appears near the input." },
   { icon: Copy, title: "Enhance", desc: "Click the button to open the side panel, refine your prompt, and apply it — no copy-paste needed." },
   { icon: Layers, title: "Configure", desc: "Set your API key, pick a model, and toggle Token Saver mode from the popup or panel." },
@@ -50,7 +50,7 @@ export default function ExtensionPage() {
             <li>Select the <code className="text-primary text-xs font-mono bg-primary/10 px-1.5 py-0.5 rounded">extension/</code> folder from the repo</li>
           </ol>
           <p className="text-xs text-muted-foreground mt-4">
-            Chrome Web Store listing coming soon. For now, use the manual install above.
+            Load the unpacked extension from the <code className="text-primary text-xs font-mono bg-primary/10 px-1.5 py-0.5 rounded">extension/</code> folder.
           </p>
         </div>
 
