@@ -142,12 +142,11 @@ async function enhanceWithDevice(text) {
     throw new Error("Gemini Nano not available on this device. Needs Chrome 138+, 22GB+ free storage, macOS 13+/Win 10+/Linux.");
   }
   const session = await LanguageModel.create({
-    initialPrompts: [{ role: "system", content: "Rewrite the user's rough prompt into a detailed, structured version. Add context, clear step-by-step instructions, specificity, format guidance, and constraints. Output only the enhanced prompt." }],
-    temperature: 0.4, topK: 3,
+    temperature: 0.3, topK: 1,
     monitor(m) { m.addEventListener("downloadprogress", (e) => { if (e.loaded < 1) console.log(`Downloading Gemini Nano: ${Math.round(e.loaded * 100)}%`); }); },
   });
   try {
-    const result = await session.prompt(text);
+    const result = await session.prompt(`Rewrite the following rough prompt into a detailed, well-structured version. Add specific context, clear instructions, and useful constraints. Output ONLY the improved prompt, nothing else.\n\nOriginal: ${text}\n\nImproved:`);
     return { success: true, enhanced: result };
   } finally {
     session.destroy();

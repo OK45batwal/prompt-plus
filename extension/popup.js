@@ -16,17 +16,6 @@ const modeDevice = document.getElementById("mode-device");
 const modeServer = document.getElementById("mode-server");
 
 let currentMode = "self";
-const debugInd = document.getElementById("debug-indicator");
-const debugVal = document.getElementById("debug-value");
-if (debugInd) debugInd.style.display = "block";
-if (input) {
-  if (debugVal) { debugVal.style.display = "block"; debugVal.textContent = "value length: " + input.value.length; }
-} else {
-  if (debugInd) debugInd.textContent = "⚠️ Debug: input element NOT FOUND";
-}
-setInterval(() => {
-  if (debugVal && input) debugVal.textContent = "value length: " + input.value.length;
-}, 200);
 
 function showMsg(text, err) {
   if (!msg) return;
@@ -72,7 +61,6 @@ function setMode(mode) {
 input?.addEventListener("input", () => {
   const len = input.value.length;
   if (charCount) charCount.textContent = `${len} character${len === 1 ? "" : "s"}`;
-  if (debugVal) debugVal.textContent = "value length: " + len;
 });
 
 // Mode toggle
@@ -120,7 +108,6 @@ keyInput?.addEventListener("input", () => { keyInput.style.borderColor = ""; });
 // Enhance
 btn?.addEventListener("click", async () => {
   try {
-    console.log("[Prompt+] input:", input, "value:", input?.value?.length);
     const text = input?.value?.trim();
     if (!text) { showMsg("Enter a prompt first", true); return; }
 
