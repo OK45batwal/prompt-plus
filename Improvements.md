@@ -82,3 +82,94 @@ Fork & Clone: 1-click "Fork Template" into personal user collections.
 
 🎯 Recommended Next Step
 If you want to start building one of these enhancements, Building the Companion Chrome Extension (or adding Context Memory Blocks) will yield the biggest immediate boost to user experience! Let me know which one you'd like to tackle first.
+
+# Implementation Plan - Custom Prompt+ AI Model (Fine-Tuning, Hosting & Integration)
+
+Build, fine-tune, host, and seamlessly integrate a custom domain-specific model (**Prompt+ Architect 8B**) tailored specifically for prompt optimization. This plan covers the entire pipeline: **dataset curation, QLoRA fine-tuning, cloud serverless & local hosting, and Next.js backend integration**.
+
+---
+
+## 🎯 Architecture Overview
+
+```mermaid
+graph TD
+    A["Raw User Prompt"] --> B["Prompt+ Backend / Extension"]
+    B --> C{"Provider Router"}
+    C -->|"Selected: Custom Model"| D["Prompt+ Architect 8B Endpoint"]
+    C -->|"Selected: OpenRouter/OpenAI"| E["Public LLM Providers"]
+    D -->|"vLLM / RunPod / Together AI"| F["Structured Output (ROLE, CONTEXT, INSTRUCTIONS)"]
+    F --> B
+```
+
+---
+
+## 🚀 Phase 1: Model Fine-Tuning & Dataset Curation
+
+1. **Base Model Selection**: `Llama-3.1-8B-Instruct` or `Qwen-2.5-7B-Instruct` (ultra-fast, highly accurate at structural adherence).
+2. **Dataset Curation**:
+   - Create a synthetic training dataset of 2,500+ high-quality pairs `(input_prompt, optimized_prompt)` formatted with `ROLE`, `CONTEXT`, `INSTRUCTIONS`, and `CONSTRAINTS`.
+   - Format: Standard ChatML / Llama-3 instruction template.
+3. **Training Stack**:
+   - Use **Unsloth QLoRA** (reduces VRAM requirements by 60%, trains in ~30 minutes on an RTX 4090 / Colab GPU).
+   - Save weights as GGUF (for local Ollama deployment) and Safetensors (for cloud vLLM deployment).
+
+---
+
+## ☁️ Phase 2: Model Hosting & Serving Strategy
+
+1. **Serverless Cloud Hosting (Production)**:
+   - Deploy fine-tuned model weights to **Together AI (Custom Model Endpoint)** or **RunPod Serverless / Replicate** running vLLM.
+   - Exposes a standard, ultra-fast OpenAI-compatible endpoint: `https://api.together.xyz/v1/chat/completions` or `https://<pod-id>.runpod.net/v1/chat/completions`.
+2. **Self-Hosted / Local Fallback**:
+   - Ollama / vLLM Docker container support (`http://localhost:11434/v1`).
+
+---
+
+## ⚙️ Phase 3: Backend Integration & Routing
+
+### 1. Provider Layer ([providers.ts](file:///Users/omkar/prompt-plus/src/lib/llm/providers.ts))
+- Add `"custom"` to `LLMRequestOptions.provider`.
+- Configure `CUSTOM_LLM_API_URL` and `CUSTOM_LLM_API_KEY` in environment variables (`.env.local` / Vercel).
+- Pass request to custom serverless vLLM or Together AI endpoint.
+
+### 2. API Routes ([enhance-ai/route.ts](file:///Users/omkar/prompt-plus/src/app/api/v1/prompts/enhance-ai/route.ts))
+- Add `promptplus-architect-8b` to allowed models.
+- Automatic routing to the fine-tuned custom endpoint when selected.
+
+---
+
+## 🖥️ Phase 4: UI & Extension Integration
+
+### 1. Dashboard Settings ([settings/page.tsx](file:///Users/omkar/prompt-plus/src/app/(dashboard)/dashboard/settings/page.tsx))
+- Add a **Custom LLM Endpoint** section where admins/users can input custom model API URLs (e.g. RunPod, Together AI, or local Ollama).
+
+### 2. Browser Extension ([popup.html](file:///Users/omkar/prompt-plus/extension/popup.html) & [content.js](file:///Users/omkar/prompt-plus/extension/content.js))
+- Add **Prompt+ Architect 8B (Fine-Tuned)** to model dropdowns as the recommended primary model.
+
+---
+
+## 🛠️ Proposed Changes
+
+### [MODIFY] [providers.ts](file:///Users/omkar/prompt-plus/src/lib/llm/providers.ts)
+- Add `custom` provider routing logic and `CUSTOM_LLM_API_URL` environment variable support.
+
+### [MODIFY] [enhance-ai/route.ts](file:///Users/omkar/prompt-plus/src/app/api/v1/prompts/enhance-ai/route.ts)
+- Add fallback check for `CUSTOM_LLM_API_KEY` and `CUSTOM_LLM_API_URL`.
+
+### [MODIFY] [popup.html](file:///Users/omkar/prompt-plus/extension/popup.html)
+- Add `promptplus-architect-8b::custom` option in model selection dropdown.
+
+### [NEW] [scripts/fine_tune_unsloth.py](file:///Users/omkar/prompt-plus/scripts/fine_tune_unsloth.py)
+- Python script providing the exact Unsloth training pipeline to fine-tune Llama 3.1 8B on prompt engineering pairs.
+
+---
+
+## 🧪 Verification Plan
+
+### Automated Verification
+- Run `npm run build` to confirm TypeScript compilation.
+- Test custom endpoint routing via unit test hitting a mock OpenAI-compatible endpoint.
+
+### Manual Verification
+- Test selecting "Prompt+ Architect 8B" in Dashboard and Browser Extension.
+- Verify request latency and response format correctness.
