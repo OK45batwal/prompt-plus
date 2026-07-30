@@ -16,6 +16,8 @@ const modeDevice = document.getElementById("mode-device");
 const modeServer = document.getElementById("mode-server");
 
 let currentMode = "self";
+let tokenSaver = false;
+const tsToggle = document.getElementById("ts-toggle");
 
 function showMsg(text, err) {
   if (!msg) return;
@@ -68,11 +70,17 @@ modeSelf?.addEventListener("click", () => setMode("self"));
 modeDevice?.addEventListener("click", () => setMode("device"));
 modeServer?.addEventListener("click", () => setMode("server"));
 
+tsToggle?.addEventListener("change", () => {
+  tokenSaver = tsToggle.checked;
+  chrome.runtime.sendMessage({ action: "saveSettings", settings: { tokenSaver } });
+});
+
 // Load settings
 chrome.runtime?.sendMessage?.({ action: "getSettings" }, (res) => {
   const s = res?.settings || {};
   if (s.mode) setMode(s.mode);
   if (s.model && modelSelect) modelSelect.value = s.model;
+  if (s.tokenSaver && tsToggle) { tsToggle.checked = true; tokenSaver = true; }
 });
 
 // Save model selection
@@ -133,7 +141,7 @@ btn?.addEventListener("click", async () => {
       btn.disabled = true;
       btn.innerHTML = '<span>📱</span><span>Device Enhancing...</span>';
       try {
-        const res = await chrome.runtime.sendMessage({ action: "enhanceDevice", text });
+        const res = await chrome.runtime.sendMessage({ action: "enhanceDevice", text, tokenSaver });
         if (!res || !res.success) throw new Error(res?.error || "Device AI not available (Chrome 138+ with Gemini Nano required)");
         const enhanced = res.enhanced;
         const [tab] = await chrome.tabs?.query({ active: true, currentWindow: true }) || [];
@@ -170,11 +178,12 @@ btn?.addEventListener("click", async () => {
     const provider = parts[1] || "openai";
 
     try {
-      const res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider });
+      const res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver });
       if (!res || !res.success) throw new Error(res?.error || "Failed");
       const enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
+      const saved = tokenSaver ? ` (saved ~${Math.round((1 - enhanced.length / text.length) * 100)}% tokens)` : "";
       await navigator.clipboard.writeText(enhanced);
-      showMsg("Enhanced & copied to clipboard!");
+      showMsg("Enhanced & copied to clipboard!" + saved);
     } catch (e) {
       showMsg(e.message, true);
     } finally {

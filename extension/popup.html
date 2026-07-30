@@ -144,8 +144,31 @@
     .msg.ok { color: #34d399; background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.2); }
     .msg.err { color: #f87171; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); }
 
+    .opt-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 10px; padding: 8px 12px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);
+    }
+    .opt-label { font-size: 11px; color: #94a3b8; }
+    .opt-label strong { color: #c4b5fd; font-weight: 700; }
+    .opt-sub { font-size: 9px; color: #64748b; margin-top: 1px; }
+    .toggle { position: relative; width: 36px; height: 20px; flex-shrink: 0; cursor: pointer; }
+    .toggle input { display: none; }
+    .toggle-slider {
+      position: absolute; inset: 0; background: rgba(255,255,255,0.1);
+      border-radius: 10px; transition: 0.2s; cursor: pointer;
+    }
+    .toggle-slider::before {
+      content: ""; position: absolute; width: 16px; height: 16px;
+      left: 2px; bottom: 2px; background: #94a3b8;
+      border-radius: 50%; transition: 0.2s;
+    }
+    .toggle input:checked + .toggle-slider { background: rgba(124,58,237,0.4); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(16px); background: #7C3AED; }
+
     .api-card {
-      margin-top: 12px; padding: 10px 12px;
+      margin-top: 10px; padding: 10px 12px;
       background: rgba(255,255,255,0.04);
       border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.06);
@@ -230,6 +253,16 @@
       <span id="mode-label">Self mode — injected directly into chatbot</span>
     </div>
 
+    <div class="opt-row" id="ts-row">
+      <div>
+        <div class="opt-label"><strong>Token Saver</strong> — concise without losing quality</div>
+        <div class="opt-sub">~40% fewer tokens in output</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="ts-toggle">
+        <div class="toggle-slider"></div>
+      </label>
+    </div>
 
     <select id="model-select" class="model-select" style="display:none">
       <optgroup label="OpenRouter Free Tier">

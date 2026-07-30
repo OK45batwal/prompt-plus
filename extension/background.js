@@ -69,7 +69,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "enhanceDevice") {
     (async () => {
       try {
-        const result = await enhanceWithDevice(request.text);
+        const result = await enhanceWithDevice(request);
         sendResponse(result);
       } catch (e) {
         sendResponse({ success: false, error: e.message || "Device AI error" });
@@ -133,7 +133,8 @@ chrome.commands.onCommand.addListener((command) => {
 });
 
 // Device AI enhancement via Chrome Prompt API (Gemini Nano, Chrome 138+)
-async function enhanceWithDevice(text) {
+async function enhanceWithDevice(req) {
+  const text = req.text;
   if (typeof LanguageModel === "undefined") {
     throw new Error("Device AI not supported. Chrome 138+ with Gemini Nano required.");
   }
@@ -146,7 +147,10 @@ async function enhanceWithDevice(text) {
     monitor(m) { m.addEventListener("downloadprogress", (e) => { if (e.loaded < 1) console.log(`Downloading Gemini Nano: ${Math.round(e.loaded * 100)}%`); }); },
   });
   try {
-    const result = await session.prompt(`Rewrite the following rough prompt into a detailed, well-structured version. Add specific context, clear instructions, and useful constraints. Output ONLY the improved prompt, nothing else.\n\nOriginal: ${text}\n\nImproved:`);
+    const instruction = req.tokenSaver
+      ? `Rewrite the following prompt into a tight, concise version. Cut fluff, keep every essential instruction and constraint. Use the fewest possible tokens while preserving clarity and intent. Output ONLY the optimized prompt.\n\nOriginal: ${text}\n\nOptimized:`
+      : `Rewrite the following rough prompt into a detailed, well-structured version. Add specific context, clear instructions, and useful constraints. Output ONLY the improved prompt, nothing else.\n\nOriginal: ${text}\n\nImproved:`;
+    const result = await session.prompt(instruction);
     return { success: true, enhanced: result };
   } finally {
     session.destroy();

@@ -278,6 +278,10 @@
                 '<div class="pp-section-body" id="pp-constraints-body">—</div>' +
               '</div>' +
             '</div>' +
+            '<div class="pp-opt-row">' +
+              '<div class="pp-opt-info"><div class="pp-opt-label">Token Saver</div><div class="pp-opt-sub">Concise output, ~40% fewer tokens</div></div>' +
+              '<label class="pp-toggle"><input type="checkbox" id="pp-ts-toggle"><div class="pp-toggle-slider"></div></label>' +
+            '</div>' +
             '<div class="pp-model-row">' +
               '<label class="pp-model-label">Model</label>' +
               '<select id="pp-model" class="pp-select">' +
@@ -340,6 +344,10 @@
 
     panelEl.querySelector("#pp-original-preview").textContent = text;
 
+    if (s?.tokenSaver) {
+      const cb = panelEl.querySelector("#pp-ts-toggle");
+      if (cb) cb.checked = true;
+    }
     if (currentMode === "device") {
       const modelRow = panelEl.querySelector(".pp-model-row");
       if (modelRow) modelRow.style.display = "none";
@@ -379,6 +387,9 @@
     panelEl.querySelector("#pp-model").addEventListener("change", (e) => {
       saveSettings({ model: e.target.value });
     });
+    panelEl.querySelector("#pp-ts-toggle")?.addEventListener("change", (e) => {
+      saveSettings({ tokenSaver: e.target.checked });
+    });
   }
 
   let enhancing = false;
@@ -403,9 +414,11 @@
     const sections = document.getElementById("pp-structured-sections");
 
     try {
+      const tsEl = document.getElementById("pp-ts-toggle");
+      const tkSave = tsEl ? tsEl.checked : false;
       let res;
       if (currentMode === "device") {
-        res = await chrome.runtime.sendMessage({ action: "enhanceDevice", text });
+        res = await chrome.runtime.sendMessage({ action: "enhanceDevice", text, tokenSaver: tkSave });
         if (!res || !res.success) throw new Error(res?.error || "Device AI not available (Chrome 138+ with Gemini Nano required)");
         currentEnhanced = res.enhanced || "";
       } else {
@@ -413,7 +426,7 @@
         const parts = modelVal.split("::");
         const model = parts[0];
         const provider = parts[1] || "openai";
-        res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider });
+        res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver: tkSave });
         if (!res || !res.success) throw new Error(res?.error || "Failed");
         currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
       }
@@ -570,6 +583,17 @@
 .pp-section-bar { width: 3px; height: 16px; border-radius: 2px; background: linear-gradient(180deg, #a78bfa, #7C3AED); }
 .pp-section-title { font-size: 11px; font-weight: 800; color: #f1f5f9; text-transform: uppercase; letter-spacing: 0.06em; }
 .pp-section-body { font-size: 13px; line-height: 1.7; color: #94a3b8; white-space: pre-wrap; word-break: break-word; }
+
+.pp-opt-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
+.pp-opt-info { display: flex; flex-direction: column; gap: 1px; }
+.pp-opt-label { font-size: 12px; font-weight: 600; color: #c4b5fd; }
+.pp-opt-sub { font-size: 10px; color: #64748b; }
+.pp-toggle { position: relative; width: 36px; height: 20px; flex-shrink: 0; cursor: pointer; }
+.pp-toggle input { display: none; }
+.pp-toggle-slider { position: absolute; inset: 0; background: rgba(255,255,255,0.1); border-radius: 10px; transition: 0.2s; cursor: pointer; }
+.pp-toggle-slider::before { content: ""; position: absolute; width: 16px; height: 16px; left: 2px; bottom: 2px; background: #94a3b8; border-radius: 50%; transition: 0.2s; }
+.pp-toggle input:checked + .pp-toggle-slider { background: rgba(124,58,237,0.4); }
+.pp-toggle input:checked + .pp-toggle-slider::before { transform: translateX(16px); background: #7C3AED; }
 
 .pp-model-row { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
 .pp-model-label { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0; }
