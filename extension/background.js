@@ -134,33 +134,18 @@ chrome.commands.onCommand.addListener((command) => {
 
 // Device AI enhancement via Chrome Prompt API (Gemini Nano, Chrome 138+)
 async function enhanceWithDevice(text) {
-  const LM = typeof LanguageModel !== "undefined" ? LanguageModel :
-             self.ai?.languageModel ? self.ai.languageModel : null;
-  if (!LM) {
+  if (typeof LanguageModel === "undefined") {
     throw new Error("Device AI not supported. Chrome 138+ with Gemini Nano required.");
   }
-  let availability;
-  if (LM === LanguageModel) {
-    availability = await LM.availability();
-  } else {
-    const caps = await LM.capabilities();
-    availability = caps.available;
-  }
+  const availability = await LanguageModel.availability();
   if (availability === "unavailable") {
-    throw new Error("Gemini Nano model not available on this device. Enable via chrome://flags/#prompt-api-for-gemini-nano");
+    throw new Error("Gemini Nano not available on this device. Needs Chrome 138+, 22GB+ free storage, macOS 13+/Win 10+/Linux.");
   }
-  let session;
-  if (LM === LanguageModel) {
-    session = await LM.create({
-      systemPrompt: "Rewrite the user's rough prompt into a detailed, structured version. Add context, clear step-by-step instructions, specificity, format guidance, and constraints. Output only the enhanced prompt.",
-      temperature: 0.4,
-    });
-  } else {
-    session = await LM.create({
-      systemPrompt: "Rewrite the user's rough prompt into a detailed, structured version. Add context, clear step-by-step instructions, specificity, format guidance, and constraints. Output only the enhanced prompt.",
-      temperature: 0.4,
-    });
-  }
+  const session = await LanguageModel.create({
+    initialPrompts: [{ role: "system", content: "Rewrite the user's rough prompt into a detailed, structured version. Add context, clear step-by-step instructions, specificity, format guidance, and constraints. Output only the enhanced prompt." }],
+    temperature: 0.4, topK: 3,
+    monitor(m) { m.addEventListener("downloadprogress", (e) => { if (e.loaded < 1) console.log(`Downloading Gemini Nano: ${Math.round(e.loaded * 100)}%`); }); },
+  });
   try {
     const result = await session.prompt(text);
     return { success: true, enhanced: result };
