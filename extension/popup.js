@@ -16,7 +16,17 @@ const modeDevice = document.getElementById("mode-device");
 const modeServer = document.getElementById("mode-server");
 
 let currentMode = "self";
-console.log("[Prompt+] input element:", input, "charCount:", charCount);
+const debugInd = document.getElementById("debug-indicator");
+const debugVal = document.getElementById("debug-value");
+if (debugInd) debugInd.style.display = "block";
+if (input) {
+  if (debugVal) { debugVal.style.display = "block"; debugVal.textContent = "value length: " + input.value.length; }
+} else {
+  if (debugInd) debugInd.textContent = "⚠️ Debug: input element NOT FOUND";
+}
+setInterval(() => {
+  if (debugVal && input) debugVal.textContent = "value length: " + input.value.length;
+}, 200);
 
 function showMsg(text, err) {
   if (!msg) return;
@@ -60,10 +70,9 @@ function setMode(mode) {
 }
 
 input?.addEventListener("input", () => {
-  if (charCount) {
-    const len = input.value.length;
-    charCount.textContent = `${len} character${len === 1 ? "" : "s"}`;
-  }
+  const len = input.value.length;
+  if (charCount) charCount.textContent = `${len} character${len === 1 ? "" : "s"}`;
+  if (debugVal) debugVal.textContent = "value length: " + len;
 });
 
 // Mode toggle
