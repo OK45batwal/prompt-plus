@@ -290,7 +290,10 @@
 
     panelEl.querySelector("#pp-original-preview").textContent = text;
 
-    if (s && s.model) {
+    if (currentMode === "device") {
+      const modelRow = panelEl.querySelector(".pp-model-row");
+      if (modelRow) modelRow.style.display = "none";
+    } else if (s && s.model) {
       const sel = panelEl.querySelector("#pp-model");
       if (sel) sel.value = s.model;
     }
@@ -350,15 +353,21 @@
     const sections = document.getElementById("pp-structured-sections");
 
     try {
-      const modelVal = document.getElementById("pp-model")?.value || "gpt-4o-mini";
-      const parts = modelVal.split("::");
-      const model = parts[0];
-      const provider = parts[1] || "openai";
+      let res;
+      if (currentMode === "device") {
+        res = await chrome.runtime.sendMessage({ action: "enhanceDevice", text });
+        if (!res || !res.success) throw new Error(res?.error || "Device AI not available (Chrome 138+ with Gemini Nano required)");
+        currentEnhanced = res.enhanced || "";
+      } else {
+        const modelVal = document.getElementById("pp-model")?.value || "gpt-4o-mini";
+        const parts = modelVal.split("::");
+        const model = parts[0];
+        const provider = parts[1] || "openai";
+        res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider });
+        if (!res || !res.success) throw new Error(res?.error || "Failed");
+        currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
+      }
 
-      const res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider });
-      if (!res || !res.success) throw new Error(res?.error || "Failed");
-
-      currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
       if (enhancedPreview) enhancedPreview.textContent = currentEnhanced;
       if (copyBtn) copyBtn.disabled = false;
 
@@ -558,6 +567,16 @@
       currentText = request.text;
       setText(currentTarget, request.text);
       openPanel();
+    }
+    if (request.action === "injectEnhanced") {
+      const input = getInput();
+      if (!input) { sendResponse?.({ success: false, error: "No input field" }); return true; }
+      currentTarget = input;
+      currentText = request.text;
+      setText(input, request.enhanced);
+      showToast("✨ Prompt enhanced & injected!");
+      sendResponse?.({ success: true });
+      return true;
     }
   });
 })();

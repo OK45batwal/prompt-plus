@@ -12,6 +12,7 @@ const modeLabel = document.getElementById("mode-label");
 const apiCard = document.getElementById("api-card");
 
 const modeSelf = document.getElementById("mode-self");
+const modeDevice = document.getElementById("mode-device");
 const modeServer = document.getElementById("mode-server");
 
 let currentMode = "self";
@@ -32,6 +33,7 @@ function updateKeyUI(has) {
 function setMode(mode) {
   currentMode = mode;
   modeSelf.classList.toggle("active", mode === "self");
+  modeDevice.classList.toggle("active", mode === "device");
   modeServer.classList.toggle("active", mode === "server");
 
   if (mode === "self") {
@@ -40,6 +42,12 @@ function setMode(mode) {
     modelSelect.style.display = "none";
     apiCard.style.display = "none";
     modeLabel.textContent = "Self mode — injected directly into chatbot";
+  } else if (mode === "device") {
+    btnIcon.textContent = "📱";
+    btnText.textContent = "Device Enhance";
+    modelSelect.style.display = "none";
+    apiCard.style.display = "none";
+    modeLabel.textContent = "Device AI — enhanced via on-device Gemini Nano";
   } else {
     btnIcon.textContent = "⚡";
     btnText.textContent = "Apply Upgrade";
@@ -59,6 +67,7 @@ input?.addEventListener("input", () => {
 
 // Mode toggle
 modeSelf?.addEventListener("click", () => setMode("self"));
+modeDevice?.addEventListener("click", () => setMode("device"));
 modeServer?.addEventListener("click", () => setMode("server"));
 
 // Load settings
@@ -104,12 +113,11 @@ btn?.addEventListener("click", async () => {
   if (!text) { showMsg("Enter a prompt first", true); return; }
 
   if (currentMode === "self") {
-    // Inject meta-prompt into the active chatbot tab
     const [tab] = await chrome.tabs?.query({ active: true, currentWindow: true }) || [];
-    if (!tab?.id) { showMsg("No active tab found", true); return; }
+    if (!tab?.id) { showMsg("Open a chatbot tab first (ChatGPT/Claude/Gemini/DeepSeek)", true); return; }
     chrome.tabs.sendMessage(tab.id, { action: "selfEnhance", text }, (res) => {
       if (chrome.runtime.lastError) {
-        showMsg("Open a chatbot tab first (ChatGPT/Claude/Gemini/DeepSeek)", true);
+        showMsg("Open a chatbot tab first", true);
         return;
       }
       if (res?.success) {
@@ -119,6 +127,37 @@ btn?.addEventListener("click", async () => {
         showMsg(res?.error || "Failed. Open a chatbot tab.", true);
       }
     });
+    return;
+  }
+
+  if (currentMode === "device") {
+    btn.disabled = true;
+    btn.innerHTML = '<span>📱</span><span>Device Enhancing...</span>';
+    try {
+      const res = await chrome.runtime.sendMessage({ action: "enhanceDevice", text });
+      if (!res || !res.success) throw new Error(res?.error || "Device AI not available (Chrome 138+ with Gemini Nano required)");
+      const enhanced = res.enhanced;
+      const [tab] = await chrome.tabs?.query({ active: true, currentWindow: true }) || [];
+      if (tab?.id) {
+        chrome.tabs.sendMessage(tab.id, { action: "injectEnhanced", text, enhanced }, (ir) => {
+          if (chrome.runtime.lastError || !ir?.success) {
+            navigator.clipboard.writeText(enhanced);
+            showMsg("Enhanced & copied to clipboard");
+          } else {
+            showMsg("✨ Prompt enhanced & injected!");
+            window.close();
+          }
+        });
+      } else {
+        await navigator.clipboard.writeText(enhanced);
+        showMsg("Enhanced & copied to clipboard");
+      }
+    } catch (e) {
+      showMsg(e.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span>📱</span><span>Device Enhance</span><span>→</span>';
+    }
     return;
   }
 

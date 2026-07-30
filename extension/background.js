@@ -66,6 +66,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
+  if (request.action === "enhanceDevice") {
+    (async () => {
+      try {
+        const result = await enhanceWithDevice(request.text);
+        sendResponse(result);
+      } catch (e) {
+        sendResponse({ success: false, error: e.message || "Device AI error" });
+      }
+    })();
+    return true;
+  }
+
   if (request.action === "saveApiKey") {
     chrome.storage.local.get(STORAGE_KEY, (data) => {
       const settings = data[STORAGE_KEY] || {};
@@ -119,3 +131,40 @@ chrome.commands.onCommand.addListener((command) => {
     });
   }
 });
+
+// Device AI enhancement via Chrome Prompt API (Gemini Nano, Chrome 138+)
+async function enhanceWithDevice(text) {
+  const LM = typeof LanguageModel !== "undefined" ? LanguageModel :
+             self.ai?.languageModel ? self.ai.languageModel : null;
+  if (!LM) {
+    throw new Error("Device AI not supported. Chrome 138+ with Gemini Nano required.");
+  }
+  let availability;
+  if (LM === LanguageModel) {
+    availability = await LM.availability();
+  } else {
+    const caps = await LM.capabilities();
+    availability = caps.available;
+  }
+  if (availability === "unavailable") {
+    throw new Error("Gemini Nano model not available on this device. Enable via chrome://flags/#prompt-api-for-gemini-nano");
+  }
+  let session;
+  if (LM === LanguageModel) {
+    session = await LM.create({
+      systemPrompt: "Rewrite the user's rough prompt into a detailed, structured version. Add context, clear step-by-step instructions, specificity, format guidance, and constraints. Output only the enhanced prompt.",
+      temperature: 0.4,
+    });
+  } else {
+    session = await LM.create({
+      systemPrompt: "Rewrite the user's rough prompt into a detailed, structured version. Add context, clear step-by-step instructions, specificity, format guidance, and constraints. Output only the enhanced prompt.",
+      temperature: 0.4,
+    });
+  }
+  try {
+    const result = await session.prompt(text);
+    return { success: true, enhanced: result };
+  } finally {
+    session.destroy();
+  }
+}
