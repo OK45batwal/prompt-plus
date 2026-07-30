@@ -535,6 +535,8 @@
   observer.observe(document.body, { childList: true, subtree: true });
   injectFab();
 
+  loadSettings((s) => { currentMode = s.mode || "server"; });
+
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "selfEnhance") {
       const input = getInput();
