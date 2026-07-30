@@ -109,78 +109,84 @@ keyInput?.addEventListener("input", () => { keyInput.style.borderColor = ""; });
 
 // Enhance
 btn?.addEventListener("click", async () => {
-  const text = input.value.trim();
-  if (!text) { showMsg("Enter a prompt first", true); return; }
+  try {
+    console.log("[Prompt+] input:", input, "value:", input?.value?.length);
+    const text = input?.value?.trim();
+    if (!text) { showMsg("Enter a prompt first", true); return; }
 
-  if (currentMode === "self") {
-    const [tab] = await chrome.tabs?.query({ active: true, currentWindow: true }) || [];
-    if (!tab?.id) { showMsg("Open a chatbot tab first (ChatGPT/Claude/Gemini/DeepSeek)", true); return; }
-    chrome.tabs.sendMessage(tab.id, { action: "selfEnhance", text }, (res) => {
-      if (chrome.runtime.lastError) {
-        showMsg("Open a chatbot tab first", true);
-        return;
-      }
-      if (res?.success) {
-        showMsg("Meta-prompt injected! Submit in the chatbot.");
-        window.close();
-      } else {
-        showMsg(res?.error || "Failed. Open a chatbot tab.", true);
-      }
-    });
-    return;
-  }
-
-  if (currentMode === "device") {
-    btn.disabled = true;
-    btn.innerHTML = '<span>📱</span><span>Device Enhancing...</span>';
-    try {
-      const res = await chrome.runtime.sendMessage({ action: "enhanceDevice", text });
-      if (!res || !res.success) throw new Error(res?.error || "Device AI not available (Chrome 138+ with Gemini Nano required)");
-      const enhanced = res.enhanced;
+    if (currentMode === "self") {
       const [tab] = await chrome.tabs?.query({ active: true, currentWindow: true }) || [];
-      if (tab?.id) {
-        chrome.tabs.sendMessage(tab.id, { action: "injectEnhanced", text, enhanced }, (ir) => {
-          if (chrome.runtime.lastError || !ir?.success) {
-            navigator.clipboard.writeText(enhanced);
-            showMsg("Enhanced & copied to clipboard");
-          } else {
-            showMsg("✨ Prompt enhanced & injected!");
-            window.close();
-          }
-        });
-      } else {
-        await navigator.clipboard.writeText(enhanced);
-        showMsg("Enhanced & copied to clipboard");
+      if (!tab?.id) { showMsg("Open a chatbot tab first", true); return; }
+      chrome.tabs.sendMessage(tab.id, { action: "selfEnhance", text }, (res) => {
+        if (chrome.runtime.lastError) {
+          showMsg("Open a chatbot tab first", true);
+          return;
+        }
+        if (res?.success) {
+          showMsg("Meta-prompt injected! Submit in the chatbot.");
+          window.close();
+        } else {
+          showMsg(res?.error || "Failed. Open a chatbot tab.", true);
+        }
+      });
+      return;
+    }
+
+    if (currentMode === "device") {
+      btn.disabled = true;
+      btn.innerHTML = '<span>📱</span><span>Device Enhancing...</span>';
+      try {
+        const res = await chrome.runtime.sendMessage({ action: "enhanceDevice", text });
+        if (!res || !res.success) throw new Error(res?.error || "Device AI not available (Chrome 138+ with Gemini Nano required)");
+        const enhanced = res.enhanced;
+        const [tab] = await chrome.tabs?.query({ active: true, currentWindow: true }) || [];
+        if (tab?.id) {
+          chrome.tabs.sendMessage(tab.id, { action: "injectEnhanced", text, enhanced }, (ir) => {
+            if (chrome.runtime.lastError || !ir?.success) {
+              navigator.clipboard.writeText(enhanced);
+              showMsg("Enhanced & copied to clipboard");
+            } else {
+              showMsg("Prompt enhanced & injected!");
+              window.close();
+            }
+          });
+        } else {
+          await navigator.clipboard.writeText(enhanced);
+          showMsg("Enhanced & copied to clipboard");
+        }
+      } catch (e) {
+        showMsg(e.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>📱</span><span>Device Enhance</span><span>→</span>';
       }
+      return;
+    }
+
+    // Server mode
+    btn.disabled = true;
+    btn.innerHTML = '<span>⚡</span><span>Enhancing...</span>';
+
+    const modelVal = modelSelect.value;
+    const parts = modelVal.split("::");
+    const model = parts[0];
+    const provider = parts[1] || "openai";
+
+    try {
+      const res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider });
+      if (!res || !res.success) throw new Error(res?.error || "Failed");
+      const enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
+      await navigator.clipboard.writeText(enhanced);
+      showMsg("Enhanced & copied to clipboard!");
     } catch (e) {
       showMsg(e.message, true);
     } finally {
       btn.disabled = false;
-      btn.innerHTML = '<span>📱</span><span>Device Enhance</span><span>→</span>';
+      btn.innerHTML = '<span>⚡</span><span>Apply Upgrade</span><span>→</span>';
     }
-    return;
-  }
-
-  // Server mode
-  btn.disabled = true;
-  btn.innerHTML = '<span>⚡</span><span>Enhancing...</span>';
-
-  const modelVal = modelSelect.value;
-  const parts = modelVal.split("::");
-  const model = parts[0];
-  const provider = parts[1] || "openai";
-
-  try {
-    const res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider });
-    if (!res || !res.success) throw new Error(res?.error || "Failed");
-    const enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
-    await navigator.clipboard.writeText(enhanced);
-    showMsg("Enhanced & copied to clipboard!");
-  } catch (e) {
-    showMsg(e.message, true);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<span>⚡</span><span>Apply Upgrade</span><span>→</span>';
+  } catch (err) {
+    console.error("[Prompt+] click handler error:", err);
+    showMsg(err.message || "Something went wrong", true);
   }
 });
 
