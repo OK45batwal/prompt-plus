@@ -11,6 +11,12 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           </Link>
           <div className="flex items-center gap-4">
             <Link
+              href="/extension"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
+            >
+              Extension
+            </Link>
+            <Link
               href="/login"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -36,6 +42,9 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <Link href="/features" className="hover:text-foreground transition-colors">
               Features
+            </Link>
+            <Link href="/extension" className="hover:text-foreground transition-colors">
+              Extension
             </Link>
             <Link href="/docs" className="hover:text-foreground transition-colors">
               Docs
