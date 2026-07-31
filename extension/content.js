@@ -295,6 +295,25 @@
 
   let popoverEnhancing = false;
 
+  function sendDeviceEnhance(text, tokenSaver, targetId) {
+    return new Promise((resolve) => {
+      const handler = (msg) => {
+        const r = document.getElementById(targetId);
+        if (!r) return;
+        if (msg.action === "deviceProgress") r.textContent = "Downloading Gemini Nano… " + msg.pct + "%";
+        if (msg.action === "deviceChunk") { r.textContent = msg.text; if (r.scrollTop + r.clientHeight >= r.scrollHeight - 20) r.scrollTop = r.scrollHeight; }
+      };
+      chrome.runtime.onMessage.addListener(handler);
+      chrome.runtime.sendMessage({ action: "enhanceDevice", text, tokenSaver }).then((r) => {
+        chrome.runtime.onMessage.removeListener(handler);
+        resolve(r);
+      }).catch((e) => {
+        chrome.runtime.onMessage.removeListener(handler);
+        resolve({ success: false, error: e.message });
+      });
+    });
+  }
+
   async function doEnhancePopover(input, text) {
     if (popoverEnhancing) return;
     popoverEnhancing = true;
@@ -313,7 +332,7 @@
     try {
       let res;
       if (currentMode === "device") {
-        res = await chrome.runtime.sendMessage({ action: "enhanceDevice", text, tokenSaver: !!(settings?.tokenSaver) });
+        res = await sendDeviceEnhance(text, !!(settings?.tokenSaver), "pp-pop-result");
         if (!res || !res.success) throw new Error(res?.error || "Device AI not available (Chrome 138+ with Gemini Nano required)");
         currentEnhanced = res.enhanced || "";
       } else {
@@ -540,7 +559,8 @@
       const tkSave = tsEl ? tsEl.checked : false;
       let res;
       if (currentMode === "device") {
-        res = await chrome.runtime.sendMessage({ action: "enhanceDevice", text, tokenSaver: tkSave });
+        if (enhancedPreview) enhancedPreview.textContent = "Downloading Gemini Nano…";
+        res = await sendDeviceEnhance(text, tkSave, "pp-enhanced-preview");
         if (!res || !res.success) throw new Error(res?.error || "Device AI not available (Chrome 138+ with Gemini Nano required)");
         currentEnhanced = res.enhanced || "";
       } else {

@@ -68,7 +68,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "enhanceDevice") {
     (async () => {
       try {
-        const result = await enhanceWithDevice(request);
+        const result = await enhanceWithDevice(request, sender);
         sendResponse(result);
       } catch (e) {
         sendResponse({ success: false, error: e.message || "Device AI error" });
@@ -148,7 +148,7 @@ chrome.commands.onCommand.addListener((command) => {
 });
 
 // Device AI enhancement via Chrome Prompt API (Gemini Nano, Chrome 138+)
-async function enhanceWithDevice(req) {
+async function enhanceWithDevice(req, sender) {
   const text = req.text;
   if (typeof LanguageModel === "undefined") {
     throw new Error("Device AI not supported. Chrome 138+ with Gemini Nano required.");
@@ -159,7 +159,17 @@ async function enhanceWithDevice(req) {
   }
   const session = await LanguageModel.create({
     temperature: 0.3, topK: 1,
-    monitor(m) { m.addEventListener("downloadprogress", (e) => { if (e.loaded < 1) console.log(`Downloading Gemini Nano: ${Math.round(e.loaded * 100)}%`); }); },
+    monitor(m) {
+      m.addEventListener("downloadprogress", (e) => {
+        if (e.loaded < 1) {
+          try {
+            chrome.tabs.sendMessage(sender?.tab?.id, {
+              action: "deviceProgress", pct: Math.round(e.loaded * 100),
+            });
+          } catch { /* tab gone */ }
+        }
+      });
+    },
   });
   try {
     const cat = req.category || "General Task";
@@ -189,8 +199,15 @@ Rewrite the prompt above into a master AI prompt framework with the following ex
 4. ### Output Format & Constraints — Specify ${length}, ${tone}, and formatting guidelines (Markdown, code blocks, bullet points).
 5. ### Input Variables — Highlight placeholders like {{user_input}} or specific parameters if required.${tokenSaverClause}`;
 
-    const result = await session.prompt(`${systemInstruction}\n\n${metaPrompt}`);
-    return { success: true, enhanced: result.trim() };
+    const stream = await session.promptStreaming(`${systemInstruction}\n\n${metaPrompt}`);
+    let full = "";
+    for await (const chunk of stream) {
+      full = chunk;
+      try {
+        chrome.tabs.sendMessage(sender?.tab?.id, { action: "deviceChunk", text: full });
+      } catch { /* tab gone */ }
+    }
+    return { success: true, enhanced: full.trim() };
   } finally {
     session.destroy();
   }
