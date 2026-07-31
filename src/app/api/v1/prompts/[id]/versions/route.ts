@@ -57,7 +57,7 @@ export const POST = withAuth(
       return jsonResponse({ error: "Prompt not found" }, { status: 404, requestId });
     }
 
-    const { text, score, changes } = body || {};
+    const { text, score, changes } = createVersionSchema.parse(body);
 
     const latestVersion = await getDb().version.findFirst({
       where: { promptId },
