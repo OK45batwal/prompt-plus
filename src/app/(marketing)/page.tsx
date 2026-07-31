@@ -351,7 +351,7 @@ export default function LandingPage() {
                 Reach out directly to the Prompt+ engineering team. We respond to all inquiries within 24 hours.
               </p>
 
-              {/* Contact Email Box */}
+              {/* Contact Email & GitHub Discussions Buttons */}
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
                 <a
                   href={`mailto:${contactEmail}`}
@@ -359,6 +359,16 @@ export default function LandingPage() {
                 >
                   <Mail className="h-4 w-4" />
                   <span>Email: {contactEmail}</span>
+                </a>
+
+                <a
+                  href="https://github.com/OK45batwal/prompt-plus/discussions"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-12 w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl border bg-card px-6 text-sm font-semibold hover:bg-accent transition-all active:scale-95 text-foreground"
+                >
+                  <MessageSquare className="h-4 w-4 text-primary" />
+                  <span>GitHub Discussions</span>
                 </a>
 
                 <button
@@ -369,20 +379,6 @@ export default function LandingPage() {
                   {copiedEmail ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
                   <span>{copiedEmail ? "Copied Email!" : "Copy Email"}</span>
                 </button>
-              </div>
-
-              {/* GitHub Link */}
-              <div className="mt-6 text-xs text-muted-foreground flex items-center justify-center gap-2">
-                <MessageSquare className="h-3.5 w-3.5" />
-                <span>Or submit feature requests on </span>
-                <a
-                  href="https://github.com/okbatwal/prompt-plus/discussions"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline font-semibold"
-                >
-                  GitHub Discussions
-                </a>
               </div>
             </div>
           </div>

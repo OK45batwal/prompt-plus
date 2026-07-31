@@ -18,7 +18,7 @@ export default function ContactPage() {
             <p className="text-sm text-muted-foreground mt-1">promptplus2@gmail.com</p>
           </a>
           <a
-            href="https://github.com/okbatwal/prompt-plus/discussions"
+            href="https://github.com/OK45batwal/prompt-plus/discussions"
             target="_blank"
             rel="noopener noreferrer"
             className="p-6 rounded-xl border hover:border-foreground/20 transition-colors flex flex-col items-center text-center"
