@@ -77,13 +77,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
+function getLanguageModelAPI() {
+  if (typeof LanguageModel !== "undefined") return LanguageModel;
+  if (typeof self !== "undefined" && self.LanguageModel) return self.LanguageModel;
+  if (typeof ai !== "undefined" && ai.languageModel) return ai.languageModel;
+  if (typeof self !== "undefined" && self.ai?.languageModel) return self.ai.languageModel;
+  return null;
+}
+
   if (request.action === "checkDeviceAI") {
     (async () => {
       try {
-        let supported = typeof LanguageModel !== "undefined";
+        const lm = getLanguageModelAPI();
+        let supported = !!lm;
         if (supported) {
-          const availability = await LanguageModel.availability();
-          supported = availability === "available" || availability === "downloading";
+          const availability = await lm.availability();
+          supported = availability === "available" || availability === "readily" || availability === "downloading" || availability === "after-download";
         }
         sendResponse({ supported });
       } catch {
@@ -150,15 +159,16 @@ chrome.commands.onCommand.addListener((command) => {
 // Device AI enhancement via Chrome Prompt API (Gemini Nano, Chrome 138+)
 async function enhanceWithDevice(req, sender) {
   const text = req.text;
-  if (typeof LanguageModel === "undefined") {
+  const lm = getLanguageModelAPI();
+  if (!lm) {
     throw new Error("Device AI not supported. Chrome 138+ with Gemini Nano required.");
   }
-  const availability = await LanguageModel.availability();
-  if (availability === "unavailable") {
+  const availability = await lm.availability();
+  if (availability === "unavailable" || availability === "no") {
     throw new Error("Gemini Nano not available on this device. Needs Chrome 138+, 22GB+ free storage, macOS 13+/Win 10+/Linux.");
   }
-  const session = await LanguageModel.create({
-    temperature: 0.3, topK: 1, outputLanguage: "en",
+  const session = await lm.create({
+    temperature: 0.1, topK: 1, outputLanguage: "en",
     monitor(m) {
       m.addEventListener("downloadprogress", (e) => {
         if (e.loaded < 1) {

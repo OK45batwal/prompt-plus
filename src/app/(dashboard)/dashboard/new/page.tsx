@@ -124,7 +124,7 @@ export default function PromptBuilderPage() {
   const [copied, setCopied] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [showCostBreakdown, setShowCostBreakdown] = useState(false);
-  const [enhanceMode, setEnhanceMode] = useState<"api" | "device">("api");
+  const [enhanceMode, setEnhanceMode] = useState<"api" | "device">("device");
   const [deviceState, setDeviceState] = useState<"unknown" | "available" | "unavailable" | "downloading">("unknown");
 
   const loadPrefs = () => {

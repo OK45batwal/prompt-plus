@@ -134,7 +134,7 @@
       font-size: 10px; font-weight: 600; color: #64748b;
       text-transform: uppercase; letter-spacing: 0.04em;
     }
-    .result-actions { display: flex; gap: 6px; }
+    .result-actions { display: flex; gap: 6px; align-items: center; }
     .result-actions button {
       font-size: 10px; font-weight: 600;
       padding: 4px 10px; border-radius: 6px;
@@ -147,6 +147,14 @@
     .result-actions button:disabled { opacity: 0.4; cursor: not-allowed; }
     .result-actions button.use {
       background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.4); color: #93c5fd;
+    }
+    .result-mode {
+      font-size: 9px; font-weight: 600;
+      padding: 2px 6px; border-radius: 4px;
+      background: rgba(59,130,246,0.12);
+      border: 1px solid rgba(59,130,246,0.3);
+      color: #93c5fd;
+      display: inline-flex; align-items: center;
     }
     .result-body {
       max-height: 200px; overflow-y: auto;
@@ -317,11 +325,12 @@
       <div class="result-head">
         <span>Enhanced Prompt</span>
         <div class="result-actions">
+          <div class="result-mode" id="result-mode">On-Device</div>
           <button id="copy-btn" disabled>📋 Copy</button>
           <button id="use-btn" class="use" disabled>Use in Tab →</button>
         </div>
       </div>
-      <div class="result-body" id="result-body"></div>
+      <div class="result-body placeholder" id="result-body">Click button above to see AI-optimized result</div>
     </div>
 
     <div class="settings">

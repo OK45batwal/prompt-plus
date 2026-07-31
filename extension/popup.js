@@ -26,11 +26,20 @@ let currentMode = "device";
 let tokenSaver = false;
 const tsToggle = document.getElementById("ts-toggle");
 
+function getLanguageModelAPI() {
+  if (typeof LanguageModel !== "undefined") return LanguageModel;
+  if (typeof window !== "undefined" && window.LanguageModel) return window.LanguageModel;
+  if (typeof ai !== "undefined" && ai.languageModel) return ai.languageModel;
+  if (typeof window !== "undefined" && window.ai?.languageModel) return window.ai.languageModel;
+  return null;
+}
+
 async function checkDeviceSupport() {
   try {
-    if (typeof LanguageModel !== "undefined") {
-      const a = await LanguageModel.availability();
-      return a === "available" || a === "downloading";
+    const lm = getLanguageModelAPI();
+    if (lm) {
+      const a = await lm.availability();
+      return a === "available" || a === "readily" || a === "downloading" || a === "after-download";
     }
   } catch { /* ignore */ }
   return false;
@@ -53,6 +62,9 @@ function setMode(mode) {
   currentMode = mode;
   modeDevice.classList.toggle("active", mode === "device");
   modeServer.classList.toggle("active", mode === "server");
+
+  const resultMode = document.getElementById("result-mode");
+  if (resultMode) resultMode.textContent = mode === "device" ? "On-Device" : "API Server";
 
   if (mode === "device") {
     btnIcon.textContent = "📱";
@@ -77,7 +89,7 @@ function setMode(mode) {
     modeLabel.textContent = "API mode — enhanced via cloud AI API";
     modeLabel.className = "mode-hint";
   }
-  chrome.runtime.sendMessage({ action: "saveSettings", settings: { mode } });
+  chrome.runtime?.sendMessage?.({ action: "saveSettings", settings: { mode } });
 }
 
 input?.addEventListener("input", () => {
@@ -102,13 +114,7 @@ settingsToggle?.addEventListener("click", () => {
 // Load settings
 chrome.runtime?.sendMessage?.({ action: "getSettings" }, (res) => {
   const s = res?.settings || {};
-  if (s.mode) setMode(s.mode);
-  else checkDeviceSupport().then((supported) => {
-    if (!supported) {
-      modeLabel.textContent = "On-Device AI — needs Chrome 138+ with Gemini Nano (chrome://flags → Enable Prompt API)";
-      modeLabel.className = "mode-hint warn";
-    }
-  });
+  setMode(s.mode || "device");
   if (s.model && modelSelect) modelSelect.value = s.model;
   if (s.tokenSaver && tsToggle) { tsToggle.checked = true; tokenSaver = true; }
 });
@@ -144,18 +150,23 @@ keyInput?.addEventListener("change", () => {
 keyInput?.addEventListener("input", () => { keyInput.style.borderColor = ""; });
 
 // ---- Enhance ----
+// ---- Enhance ----
 btn?.addEventListener("click", async () => {
+  const cBtn = document.getElementById("copy-btn");
+  const uBtn = document.getElementById("use-btn");
   try {
     const text = input?.value?.trim();
     if (!text) { showMsg("Enter a prompt first", true); return; }
 
     btn.disabled = true;
-    btn.innerHTML = '<span>⏳</span><span>Enhancing...</span>';
-    resultCard.style.display = "block";
-    resultBody.classList.remove("placeholder");
-    resultBody.textContent = "Enhancing...";
-    copyBtn.disabled = true;
-    useBtn.disabled = true;
+    btn.innerHTML = '<span>⏳</span><span>Enhancing…</span>';
+    if (resultCard) resultCard.style.display = "block";
+    if (resultBody) {
+      resultBody.classList.remove("placeholder");
+      resultBody.textContent = "Enhancing…";
+    }
+    if (cBtn) cBtn.disabled = true;
+    if (uBtn) uBtn.disabled = true;
 
     let enhanced = "";
     if (currentMode === "device") {
@@ -176,18 +187,18 @@ btn?.addEventListener("click", async () => {
     }
 
     if (!enhanced) throw new Error("No output received");
-    resultBody.textContent = enhanced;
-    copyBtn.disabled = false;
-    useBtn.disabled = false;
+    if (resultBody) resultBody.textContent = enhanced;
+    if (cBtn) cBtn.disabled = false;
+    if (uBtn) uBtn.disabled = false;
     showMsg("Enhanced!");
 
     // Try to inject into the active chat tab if content script is present
     chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs?.[0]?.id) {
         chrome.tabs.sendMessage(tabs[0].id, { action: "injectEnhanced", text, enhanced }, (ir) => {
-          if (!chrome.runtime.lastError && ir?.success) {
-            useBtn.textContent = "✓ Injected";
-            setTimeout(() => { useBtn.textContent = "Use in Tab →"; }, 2000);
+          if (!chrome.runtime.lastError && ir?.success && uBtn) {
+            uBtn.textContent = "✓ Injected";
+            setTimeout(() => { uBtn.textContent = "Use in Tab →"; }, 2000);
           }
         });
       }
@@ -195,8 +206,44 @@ btn?.addEventListener("click", async () => {
   } catch (err) {
     console.error("[Prompt+] enhance error:", err);
     showMsg(err.message || "Something went wrong", true);
-    resultBody.classList.add("placeholder");
-    resultBody.textContent = err.message || "Enhancement failed";
+    if (resultBody) {
+      const isApiKeyErr = err.message && (err.message.includes("No API key") || err.message.includes("API key"));
+      if (isApiKeyErr) {
+        resultBody.classList.remove("placeholder");
+        resultBody.innerHTML = `
+          <div style="padding: 6px 0; color: #f8fafc;">
+            <div style="font-weight: 600; color: #f59e0b; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; font-size: 12px;">
+              <span>🔑</span> No API Key Configured
+            </div>
+            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px; line-height: 1.5;">
+              Cloud AI requires an API key. You can switch to free <strong>On-Device AI</strong> (no key needed) or add an API key.
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <button id="err-switch-device" type="button" style="padding: 8px 12px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #93c5fd; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 6px;">
+                <span>📱</span> Switch to On-Device AI (Free & Offline)
+              </button>
+              <button id="err-open-key-input" type="button" style="padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 6px;">
+                <span>⚙️</span> Add API Key in Settings below
+              </button>
+            </div>
+          </div>
+        `;
+        document.getElementById("err-switch-device")?.addEventListener("click", () => {
+          setMode("device");
+          btn?.click();
+        });
+        document.getElementById("err-open-key-input")?.addEventListener("click", () => {
+          if (settingsToggle && settingsBody) {
+            settingsToggle.classList.add("open");
+            settingsBody.classList.add("open");
+            keyInput?.focus();
+          }
+        });
+      } else {
+        resultBody.classList.add("placeholder");
+        resultBody.textContent = err.message || "Enhancement failed";
+      }
+    }
   } finally {
     btn.disabled = false;
     btn.innerHTML = currentMode === "device"
@@ -205,41 +252,49 @@ btn?.addEventListener("click", async () => {
   }
 });
 
-copyBtn?.addEventListener("click", () => {
-  navigator.clipboard.writeText(resultBody.textContent);
-  copyBtn.textContent = "✓ Copied";
-  setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 1500);
-});
-
-useBtn?.addEventListener("click", () => {
-  chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
-    if (!tabs?.[0]?.id) { showMsg("No active tab", true); return; }
-    chrome.tabs.sendMessage(tabs[0].id, { action: "injectEnhanced", text: input.value.trim(), enhanced: resultBody.textContent }, (ir) => {
-      if (chrome.runtime.lastError || !ir?.success) {
-        showMsg("Open a supported chat page to inject", true);
-      } else {
-        showMsg("Injected into chat!");
-        setTimeout(() => window.close(), 600);
+document.addEventListener("click", (e) => {
+  const target = e.target;
+  if (!target) return;
+  if (target.id === "copy-btn" || target.closest("#copy-btn")) {
+    const cBtn = document.getElementById("copy-btn");
+    if (resultBody?.textContent) {
+      navigator.clipboard.writeText(resultBody.textContent);
+      if (cBtn) {
+        cBtn.textContent = "✓ Copied";
+        setTimeout(() => { cBtn.textContent = "📋 Copy"; }, 1500);
       }
+    }
+  } else if (target.id === "use-btn" || target.closest("#use-btn")) {
+    chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
+      if (!tabs?.[0]?.id) { showMsg("No active tab", true); return; }
+      chrome.tabs.sendMessage(tabs[0].id, { action: "injectEnhanced", text: input.value.trim(), enhanced: resultBody.textContent }, (ir) => {
+        if (chrome.runtime.lastError || !ir?.success) {
+          showMsg("Open a supported chat page to inject", true);
+        } else {
+          showMsg("Injected into chat!");
+          setTimeout(() => window.close(), 600);
+        }
+      });
     });
-  });
+  }
 });
 
 // ---- On-device enhancement (runs directly in popup window context) ----
 async function deviceEnhance(text, tokenSaver) {
-  if (typeof LanguageModel === "undefined") {
+  const lm = getLanguageModelAPI();
+  if (!lm) {
     throw new Error("On-device AI not supported. Needs Chrome 138+ with Gemini Nano (chrome://flags → Enable Prompt API).");
   }
-  const availability = await LanguageModel.availability();
-  if (availability === "unavailable") {
+  const availability = await lm.availability();
+  if (availability === "unavailable" || availability === "no") {
     throw new Error("Gemini Nano unavailable. Needs Chrome 138+, 22GB+ free storage, macOS 13+ / Win 10+ / Linux.");
   }
 
-  const session = await LanguageModel.create({
-    temperature: 0.3, topK: 1, outputLanguage: "en",
+  const session = await lm.create({
+    temperature: 0.1, topK: 1, outputLanguage: "en",
     monitor(m) {
       m.addEventListener("downloadprogress", (e) => {
-        if (e.loaded < 1) {
+        if (e.loaded < 1 && resultBody) {
           resultBody.textContent = `Downloading Gemini Nano… ${Math.round(e.loaded * 100)}%`;
         }
       });
@@ -279,17 +334,19 @@ Rewrite the prompt above into a master AI prompt framework with the following ex
       for await (const chunk of stream) {
         if (!chunk) continue;
         full = chunk;
-        resultBody.textContent = full;
-        resultBody.scrollTop = resultBody.scrollHeight;
+        if (resultBody) {
+          resultBody.textContent = full;
+          resultBody.scrollTop = resultBody.scrollHeight;
+        }
       }
     } catch (e) {
       console.error("[Prompt+] stream error, falling back to prompt():", e);
     }
 
     if (!full.trim()) {
-      resultBody.textContent = "Enhancing…";
+      if (resultBody) resultBody.textContent = "Enhancing…";
       full = await session.prompt(`${systemInstruction}\n\n${metaPrompt}`);
-      resultBody.textContent = full;
+      if (resultBody) resultBody.textContent = full;
     }
     return full.trim();
   } finally {

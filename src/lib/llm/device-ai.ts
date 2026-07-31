@@ -22,22 +22,34 @@ export interface DeviceEnhanceOptions {
   tokenSaver?: boolean;
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export function getLanguageModel(): LanguageModelAvailability | null {
+  if (typeof window === "undefined") return null;
+  const w = window as any;
+  if (w.LanguageModel) return w.LanguageModel;
+  if (w.ai?.languageModel) return w.ai.languageModel;
+  return null;
+}
+
 export function isDeviceAISupported(): boolean {
-  return typeof window !== "undefined" && "LanguageModel" in window;
+  return getLanguageModel() !== null;
 }
 
 export async function checkDeviceAvailability(): Promise<"available" | "unavailable" | "downloading"> {
-  const lm = (window as WindowWithLanguageModel).LanguageModel;
+  const lm = getLanguageModel();
   if (!lm) return "unavailable";
   try {
-    return await lm.availability();
+    const res = await lm.availability();
+    if (res === "available" || res === "readily" as any) return "available";
+    if (res === "downloading" || res === "after-download" as any) return "downloading";
+    return "unavailable";
   } catch {
     return "unavailable";
   }
 }
 
 export async function enhanceWithDevice(options: DeviceEnhanceOptions): Promise<string> {
-  const lm = (window as WindowWithLanguageModel).LanguageModel;
+  const lm = getLanguageModel();
   if (!lm) {
     throw new Error(
       "Device AI not supported in this browser. Open in Chrome 138+ with Gemini Nano enabled (Settings → Experimental AI → Prompt API)."
@@ -51,7 +63,7 @@ export async function enhanceWithDevice(options: DeviceEnhanceOptions): Promise<
     );
   }
 
-  const session = await lm.create({ temperature: 0.3, topK: 1 });
+  const session = await lm.create({ temperature: 0.1, topK: 1 });
 
   try {
     const { metaPrompt, systemInstruction } = buildArchitectMetaPrompt(

@@ -5,7 +5,7 @@
   let currentTarget = null;
   let currentText = "";
   let currentEnhanced = "";
-  let currentMode = "server";
+  let currentMode = "device";
 
   const CONTEXT_LIMITS = { chatgpt: 128000, claude: 200000, gemini: 1000000, deepseek: 128000 };
 
@@ -24,9 +24,11 @@
 
   function getTokenInfo() {
     const text = getConversationText();
-    const used = estimateTokens(text);
+    const currentInputText = currentTarget ? getText(currentTarget) : "";
+    const used = estimateTokens(text + " " + currentInputText);
     const limit = CONTEXT_LIMITS[detectChatbot()] || 128000;
-    return { used, limit, pct: Math.min(100, Math.round((used / limit) * 100)) };
+    const remaining = Math.max(0, limit - used);
+    return { used, limit, remaining, pct: Math.min(100, Math.round((used / limit) * 100)) };
   }
 
   function updateTokenBar() {
@@ -103,45 +105,118 @@
     return null;
   }
 
+  let fabTimer = null;
+
+  function updateFabTokenBar() {
+    const usedEl = document.getElementById("pp-fab-used");
+    const limitEl = document.getElementById("pp-fab-limit");
+    const remainEl = document.getElementById("pp-fab-remain");
+    const fillEl = document.getElementById("pp-fab-fill");
+    if (!usedEl || !remainEl || !fillEl) return;
+
+    const info = getTokenInfo();
+    usedEl.textContent = info.used > 1000 ? (info.used / 1000).toFixed(1) + "K" : info.used;
+    if (limitEl) {
+      limitEl.textContent = info.limit >= 1000000 ? (info.limit / 1000000).toFixed(0) + "M" : (info.limit / 1000).toFixed(0) + "K";
+    }
+
+    const remStr = info.remaining >= 1000 ? (info.remaining / 1000).toFixed(1) + "K" : info.remaining;
+    remainEl.textContent = remStr;
+
+    fillEl.style.width = info.pct + "%";
+    if (info.pct > 80) fillEl.style.background = "linear-gradient(90deg, #f59e0b, #ef4444)";
+    else if (info.pct > 50) fillEl.style.background = "linear-gradient(90deg, #3b82f6, #f59e0b)";
+    else fillEl.style.background = "linear-gradient(90deg, #22c55e, #3b82f6)";
+  }
+
   function injectFab() {
-    if (document.querySelector(".pp-fab")) return;
+    if (document.querySelector(".pp-fab-bar")) return;
     const input = getInput();
     if (!input || !input.parentElement) return;
 
     const rect = input.getBoundingClientRect();
     if (!rect || rect.width === 0) { setTimeout(injectFab, 1000); return; }
 
-    const fab = document.createElement("button");
-    fab.className = "pp-fab";
-    fab.setAttribute("type", "button");
-    fab.innerHTML =
-      '<span class="pp-fab-icon">✦</span>' +
-      '<span class="pp-fab-text">Enhance Prompt</span>';
-    fab.title = "Open Prompt+";
+    const bar = document.createElement("div");
+    bar.className = "pp-fab-bar";
 
-    fab.addEventListener("click", (e) => {
+    bar.innerHTML =
+      '<button class="pp-fab-btn" id="pp-fab-btn" type="button" title="Enhance prompt with Prompt+">' +
+        '<span class="pp-fab-icon">' + (currentMode === "device" ? "📱" : "✨") + '</span>' +
+        '<span class="pp-fab-text" id="pp-fab-text">' + (currentMode === "device" ? "Device Enhance" : "Enhance Prompt") + '</span>' +
+      '</button>' +
+      '<button class="pp-fab-mode-pill" id="pp-fab-mode-pill" type="button" title="Click to toggle enhancement mode">' +
+        '<span id="pp-fab-mode-icon">' + (currentMode === "device" ? "📱" : "⚡") + '</span>' +
+        '<span id="pp-fab-mode-label">' + (currentMode === "device" ? "On-Device" : "API") + '</span>' +
+      '</button>' +
+      '<div class="pp-fab-token-wrap" title="Remaining Context Tokens">' +
+        '<div class="pp-fab-token-info">' +
+          '<span>Tokens: <strong id="pp-fab-used">0</strong> / <strong id="pp-fab-limit">128K</strong></span>' +
+          '<span class="pp-fab-remain-wrap"><strong id="pp-fab-remain">128K</strong> remaining</span>' +
+        '</div>' +
+        '<div class="pp-fab-token-track">' +
+          '<div class="pp-fab-token-fill" id="pp-fab-fill" style="width:0%"></div>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(bar);
+    positionFab(bar, input);
+
+    bar.querySelector("#pp-fab-btn").addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       const el = getInput() || input;
-      if (!el || !el.parentElement) { showToast("No input field found"); return; }
+      if (!el) { showToast("No input field found"); return; }
       currentTarget = el;
       currentText = getText(el);
       openPopover();
     });
 
-    fab.style.position = "fixed";
-    fab.style.zIndex = "999999";
-    document.body.appendChild(fab);
-    positionFab(fab, input);
-    window.addEventListener("scroll", () => positionFab(fab, input), { passive: true });
-    window.addEventListener("resize", () => positionFab(fab, input), { passive: true });
+    bar.querySelector("#pp-fab-mode-pill").addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      currentMode = currentMode === "device" ? "server" : "device";
+      saveSettings({ mode: currentMode });
+      const modeIcon = bar.querySelector("#pp-fab-mode-icon");
+      const modeLabel = bar.querySelector("#pp-fab-mode-label");
+      const btnIcon = bar.querySelector(".pp-fab-icon");
+      const btnText = bar.querySelector("#pp-fab-text");
+      if (modeIcon) modeIcon.textContent = currentMode === "device" ? "📱" : "⚡";
+      if (modeLabel) modeLabel.textContent = currentMode === "device" ? "On-Device" : "API";
+      if (btnIcon) btnIcon.textContent = currentMode === "device" ? "📱" : "✨";
+      if (btnText) btnText.textContent = currentMode === "device" ? "Device Enhance" : "Enhance Prompt";
+      showToast(currentMode === "device" ? "📱 Mode set to On-Device AI" : "⚡ Mode set to Cloud API");
+    });
+
+    input.addEventListener("input", updateFabTokenBar, { passive: true });
+    window.addEventListener("scroll", () => positionFab(bar, input), { passive: true });
+    window.addEventListener("resize", () => positionFab(bar, input), { passive: true });
+
+    updateFabTokenBar();
+    if (fabTimer) clearInterval(fabTimer);
+    fabTimer = setInterval(updateFabTokenBar, 2500);
   }
 
-  function positionFab(fab, input) {
+  function positionFab(bar, input) {
+    if (!bar || !input) return;
     const rect = input.getBoundingClientRect();
     if (!rect || rect.width === 0) return;
-    fab.style.bottom = (window.innerHeight - rect.bottom + 10) + "px";
-    fab.style.right = (window.innerWidth - rect.right + 10) + "px";
+
+    bar.style.position = "fixed";
+    bar.style.zIndex = "999999";
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+    if (spaceBelow >= 40) {
+      bar.style.top = (rect.bottom + 6) + "px";
+      bar.style.bottom = "auto";
+      bar.style.left = Math.max(10, rect.left) + "px";
+      bar.style.width = Math.min(rect.width, window.innerWidth - 20) + "px";
+    } else {
+      bar.style.top = "auto";
+      bar.style.bottom = "8px";
+      bar.style.left = Math.max(10, rect.left) + "px";
+      bar.style.width = Math.min(rect.width, window.innerWidth - 20) + "px";
+    }
   }
 
   function showToast(msg) {
@@ -169,7 +244,7 @@
     settings = null;
     loadSettings((s) => {
       settings = s;
-      currentMode = s.mode || "server";
+      currentMode = s.mode || "device";
       renderPanel(input, text, settings);
     });
   }
@@ -197,7 +272,7 @@
 
     loadSettings((s) => {
       settings = s;
-      currentMode = s.mode || "server";
+      currentMode = s.mode || "device";
       renderPopover(input, text);
     });
   }
@@ -295,21 +370,78 @@
 
   let popoverEnhancing = false;
 
+  function getLanguageModelAPI() {
+    if (typeof LanguageModel !== "undefined") return LanguageModel;
+    if (typeof window !== "undefined" && window.LanguageModel) return window.LanguageModel;
+    if (typeof ai !== "undefined" && ai.languageModel) return ai.languageModel;
+    if (typeof window !== "undefined" && window.ai?.languageModel) return window.ai.languageModel;
+    return null;
+  }
+
+  async function runDeviceEnhanceInContent(text, tokenSaver, targetId) {
+    const lm = getLanguageModelAPI();
+    if (!lm) throw new Error("On-device AI not supported. Needs Chrome 138+ with Gemini Nano.");
+    const availability = await lm.availability();
+    if (availability === "unavailable" || availability === "no") throw new Error("Gemini Nano unavailable on this device.");
+
+    const session = await lm.create({ temperature: 0.1, topK: 1 });
+    try {
+      const systemInstruction = `You are the Prompt+ Architect Engine — an advanced AI meta-prompt compiler.
+Your task is to transform raw, simple, or incomplete user prompts into production-grade, highly structured AI instructions.
+Return ONLY the final enhanced prompt framework ready for immediate execution by AI models. Do NOT add introductory or conversational meta-text.`;
+      const tokenSaverClause = tokenSaver ? "\nTighten the output to ~40% fewer tokens while keeping every section complete and lossless." : "";
+      const metaPrompt = `[ORIGINAL USER PROMPT]:\n"${text.trim()}"\n\n[TARGET DOMAIN]: General Task\n[PREFERRED TONE]: Professional & Clear\n[TARGET OUTPUT LENGTH]: Comprehensive & Structured\n\n[META-PROMPT INSTRUCTIONS]:\nRewrite the prompt above into a master AI prompt framework with: 1. ### Role & Objective 2. ### Context & Domain Constraints 3. ### Step-by-Step Instructions 4. ### Output Format & Constraints 5. ### Input Variables${tokenSaverClause}`;
+
+      let full = "";
+      try {
+        const stream = await session.promptStreaming(`${systemInstruction}\n\n${metaPrompt}`);
+        for await (const chunk of stream) {
+          if (!chunk) continue;
+          full = chunk;
+          const r = document.getElementById(targetId);
+          if (r) { r.textContent = full; r.scrollTop = r.scrollHeight; }
+        }
+      } catch { /* fallback to prompt */ }
+
+      if (!full.trim()) {
+        full = await session.prompt(`${systemInstruction}\n\n${metaPrompt}`);
+        const r = document.getElementById(targetId);
+        if (r) r.textContent = full;
+      }
+      return { success: true, enhanced: full.trim() };
+    } finally {
+      session.destroy();
+    }
+  }
+
   function sendDeviceEnhance(text, tokenSaver, targetId) {
     return new Promise((resolve) => {
       const handler = (msg) => {
         const r = document.getElementById(targetId);
         if (!r) return;
-        if (msg.action === "deviceProgress") r.textContent = "Downloading Gemini Nano… " + msg.pct + "%";
         if (msg.action === "deviceChunk" && msg.text) { r.textContent = msg.text; if (r.scrollTop + r.clientHeight >= r.scrollHeight - 20) r.scrollTop = r.scrollHeight; }
       };
       chrome.runtime.onMessage.addListener(handler);
-      chrome.runtime.sendMessage({ action: "enhanceDevice", text, tokenSaver }).then((r) => {
+      chrome.runtime.sendMessage({ action: "enhanceDevice", text, tokenSaver }).then(async (r) => {
         chrome.runtime.onMessage.removeListener(handler);
-        resolve(r);
-      }).catch((e) => {
+        if (r && r.success) {
+          resolve(r);
+        } else {
+          try {
+            const localRes = await runDeviceEnhanceInContent(text, tokenSaver, targetId);
+            resolve(localRes);
+          } catch {
+            resolve(r || { success: false, error: "Device AI failed" });
+          }
+        }
+      }).catch(async (e) => {
         chrome.runtime.onMessage.removeListener(handler);
-        resolve({ success: false, error: e.message });
+        try {
+          const localRes = await runDeviceEnhanceInContent(text, tokenSaver, targetId);
+          resolve(localRes);
+        } catch {
+          resolve({ success: false, error: e.message });
+        }
       });
     });
   }
@@ -318,16 +450,15 @@
     if (popoverEnhancing) return;
     popoverEnhancing = true;
 
-    const fab = document.querySelector(".pp-fab");
-    const fabOrig = fab?.innerHTML || "";
+    const fabText = document.getElementById("pp-fab-text");
+    const fabTextOrig = fabText?.textContent || "";
     const result = document.getElementById("pp-pop-result");
     const useBtn = document.getElementById("pp-pop-use");
     const useText = document.getElementById("pp-pop-use-text");
     const copyBtn = document.getElementById("pp-pop-copy");
     if (useBtn) useBtn.disabled = true;
     if (copyBtn) copyBtn.disabled = true;
-    if (result) result.textContent = "Enhancing...";
-    if (fab) fab.innerHTML = '<span class="pp-fab-icon">⌛</span><span class="pp-fab-text">Enhancing...</span>';
+    if (fabText) fabText.textContent = "Enhancing…";
 
     try {
       let res;
@@ -354,9 +485,32 @@
     } catch (err) {
       showToast(err.message);
       if (useText) useText.textContent = "Use Enhanced";
+      if (err.message && (err.message.includes("No API key") || err.message.includes("API key"))) {
+        if (result) {
+          result.innerHTML =
+            '<div style="padding: 4px; color: #f8fafc;">' +
+              '<div style="font-weight: 600; color: #f59e0b; margin-bottom: 6px; font-size: 12px; display: flex; align-items: center; gap: 6px;">' +
+                '<span>🔑</span> No Server API Key' +
+              '</div>' +
+              '<div style="font-size: 11px; color: #94a3b8; margin-bottom: 10px; line-height: 1.4;">' +
+                'No API key configured. Switch to <strong>On-Device AI (Gemini Nano)</strong> for instant free enhancements without an API key.' +
+              '</div>' +
+              '<button id="pp-pop-switch-device" type="button" style="width: 100%; padding: 8px 12px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #93c5fd; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">' +
+                '<span>📱</span> Switch to On-Device AI Mode' +
+              '</button>' +
+            '</div>';
+          document.getElementById("pp-pop-switch-device")?.addEventListener("click", () => {
+            currentMode = "device";
+            const modeEl = document.getElementById("pp-pop-mode");
+            if (modeEl) modeEl.textContent = "📱 On-Device";
+            saveSettings({ mode: "device" });
+            doEnhancePopover(input, text);
+          });
+        }
+      }
     } finally {
       popoverEnhancing = false;
-      if (fab) fab.innerHTML = fabOrig;
+      if (fabText) fabText.textContent = fabTextOrig;
     }
   }
 
@@ -540,16 +694,16 @@
     if (enhancing) return;
     enhancing = true;
 
-    const fab = document.querySelector(".pp-fab");
-    const fabOrig = fab?.innerHTML || "";
+    const fabText = document.getElementById("pp-fab-text");
+    const fabTextOrig = fabText?.textContent || "";
 
     const btn = document.getElementById("pp-enhance-btn");
     const btnText = document.getElementById("pp-enhance-text");
     const spinner = btn?.querySelector(".pp-btn-spinner");
     if (btn) btn.disabled = true;
-    if (btnText) btnText.textContent = "Enhancing...";
+    if (btnText) btnText.textContent = "Enhancing…";
     if (spinner) spinner.style.display = "inline-block";
-    if (fab) fab.innerHTML = '<span class="pp-fab-icon">⌛</span><span class="pp-fab-text">Enhancing...</span>';
+    if (fabText) fabText.textContent = "Enhancing…";
 
     const enhancedPreview = document.getElementById("pp-enhanced-preview");
     const copyBtn = document.getElementById("pp-copy-btn");
@@ -560,7 +714,6 @@
       const tkSave = tsEl ? tsEl.checked : false;
       let res;
       if (currentMode === "device") {
-        if (enhancedPreview) enhancedPreview.textContent = "Downloading Gemini Nano…";
         res = await sendDeviceEnhance(text, tkSave, "pp-enhanced-preview");
         if (!res || !res.success) throw new Error(res?.error || "Device AI not available (Chrome 138+ with Gemini Nano required)");
         currentEnhanced = res.enhanced || "";
@@ -597,10 +750,31 @@
       showToast(err.message);
       if (btnText) btnText.textContent = "Apply Upgrade";
       if (btn) btn.disabled = false;
+      if (err.message && (err.message.includes("No API key") || err.message.includes("API key"))) {
+        if (enhancedPreview) {
+          enhancedPreview.innerHTML =
+            '<div style="padding: 8px; color: #f8fafc;">' +
+              '<div style="font-weight: 600; color: #f59e0b; margin-bottom: 6px; font-size: 13px;">🔑 No API Key Configured</div>' +
+              '<div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; line-height: 1.5;">' +
+                'No API key configured on server. You can switch to free <strong>On-Device AI</strong> (Gemini Nano) or add an API key in extension popup settings.' +
+              '</div>' +
+              '<button id="pp-panel-switch-device" type="button" style="padding: 8px 14px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #93c5fd; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">' +
+                '📱 Switch to On-Device AI' +
+              '</button>' +
+            '</div>';
+          document.getElementById("pp-panel-switch-device")?.addEventListener("click", () => {
+            currentMode = "device";
+            const modelRow = panelEl?.querySelector(".pp-model-row");
+            if (modelRow) modelRow.style.display = "none";
+            saveSettings({ mode: "device" });
+            doEnhance(input, text);
+          });
+        }
+      }
     } finally {
       enhancing = false;
       if (spinner) spinner.style.display = "none";
-      if (fab) fab.innerHTML = fabOrig;
+      if (fabText) fabText.textContent = fabTextOrig;
     }
   }
 
@@ -647,27 +821,85 @@
 
   const style = document.createElement("style");
   style.textContent = `
-.pp-fab {
+.pp-fab-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px 10px 14px;
-  border-radius: 28px;
-  border: none;
-  background: #3b82f6;
-  color: #fff;
-  cursor: pointer;
-  box-shadow: 0 4px 20px rgba(59,130,246,0.35);
-  transition: all 0.2s ease;
-  z-index: 999999;
-  font-family: system-ui, -apple-system, sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: rgba(9, 13, 22, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #f8fafc;
+  box-sizing: border-box;
+  transition: opacity 0.15s ease;
 }
-.pp-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(59,130,246,0.5); }
-.pp-fab:active { transform: translateY(0); }
-.pp-fab-icon { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.pp-fab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.pp-fab-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+.pp-fab-mode-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 6px;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.12);
+  color: #93c5fd;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.pp-fab-mode-pill:hover { background: rgba(59, 130, 246, 0.25); border-color: rgba(59, 130, 246, 0.6); }
+.pp-fab-token-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 140px;
+}
+.pp-fab-token-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+.pp-fab-token-info strong { color: #93c5fd; font-weight: 600; }
+.pp-fab-remain { color: #34d399; font-size: 10px; font-weight: 500; }
+.pp-fab-token-track {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.pp-fab-token-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #22c55e, #3b82f6);
+  transition: width 0.4s ease, background 0.4s ease;
+}
 
 .pp-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99999999; opacity: 0; transition: opacity 0.25s ease; }
 
@@ -818,12 +1050,12 @@
   document.head.appendChild(style);
 
   const observer = new MutationObserver(() => {
-    if (!document.querySelector(".pp-fab")) injectFab();
+    if (!document.querySelector(".pp-fab-bar")) injectFab();
   });
   observer.observe(document.body, { childList: true, subtree: true });
   injectFab();
 
-  loadSettings((s) => { currentMode = s.mode || "server"; });
+  loadSettings((s) => { currentMode = s.mode || "device"; });
 
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "toggleEnhancePanel") {
