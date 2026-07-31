@@ -13,6 +13,7 @@ import { encrypt, decrypt } from "@/lib/crypto";
 import { getProviders } from "@/lib/auth/config";
 import { checkIpRateLimit } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/auth/csrf";
+import { resolveServerApiKey } from "@/lib/llm/server-api-key";
 import { NextRequest } from "next/server";
 
 describe("Phase 1 Security & Correctness Hardening", () => {
@@ -89,6 +90,41 @@ describe("Phase 1 Security & Correctness Hardening", () => {
       const res4 = checkIpRateLimit(key, 3, 60_000);
       expect(res3.allowed).toBe(true);
       expect(res4.allowed).toBe(false);
+    });
+  });
+
+  describe("Server API Key Resolver", () => {
+    it("should return null when no server keys are configured", () => {
+      delete process.env.NVIDIA_API_KEY;
+      delete process.env.OPENROUTER_API_KEY;
+      delete process.env.OPENAI_API_KEY;
+      delete process.env.ANTHROPIC_API_KEY;
+      expect(resolveServerApiKey("openai")).toBeNull();
+    });
+
+    it("should prefer the requested provider when its key exists", () => {
+      process.env.OPENAI_API_KEY = "sk-test";
+      process.env.NVIDIA_API_KEY = "nvapi-test";
+      const result = resolveServerApiKey("openai");
+      expect(result?.provider).toBe("openai");
+      expect(result?.apiKey).toBe("sk-test");
+    });
+
+    it("should fall back to the first configured server key in priority order", () => {
+      delete process.env.OPENAI_API_KEY;
+      process.env.NVIDIA_API_KEY = "nvapi-test";
+      process.env.OPENROUTER_API_KEY = "sk-or-test";
+      const result = resolveServerApiKey("openai");
+      expect(result?.provider).toBe("nvidia");
+      expect(result?.apiKey).toBe("nvapi-test");
+    });
+
+    it("should return null for an unknown preferred provider with no configured keys", () => {
+      delete process.env.NVIDIA_API_KEY;
+      delete process.env.OPENROUTER_API_KEY;
+      delete process.env.OPENAI_API_KEY;
+      delete process.env.ANTHROPIC_API_KEY;
+      expect(resolveServerApiKey("google")).toBeNull();
     });
   });
 

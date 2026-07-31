@@ -3,6 +3,7 @@ import { getDb } from "@/lib/db/prisma";
 import { enhancePromptSchema } from "@/lib/validations/prompts";
 import { callLLM } from "@/lib/llm/providers";
 import { decrypt } from "@/lib/crypto";
+import { resolveServerApiKey } from "@/lib/llm/server-api-key";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 import { buildArchitectMetaPrompt } from "@/lib/llm/meta-prompt";
@@ -59,24 +60,10 @@ export const POST = withAuth(
     }
 
     if (!apiKey) {
-      if (resolvedProvider === "nvidia" && process.env.NVIDIA_API_KEY) {
-        apiKey = process.env.NVIDIA_API_KEY;
-      } else if (resolvedProvider === "openrouter" && process.env.OPENROUTER_API_KEY) {
-        apiKey = process.env.OPENROUTER_API_KEY;
-      } else if (resolvedProvider === "anthropic" && process.env.ANTHROPIC_API_KEY) {
-        apiKey = process.env.ANTHROPIC_API_KEY;
-      } else if (process.env.NVIDIA_API_KEY) {
-        apiKey = process.env.NVIDIA_API_KEY;
-        resolvedProvider = "nvidia";
-      } else if (process.env.OPENROUTER_API_KEY) {
-        apiKey = process.env.OPENROUTER_API_KEY;
-        resolvedProvider = "openrouter";
-      } else if (process.env.OPENAI_API_KEY) {
-        apiKey = process.env.OPENAI_API_KEY;
-        resolvedProvider = "openai";
-      } else if (process.env.ANTHROPIC_API_KEY) {
-        apiKey = process.env.ANTHROPIC_API_KEY;
-        resolvedProvider = "anthropic";
+      const serverKey = resolveServerApiKey(resolvedProvider);
+      if (serverKey) {
+        apiKey = serverKey.apiKey;
+        resolvedProvider = serverKey.provider;
       }
     }
 

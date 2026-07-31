@@ -20,11 +20,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const saved = settings[STORAGE_KEY] || {};
       const apiKey = request.apiKey || saved.apiKey || "";
 
-      if (!apiKey) {
-        sendResponse({ success: false, error: "No API key set. Open the extension popup to configure one." });
-        return;
-      }
-
       const urls = cachedWorkingUrl ? [cachedWorkingUrl, ...API_URLS.filter((u) => u !== cachedWorkingUrl)] : API_URLS;
       let lastErr = "";
 
@@ -35,7 +30,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               text: request.text,
-              apiKey,
+              apiKey: apiKey || undefined,
               model: request.model || "gpt-4o-mini",
               provider: request.provider || "openai",
             }),
@@ -47,6 +42,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             if (res.status === 429) {
               const retryAfter = res.headers.get("Retry-After");
               sendResponse({ success: false, error: `Too many requests. Try again ${retryAfter ? `in ${retryAfter}s` : "in a few minutes"}.` });
+              return;
+            }
+            if (res.status === 402) {
+              sendResponse({ success: false, error: msg });
               return;
             }
             if (res.status >= 500) { lastErr = msg; continue; }
@@ -73,6 +72,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse(result);
       } catch (e) {
         sendResponse({ success: false, error: e.message || "Device AI error" });
+      }
+    })();
+    return true;
+  }
+
+  if (request.action === "checkDeviceAI") {
+    (async () => {
+      try {
+        let supported = typeof LanguageModel !== "undefined";
+        if (supported) {
+          const availability = await LanguageModel.availability();
+          supported = availability === "available" || availability === "downloading";
+        }
+        sendResponse({ supported });
+      } catch {
+        sendResponse({ supported: false });
       }
     })();
     return true;

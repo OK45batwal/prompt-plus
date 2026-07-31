@@ -18,6 +18,16 @@ let currentMode = "device";
 let tokenSaver = false;
 const tsToggle = document.getElementById("ts-toggle");
 
+async function checkDeviceSupport() {
+  try {
+    if (typeof chrome !== "undefined" && chrome.runtime?.id) {
+      const res = await chrome.runtime.sendMessage({ action: "checkDeviceAI" });
+      return res?.supported === true;
+    }
+  } catch { /* ignore */ }
+  return false;
+}
+
 function showMsg(text, err) {
   if (!msg) return;
   msg.textContent = text;
@@ -27,7 +37,7 @@ function showMsg(text, err) {
 }
 
 function updateKeyUI(has) {
-  if (keyText) keyText.textContent = has ? "Key Set" : "No Key";
+  if (keyText) keyText.textContent = has ? "Key Set" : "Free Server";
   if (keyIndicator) keyIndicator.className = "key-badge" + (has ? " ok" : "");
 }
 
@@ -42,12 +52,22 @@ function setMode(mode) {
     modelSelect.style.display = "none";
     apiCard.style.display = "none";
     modeLabel.textContent = "On-Device AI — enhanced via Gemini Nano";
+    checkDeviceSupport().then((supported) => {
+      if (!supported) {
+        modeLabel.textContent = "On-Device AI — needs Chrome 138+ with Gemini Nano";
+        modeLabel.style.color = "#f59e0b";
+      } else {
+        modeLabel.textContent = "On-Device AI — enhanced via Gemini Nano";
+        modeLabel.style.color = "";
+      }
+    });
   } else {
     btnIcon.textContent = "⚡";
     btnText.textContent = "Apply Upgrade";
     modelSelect.style.display = "";
     apiCard.style.display = "";
     modeLabel.textContent = "API mode — enhanced via cloud AI API";
+    modeLabel.style.color = "";
   }
   chrome.runtime.sendMessage({ action: "saveSettings", settings: { mode } });
 }
@@ -70,6 +90,12 @@ tsToggle?.addEventListener("change", () => {
 chrome.runtime?.sendMessage?.({ action: "getSettings" }, (res) => {
   const s = res?.settings || {};
   if (s.mode) setMode(s.mode);
+  else checkDeviceSupport().then((supported) => {
+    if (!supported) {
+      modeLabel.textContent = "On-Device AI — needs Chrome 138+ with Gemini Nano";
+      modeLabel.style.color = "#f59e0b";
+    }
+  });
   if (s.model && modelSelect) modelSelect.value = s.model;
   if (s.tokenSaver && tsToggle) { tsToggle.checked = true; tokenSaver = true; }
 });

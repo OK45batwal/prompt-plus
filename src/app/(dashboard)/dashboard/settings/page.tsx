@@ -19,7 +19,7 @@ const providers: ProviderInfo[] = [
 type ToggleDef = { id: string; title: string; description: string };
 const notificationToggles: ToggleDef[] = [
   { id: "email", title: "Email Notifications", description: "Receive email updates about your account" },
-  { id: "usage", title: "Usage Alerts", description: "Get notified when approaching daily limits" },
+  { id: "usage", title: "Usage Notifications", description: "Get notified about your enhancement activity" },
   { id: "digest", title: "Weekly Digest", description: "Receive a weekly summary of your activity" },
 ];
 
@@ -154,9 +154,19 @@ export default function SettingsPage() {
   const [savedKeys, setSavedKeys] = useState<Record<string, boolean>>({});
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [isSavingKey, setIsSavingKey] = useState<Record<string, boolean>>({});
-  const [defaultModel, setDefaultModel] = useState("gpt-4");
-  const [defaultTone, setDefaultTone] = useState("");
-  const [autoEnhance, setAutoEnhance] = useState(false);
+  const loadPrefs = () => {
+    if (typeof window === "undefined") return { defaultModel: "gpt-4", defaultTone: "" };
+    try {
+      const raw = localStorage.getItem("pp_prefs");
+      if (raw) return { defaultModel: "gpt-4", defaultTone: "", ...JSON.parse(raw) };
+    } catch {
+      // ignore
+    }
+    return { defaultModel: "gpt-4", defaultTone: "" };
+  };
+  const initialPrefs = loadPrefs();
+  const [defaultModel, setDefaultModel] = useState(initialPrefs.defaultModel);
+  const [defaultTone, setDefaultTone] = useState(initialPrefs.defaultTone);
   const defaultToggles = () => {
     if (typeof window === "undefined") return { email: true, usage: true, digest: false };
     try {
@@ -170,6 +180,10 @@ export default function SettingsPage() {
   useEffect(() => {
     localStorage.setItem("pp_notification_prefs", JSON.stringify(toggles));
   }, [toggles]);
+
+  useEffect(() => {
+    localStorage.setItem("pp_prefs", JSON.stringify({ defaultModel, defaultTone }));
+  }, [defaultModel, defaultTone]);
 
   useEffect(() => {
     if (session?.user?.name || session?.user?.email) {
@@ -501,14 +515,6 @@ export default function SettingsPage() {
                       <option key={t} value={t}>{t}</option>
                     ))}
                   </select>
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                  <div>
-                    <p className="text-sm font-medium">Auto-analyze on type</p>
-                    <p className="text-xs text-muted-foreground">Automatically analyze prompt as you type</p>
-                  </div>
-                  <ToggleSwitch checked={autoEnhance} onChange={() => setAutoEnhance(!autoEnhance)} />
                 </div>
 
                 <div className="flex items-center justify-between p-3 rounded-lg border bg-card">

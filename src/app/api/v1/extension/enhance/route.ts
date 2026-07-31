@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { callLLM } from "@/lib/llm/providers";
 import { buildArchitectMetaPrompt } from "@/lib/llm/meta-prompt";
+import { resolveServerApiKey } from "@/lib/llm/server-api-key";
 import { checkIpRateLimit } from "@/lib/rate-limit";
 
 const extensionEnhanceSchema = z.object({
   text: z.string().min(1).max(10000),
-  apiKey: z.string().min(5),
+  apiKey: z.string().min(5).optional(),
   provider: z.enum(["openai", "anthropic", "openrouter", "nvidia"]).optional(),
   model: z.string().optional(),
   category: z.string().optional(),
@@ -47,12 +48,27 @@ export async function POST(request: NextRequest) {
   const resolvedProvider: "openai" | "anthropic" | "openrouter" | "nvidia" =
     provider || (model?.includes("claude") ? "anthropic" : model?.includes("/") ? "openrouter" : model?.includes("nvidia") ? "nvidia" : "openai");
 
+  // User key from the extension takes priority; otherwise serve via the server's own keys
+  let effectiveKey = apiKey;
+  let effectiveProvider = resolvedProvider;
+  if (!effectiveKey) {
+    const serverKey = resolveServerApiKey(resolvedProvider);
+    if (!serverKey) {
+      return NextResponse.json(
+        { error: "No API key configured on the server. Add a key in the extension popup or the Prompt+ dashboard." },
+        { status: 402 }
+      );
+    }
+    effectiveKey = serverKey.apiKey;
+    effectiveProvider = serverKey.provider;
+  }
+
   const { metaPrompt, systemInstruction } = buildArchitectMetaPrompt(text, category, tone, length);
 
   try {
     const response = await callLLM({
-      provider: resolvedProvider,
-      apiKey,
+      provider: effectiveProvider,
+      apiKey: effectiveKey,
       model,
       systemPrompt: systemInstruction,
       userPrompt: metaPrompt,

@@ -5,7 +5,7 @@ const steps = [
   { icon: Puzzle, title: "Install", desc: "Load the unpacked extension from the extension/ folder in Chrome dev mode." },
   { icon: Sparkles, title: "Open a Chat", desc: "Visit ChatGPT, Claude, Gemini, or DeepSeek. A floating Prompt+ button appears near the input." },
   { icon: Copy, title: "Enhance", desc: "Click the button to open the side panel, refine your prompt, and apply it — no copy-paste needed." },
-  { icon: Layers, title: "Configure", desc: "Set your API key, pick a model, and toggle Token Saver mode from the popup or panel." },
+  { icon: Layers, title: "Configure", desc: "Pick On-Device or API mode. API mode works instantly with a free server model — add your own key for full model access." },
 ];
 
 export default function ExtensionPage() {
@@ -65,9 +65,8 @@ export default function ExtensionPage() {
               "One-click apply — no manual copy-paste",
               "Token usage bar showing estimated context window",
               "Token Saver mode for ~40% fewer tokens",
-              "7 free OpenRouter models + NVIDIA models",
-              "Device AI mode using Chrome's built-in Gemini Nano",
-              "Server mode with your API key",
+              "On-Device mode using Chrome's built-in Gemini Nano — free, private, offline",
+              "API mode with a free server model out of the box, or your own key for full model access",
             ].map((f) => (
               <div key={f} className="flex items-start gap-2.5">
                 <Zap className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />

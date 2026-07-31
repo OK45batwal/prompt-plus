@@ -117,8 +117,6 @@ const categories = [
 
 export default function PromptBuilderPage() {
   const [prompt, setPrompt] = useState("");
-  const [selectedModel, setSelectedModel] = useState<Model>("gpt-4");
-  const [selectedTone, setSelectedTone] = useState("");
   const [selectedLength, setSelectedLength] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [isEnhancing, setIsEnhancing] = useState(false);
@@ -128,6 +126,20 @@ export default function PromptBuilderPage() {
   const [showCostBreakdown, setShowCostBreakdown] = useState(false);
   const [enhanceMode, setEnhanceMode] = useState<"api" | "device">("api");
   const [deviceState, setDeviceState] = useState<"unknown" | "available" | "unavailable" | "downloading">("unknown");
+
+  const loadPrefs = () => {
+    try {
+      const raw = localStorage.getItem("pp_prefs");
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  };
+  const initialPrefs = typeof window !== "undefined" ? loadPrefs() : {};
+  const [selectedModel, setSelectedModel] = useState<Model>(
+    models.some((m) => m.id === initialPrefs.defaultModel) ? initialPrefs.defaultModel : "gpt-4"
+  );
+  const [selectedTone, setSelectedTone] = useState(initialPrefs.defaultTone || "");
 
   // Context Memory Blocks State
   const [availableBlocks] = useState<ContextBlock[]>(() => getSavedContextBlocks());
