@@ -221,19 +221,17 @@
     const rect = card.getBoundingClientRect();
     if (!rect || rect.width === 0) return;
 
-    bar.style.position = "fixed";
-    bar.style.zIndex = "999999";
-
-    // Place directly ABOVE the top border of the dark chat input card
-    let top = rect.top - 42;
+    let top = rect.top - 44;
     if (top < 10) {
       top = Math.max(10, rect.top + 6);
     }
 
-    bar.style.top = top + "px";
-    bar.style.bottom = "auto";
-    bar.style.left = Math.max(10, rect.left) + "px";
-    bar.style.width = Math.min(rect.width, window.innerWidth - 20) + "px";
+    bar.style.setProperty("position", "fixed", "important");
+    bar.style.setProperty("z-index", "99999999", "important");
+    bar.style.setProperty("top", top + "px", "important");
+    bar.style.setProperty("bottom", "auto", "important");
+    bar.style.setProperty("left", Math.max(10, rect.left) + "px", "important");
+    bar.style.setProperty("display", "inline-flex", "important");
   }
 
   function showToast(msg) {
@@ -840,7 +838,8 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   const style = document.createElement("style");
   style.textContent = `
 .pp-fab-bar {
-  all: initial !important;
+  position: fixed !important;
+  z-index: 99999999 !important;
   box-sizing: border-box !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -859,7 +858,6 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   height: 38px !important;
   margin: 0 !important;
   line-height: 1 !important;
-  z-index: 999999 !important;
   transition: opacity 0.15s ease !important;
 }
 .pp-fab-bar .pp-fab-btn {
