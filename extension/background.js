@@ -158,7 +158,7 @@ async function enhanceWithDevice(req, sender) {
     throw new Error("Gemini Nano not available on this device. Needs Chrome 138+, 22GB+ free storage, macOS 13+/Win 10+/Linux.");
   }
   const session = await LanguageModel.create({
-    temperature: 0.3, topK: 1,
+    temperature: 0.3, topK: 1, outputLanguage: "en",
     monitor(m) {
       m.addEventListener("downloadprogress", (e) => {
         if (e.loaded < 1) {

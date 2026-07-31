@@ -236,7 +236,7 @@ async function deviceEnhance(text, tokenSaver) {
   }
 
   const session = await LanguageModel.create({
-    temperature: 0.3, topK: 1,
+    temperature: 0.3, topK: 1, outputLanguage: "en",
     monitor(m) {
       m.addEventListener("downloadprogress", (e) => {
         if (e.loaded < 1) {
