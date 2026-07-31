@@ -840,84 +840,113 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   const style = document.createElement("style");
   style.textContent = `
 .pp-fab-bar {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 5px 12px;
-  border-radius: 10px;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: #f8fafc;
-  box-sizing: border-box;
-  width: fit-content;
-  max-width: calc(100vw - 32px);
-  height: 38px;
-  transition: opacity 0.15s ease;
+  all: initial !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 5px 12px !important;
+  border-radius: 10px !important;
+  background: rgba(15, 23, 42, 0.96) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(59, 130, 246, 0.35) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  color: #f8fafc !important;
+  width: fit-content !important;
+  max-width: calc(100vw - 32px) !important;
+  height: 38px !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+  z-index: 999999 !important;
+  transition: opacity 0.15s ease !important;
 }
-.pp-fab-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 7px;
-  border: none;
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-  font-family: inherit;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+.pp-fab-bar .pp-fab-btn {
+  all: initial !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 6px 14px !important;
+  border-radius: 7px !important;
+  border: none !important;
+  background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
+  color: #ffffff !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4) !important;
+  transition: transform 0.15s ease, opacity 0.15s ease !important;
+  margin: 0 !important;
+  outline: none !important;
 }
-.pp-fab-btn:hover { opacity: 0.95; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5); }
-.pp-fab-badge {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 5px;
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  color: #4ade80;
-  font-size: 10px;
-  font-weight: 600;
-  white-space: nowrap;
-  letter-spacing: 0.03em;
+.pp-fab-bar .pp-fab-btn:hover { opacity: 0.95 !important; transform: translateY(-1px) !important; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5) !important; }
+.pp-fab-bar .pp-fab-badge {
+  all: initial !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 3px 8px !important;
+  border-radius: 5px !important;
+  background: rgba(34, 197, 94, 0.12) !important;
+  border: 1px solid rgba(34, 197, 94, 0.35) !important;
+  color: #4ade80 !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  letter-spacing: 0.03em !important;
+  margin: 0 !important;
 }
-.pp-fab-token-wrap {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 140px;
+.pp-fab-bar .pp-fab-token-wrap {
+  all: initial !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  min-width: 130px !important;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  margin: 0 !important;
 }
-.pp-fab-token-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 10px;
-  color: #94a3b8;
-  white-space: nowrap;
+.pp-fab-bar .pp-fab-token-info {
+  all: initial !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  font-size: 10px !important;
+  line-height: 1.2 !important;
+  color: #94a3b8 !important;
+  white-space: nowrap !important;
+  gap: 10px !important;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
 }
-.pp-fab-token-info strong { color: #93c5fd; font-weight: 600; }
-.pp-fab-remain { color: #34d399; font-size: 10px; font-weight: 500; }
-.pp-fab-token-track {
-  height: 4px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-  overflow: hidden;
+.pp-fab-bar .pp-fab-token-info strong { color: #93c5fd !important; font-weight: 600 !important; }
+.pp-fab-bar .pp-fab-remain-wrap { color: #34d399 !important; font-size: 10px !important; font-weight: 500 !important; }
+.pp-fab-bar .pp-fab-token-track {
+  all: initial !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  height: 4px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
 }
-.pp-fab-token-fill {
-  height: 100%;
-  border-radius: 4px;
-  background: linear-gradient(90deg, #22c55e, #3b82f6);
-  transition: width 0.4s ease, background 0.4s ease;
+.pp-fab-bar .pp-fab-token-fill {
+  all: initial !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  height: 100% !important;
+  border-radius: 4px !important;
+  background: linear-gradient(90deg, #22c55e, #3b82f6) !important;
+  transition: width 0.4s ease !important;
 }
 
 .pp-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99999999; opacity: 0; transition: opacity 0.25s ease; }
