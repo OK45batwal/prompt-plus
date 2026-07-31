@@ -1,20 +1,15 @@
-const input = document.getElementById("input");
-const btn = document.getElementById("enhance-btn");
-const btnIcon = document.getElementById("btn-icon");
-const btnText = document.getElementById("btn-text");
 const msg = document.getElementById("msg");
 const keyInput = document.getElementById("key-input");
 const keyText = document.getElementById("key-text");
 const keyIndicator = document.getElementById("key-indicator");
 const modelSelect = document.getElementById("model-select");
-const charCount = document.getElementById("char-count");
+const modelLabel = document.getElementById("model-label");
 const modeLabel = document.getElementById("mode-label");
 const apiCard = document.getElementById("api-card");
 
 const modeDevice = document.getElementById("mode-device");
 const modeServer = document.getElementById("mode-server");
 
-let currentMode = "device";
 let tokenSaver = false;
 const tsToggle = document.getElementById("ts-toggle");
 
@@ -42,14 +37,12 @@ function updateKeyUI(has) {
 }
 
 function setMode(mode) {
-  currentMode = mode;
   modeDevice.classList.toggle("active", mode === "device");
   modeServer.classList.toggle("active", mode === "server");
 
   if (mode === "device") {
-    btnIcon.textContent = "📱";
-    btnText.textContent = "Device Enhance";
     modelSelect.style.display = "none";
+    modelLabel.style.display = "none";
     apiCard.style.display = "none";
     modeLabel.textContent = "On-Device AI — enhanced via Gemini Nano";
     checkDeviceSupport().then((supported) => {
@@ -62,20 +55,14 @@ function setMode(mode) {
       }
     });
   } else {
-    btnIcon.textContent = "⚡";
-    btnText.textContent = "Apply Upgrade";
     modelSelect.style.display = "";
+    modelLabel.style.display = "";
     apiCard.style.display = "";
     modeLabel.textContent = "API mode — enhanced via cloud AI API";
     modeLabel.style.color = "";
   }
   chrome.runtime.sendMessage({ action: "saveSettings", settings: { mode } });
 }
-
-input?.addEventListener("input", () => {
-  const len = input.value.length;
-  if (charCount) charCount.textContent = `${len} character${len === 1 ? "" : "s"}`;
-});
 
 // Mode toggle
 modeDevice?.addEventListener("click", () => setMode("device"));
@@ -129,71 +116,6 @@ keyInput?.addEventListener("change", () => {
 });
 
 keyInput?.addEventListener("input", () => { keyInput.style.borderColor = ""; });
-
-// Enhance
-btn?.addEventListener("click", async () => {
-  try {
-    const text = input?.value?.trim();
-    if (!text) { showMsg("Enter a prompt first", true); return; }
-
-    if (currentMode === "device") {
-      btn.disabled = true;
-      btn.innerHTML = '<span>📱</span><span>Device Enhancing...</span>';
-      try {
-        const res = await chrome.runtime.sendMessage({ action: "enhanceDevice", text, tokenSaver });
-        if (!res || !res.success) throw new Error(res?.error || "Device AI not available (Chrome 138+ with Gemini Nano required)");
-        const enhanced = res.enhanced;
-        const [tab] = await chrome.tabs?.query({ active: true, currentWindow: true }) || [];
-        if (tab?.id) {
-          chrome.tabs.sendMessage(tab.id, { action: "injectEnhanced", text, enhanced }, (ir) => {
-            if (chrome.runtime.lastError || !ir?.success) {
-              navigator.clipboard.writeText(enhanced);
-              showMsg("Enhanced & copied to clipboard");
-            } else {
-              showMsg("Prompt enhanced & injected!");
-              window.close();
-            }
-          });
-        } else {
-          await navigator.clipboard.writeText(enhanced);
-          showMsg("Enhanced & copied to clipboard");
-        }
-      } catch (e) {
-        showMsg(e.message, true);
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<span>📱</span><span>Device Enhance</span><span>→</span>';
-      }
-      return;
-    }
-
-    // Server mode
-    btn.disabled = true;
-    btn.innerHTML = '<span>⚡</span><span>Enhancing...</span>';
-
-    const modelVal = modelSelect.value;
-    const parts = modelVal.split("::");
-    const model = parts[0];
-    const provider = parts[1] || "openai";
-
-    try {
-      const res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver });
-      if (!res || !res.success) throw new Error(res?.error || "Failed");
-      const enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
-      const saved = tokenSaver ? ` (saved ~${Math.round((1 - enhanced.length / text.length) * 100)}% tokens)` : "";
-      await navigator.clipboard.writeText(enhanced);
-      showMsg("Enhanced & copied to clipboard!" + saved);
-    } catch (e) {
-      showMsg(e.message, true);
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '<span>⚡</span><span>Apply Upgrade</span><span>→</span>';
-    }
-  } catch (err) {
-    console.error("[Prompt+] click handler error:", err);
-    showMsg(err.message || "Something went wrong", true);
-  }
-});
 
 // Token bar
 function updatePopupTokenBar(info) {

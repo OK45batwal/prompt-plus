@@ -126,8 +126,7 @@
       if (!el || !el.parentElement) { showToast("No input field found"); return; }
       currentTarget = el;
       currentText = getText(el);
-      if (!currentText.trim()) { showToast("Enter a prompt first"); return; }
-      openPanel();
+      openPopover();
     });
 
     fab.style.position = "fixed";
@@ -182,6 +181,164 @@
   }
 
   let settings = null;
+
+  // ---- Compact popover (new primary UX) ----
+  let popoverEl = null;
+  let popoverTimer = null;
+
+  function openPopover() {
+    if (popoverEl) { closePopover(); return; }
+    const input = currentTarget;
+    const text = currentText;
+    if (!input || !text.trim()) {
+      showToast("Type a prompt in the chat input first");
+      return;
+    }
+
+    loadSettings((s) => {
+      settings = s;
+      currentMode = s.mode || "server";
+      renderPopover(input, text);
+    });
+  }
+
+  function closePopover() {
+    if (popoverEl) { popoverEl.remove(); popoverEl = null; }
+    if (popoverTimer) { clearInterval(popoverTimer); popoverTimer = null; }
+    document.removeEventListener("keydown", popoverEscHandler);
+  }
+
+  function popoverEscHandler(e) {
+    if (e.key === "Escape") closePopover();
+  }
+
+  function updatePopoverTokenBar() {
+    const fill = document.getElementById("pp-pop-token-fill");
+    const usedEl = document.getElementById("pp-pop-token-used");
+    const remainEl = document.getElementById("pp-pop-token-remaining");
+    const pctEl = document.getElementById("pp-pop-token-pct");
+    if (!fill || !usedEl || !remainEl) return;
+    const info = getTokenInfo();
+    const remaining = Math.max(0, info.limit - info.used);
+    usedEl.textContent = info.used.toLocaleString();
+    remainEl.textContent = remaining.toLocaleString();
+    pctEl.textContent = info.pct + "%";
+    fill.style.width = info.pct + "%";
+    fill.style.background = info.pct > 80 ? "linear-gradient(90deg, #f59e0b, #ef4444)" : "linear-gradient(90deg, #22c55e, #3b82f6)";
+  }
+
+  function renderPopover(input, text) {
+    popoverEl = document.createElement("div");
+    popoverEl.className = "pp-popover";
+    popoverEl.innerHTML =
+      '<div class="pp-pop-head">' +
+        '<div class="pp-pop-title">✦ Prompt+ Intelligence</div>' +
+        '<div class="pp-pop-mode" id="pp-pop-mode">' + (currentMode === "device" ? "📱 On-Device" : "⚡ Free Server") + '</div>' +
+        '<button class="pp-pop-close" id="pp-pop-close">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+        '</button>' +
+      '</div>' +
+      '<div class="pp-pop-token">' +
+        '<div class="pp-pop-token-label"><span>Used: <strong id="pp-pop-token-used">0</strong> · Remaining: <strong id="pp-pop-token-remaining">128K</strong></span><span id="pp-pop-token-pct">0%</span></div>' +
+        '<div class="pp-pop-token-track"><div class="pp-pop-token-fill" id="pp-pop-token-fill" style="width:0%"></div></div>' +
+      '</div>' +
+      '<div class="pp-pop-body">' +
+        '<div class="pp-pop-result" id="pp-pop-result"></div>' +
+      '</div>' +
+      '<div class="pp-pop-footer">' +
+        '<button class="pp-btn-keep" id="pp-pop-keep">Keep Original</button>' +
+        '<button class="pp-pop-copy" id="pp-pop-copy" disabled>📋 Copy</button>' +
+        '<button class="pp-btn-apply" id="pp-pop-use" disabled><span id="pp-pop-use-text">Use Enhanced</span><span>→</span></button>' +
+      '</div>';
+
+    document.body.appendChild(popoverEl);
+    positionPopover(input);
+
+    updatePopoverTokenBar();
+    popoverTimer = setInterval(updatePopoverTokenBar, 3000);
+
+    popoverEl.querySelector("#pp-pop-close").onclick = closePopover;
+    popoverEl.querySelector("#pp-pop-keep").onclick = () => {
+      if (currentText) setText(input, currentText);
+      closePopover();
+    };
+    document.addEventListener("keydown", popoverEscHandler);
+
+    const result = popoverEl.querySelector("#pp-pop-result");
+    result.textContent = text;
+
+    popoverEl.querySelector("#pp-pop-copy").onclick = () => {
+      navigator.clipboard.writeText(currentEnhanced || result.textContent);
+      const cb = popoverEl.querySelector("#pp-pop-copy");
+      cb.textContent = "✓ Copied";
+      setTimeout(() => { cb.textContent = "📋 Copy"; }, 1500);
+    };
+
+    popoverEl.querySelector("#pp-pop-use").onclick = () => {
+      if (currentEnhanced) setText(input, currentEnhanced);
+      closePopover();
+    };
+
+    doEnhancePopover(input, text);
+  }
+
+  function positionPopover(input) {
+    if (!popoverEl) return;
+    const rect = input.getBoundingClientRect();
+    if (!rect || rect.width === 0) return;
+    popoverEl.style.bottom = (window.innerHeight - rect.top + 10) + "px";
+    popoverEl.style.right = (window.innerWidth - rect.right + 10) + "px";
+    if (rect.top < 420) {
+      popoverEl.style.bottom = (window.innerHeight - rect.bottom - 60) + "px";
+    }
+  }
+
+  let popoverEnhancing = false;
+
+  async function doEnhancePopover(input, text) {
+    if (popoverEnhancing) return;
+    popoverEnhancing = true;
+
+    const fab = document.querySelector(".pp-fab");
+    const fabOrig = fab?.innerHTML || "";
+    const result = document.getElementById("pp-pop-result");
+    const useBtn = document.getElementById("pp-pop-use");
+    const useText = document.getElementById("pp-pop-use-text");
+    const copyBtn = document.getElementById("pp-pop-copy");
+    if (useBtn) useBtn.disabled = true;
+    if (copyBtn) copyBtn.disabled = true;
+    if (result) result.textContent = "Enhancing...";
+    if (fab) fab.innerHTML = '<span class="pp-fab-icon">⌛</span><span class="pp-fab-text">Enhancing...</span>';
+
+    try {
+      let res;
+      if (currentMode === "device") {
+        res = await chrome.runtime.sendMessage({ action: "enhanceDevice", text, tokenSaver: !!(settings?.tokenSaver) });
+        if (!res || !res.success) throw new Error(res?.error || "Device AI not available (Chrome 138+ with Gemini Nano required)");
+        currentEnhanced = res.enhanced || "";
+      } else {
+        const modelVal = settings?.model || "meta-llama/llama-3.3-70b-instruct:free::openrouter";
+        const parts = modelVal.split("::");
+        const model = parts[0];
+        const provider = parts[1] || "openai";
+        res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver: !!(settings?.tokenSaver) });
+        if (!res || !res.success) throw new Error(res?.error || "Failed");
+        currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
+      }
+
+      if (result) result.textContent = currentEnhanced;
+      if (useBtn) useBtn.disabled = false;
+      if (copyBtn) copyBtn.disabled = false;
+      if (useText) useText.textContent = "Use Enhanced";
+      saveHistory(text);
+    } catch (err) {
+      showToast(err.message);
+      if (useText) useText.textContent = "Use Enhanced";
+    } finally {
+      popoverEnhancing = false;
+      if (fab) fab.innerHTML = fabOrig;
+    }
+  }
 
   function renderPanel(input, text, s) {
     panelEl = document.createElement("div");
@@ -577,6 +734,64 @@
 
 .pp-btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: ppSpin 0.6s linear infinite; }
 @keyframes ppSpin { to { transform: rotate(360deg); } }
+
+/* Compact popover */
+.pp-popover {
+  position: fixed;
+  width: 460px;
+  max-width: calc(100vw - 24px);
+  max-height: 70vh;
+  background: #090d16;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  box-shadow: 0 16px 60px rgba(0,0,0,0.55);
+  z-index: 100000000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #f8fafc;
+}
+.pp-pop-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.pp-pop-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
+.pp-pop-mode {
+  font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 6px;
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.4); color: #93c5fd;
+  margin-left: auto; margin-right: 8px;
+}
+.pp-pop-close {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  color: #64748b; cursor: pointer; padding: 5px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+}
+.pp-pop-close:hover { background: rgba(255,255,255,0.08); color: #f8fafc; }
+.pp-pop-token { padding: 8px 16px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
+.pp-pop-token-label { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #64748b; margin-bottom: 5px; }
+.pp-pop-token-label strong { color: #93c5fd; font-weight: 600; }
+.pp-pop-token-track { height: 4px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+.pp-pop-token-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #22c55e, #3b82f6); transition: width 0.6s ease; }
+.pp-pop-body { flex: 1; overflow-y: auto; padding: 14px 16px; }
+.pp-pop-body::-webkit-scrollbar { width: 4px; }
+.pp-pop-body::-webkit-scrollbar-track { background: transparent; }
+.pp-pop-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+.pp-pop-result {
+  font-size: 13px; line-height: 1.7; color: #f8fafc; white-space: pre-wrap; word-break: break-word;
+  background: #0f172a; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;
+}
+.pp-pop-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 12px 16px; background: rgba(255,255,255,0.03); border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
+.pp-pop-copy {
+  padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03); color: #94a3b8; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s; font-family: inherit;
+}
+.pp-pop-copy:hover:not(:disabled) { background: rgba(255,255,255,0.06); color: #f8fafc; }
+.pp-pop-copy:disabled { opacity: 0.35; cursor: not-allowed; }
   `;
   document.head.appendChild(style);
 

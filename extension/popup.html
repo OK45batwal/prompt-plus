@@ -79,28 +79,21 @@
     .mode-btn:hover:not(.active) { background: rgba(255,255,255,0.05); color: #94a3b8; }
 
     .content { padding: 12px 16px; }
-    textarea {
-      width: 100%; height: 76px;
-      background: #0f172a;
-      border: 1px solid rgba(255,255,255,0.08);
+
+    .hint {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 10px 12px; margin-bottom: 12px;
+      background: rgba(59,130,246,0.08);
+      border: 1px solid rgba(59,130,246,0.2);
       border-radius: 8px;
-      color: #f8fafc;
-      padding: 10px 12px;
-      font-size: 13px; line-height: 1.5; font-family: inherit;
-      resize: none; outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      font-size: 11px; line-height: 1.5; color: #94a3b8;
     }
-    textarea:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+    .hint strong { color: #93c5fd; }
+    .mode-label { font-size: 10px; color: #64748b; margin: 4px 2px 10px; min-height: 14px; }
+    .model-label {
+      font-size: 10px; font-weight: 600; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.05em; margin: 12px 2px 6px;
     }
-    textarea::placeholder { color: #475569; }
-
-    .input-meta {
-      display: flex; justify-content: space-between;
-      margin-top: 4px; font-size: 10px; color: #64748b;
-    }
-
     .model-select {
       width: 100%;
       background: #0f172a;
@@ -118,21 +111,6 @@
     }
     .model-select optgroup { background: #0f172a; color: #64748b; font-size: 11px; }
     .model-select option { background: #0f172a; color: #f8fafc; }
-
-    .btn-enhance {
-      width: 100%; padding: 10px;
-      border: none; border-radius: 8px;
-      font-size: 13px; font-weight: 600;
-      cursor: pointer; transition: all 0.15s;
-      margin-top: 10px;
-      background: #3b82f6;
-      color: #ffffff;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      font-family: inherit;
-    }
-    .btn-enhance:hover { background: #2563eb; transform: translateY(-1px); }
-    .btn-enhance:active { transform: translateY(0); }
-    .btn-enhance:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
     .msg {
       font-size: 11px; display: none;
@@ -230,21 +208,21 @@
     </div>
   </div>
 
-  <div class="mode-bar">
-    <button class="mode-btn active" id="mode-device">
-      <span>📱</span> On-Device
-    </button>
-    <button class="mode-btn" id="mode-server">
-      <span>⚡</span> API Based
-    </button>
-  </div>
-
   <div class="content">
-    <textarea id="input" placeholder="Paste or type your prompt to enhance..."></textarea>
-    <div class="input-meta">
-      <span id="char-count">0 characters</span>
-      <span id="mode-label">On-Device AI — enhanced via Gemini Nano</span>
+    <div class="hint" id="hint">
+      <span>✦</span>
+      <span>Open a chat (ChatGPT, Claude, Gemini, DeepSeek), type a prompt, then click the blue <strong>Enhance Prompt</strong> button next to the input.</span>
     </div>
+
+    <div class="mode-bar" style="margin-bottom:8px">
+      <button class="mode-btn active" id="mode-device">
+        <span>📱</span> On-Device
+      </button>
+      <button class="mode-btn" id="mode-server">
+        <span>⚡</span> API Based
+      </button>
+    </div>
+    <div class="mode-label" id="mode-label">On-Device AI — enhanced via Gemini Nano</div>
 
     <div class="opt-row" id="ts-row">
       <div>
@@ -257,6 +235,7 @@
       </label>
     </div>
 
+    <div class="model-label" id="model-label" style="display:none">Default Model</div>
     <select id="model-select" class="model-select" style="display:none">
       <optgroup label="OpenRouter Free Tier">
         <option value="meta-llama/llama-3.3-70b-instruct:free::openrouter" selected>Llama 3.3 70B (Free)</option>
@@ -270,12 +249,6 @@
         <option value="claude-3-5-sonnet-20241022::anthropic">Claude 3.5 Sonnet</option>
       </optgroup>
     </select>
-
-    <button class="btn-enhance" id="enhance-btn">
-      <span id="btn-icon">✨</span>
-      <span id="btn-text">Self-Enhance</span>
-      <span>→</span>
-    </button>
     <div class="msg" id="msg"></div>
 
     <div class="api-card" id="api-card">

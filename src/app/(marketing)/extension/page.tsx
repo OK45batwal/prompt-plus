@@ -4,7 +4,7 @@ import { ExternalLink, Puzzle, Zap, Sparkles, Copy, Layers } from "lucide-react"
 const steps = [
   { icon: Puzzle, title: "Install", desc: "Load the unpacked extension from the extension/ folder in Chrome dev mode." },
   { icon: Sparkles, title: "Open a Chat", desc: "Visit ChatGPT, Claude, Gemini, or DeepSeek. A floating Prompt+ button appears near the input." },
-  { icon: Copy, title: "Enhance", desc: "Click the button to open the side panel, refine your prompt, and apply it — no copy-paste needed." },
+  { icon: Copy, title: "Enhance", desc: "Click the button — a compact preview pops up right at your input. Review, then use it with one click." },
   { icon: Layers, title: "Configure", desc: "Pick On-Device or API mode. API mode works instantly with a free server model — add your own key for full model access." },
 ];
 
@@ -23,7 +23,7 @@ export default function ExtensionPage() {
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto">
             Use Prompt+ inside ChatGPT, Claude, Gemini, and DeepSeek — without leaving the page.
-            Refine, preview, and apply prompts with one click.
+            One click on the floating button enhances your prompt, right at the input.
           </p>
         </div>
 
@@ -60,10 +60,10 @@ export default function ExtensionPage() {
           <div className="space-y-3 text-sm text-muted-foreground">
             {[
               "Floating action button on ChatGPT, Claude, Gemini, and DeepSeek",
-              "Side panel with structured prompt analysis and sections",
-              "Original vs enhanced side-by-side preview",
-              "One-click apply — no manual copy-paste",
-              "Token usage bar showing estimated context window",
+              "Compact preview popover right at the chat input",
+              "Enhanced result with token-remaining bar",
+              "One-click apply or keep original — no manual copy-paste",
+              "Full side panel for advanced, structured prompt analysis",
               "Token Saver mode for ~40% fewer tokens",
               "On-Device mode using Chrome's built-in Gemini Nano — free, private, offline",
               "API mode with a free server model out of the box, or your own key for full model access",
