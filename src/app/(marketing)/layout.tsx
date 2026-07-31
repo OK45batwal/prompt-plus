@@ -17,12 +17,12 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               Extension
             </Link>
             <a
-              href="https://github.com/OK45batwal/prompt-plus/discussions"
+              href="https://github.com/OK45batwal/prompt-plus/issues"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline-flex items-center gap-1"
             >
-              Discussions
+              GitHub
             </a>
             <Link
               href="/login"
@@ -55,12 +55,12 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               Extension
             </Link>
             <a
-              href="https://github.com/OK45batwal/prompt-plus/discussions"
+              href="https://github.com/OK45batwal/prompt-plus/issues"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"
             >
-              Discussions
+              GitHub Issues
             </a>
             <Link href="/docs" className="hover:text-foreground transition-colors">
               Docs

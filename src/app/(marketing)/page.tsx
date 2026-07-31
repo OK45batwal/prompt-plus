@@ -362,13 +362,13 @@ export default function LandingPage() {
                 </a>
 
                 <a
-                  href="https://github.com/OK45batwal/prompt-plus/discussions"
+                  href="https://github.com/OK45batwal/prompt-plus/issues"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="h-12 w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-xl border bg-card px-6 text-sm font-semibold hover:bg-accent transition-all active:scale-95 text-foreground"
                 >
                   <MessageSquare className="h-4 w-4 text-primary" />
-                  <span>GitHub Discussions</span>
+                  <span>GitHub Issues & Feedback</span>
                 </a>
 
                 <button
