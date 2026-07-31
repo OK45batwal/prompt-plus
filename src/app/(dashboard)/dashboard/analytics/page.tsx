@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BarChart3, RefreshCw, Clock, FileText, Sparkles, Star } from "lucide-react";
+import { BarChart3, Clock, FileText, Sparkles, Star } from "lucide-react";
 
 interface UsageData {
-  daily: { used: number; resetsAt: string };
   monthly: { used: number; resetsAt: string };
   totalPrompts: number;
   totalEnhancements: number;
@@ -61,15 +60,6 @@ export default function AnalyticsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          <div className="p-4 rounded-lg border bg-card">
-            <div className="flex items-center gap-2 mb-2">
-              <RefreshCw className="h-4 w-4 text-muted-foreground" />
-              <p className="text-xs text-muted-foreground font-medium">Daily Usage</p>
-            </div>
-            <p className="text-lg font-semibold">{data.daily.used.toLocaleString()} enhancements</p>
-            <p className="text-xs text-muted-foreground mt-1">Free for all — no daily limit</p>
-          </div>
-
           <div className="p-4 rounded-lg border bg-card">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="h-4 w-4 text-muted-foreground" />

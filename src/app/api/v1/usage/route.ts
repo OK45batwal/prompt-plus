@@ -15,24 +15,14 @@ export async function GET() {
   const userId = session.user.id;
 
   const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 
   const [
-    dailyCount,
     monthlyCount,
     totalPrompts,
     totalEnhancements,
     promptsWithScore,
   ] = await Promise.all([
-    getDb().usageLog.count({
-      where: {
-        userId,
-        action: "enhance",
-        createdAt: { gte: startOfDay },
-      },
-    }),
     getDb().usageLog.count({
       where: {
         userId,
@@ -78,10 +68,6 @@ export async function GET() {
 
   return NextResponse.json({
     data: {
-      daily: {
-        used: dailyCount,
-        resetsAt: endOfDay.toISOString(),
-      },
       monthly: {
         used: monthlyCount,
         resetsAt: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString(),

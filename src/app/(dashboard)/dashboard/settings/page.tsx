@@ -175,7 +175,6 @@ export default function SettingsPage() {
     } catch { return { email: true, usage: true, digest: false }; }
   };
   const [toggles, setToggles] = useState<Record<string, boolean>>(defaultToggles);
-  const [planData, setPlanData] = useState<{ used: number } | null>(null);
 
   useEffect(() => {
     localStorage.setItem("pp_notification_prefs", JSON.stringify(toggles));
@@ -192,9 +191,6 @@ export default function SettingsPage() {
         if (session?.user?.email) setEmail(session.user.email);
       });
     }
-    fetch("/api/v1/usage").then((r) => r.json()).then((j) => {
-      if (j.data?.daily) setPlanData(j.data.daily);
-    }).catch(() => {});
   }, [session?.user?.name, session?.user?.email]);
 
   useEffect(() => {
@@ -391,7 +387,7 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium">Free for All</p>
-                        <p className="text-xs text-muted-foreground">{planData ? `${planData.used} enhancements used today — no limits` : "Loading..."}</p>
+                        <p className="text-xs text-muted-foreground">Completely free — no limits, no quotas</p>
                       </div>
                       <span className="text-xs px-2 py-1 rounded bg-muted">Current</span>
                     </div>
