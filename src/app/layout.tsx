@@ -4,6 +4,8 @@ import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { auth } from "@/lib/auth/config";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "AI Prompt+",
@@ -20,6 +22,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
             <ToastProvider>
               {children}
+              <Analytics />
+              <SpeedInsights />
             </ToastProvider>
           </ThemeProvider>
         </SessionProvider>
