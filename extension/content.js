@@ -197,26 +197,46 @@
     fabTimer = setInterval(updateFabTokenBar, 2500);
   }
 
+  function getChatContainer(input) {
+    if (!input) return null;
+    let el = input.closest("form") || 
+             input.closest("[class*='composer']") || 
+             input.closest("[class*='input']") || 
+             input.parentElement;
+    
+    while (el && el.parentElement && el.tagName !== "BODY" && el.tagName !== "MAIN") {
+      const rect = el.getBoundingClientRect();
+      if (rect.height >= 40 && el.offsetHeight >= 40) {
+        if (el.querySelector("button, [role='button']") && el !== input) {
+          return el;
+        }
+      }
+      el = el.parentElement;
+    }
+    return input.parentElement || input;
+  }
+
   function positionFab(bar, input) {
     if (!bar || !input) return;
-    const rect = input.getBoundingClientRect();
+    const container = getChatContainer(input) || input;
+    const rect = container.getBoundingClientRect();
     if (!rect || rect.width === 0) return;
 
     bar.style.position = "fixed";
     bar.style.zIndex = "999999";
 
-    const spaceBelow = window.innerHeight - rect.bottom;
-    if (spaceBelow >= 40) {
-      bar.style.top = (rect.bottom + 6) + "px";
-      bar.style.bottom = "auto";
-      bar.style.left = Math.max(10, rect.left) + "px";
-      bar.style.width = Math.min(rect.width, window.innerWidth - 20) + "px";
-    } else {
-      bar.style.top = "auto";
-      bar.style.bottom = "8px";
-      bar.style.left = Math.max(10, rect.left) + "px";
-      bar.style.width = Math.min(rect.width, window.innerWidth - 20) + "px";
+    // Place directly ABOVE the chat input card so text inside the box is NEVER covered
+    let top = rect.top - 42;
+    if (top < 10) {
+      top = rect.bottom + 6;
+      if (top + 40 > window.innerHeight) {
+        top = Math.max(10, window.innerHeight - 48);
+      }
     }
+
+    bar.style.top = top + "px";
+    bar.style.left = Math.max(10, rect.left) + "px";
+    bar.style.width = Math.min(rect.width, window.innerWidth - 20) + "px";
   }
 
   function showToast(msg) {
