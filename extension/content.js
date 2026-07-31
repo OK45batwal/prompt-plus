@@ -156,19 +156,20 @@
     const rect = input.getBoundingClientRect();
     if (!rect || rect.width === 0) { setTimeout(injectFab, 1000); return; }
 
+    currentMode = "device"; // Always force On-Device AI on chatbot floating toolbar
+
     const bar = document.createElement("div");
     bar.className = "pp-fab-bar";
 
     bar.innerHTML =
-      '<button class="pp-fab-btn" id="pp-fab-btn" type="button" title="Enhance prompt with Prompt+">' +
-        '<span class="pp-fab-icon">' + (currentMode === "device" ? "📱" : "✨") + '</span>' +
-        '<span class="pp-fab-text" id="pp-fab-text">' + (currentMode === "device" ? "Device Enhance" : "Enhance Prompt") + '</span>' +
+      '<button class="pp-fab-btn" id="pp-fab-btn" type="button" title="Enhance prompt with free On-Device AI (Gemini Nano)">' +
+        '<span class="pp-fab-icon">📱</span>' +
+        '<span class="pp-fab-text" id="pp-fab-text">Device Enhance</span>' +
       '</button>' +
-      '<button class="pp-fab-mode-pill" id="pp-fab-mode-pill" type="button" title="Click to toggle enhancement mode">' +
-        '<span id="pp-fab-mode-icon">' + (currentMode === "device" ? "📱" : "⚡") + '</span>' +
-        '<span id="pp-fab-mode-label">' + (currentMode === "device" ? "On-Device" : "API") + '</span>' +
-      '</button>' +
-      '<div class="pp-fab-token-wrap" title="Remaining Context Tokens">' +
+      '<div class="pp-fab-badge" title="Powered by Chrome Gemini Nano On-Device AI">' +
+        '<span>📱 On-Device AI</span>' +
+      '</div>' +
+      '<div class="pp-fab-token-wrap" title="Context Tokens Remaining">' +
         '<div class="pp-fab-token-info">' +
           '<span>Tokens: <strong id="pp-fab-used">0</strong> / <strong id="pp-fab-limit">128K</strong></span>' +
           '<span class="pp-fab-remain-wrap"><strong id="pp-fab-remain">128K</strong> remaining</span>' +
@@ -189,22 +190,6 @@
       currentTarget = el;
       currentText = getText(el);
       openPopover();
-    });
-
-    bar.querySelector("#pp-fab-mode-pill").addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      currentMode = currentMode === "device" ? "server" : "device";
-      saveSettings({ mode: currentMode });
-      const modeIcon = bar.querySelector("#pp-fab-mode-icon");
-      const modeLabel = bar.querySelector("#pp-fab-mode-label");
-      const btnIcon = bar.querySelector(".pp-fab-icon");
-      const btnText = bar.querySelector("#pp-fab-text");
-      if (modeIcon) modeIcon.textContent = currentMode === "device" ? "📱" : "⚡";
-      if (modeLabel) modeLabel.textContent = currentMode === "device" ? "On-Device" : "API";
-      if (btnIcon) btnIcon.textContent = currentMode === "device" ? "📱" : "✨";
-      if (btnText) btnText.textContent = currentMode === "device" ? "Device Enhance" : "Enhance Prompt";
-      showToast(currentMode === "device" ? "📱 Mode set to On-Device AI" : "⚡ Mode set to Cloud API");
     });
 
     input.addEventListener("input", updateFabTokenBar, { passive: true });
@@ -335,12 +320,13 @@
   }
 
   function renderPopover(input, text) {
+    currentMode = "device"; // Always force On-Device AI mode for popover
     popoverEl = document.createElement("div");
     popoverEl.className = "pp-popover";
     popoverEl.innerHTML =
       '<div class="pp-pop-head">' +
         '<div class="pp-pop-title">✦ Prompt+ Intelligence</div>' +
-        '<div class="pp-pop-mode" id="pp-pop-mode">' + (currentMode === "device" ? "📱 On-Device" : "⚡ Free Server") + '</div>' +
+        '<div class="pp-pop-mode" id="pp-pop-mode">📱 On-Device AI</div>' +
         '<button class="pp-pop-close" id="pp-pop-close">' +
           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
         '</button>' +
@@ -854,19 +840,22 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   const style = document.createElement("style");
   style.textContent = `
 .pp-fab-bar {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 12px;
+  padding: 5px 12px;
   border-radius: 10px;
-  background: rgba(9, 13, 22, 0.94);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: #f8fafc;
   box-sizing: border-box;
+  width: fit-content;
+  max-width: calc(100vw - 32px);
+  height: 38px;
   transition: opacity 0.15s ease;
 }
 .pp-fab-btn {
@@ -874,7 +863,7 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  border-radius: 6px;
+  border-radius: 7px;
   border: none;
   background: linear-gradient(135deg, #2563eb, #7c3aed);
   color: #ffffff;
@@ -884,25 +873,23 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   white-space: nowrap;
   transition: all 0.15s ease;
   font-family: inherit;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
 }
-.pp-fab-btn:hover { opacity: 0.92; transform: translateY(-1px); }
-.pp-fab-mode-pill {
+.pp-fab-btn:hover { opacity: 0.95; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5); }
+.pp-fab-badge {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 5px 9px;
-  border-radius: 6px;
-  border: 1px solid rgba(59, 130, 246, 0.4);
-  background: rgba(59, 130, 246, 0.12);
-  color: #93c5fd;
-  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+  font-size: 10px;
   font-weight: 600;
-  cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s ease;
-  font-family: inherit;
+  letter-spacing: 0.03em;
 }
-.pp-fab-mode-pill:hover { background: rgba(59, 130, 246, 0.25); border-color: rgba(59, 130, 246, 0.6); }
 .pp-fab-token-wrap {
   flex: 1;
   display: flex;
