@@ -199,18 +199,13 @@
 
   function getChatContainer(input) {
     if (!input) return null;
-    let el = input.closest("form") || 
-             input.closest("[class*='composer']") || 
-             input.closest("[class*='input']") || 
-             input.parentElement;
-    
+    const form = input.closest("form");
+    if (form) return form;
+    const composer = input.closest("[class*='composer'], [class*='chat-input'], [class*='prompt-container']");
+    if (composer) return composer;
+    let el = input.parentElement;
     while (el && el.parentElement && el.tagName !== "BODY" && el.tagName !== "MAIN") {
-      const rect = el.getBoundingClientRect();
-      if (rect.height >= 40 && el.offsetHeight >= 40) {
-        if (el.querySelector("button, [role='button']") && el !== input) {
-          return el;
-        }
-      }
+      if (el.offsetHeight >= 50 && el.querySelector("button, [role='button']")) return el;
       el = el.parentElement;
     }
     return input.parentElement || input;
@@ -218,19 +213,18 @@
 
   function positionFab(bar, input) {
     if (!bar || !input) return;
-    const container = getChatContainer(input) || input;
-    const rect = container.getBoundingClientRect();
+    const card = getChatContainer(input) || input;
+    const rect = card.getBoundingClientRect();
     if (!rect || rect.width === 0) return;
 
     bar.style.position = "fixed";
     bar.style.zIndex = "999999";
 
-    // Place cleanly BELOW the chat input card at the bottom
-    let top = rect.bottom + 6;
-    if (top + 40 > window.innerHeight) {
-      top = rect.top - 42;
+    // Place directly ABOVE the top border of the dark chat input card
+    let top = rect.top - 42;
+    if (top < 10) {
+      top = Math.max(10, rect.top + 6);
     }
-    if (top < 10) top = 10;
 
     bar.style.top = top + "px";
     bar.style.bottom = "auto";
