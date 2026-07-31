@@ -7,7 +7,7 @@
   </a>
   <br>
   <a href="https://prompt-plus-7md4ow7pu-unkown3.vercel.app">
-    <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=800&size=34&duration=3000&pause=800&color=3B82F6&center=true&vCenter=true&width=500&lines=Prompt%2B+Studio+v2.0;AI+Prompt+Engineering+Platform;ChatGPT+%C2%B7+Claude+%C2%B7+Gemini+%C2%B7+DeepSeek;8-Step+Compiler+Pipeline;6-Dimension+Quality+Audit" alt="Typing SVG">
+    <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=800&size=34&duration=3000&pause=800&color=3B82F6&center=true&vCenter=true&width=500&lines=Prompt%2B+Studio;AI+Prompt+Engineering+Platform;ChatGPT+%C2%B7+Claude+%C2%B7+Gemini+%C2%B7+DeepSeek;On-Device+AI+%2F+API+Modes;100%25+Free+%E2%80%94+No+Limits" alt="Typing SVG">
   </a>
   <br>
   <p>
@@ -19,7 +19,7 @@
       <img src="https://img.shields.io/badge/Production-Live%20Vercel-3b82f6?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel">
     </a>
     <a href="#extension">
-      <img src="https://img.shields.io/badge/Extension-v2.0.0-8b5cf6?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome Extension">
+      <img src="https://img.shields.io/badge/Extension-v2.1.0-3b82f6?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome Extension">
     </a>
     <a href="LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge" alt="MIT">
@@ -47,7 +47,7 @@
 <br>
 
 > [!NOTE]
-> **Prompt+ v2.0 is live!** Featuring a revamped animated marketing suite, mobile navigation drawer, dark/light theme engine, and a Chrome Extension with a dedicated **Chatbot Counter Status Bar** for ChatGPT, Claude, Gemini, and DeepSeek.
+> **Prompt+ is 100% free — no daily limits, no quotas, no paywall.** Enhance prompts on the web or right inside ChatGPT, Claude, Gemini, and DeepSeek with the Chrome extension. Two AI modes: **On-Device** (Chrome's built-in Gemini Nano — private, offline, no key needed) and **API Based** (free server model out of the box, or bring your own key for full model access).
 
 <br>
 
@@ -65,15 +65,15 @@
     </td>
     <td width="33%" align="center">
       <br>
-      <code>🤖</code>
-      <h3>Chatbot Status Bar</h3>
-      <p>Chrome Extension equipped with active target status pills and prompt counter badges for ChatGPT, Claude, Gemini, and DeepSeek.</p>
+      <code>📱</code>
+      <h3>On-Device AI</h3>
+      <p>Run enhancement locally with Chrome's built-in Gemini Nano (Prompt API, Chrome 138+). Free, private, and works fully offline — no API key.</p>
     </td>
     <td width="33%" align="center">
       <br>
       <code>🌐</code>
       <h3>Multi-Model Engine</h3>
-      <p>Supports OpenRouter free tier (Llama 3.3 70B, Gemini 2.0 Flash, DeepSeek R1), NVIDIA free API models, and direct OpenAI / Anthropic keys.</p>
+      <p>OpenRouter free tier (Llama 3.3 70B, Gemini 2.0 Flash, DeepSeek R1), NVIDIA free API models, and direct OpenAI / Anthropic keys.</p>
     </td>
   </tr>
   <tr>
@@ -85,9 +85,29 @@
     </td>
     <td width="33%" align="center">
       <br>
+      <code>📚</code>
+      <h3>Curated Prompt Library</h3>
+      <p>24 hand-crafted, production-ready prompt templates. Search, filter, copy, and launch straight from the public <a href="#screenshots">prompt library</a> — or browse trending prompts on the dashboard.</p>
+    </td>
+    <td width="33%" align="center">
+      <br>
       <code>🔐</code>
       <h3>AES-256 Vault</h3>
-      <p>Secure per-provider API key storage encrypted with AES-256-GCM. Users can bring their own keys or leverage built-in daily quotas.</p>
+      <p>Secure per-provider API key storage encrypted with AES-256-GCM. Keys are optional — the free server model covers you.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="33%" align="center">
+      <br>
+      <code>🔥</code>
+      <h3>Trending Prompts</h3>
+      <p>Live-ranked top prompts by usage count on the dashboard home, with one-click copy and automatic usage tracking.</p>
+    </td>
+    <td width="33%" align="center">
+      <br>
+      <code>💸</code>
+      <h3>Free Forever</h3>
+      <p>No daily caps, no credit card, no "upgrade" prompts. IP-based abuse throttling keeps the servers healthy — never your wallet.</p>
     </td>
     <td width="33%" align="center">
       <br>
@@ -104,14 +124,17 @@
 
 ## 📸 Screenshots
 
+### Website
+
 <div align="center">
   <table>
     <tr>
-      <td width="50%"><img src="./public/screenshots/dashboard-light.png" alt="Dashboard Light" width="100%"></td>
-      <td width="50%"><img src="./public/screenshots/dashboard-dark.png" alt="Dashboard Dark" width="100%"></td>
+      <td width="50%"><img src="./public/screenshots/landing.png" alt="Landing Page" width="100%"></td>
+      <td width="50%"><img src="./public/screenshots/dashboard-home.png" alt="Dashboard Home" width="100%"></td>
     </tr>
     <tr>
-      <td colspan="2" align="center"><em>Dashboard — Light & Dark Mode</em></td>
+      <td align="center"><em>Landing Page</em></td>
+      <td align="center"><em>Dashboard — Trending Prompts & Free Card</em></td>
     </tr>
   </table>
 
@@ -119,14 +142,40 @@
 
   <table>
     <tr>
-      <td width="33%"><img src="./public/screenshots/new-prompt.png" alt="New Prompt" width="100%"></td>
-      <td width="33%"><img src="./public/screenshots/library.png" alt="Prompt Library" width="100%"></td>
-      <td width="33%"><img src="./public/screenshots/collections.png" alt="Collections" width="100%"></td>
+      <td width="50%"><img src="./public/screenshots/dashboard-new.png" alt="Prompt Builder" width="100%"></td>
+      <td width="50%"><img src="./public/screenshots/dashboard-library.png" alt="Prompt Library" width="100%"></td>
     </tr>
     <tr>
-      <td align="center"><em>Prompt Enhancement</em></td>
-      <td align="center"><em>Prompt Library</em></td>
+      <td align="center"><em>Prompt Enhancement — On-Device / API toggle</em></td>
+      <td align="center"><em>Saved Prompt Library</em></td>
+    </tr>
+  </table>
+
+  <br>
+
+  <table>
+    <tr>
+      <td width="50%"><img src="./public/screenshots/prompts-library.png" alt="Curated Prompts" width="100%"></td>
+      <td width="50%"><img src="./public/screenshots/extension-page.png" alt="Extension Page" width="100%"></td>
+    </tr>
+    <tr>
+      <td align="center"><em>Curated Prompt Library (public)</em></td>
+      <td align="center"><em>Chrome Extension Landing</em></td>
+    </tr>
+  </table>
+
+  <br>
+
+  <table>
+    <tr>
+      <td width="33%"><img src="./public/screenshots/dashboard-collections.png" alt="Collections" width="100%"></td>
+      <td width="33%"><img src="./public/screenshots/dashboard-templates.png" alt="Templates" width="100%"></td>
+      <td width="33%"><img src="./public/screenshots/dashboard-analytics.png" alt="Analytics" width="100%"></td>
+    </tr>
+    <tr>
       <td align="center"><em>Collections</em></td>
+      <td align="center"><em>Templates</em></td>
+      <td align="center"><em>Analytics</em></td>
     </tr>
   </table>
 
@@ -134,15 +183,38 @@
 
   <table>
     <tr>
-      <td width="50%"><img src="./public/screenshots/dashboard-mobile.png" alt="Mobile View" width="60%"></td>
+      <td width="50%"><img src="./public/screenshots/dashboard-dark.png" alt="Dashboard Dark Mode" width="100%"></td>
+      <td width="50%"><img src="./public/screenshots/dashboard-settings.png" alt="Settings" width="100%"></td>
+    </tr>
+    <tr>
+      <td align="center"><em>Dashboard — Dark Mode</em></td>
+      <td align="center"><em>Settings</em></td>
+    </tr>
+  </table>
+</div>
+
+### Chrome Extension
+
+<div align="center">
+  <table>
+    <tr>
+      <td width="50%">
+        <img src="./public/screenshots/extension-page.png" alt="Extension Overview" width="100%">
+        <p align="center"><em>The extension enhances prompts directly inside ChatGPT, Claude, Gemini, and DeepSeek via a floating action button and side panel.</em></p>
+      </td>
       <td width="50%" valign="middle" align="left">
-        <h3>📱 Responsive Design</h3>
-        <p>Full-featured mobile experience with:</p>
+        <h3>🚀 Two AI Modes</h3>
         <ul>
-          <li>Slide-out navigation drawer</li>
-          <li>Touch-optimized prompt editor</li>
-          <li>Responsive collection grids</li>
-          <li>Mobile-friendly quality scorecards</li>
+          <li><strong>📱 On-Device</strong> — Gemini Nano runs locally. Private, offline, zero cost.</li>
+          <li><strong>⚡ API Based</strong> — Free server model instantly, or your own key for full model access.</li>
+        </ul>
+        <h3>🧩 What You Get</h3>
+        <ul>
+          <li>Floating action button (FAB) next to prompt textareas</li>
+          <li>Side panel with structured output — Role, Context, Instructions, Constraints</li>
+          <li>Token Saver mode (~40% fewer tokens)</li>
+          <li>Prompt counter badges for ChatGPT, Claude, Gemini, DeepSeek</li>
+          <li>Works with zero API key</li>
         </ul>
       </td>
     </tr>
@@ -171,12 +243,12 @@ flowchart LR
 
 | Step | Stage | Description |
 | :--- | :--- | :--- |
-| **01** | **Input Acquisition** | Captures prompt from web dashboard, keyboard shortcut (`⌘K`), or extension floating action button (FAB). |
+| **01** | **Input Acquisition** | Captures prompt from web dashboard, keyboard shortcut, or extension floating action button (FAB). |
 | **02** | **Intent & Domain Analysis** | Classifies domain (*Software Engineering*, *Data Science*, *Marketing*, *Research*) and complexity tier. |
 | **03** | **Context Gap Detection** | Identifies missing role personas, target audience specifications, tone guards, and output format rules. |
 | **04** | **Meta-Prompt Compilation** | Builds 8-stage architectural instruction wrappers while preserving core user intent. |
-| **05** | **LLM Dispatch Engine** | Routes to OpenRouter, NVIDIA, OpenAI, or Anthropic based on user preference and key availability. |
-| **06** | **Architectural Rewrite** | Restructures prompt into clean XML/Markdown sections (*Role*, *Context*, *Instructions*, *Constraints*, *Variables*). |
+| **05** | **LLM Dispatch Engine** | Routes to Gemini Nano (on-device), OpenRouter, NVIDIA, OpenAI, or Anthropic based on mode and key availability. |
+| **06** | **Architectural Rewrite** | Restructures prompt into clean sections (*Role*, *Context*, *Instructions*, *Constraints*, *Variables*). |
 | **07** | **6-Metric Quality Audit** | Calculates 100-point score across Clarity, Specificity, Structure, Context, Constraints, and Actionability. |
 | **08** | **Delivery & Sync** | Instantly inserts into target chatbot textfield or saves snapshot to user Library and Collections. |
 
@@ -191,25 +263,32 @@ flowchart LR
 | Feature | Description |
 | :--- | :--- |
 | **AI-Powered Enhancement** | Transforms vague ideas into structured, role-assigned, constraint-rich prompts using LLMs. |
+| **On-Device AI Mode** | Uses Chrome's built-in Gemini Nano (Prompt API). Free, private, offline — no API key required. |
+| **API Based Mode** | Free server model out of the box, or bring your own OpenAI / Anthropic / OpenRouter / NVIDIA key. |
 | **Side-by-Side Model Lab** | Compare outputs across OpenAI (GPT-4o), Claude, and Gemini simultaneously with version history. |
 | **6-Dimension Quality Scoring** | Real-time 100-point evaluation: Clarity, Specificity, Structure, Context, Constraints, Actionability. |
+| **Curated Prompt Library** | 24 hand-crafted public templates with search, filter, and one-click copy. |
+| **Trending Prompts** | Dashboard home ranks top prompts by live usage count. |
 | **Prompt Library** | Save, search, filter, and organize every prompt you've enhanced with full-text search. |
 | **Collections** | Group prompts into color-coded collections with custom icons and descriptions. |
 | **Version History** | Every enhancement generates a versioned snapshot; full diff history tracked per prompt. |
 | **Templates** | Pre-built prompt templates by category (Code, Content, Analysis, Images) with variable substitution. |
 | **Sharing** | Generate share links with unique tokens for public prompt access. |
-| **BYO API Key** | Bring your own OpenAI, Anthropic, or OpenRouter key — stored encrypted with AES-256-GCM. |
-| **Usage Tracking** | Token counts, latency, cost estimates, and success/failure rates per request. |
-| **Rate Limiting** | Server-enforced daily caps per user; bypassed when using personal API keys. |
+| **Free Forever** | No daily limits, no quotas, no credit card. IP-based throttling only. |
+| **Usage Tracking** | Token counts, latency, and request statistics per account. |
 
 ### Chrome Extension
 
 | Feature | Description |
 | :--- | :--- |
+| **On-Device Mode** | Gemini Nano enhancement that never leaves your machine. |
+| **API Based Mode** | Free server model instantly; add a key for full model access. |
+| **Floating Action Button** | Blue pill trigger auto-positioned next to prompt textareas. |
+| **Side Panel** | Structured enhancement output — Role, Context, Instructions, Constraints. |
+| **Token Saver** | Concise output with ~40% fewer tokens, toggleable. |
 | **Chatbot Counter Bar** | Live status pills and prompt counters for ChatGPT, Claude, Gemini, DeepSeek. |
-| **Floating Action Button** | 36px purple gradient sparkle trigger auto-positioned next to prompt textareas. |
-| **Glassmorphic Side Panel** | 420px overlay with 6-metric quality score rings, role suggestions, one-click replace. |
 | **Keyboard Shortcut** | `⌘+Shift+K` to open the enhancement panel from any page. |
+| **Optional API Key** | Leave blank to use the free server model automatically. |
 
 ### Authentication & Security
 
@@ -219,33 +298,40 @@ flowchart LR
 | **Password Reset** | Token-based reset flow with expiration; emails sent via Resend. |
 | **API Key Vault** | AES-256-GCM encrypted storage for user-provided API keys. |
 | **CSRF Protection** | Header-based CSRF validation on all mutation endpoints. |
-| **Rate Limiting** | Token bucket algorithm per user per route. |
+| **Rate Limiting** | Per-IP token bucket throttling to protect the free servers. |
 
 <br>
 
 ---
 
-## 🔌 Browser Extension & Chatbot Status Bar
+## 🔌 Browser Extension
 
 The **Prompt+ Browser Extension (Manifest V3)** embeds directly into **ChatGPT** (`chatgpt.com`), **Claude** (`claude.ai`), **Gemini** (`gemini.google.com`), and **DeepSeek** (`deepseek.com`).
 
 ```
 +-------------------------------------------------------------+
-|  P+  Prompt+ Studio Extension                   [• Key Set] |
+|  ✦  Prompt+ Intelligence                     [• Free Server] |
 +-------------------------------------------------------------+
-|  CHATBOT COUNTERS                                           |
-|  [🤖 ChatGPT | 12]  [🟣 Claude | 8]  [✨ Gemini | 5]  [⚡ DeepSeek | 3]
+|  [ 📱 On-Device ]        [ ⚡ API Based ]                     |
+|  On-Device AI — enhanced via Gemini Nano                     |
+|  [ Paste or type raw prompt...                            ]  |
+|  Token Saver — ~40% fewer tokens in output        [toggle]  |
+|  Model: Llama 3.3 70B (OpenRouter Free)                v     |
+|  [              ✨ Self-Enhance →                          ]  |
+|  API Key (optional)  [ sk-or-... or nvapi-...            ]  |
+|  No key? We'll use Prompt+'s free server model.              |
 +-------------------------------------------------------------+
-|  [ Paste or type raw prompt...                            ] |
-|  Model: Llama 3.3 70B (OpenRouter Free)               v     |
-|  [              🚀 Enhance Prompt & Copy                  ] |
+|  Context: 1,240 / 128K tokens                [ 1% ]          |
+|  Powered by Prompt+                    [Dashboard →]        |
 +-------------------------------------------------------------+
 ```
 
 ### Key Extension Features
-* **Chatbot Counter Status Bar:** Live status pills showing active status and prompt counts for ChatGPT, Claude, Gemini, and DeepSeek.
-* **Floating Action Button (FAB):** A 36px purple gradient sparkle trigger automatically positioned next to prompt textareas.
-* **Glassmorphic Side Panel:** 420px overlay drawer displaying 6-metric quality score rings, role suggestions, and one-click replace actions.
+* **Two AI modes:** On-Device (Gemini Nano, private & offline) or API Based (free server model, or your own key).
+* **No key required:** Leave the API key blank and Prompt+ uses its free server model automatically.
+* **Floating Action Button (FAB):** A blue pill trigger automatically positioned next to prompt textareas.
+* **Structured output:** The side panel returns Role, Context, Instructions, and Constraints sections — not just a rewrite.
+* **Token Saver:** Produces concise output with ~40% fewer tokens.
 
 > [!TIP]
 > **Installing the Extension:**
@@ -253,6 +339,7 @@ The **Prompt+ Browser Extension (Manifest V3)** embeds directly into **ChatGPT**
 > 2. Enable **Developer mode** in the top right corner.
 > 3. Click **Load unpacked** and select the `/extension` directory in this repo.
 > 4. Open any AI chatbot website (`chatgpt.com`, `claude.ai`, or `gemini.google.com`).
+> 5. For On-Device mode, use Chrome 138+ with Gemini Nano enabled (chrome://flags/#prompt-api-for-gemini-nano).
 
 <br>
 
@@ -292,10 +379,10 @@ All API endpoints are prefixed with `/api`. Authenticated endpoints require a va
 | `GET/PUT/DELETE` | `/api/v1/collections/[id]` | Single collection CRUD |
 | `GET/POST` | `/api/v1/templates` | List / create templates |
 | `GET/PUT/DELETE` | `/api/v1/templates/[id]` | Single template CRUD |
-| `POST` | `/api/v1/templates/[id]/use` | Increment template usage |
+| `POST` | `/api/v1/templates/[id]/use` | Increment template usage (rate-limited) |
 | `GET` | `/api/v1/api-keys` | List user API keys |
 | `GET` | `/api/v1/usage` | Usage statistics |
-| `POST` | `/api/v1/extension/enhance` | Extension enhancement endpoint |
+| `POST` | `/api/v1/extension/enhance` | Extension enhancement (API key optional) |
 
 ### Health
 
@@ -330,7 +417,7 @@ All API endpoints are prefixed with `/api`. Authenticated endpoints require a va
     </tr>
     <tr>
       <td><b>Database & ORM</b></td>
-      <td>Prisma ORM v7, PostgreSQL (Neon Serverless HTTP) & SQLite fallback</td>
+      <td>Prisma ORM v7, PostgreSQL (Neon Serverless HTTP) with local `pg` adapter fallback</td>
     </tr>
     <tr>
       <td><b>Validation</b></td>
@@ -338,7 +425,7 @@ All API endpoints are prefixed with `/api`. Authenticated endpoints require a va
     </tr>
     <tr>
       <td><b>AI Model Providers</b></td>
-      <td>OpenRouter (7 free models), NVIDIA API, OpenAI API, Anthropic Claude API</td>
+      <td>Gemini Nano (on-device), OpenRouter (free tier), NVIDIA API, OpenAI API, Anthropic Claude API</td>
     </tr>
     <tr>
       <td><b>Security & Vault</b></td>
@@ -380,7 +467,7 @@ erDiagram
 | **Version** | Text snapshots with score diffs per enhancement |
 | **Analysis** | Intent classification, complexity, entities, missing context, suggestions |
 | **Collection** | Named folders with color/icon for organizing prompts |
-| **Template** | Pre-built prompt templates with variable slots |
+| **Template** | Pre-built prompt templates with variable slots + usage counters |
 | **ApiKey** | AES-256-GCM encrypted user API keys per provider |
 | **UsageLog** | Action audit trail: provider, model, tokens, latency |
 | **Analytics** | Event tracking with JSON metadata |
@@ -412,7 +499,7 @@ cp .env.example .env
 # Set AUTH_SECRET and DATABASE_URL in .env
 
 # 4. Initialize Database schema
-npx prisma db push
+npx prisma db push --url "your DATABASE_URL"
 
 # 5. Run development server
 npm run dev
@@ -431,7 +518,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 🧪 Testing & Verification
 
 ```bash
-# Run full Vitest suite
+# Run full Vitest suite (41 tests)
 npm test
 
 # Run production build check
@@ -451,10 +538,11 @@ npm run lint
 | :--- | :---: | :--- | :--- |
 | `AUTH_SECRET` | ✅ | NextAuth v5 session JWT secret | `32+_random_character_string` |
 | `NEXTAUTH_SECRET` | ✅ | NextAuth v5 fallback JWT secret | `32+_random_character_string` |
-| `DATABASE_URL` | ✅ | PostgreSQL / Neon or SQLite URL | `postgresql://user:pass@host/db` |
+| `DATABASE_URL` | ✅ | PostgreSQL / Neon or local URL | `postgresql://user:pass@host/db` |
 | `OPENROUTER_API_KEY` | 💡 | Optional fallback OpenRouter key | `sk-or-v1-...` |
 | `OPENAI_API_KEY` | 💡 | Optional fallback OpenAI key | `sk-...` |
 | `ANTHROPIC_API_KEY` | 💡 | Optional fallback Anthropic key | `sk-ant-...` |
+| `NVIDIA_API_KEY` | 💡 | Optional fallback NVIDIA API key | `nvapi-...` |
 | `ENCRYPTION_KEY` | 💡 | AES-256 secret for user key vault | `32_byte_secret_key` |
 | `RESEND_API_KEY` | 💡 | Resend API key for password reset emails | `re_...` |
 | `SMTP_FROM` | 💡 | Verified sender domain for Resend | `Prompt+ <noreply@your-domain.com>` |
