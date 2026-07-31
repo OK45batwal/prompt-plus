@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { jsonResponse } from "@/lib/api/response-headers";
-import { checkRateLimit, resetRateLimit } from "@/lib/rate-limit";
 import { revalidate } from "@/app/api/v1/templates/route";
 
 vi.mock("next-auth", () => ({
@@ -10,13 +9,9 @@ vi.mock("next-auth", () => ({
 }));
 
 describe("Polish & Utility Enhancements (#26 - #33)", () => {
-  beforeEach(() => {
-    resetRateLimit("test-polish-user");
-  });
-
   describe("Item #26 & #32: Response Headers & X-RateLimit-* Support", () => {
     it("should attach X-RateLimit-* and x-request-id headers when provided", () => {
-      const rateLimit = checkRateLimit("test-polish-user", 5);
+      const rateLimit = { allowed: true, remaining: 15, resetMs: 1000, limit: 20 };
       const res = jsonResponse(
         { data: "success" },
         {

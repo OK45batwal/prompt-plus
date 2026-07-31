@@ -1,19 +1,11 @@
 (function () {
   const STORAGE_KEY = "pp_settings";
   const HISTORY_KEY = "pp_history";
-  let panelOpen = false;
   let panelEl = null;
   let currentTarget = null;
   let currentText = "";
   let currentEnhanced = "";
   let currentMode = "server";
-
-  const META_PROMPTS = {
-    chatgpt: "Before responding, analyze and improve this prompt to make it more specific, structured, and effective. Then answer the improved version. Original: ",
-    claude: "I'd like you to first reflect on and improve this request before answering. Rewrite it to be more detailed and well-structured, then respond. Original: ",
-    gemini: "Analyze and improve this prompt first, then respond to the enhanced version. Original: ",
-    deepseek: "Before responding, analyze and improve this prompt to make it more specific, structured, and effective. Then answer the improved version. Original: ",
-  };
 
   const CONTEXT_LIMITS = { chatgpt: 128000, claude: 200000, gemini: 1000000, deepseek: 128000 };
 
@@ -93,11 +85,6 @@
     });
   }
 
-  function loadHistory(cb) {
-    if (!chrome?.storage?.local) { cb([]); return; }
-    chrome.storage.local.get(HISTORY_KEY, (d) => cb(d[HISTORY_KEY] || []));
-  }
-
   function saveHistory(item) {
     if (!chrome?.storage?.local) return;
     chrome.storage.local.get(HISTORY_KEY, (d) => {
@@ -107,16 +94,6 @@
     });
   }
 
-  function analyzeLocal(text) {
-    const wc = text.split(/\s+/).length;
-    const score = Math.min(95, Math.max(20, Math.round(wc * 1.8 + 20)));
-    const complexity = wc < 10 ? "Low" : wc < 30 ? "Medium" : "High";
-    const intent = text.includes("code") || text.includes("function") || text.includes("script") ? "Code" :
-                   text.includes("email") || text.includes("write") ? "Writing" :
-                   text.includes("analyze") || text.includes("explain") ? "Analysis" : "General";
-    return { score, complexity, intent, wordCount: wc };
-  }
-
   function detectChatbot() {
     const host = location.hostname;
     if (host.includes("chatgpt") || host.includes("chat.openai")) return "chatgpt";
@@ -124,13 +101,6 @@
     if (host.includes("gemini")) return "gemini";
     if (host.includes("deepseek")) return "deepseek";
     return null;
-  }
-
-  function doSelfEnhance(input, text) {
-    const bot = detectChatbot() || "chatgpt";
-    const prefix = META_PROMPTS[bot] || META_PROMPTS.chatgpt;
-    setText(input, prefix + text);
-    showToast("✨ Meta-prompt injected! Submit to enhance.");
   }
 
   function injectFab() {
@@ -157,11 +127,7 @@
       currentTarget = el;
       currentText = getText(el);
       if (!currentText.trim()) { showToast("Enter a prompt first"); return; }
-      if (currentMode === "self") {
-        doSelfEnhance(currentTarget, currentText);
-      } else {
-        openPanel();
-      }
+      openPanel();
     });
 
     fab.style.position = "fixed";
@@ -210,7 +176,7 @@
   }
 
   function closePanel() {
-    if (panelEl) { panelEl.remove(); panelEl = null; panelOpen = false; }
+    if (panelEl) { panelEl.remove(); panelEl = null; }
     document.removeEventListener("keydown", ppEscHandler);
     if (tokenInterval) { clearInterval(tokenInterval); tokenInterval = null; }
   }
@@ -218,7 +184,6 @@
   let settings = null;
 
   function renderPanel(input, text, s) {
-    panelOpen = true;
     panelEl = document.createElement("div");
     panelEl.className = "pp-panel";
 
@@ -501,12 +466,6 @@
     if (e.key === "Escape") closePanel();
   }
 
-  function escapeHtml(str) {
-    const d = document.createElement("div");
-    d.textContent = str;
-    return d.innerHTML;
-  }
-
   const style = document.createElement("style");
   style.textContent = `
 .pp-fab {
@@ -630,15 +589,6 @@
   loadSettings((s) => { currentMode = s.mode || "server"; });
 
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "selfEnhance") {
-      const input = getInput();
-      if (!input) { sendResponse?.({ success: false, error: "No chatbot input field found on this page" }); return true; }
-      currentTarget = input;
-      currentText = request.text;
-      doSelfEnhance(input, request.text);
-      sendResponse?.({ success: true });
-      return true;
-    }
     if (request.action === "toggleEnhancePanel") {
       if (panelEl) { closePanel(); return; }
       currentTarget = getInput();

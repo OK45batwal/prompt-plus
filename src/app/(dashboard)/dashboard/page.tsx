@@ -45,7 +45,7 @@ const quickActions = [
 ];
 
 export default function DashboardPage() {
-  const [usage, setUsage] = useState<{ daily: { used: number; limit: number; remaining: number }; totalPrompts: number; totalEnhancements: number; averageScore: number; monthly: { used: number } } | null>(null);
+  const [usage, setUsage] = useState<{ daily: { used: number }; totalPrompts: number; totalEnhancements: number; averageScore: number; monthly: { used: number } } | null>(null);
   const [collectionsCount, setCollectionsCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -106,11 +106,11 @@ export default function DashboardPage() {
         </div>
         <div className="p-4 rounded-xl border bg-card/60 backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">Daily Limit</span>
+            <span className="text-xs font-medium text-muted-foreground">Used Today</span>
             <Key className="h-4 w-4 text-purple-500" />
           </div>
-          <p className="text-xl sm:text-2xl font-bold mt-2">{loading ? <Loader2 className="h-5 w-5 animate-spin" /> : `${usage?.daily?.remaining || 0}/${usage?.daily?.limit || 20}`}</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">Free tier quota</p>
+          <p className="text-xl sm:text-2xl font-bold mt-2">{loading ? <Loader2 className="h-5 w-5 animate-spin" /> : usage?.daily?.used || 0}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">Unlimited — free for all</p>
         </div>
       </div>
 

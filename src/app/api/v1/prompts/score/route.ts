@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getDb } from "@/lib/db/prisma";
 import { scorePromptSchema } from "@/lib/validations/prompts";
-import { checkRateLimit } from "@/lib/rate-limit";
 import { callLLM } from "@/lib/llm/providers";
 import { decrypt } from "@/lib/crypto";
 import { withAuth } from "@/lib/api/with-auth";
@@ -44,14 +43,6 @@ function heuristicScorePrompt(text: string) {
 
 export const POST = withAuth(
   async (request: NextRequest, { userId, requestId }) => {
-    const rateCheck = checkRateLimit(userId);
-    if (!rateCheck.allowed) {
-      return jsonResponse(
-        { error: "Daily quota exceeded. Try again tomorrow or add an API key." },
-        { status: 429, headers: { "Retry-After": String(Math.ceil(rateCheck.resetMs / 1000)) }, requestId }
-      );
-    }
-
     let body: unknown;
     try {
       body = await request.json();

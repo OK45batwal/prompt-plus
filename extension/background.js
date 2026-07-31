@@ -46,7 +46,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             const msg = data.error || "Enhancement failed";
             if (res.status === 429) {
               const retryAfter = res.headers.get("Retry-After");
-              sendResponse({ success: false, error: `Daily limit reached. Try again ${retryAfter ? `in ${retryAfter}s` : "tomorrow"}.` });
+              sendResponse({ success: false, error: `Too many requests. Try again ${retryAfter ? `in ${retryAfter}s` : "in a few minutes"}.` });
               return;
             }
             if (res.status >= 500) { lastErr = msg; continue; }
@@ -147,11 +147,35 @@ async function enhanceWithDevice(req) {
     monitor(m) { m.addEventListener("downloadprogress", (e) => { if (e.loaded < 1) console.log(`Downloading Gemini Nano: ${Math.round(e.loaded * 100)}%`); }); },
   });
   try {
-    const instruction = req.tokenSaver
-      ? `Rewrite the following prompt into a tight, concise version. Cut fluff, keep every essential instruction and constraint. Use the fewest possible tokens while preserving clarity and intent. Output ONLY the optimized prompt.\n\nOriginal: ${text}\n\nOptimized:`
-      : `Rewrite the following rough prompt into a detailed, well-structured version. Add specific context, clear instructions, and useful constraints. Output ONLY the improved prompt, nothing else.\n\nOriginal: ${text}\n\nImproved:`;
-    const result = await session.prompt(instruction);
-    return { success: true, enhanced: result };
+    const cat = req.category || "General Task";
+    const tone = req.tone || "Professional & Clear";
+    const length = req.length || "Comprehensive & Structured";
+
+    const systemInstruction = `You are the Prompt+ Architect Engine — an advanced AI meta-prompt compiler.
+Your task is to transform raw, simple, or incomplete user prompts into production-grade, highly structured AI instructions.
+Return ONLY the final enhanced prompt framework ready for immediate execution by AI models. Do NOT add introductory or conversational meta-text.`;
+
+    const tokenSaverClause = req.tokenSaver
+      ? "\nTighten the output to ~40% fewer tokens while keeping every section complete and lossless."
+      : "";
+
+    const metaPrompt = `[ORIGINAL USER PROMPT]:
+"${text.trim()}"
+
+[TARGET DOMAIN]: ${cat}
+[PREFERRED TONE]: ${tone}
+[TARGET OUTPUT LENGTH]: ${length}
+
+[META-PROMPT INSTRUCTIONS]:
+Rewrite the prompt above into a master AI prompt framework with the following explicit sections:
+1. ### Role & Objective — Define an elite persona tailored to ${cat}.
+2. ### Context & Domain Constraints — Establish target domain, background context, and non-negotiable boundaries.
+3. ### Step-by-Step Instructions — Break down execution into clear, sequential steps.
+4. ### Output Format & Constraints — Specify ${length}, ${tone}, and formatting guidelines (Markdown, code blocks, bullet points).
+5. ### Input Variables — Highlight placeholders like {{user_input}} or specific parameters if required.${tokenSaverClause}`;
+
+    const result = await session.prompt(`${systemInstruction}\n\n${metaPrompt}`);
+    return { success: true, enhanced: result.trim() };
   } finally {
     session.destroy();
   }

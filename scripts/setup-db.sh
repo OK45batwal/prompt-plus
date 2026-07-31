@@ -26,11 +26,10 @@ GOOGLE_CLIENT_SECRET=""
 GITHUB_CLIENT_ID=""
 GITHUB_CLIENT_SECRET=""
 
-# AI - Free Tier (App's Keys)
+# AI - App's Keys
 OPENAI_API_KEY=""
-FREE_TIER_DAILY_LIMIT=20
 
-# Redis (Rate Limiting)
+# Rate Limiting (abuse protection)
 UPSTASH_REDIS_REST_URL=""
 UPSTASH_REDIS_REST_TOKEN=""
 EOF

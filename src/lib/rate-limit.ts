@@ -1,22 +1,9 @@
-interface TokenBucket {
-  tokens: number;
-  lastRefill: number;
+interface RateLimitBucket {
+  count: number;
+  resetAt: number;
 }
 
-const userBuckets = new Map<string, TokenBucket>();
-
-const DAILY_LIMIT = parseInt(process.env.FREE_TIER_DAILY_LIMIT || "20", 10);
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-function cleanupStaleBuckets(now: number) {
-  if (userBuckets.size > 1000) {
-    for (const [key, bucket] of userBuckets.entries()) {
-      if (now - bucket.lastRefill > DAY_MS) {
-        userBuckets.delete(key);
-      }
-    }
-  }
-}
+const ipBuckets = new Map<string, RateLimitBucket>();
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -25,55 +12,22 @@ export interface RateLimitResult {
   limit: number;
 }
 
-export function checkRateLimit(
-  userId: string,
-  cost: number = 1
-): RateLimitResult {
-  const now = Date.now();
-  cleanupStaleBuckets(now);
-
-  let bucket = userBuckets.get(userId);
-
-  if (!bucket) {
-    bucket = { tokens: DAILY_LIMIT, lastRefill: now };
-    userBuckets.set(userId, bucket);
-  }
-
-  // Check if 24 hours have elapsed since last reset
-  const elapsed = now - bucket.lastRefill;
-  if (elapsed >= DAY_MS) {
-    bucket.tokens = DAILY_LIMIT;
-    bucket.lastRefill = now;
-  }
-
-  const resetMs = Math.max(0, DAY_MS - (now - bucket.lastRefill));
-
-  if (bucket.tokens >= cost) {
-    bucket.tokens -= cost;
-    return { allowed: true, remaining: bucket.tokens, resetMs, limit: DAILY_LIMIT };
-  }
-
-  return { allowed: false, remaining: 0, resetMs, limit: DAILY_LIMIT };
-}
-
-export function resetRateLimit(userId: string) {
-  userBuckets.delete(userId);
-}
-
-const ipBuckets = new Map<string, { count: number; resetAt: number }>();
-
+/**
+ * Per-IP sliding-window rate limit for abuse protection.
+ * Not a daily quota — used to prevent spam on public/unauthenticated routes.
+ */
 export function checkIpRateLimit(
   key: string,
   limit: number,
   windowMs: number
-): { allowed: boolean; remaining: number; resetMs: number } {
+): RateLimitResult {
   const now = Date.now();
   let bucket = ipBuckets.get(key);
 
   if (!bucket || now >= bucket.resetAt) {
     bucket = { count: 1, resetAt: now + windowMs };
     ipBuckets.set(key, bucket);
-    return { allowed: true, remaining: limit - 1, resetMs: windowMs };
+    return { allowed: true, remaining: limit - 1, resetMs: windowMs, limit };
   }
 
   bucket.count++;
@@ -81,6 +35,7 @@ export function checkIpRateLimit(
     allowed: bucket.count <= limit,
     remaining: Math.max(0, limit - bucket.count),
     resetMs: bucket.resetAt - now,
+    limit,
   };
 }
 
@@ -89,10 +44,4 @@ setInterval(() => {
   for (const [key, bucket] of ipBuckets) {
     if (now >= bucket.resetAt) ipBuckets.delete(key);
   }
-  if (userBuckets.size > 0) {
-    for (const [key, bucket] of userBuckets) {
-      if (now - bucket.lastRefill > DAY_MS * 2) userBuckets.delete(key);
-    }
-  }
 }, 60000).unref();
-

@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { BarChart3, RefreshCw, Clock, FileText, Sparkles, Star } from "lucide-react";
 
 interface UsageData {
-  daily: { used: number; limit: number; remaining: number; resetsAt: string };
-  monthly: { used: number; limit: number; remaining: number; resetsAt: string };
+  daily: { used: number; resetsAt: string };
+  monthly: { used: number; resetsAt: string };
   totalPrompts: number;
   totalEnhancements: number;
   averageScore: number;
@@ -66,14 +66,8 @@ export default function AnalyticsPage() {
               <RefreshCw className="h-4 w-4 text-muted-foreground" />
               <p className="text-xs text-muted-foreground font-medium">Daily Usage</p>
             </div>
-            <p className="text-lg font-semibold">{data.daily.used.toLocaleString()} / {data.daily.limit.toLocaleString()}</p>
-            <p className="text-xs text-muted-foreground">{data.daily.remaining.toLocaleString()} remaining</p>
-            <div className="mt-2">
-              <div className="h-1.5 w-full bg-muted rounded-full">
-                <div className="h-full bg-foreground rounded-full transition-all" style={{ width: `${Math.min(100, Math.round((data.daily.used / data.daily.limit) * 100))}%` }} />
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-1">{Math.round((data.daily.used / data.daily.limit) * 100)}% used</p>
-            </div>
+            <p className="text-lg font-semibold">{data.daily.used.toLocaleString()} enhancements</p>
+            <p className="text-xs text-muted-foreground mt-1">Free for all — no daily limit</p>
           </div>
 
           <div className="p-4 rounded-lg border bg-card">
@@ -81,14 +75,8 @@ export default function AnalyticsPage() {
               <Clock className="h-4 w-4 text-muted-foreground" />
               <p className="text-xs text-muted-foreground font-medium">Monthly Usage</p>
             </div>
-            <p className="text-lg font-semibold">{data.monthly.used.toLocaleString()} / {data.monthly.limit.toLocaleString()}</p>
-            <p className="text-xs text-muted-foreground">{data.monthly.remaining.toLocaleString()} remaining</p>
-            <div className="mt-2">
-              <div className="h-1.5 w-full bg-muted rounded-full">
-                <div className="h-full bg-foreground rounded-full transition-all" style={{ width: `${Math.min(100, Math.round((data.monthly.used / data.monthly.limit) * 100))}%` }} />
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-1">{Math.round((data.monthly.used / data.monthly.limit) * 100)}% used</p>
-            </div>
+            <p className="text-lg font-semibold">{data.monthly.used.toLocaleString()} enhancements</p>
+            <p className="text-xs text-muted-foreground mt-1">This calendar month</p>
           </div>
 
           <div className="p-4 rounded-lg border bg-card">

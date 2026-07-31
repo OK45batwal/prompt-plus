@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
 import { getDb } from "@/lib/db/prisma";
 import { enhancePromptSchema } from "@/lib/validations/prompts";
-import { checkRateLimit } from "@/lib/rate-limit";
 import { callLLM } from "@/lib/llm/providers";
 import { decrypt } from "@/lib/crypto";
 import { withAuth } from "@/lib/api/with-auth";
@@ -10,14 +9,6 @@ import { buildArchitectMetaPrompt } from "@/lib/llm/meta-prompt";
 
 export const POST = withAuth(
   async (request: NextRequest, { userId, requestId }) => {
-    const rateCheck = checkRateLimit(userId);
-    if (!rateCheck.allowed) {
-      return jsonResponse(
-        { error: "Daily limit reached. Please try again tomorrow or configure your own API key in Settings." },
-        { status: 429, rateLimit: rateCheck, requestId }
-      );
-    }
-
     let body: unknown;
     try {
       body = await request.json();
@@ -151,7 +142,7 @@ export const POST = withAuth(
             model: response.model,
           },
         },
-        { rateLimit: rateCheck, requestId }
+        { requestId }
       );
     } catch (error) {
       const latencyMs = Date.now() - startTime;

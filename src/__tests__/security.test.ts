@@ -11,7 +11,7 @@ vi.mock("next-auth", () => ({
 
 import { encrypt, decrypt } from "@/lib/crypto";
 import { getProviders } from "@/lib/auth/config";
-import { checkRateLimit, resetRateLimit } from "@/lib/rate-limit";
+import { checkIpRateLimit } from "@/lib/rate-limit";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { NextRequest } from "next/server";
 
@@ -80,17 +80,15 @@ describe("Phase 1 Security & Correctness Hardening", () => {
     });
   });
 
-  describe("Issue #3: Rate Limiting & Bucket Eviction", () => {
-    it("should correctly track rate limit per user and enforce daily quota", () => {
-      resetRateLimit("user-rate-test-1");
-
-      const res1 = checkRateLimit("user-rate-test-1", 15);
-      expect(res1.allowed).toBe(true);
-      expect(res1.remaining).toBe(5);
-
-      const res2 = checkRateLimit("user-rate-test-1", 6);
-      expect(res2.allowed).toBe(false);
-      expect(res2.remaining).toBe(0);
+  describe("Issue #3: IP Rate Limiting", () => {
+    it("should allow requests within the window and block after the limit", () => {
+      const key = "ip-test-1";
+      checkIpRateLimit(key, 3, 60_000);
+      checkIpRateLimit(key, 3, 60_000);
+      const res3 = checkIpRateLimit(key, 3, 60_000);
+      const res4 = checkIpRateLimit(key, 3, 60_000);
+      expect(res3.allowed).toBe(true);
+      expect(res4.allowed).toBe(false);
     });
   });
 

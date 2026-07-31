@@ -206,6 +206,31 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Prompt Library Section */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6 border-t border-border/50">
+        <div className="max-w-5xl mx-auto">
+          <div className="rounded-2xl border bg-card p-8 sm:p-10 flex flex-col sm:flex-row items-center gap-6 sm:gap-10">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Layers className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
+            </div>
+            <div className="text-center sm:text-left flex-1">
+              <h2 className="text-lg sm:text-xl font-bold tracking-tight">Learn From the Best Prompts</h2>
+              <p className="text-sm text-muted-foreground mt-1 max-w-lg">
+                Browse our free library of proven prompt templates — copy them, customize them, or
+                enhance them with Prompt+ to learn what makes a great prompt.
+              </p>
+            </div>
+            <Link
+              href="/prompts"
+              className="h-10 w-full sm:w-auto inline-flex items-center justify-center rounded-lg bg-foreground text-background px-5 text-sm font-semibold hover:bg-foreground/90 transition-colors gap-2"
+            >
+              Browse Prompts
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Browser Extension Section */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 border-t border-border/50">
         <div className="max-w-5xl mx-auto">

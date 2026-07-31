@@ -4,10 +4,12 @@ Enhance prompts directly inside ChatGPT, Claude, and Gemini.
 
 ## Features
 
-- **Sparkle FAB** — floating purple button appears near input fields on ChatGPT, Claude, Gemini
-- **420px Side Panel** — shows prompt analysis (score, complexity, intent), toggleable suggestions, model selector (OpenRouter free models + paid + NVIDIA), original/enhanced preview, Copy/Replace/Enhance, history, and settings
-- **Popup** — quick enhance + API key management
-- **Model selector** — 7 free OpenRouter models + 4 NVIDIA models
+- **Sparkle FAB** — floating button appears near input fields on ChatGPT, Claude, Gemini
+- **420px Side Panel** — original/enhanced preview with structured ROLE / CONTEXT / INSTRUCTIONS / CONSTRAINTS sections, token saver, model selector, copy/apply
+- **Two enhancement modes**:
+  - **On-Device (Gemini Nano)** — free, private, offline via Chrome Prompt API (Chrome 138+)
+  - **API Based** — cloud enhancement via OpenRouter free models, NVIDIA, or direct OpenAI/Anthropic keys
+- **Popup** — mode toggle + API key management
 
 ## Install
 
@@ -20,5 +22,5 @@ Enhance prompts directly inside ChatGPT, Claude, and Gemini.
 ## Architecture
 
 - `content.js` — injects FAB and side panel UI
-- `background.js` — service worker, routes enhance requests to the Prompt+ API
-- `popup.html` / `popup.js` — quick-enhance popup with API key + model selector
+- `background.js` — service worker; runs on-device Gemini Nano enhancement, routes API requests to the Prompt+ API
+- `popup.html` / `popup.js` — quick-enhance popup with mode toggle, API key + model selector

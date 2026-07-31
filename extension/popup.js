@@ -11,11 +11,10 @@ const charCount = document.getElementById("char-count");
 const modeLabel = document.getElementById("mode-label");
 const apiCard = document.getElementById("api-card");
 
-const modeSelf = document.getElementById("mode-self");
 const modeDevice = document.getElementById("mode-device");
 const modeServer = document.getElementById("mode-server");
 
-let currentMode = "self";
+let currentMode = "device";
 let tokenSaver = false;
 const tsToggle = document.getElementById("ts-toggle");
 
@@ -34,28 +33,21 @@ function updateKeyUI(has) {
 
 function setMode(mode) {
   currentMode = mode;
-  modeSelf.classList.toggle("active", mode === "self");
   modeDevice.classList.toggle("active", mode === "device");
   modeServer.classList.toggle("active", mode === "server");
 
-  if (mode === "self") {
-    btnIcon.textContent = "✨";
-    btnText.textContent = "Self-Enhance";
-    modelSelect.style.display = "none";
-    apiCard.style.display = "none";
-    modeLabel.textContent = "Self mode — injected directly into chatbot";
-  } else if (mode === "device") {
+  if (mode === "device") {
     btnIcon.textContent = "📱";
     btnText.textContent = "Device Enhance";
     modelSelect.style.display = "none";
     apiCard.style.display = "none";
-    modeLabel.textContent = "Device AI — enhanced via on-device Gemini Nano";
+    modeLabel.textContent = "On-Device AI — enhanced via Gemini Nano";
   } else {
     btnIcon.textContent = "⚡";
     btnText.textContent = "Apply Upgrade";
     modelSelect.style.display = "";
     apiCard.style.display = "";
-    modeLabel.textContent = "Server mode — enhanced via AI API";
+    modeLabel.textContent = "API mode — enhanced via cloud AI API";
   }
   chrome.runtime.sendMessage({ action: "saveSettings", settings: { mode } });
 }
@@ -66,7 +58,6 @@ input?.addEventListener("input", () => {
 });
 
 // Mode toggle
-modeSelf?.addEventListener("click", () => setMode("self"));
 modeDevice?.addEventListener("click", () => setMode("device"));
 modeServer?.addEventListener("click", () => setMode("server"));
 
@@ -118,24 +109,6 @@ btn?.addEventListener("click", async () => {
   try {
     const text = input?.value?.trim();
     if (!text) { showMsg("Enter a prompt first", true); return; }
-
-    if (currentMode === "self") {
-      const [tab] = await chrome.tabs?.query({ active: true, currentWindow: true }) || [];
-      if (!tab?.id) { showMsg("Open a chatbot tab first", true); return; }
-      chrome.tabs.sendMessage(tab.id, { action: "selfEnhance", text }, (res) => {
-        if (chrome.runtime.lastError) {
-          showMsg("Open a chatbot tab first", true);
-          return;
-        }
-        if (res?.success) {
-          showMsg("Meta-prompt injected! Submit in the chatbot.");
-          window.close();
-        } else {
-          showMsg(res?.error || "Failed. Open a chatbot tab.", true);
-        }
-      });
-      return;
-    }
 
     if (currentMode === "device") {
       btn.disabled = true;

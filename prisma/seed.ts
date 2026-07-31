@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { curatedPrompts } from "../src/lib/curated-prompts";
 
 const db = new PrismaClient();
 
@@ -26,7 +27,22 @@ async function main() {
     { title: "Code Review", description: "Review code changes", category: "code_review", prompt: "Review this code: {{code}}", variables: [{ name: "code", type: "textarea", label: "Code", required: true }], isOfficial: true },
   ]});
 
-  console.log("Seeded: user, collections, prompts, templates");
+  for (const p of curatedPrompts) {
+    await db.template.upsert({
+      where: { id: `curated-${p.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}` },
+      update: {},
+      create: {
+        id: `curated-${p.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+        title: p.title,
+        description: p.description,
+        category: p.category,
+        prompt: p.prompt,
+        isOfficial: true,
+      },
+    });
+  }
+
+  console.log("Seeded: user, collections, prompts, templates, curated prompts");
 }
 
 main().catch(console.error).finally(() => db.$disconnect());

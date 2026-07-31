@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Sparkles,
   Copy,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { getSavedContextBlocks, ContextBlock } from "@/lib/context-memory";
 import { estimateTokenCount, calculateCostEstimates } from "@/lib/token-calculator";
+import { enhanceWithDevice, checkDeviceAvailability, isDeviceAISupported } from "@/lib/llm/device-ai";
 
 type Model =
   | "openrouter-llama3-free"
@@ -125,13 +126,8 @@ export default function PromptBuilderPage() {
   const [copied, setCopied] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [showCostBreakdown, setShowCostBreakdown] = useState(false);
-  const [remainingToday, setRemainingToday] = useState<number | null>(null);
-
-  useEffect(() => {
-    fetch("/api/v1/usage").then((r) => r.json()).then((j) => {
-      setRemainingToday(j.data?.daily?.remaining ?? null);
-    }).catch(() => {});
-  }, []);
+  const [enhanceMode, setEnhanceMode] = useState<"api" | "device">("api");
+  const [deviceState, setDeviceState] = useState<"unknown" | "available" | "unavailable" | "downloading">("unknown");
 
   // Context Memory Blocks State
   const [availableBlocks] = useState<ContextBlock[]>(() => getSavedContextBlocks());
@@ -181,29 +177,47 @@ export default function PromptBuilderPage() {
     }
 
     try {
-      // Call real AI endpoint
-      const aiRes = await fetch("/api/v1/prompts/enhance-ai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      let finalEnhancedText: string | undefined;
+      let enhanceProvider = "api";
+
+      if (enhanceMode === "device") {
+        if (!isDeviceAISupported()) {
+          setErrorNotice("Device AI not supported in this browser. Use Chrome 138+ with Gemini Nano, or switch to API mode.");
+          return;
+        }
+        finalEnhancedText = await enhanceWithDevice({
           text: fullPrompt,
-          model: selectedModelData?.rawModel || selectedModel,
-          provider: selectedModelData?.provider,
           category: selectedCategory,
           tone: selectedTone,
           length: selectedLength,
-          userApiKey,
-        }),
-      });
-      const aiData = await aiRes.json();
+        });
+        enhanceProvider = "device";
+      } else {
+        // Call real AI endpoint
+        const aiRes = await fetch("/api/v1/prompts/enhance-ai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: fullPrompt,
+            model: selectedModelData?.rawModel || selectedModel,
+            provider: selectedModelData?.provider,
+            category: selectedCategory,
+            tone: selectedTone,
+            length: selectedLength,
+            userApiKey,
+          }),
+        });
+        const aiData = await aiRes.json();
 
-      if (!aiRes.ok) {
-        const errMsg = aiData.error || "Enhancement failed";
-        setErrorNotice(errMsg);
-        return;
+        if (!aiRes.ok) {
+          const errMsg = aiData.error || "Enhancement failed";
+          setErrorNotice(errMsg);
+          return;
+        }
+
+        finalEnhancedText = aiData.data?.enhanced;
       }
 
-      const finalEnhancedText = aiData.data?.enhanced;
       if (!finalEnhancedText) {
         setErrorNotice("No enhancement returned");
         return;
@@ -258,7 +272,7 @@ export default function PromptBuilderPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             originalText: fullPrompt,
-            model: selectedModelData?.rawModel || selectedModel,
+            model: enhanceProvider === "device" ? "gemini-nano" : selectedModelData?.rawModel || selectedModel,
             category: selectedCategory || null,
             tone: selectedTone || null,
             length: selectedLength || null,
@@ -312,7 +326,51 @@ export default function PromptBuilderPage() {
           <h2 className="font-semibold text-sm">Prompt Builder</h2>
           <p className="text-xs text-muted-foreground">Transform your ideas into optimized prompts</p>
         </div>
-        <span className="text-xs text-muted-foreground">{remainingToday !== null ? `${remainingToday} free remaining today` : ""}</span>
+        <span className="text-xs text-muted-foreground">Free for all users — no daily limit</span>
+      </div>
+
+      {/* Enhancement Mode */}
+      <div className="p-3 rounded-lg border bg-card">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold">Enhancement Mode</span>
+          <span className="text-[10px] text-muted-foreground">
+            {enhanceMode === "api" ? "⚡ Cloud AI — any model, needs an API key" : "📱 On-device — private, offline, free"}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setEnhanceMode("api")}
+            className={`h-9 rounded-lg border text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${enhanceMode === "api"
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-background text-muted-foreground border-border hover:bg-accent"
+              }`}
+          >
+            <Zap className="h-3.5 w-3.5" /> API Based
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setEnhanceMode("device");
+              if (isDeviceAISupported()) {
+                checkDeviceAvailability().then(setDeviceState).catch(() => setDeviceState("unavailable"));
+              } else {
+                setDeviceState("unavailable");
+              }
+            }}
+            className={`h-9 rounded-lg border text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${enhanceMode === "device"
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-background text-muted-foreground border-border hover:bg-accent"
+              }`}
+          >
+            <Brain className="h-3.5 w-3.5" /> On-Device (Gemini Nano)
+          </button>
+        </div>
+        {enhanceMode === "device" && deviceState === "unavailable" && (
+          <p className="mt-2 text-[11px] text-amber-700 dark:text-amber-400">
+            Not supported in this browser. Use Chrome 138+ with Gemini Nano enabled (Settings → Experimental AI → Prompt API), or switch to API mode.
+          </p>
+        )}
       </div>
 
       {errorNotice && (
@@ -326,6 +384,7 @@ export default function PromptBuilderPage() {
         {/* Left Column: Input & Context Engine */}
         <div className="space-y-4">
           {/* Model Selector */}
+          {enhanceMode === "api" && (
           <div className="relative">
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Target Model</label>
             <button
@@ -362,6 +421,7 @@ export default function PromptBuilderPage() {
               </div>
             )}
           </div>
+          )}
 
           {/* Context Memory & System Rules Engine Selector */}
           <div className="p-3 rounded-lg border bg-accent/30 space-y-2">
@@ -497,11 +557,11 @@ export default function PromptBuilderPage() {
           >
             {isEnhancing ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Enhancing with Context...
+                <Loader2 className="h-4 w-4 animate-spin" /> {enhanceMode === "device" ? "Enhancing on Device..." : "Enhancing with Context..."}
               </>
             ) : (
               <>
-                <Sparkles className="h-4 w-4" /> Enhance Prompt
+                <Sparkles className="h-4 w-4" /> {enhanceMode === "device" ? "Enhance On-Device" : "Enhance Prompt"}
               </>
             )}
           </button>

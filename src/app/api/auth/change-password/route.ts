@@ -3,12 +3,13 @@ import { getDb } from "@/lib/db/prisma";
 import { changePasswordSchema } from "@/lib/validations/auth";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkIpRateLimit } from "@/lib/rate-limit";
 
 export const POST = withAuth(
   async (req, context) => {
     const { userId, requestId, body } = context;
-    const rl = checkRateLimit(userId, 1);
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+    const rl = checkIpRateLimit(`pwd:${ip}`, 5, 60 * 60 * 1000);
     if (!rl.allowed) {
       return jsonResponse({ error: "Too many attempts. Try again later." }, { status: 429, rateLimit: rl, requestId });
     }

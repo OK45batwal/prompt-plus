@@ -165,7 +165,7 @@ export default function SettingsPage() {
     } catch { return { email: true, usage: true, digest: false }; }
   };
   const [toggles, setToggles] = useState<Record<string, boolean>>(defaultToggles);
-  const [planData, setPlanData] = useState<{ used: number; limit: number; remaining: number } | null>(null);
+  const [planData, setPlanData] = useState<{ used: number } | null>(null);
 
   useEffect(() => {
     localStorage.setItem("pp_notification_prefs", JSON.stringify(toggles));
@@ -376,8 +376,8 @@ export default function SettingsPage() {
                   <div className="p-3 rounded-lg border bg-card">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium">Free Tier</p>
-                        <p className="text-xs text-muted-foreground">{planData ? `${planData.used} / ${planData.limit} enhancements used today` : "Loading..."}</p>
+                        <p className="text-sm font-medium">Free for All</p>
+                        <p className="text-xs text-muted-foreground">{planData ? `${planData.used} enhancements used today — no limits` : "Loading..."}</p>
                       </div>
                       <span className="text-xs px-2 py-1 rounded bg-muted">Current</span>
                     </div>

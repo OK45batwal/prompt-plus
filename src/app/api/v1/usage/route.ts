@@ -13,7 +13,6 @@ export async function GET() {
   }
 
   const userId = session.user.id;
-  const limit = parseInt(process.env.FREE_TIER_DAILY_LIMIT || "20", 10);
 
   const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -77,20 +76,14 @@ export async function GET() {
     }
   }
 
-  const remaining = Math.max(0, limit - dailyCount);
-
   return NextResponse.json({
     data: {
       daily: {
         used: dailyCount,
-        limit,
-        remaining,
         resetsAt: endOfDay.toISOString(),
       },
       monthly: {
         used: monthlyCount,
-        limit: limit * 25,
-        remaining: Math.max(0, limit * 25 - monthlyCount),
         resetsAt: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString(),
       },
       totalPrompts,
