@@ -199,10 +199,22 @@ Rewrite the prompt above into a master AI prompt framework with the following ex
 4. ### Output Format & Constraints — Specify ${length}, ${tone}, and formatting guidelines (Markdown, code blocks, bullet points).
 5. ### Input Variables — Highlight placeholders like {{user_input}} or specific parameters if required.${tokenSaverClause}`;
 
-    const stream = await session.promptStreaming(`${systemInstruction}\n\n${metaPrompt}`);
     let full = "";
-    for await (const chunk of stream) {
-      full = chunk;
+    try {
+      const stream = await session.promptStreaming(`${systemInstruction}\n\n${metaPrompt}`);
+      for await (const chunk of stream) {
+        if (!chunk) continue;
+        full = chunk;
+        try {
+          chrome.tabs.sendMessage(sender?.tab?.id, { action: "deviceChunk", text: full });
+        } catch { /* tab gone */ }
+      }
+    } catch (e) {
+      console.error("[Prompt+] stream error, falling back to prompt():", e);
+    }
+
+    if (!full.trim()) {
+      full = await session.prompt(`${systemInstruction}\n\n${metaPrompt}`);
       try {
         chrome.tabs.sendMessage(sender?.tab?.id, { action: "deviceChunk", text: full });
       } catch { /* tab gone */ }

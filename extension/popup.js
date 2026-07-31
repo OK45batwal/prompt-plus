@@ -173,10 +173,10 @@ btn?.addEventListener("click", async () => {
       const res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver });
       if (!res || !res.success) throw new Error(res?.error || "Failed");
       enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
-      resultBody.textContent = enhanced;
     }
 
     if (!enhanced) throw new Error("No output received");
+    resultBody.textContent = enhanced;
     copyBtn.disabled = false;
     useBtn.disabled = false;
     showMsg("Enhanced!");
@@ -273,12 +273,23 @@ Rewrite the prompt above into a master AI prompt framework with the following ex
 4. ### Output Format & Constraints — Specify ${length}, ${tone}, and formatting guidelines (Markdown, code blocks, bullet points).
 5. ### Input Variables — Highlight placeholders like {{user_input}} or specific parameters if required.${tokenSaverClause}`;
 
-    const stream = await session.promptStreaming(`${systemInstruction}\n\n${metaPrompt}`);
     let full = "";
-    for await (const chunk of stream) {
-      full = chunk;
+    try {
+      const stream = await session.promptStreaming(`${systemInstruction}\n\n${metaPrompt}`);
+      for await (const chunk of stream) {
+        if (!chunk) continue;
+        full = chunk;
+        resultBody.textContent = full;
+        resultBody.scrollTop = resultBody.scrollHeight;
+      }
+    } catch (e) {
+      console.error("[Prompt+] stream error, falling back to prompt():", e);
+    }
+
+    if (!full.trim()) {
+      resultBody.textContent = "Enhancing…";
+      full = await session.prompt(`${systemInstruction}\n\n${metaPrompt}`);
       resultBody.textContent = full;
-      resultBody.scrollTop = resultBody.scrollHeight;
     }
     return full.trim();
   } finally {

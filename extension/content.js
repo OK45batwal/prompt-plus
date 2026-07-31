@@ -301,7 +301,7 @@
         const r = document.getElementById(targetId);
         if (!r) return;
         if (msg.action === "deviceProgress") r.textContent = "Downloading Gemini Nano… " + msg.pct + "%";
-        if (msg.action === "deviceChunk") { r.textContent = msg.text; if (r.scrollTop + r.clientHeight >= r.scrollHeight - 20) r.scrollTop = r.scrollHeight; }
+        if (msg.action === "deviceChunk" && msg.text) { r.textContent = msg.text; if (r.scrollTop + r.clientHeight >= r.scrollHeight - 20) r.scrollTop = r.scrollHeight; }
       };
       chrome.runtime.onMessage.addListener(handler);
       chrome.runtime.sendMessage({ action: "enhanceDevice", text, tokenSaver }).then((r) => {
@@ -345,6 +345,7 @@
         currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
       }
 
+      if (!currentEnhanced) throw new Error("No output received");
       if (result) result.textContent = currentEnhanced;
       if (useBtn) useBtn.disabled = false;
       if (copyBtn) copyBtn.disabled = false;
@@ -573,6 +574,7 @@
         currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
       }
 
+      if (!currentEnhanced) throw new Error("No output received");
       if (enhancedPreview) enhancedPreview.textContent = currentEnhanced;
       if (copyBtn) copyBtn.disabled = false;
 
