@@ -53,6 +53,10 @@
     if (el && location.hostname.includes("claude")) return el;
     el = document.querySelector("div[contenteditable='true'], textarea");
     if (el && location.hostname.includes("gemini")) return el;
+    el = document.querySelector("#chat-input, .ds-textarea, textarea[placeholder*='Ask'], textarea[placeholder*='prompt']");
+    if (el) return el;
+    el = document.querySelector("div[contenteditable='true']");
+    if (el) return el;
     return document.querySelector("textarea");
   }
 
@@ -74,35 +78,50 @@
   }
 
   function loadSettings(cb) {
-    if (!chrome?.storage?.local) { cb({}); return; }
-    chrome.storage.local.get(STORAGE_KEY, (d) => cb(d[STORAGE_KEY] || {}));
+    try {
+      if (!chrome?.storage?.local) { cb({}); return; }
+      chrome.storage.local.get(STORAGE_KEY, (d) => {
+        if (chrome.runtime.lastError) { cb({}); return; }
+        cb(d[STORAGE_KEY] || {});
+      });
+    } catch {
+      cb({});
+    }
   }
 
   function saveSettings(s, cb) {
-    if (!chrome?.storage?.local) return;
-    chrome.storage.local.get(STORAGE_KEY, (d) => {
-      const cur = d[STORAGE_KEY] || {};
-      Object.assign(cur, s);
-      chrome.storage.local.set({ [STORAGE_KEY]: cur }, () => cb && cb());
-    });
+    try {
+      if (!chrome?.storage?.local) return;
+      chrome.storage.local.get(STORAGE_KEY, (d) => {
+        if (chrome.runtime.lastError) return;
+        const cur = d[STORAGE_KEY] || {};
+        Object.assign(cur, s);
+        chrome.storage.local.set({ [STORAGE_KEY]: cur }, () => cb && cb());
+      });
+    } catch { /* ignore extension context invalidation */ }
   }
 
   function saveHistory(item) {
-    if (!chrome?.storage?.local) return;
-    chrome.storage.local.get(HISTORY_KEY, (d) => {
-      let h = d[HISTORY_KEY] || [];
-      h = [{ text: item.slice(0, 80), ts: Date.now() }, ...h].slice(0, 10);
-      chrome.storage.local.set({ [HISTORY_KEY]: h });
-    });
+    try {
+      if (!chrome?.storage?.local) return;
+      chrome.storage.local.get(HISTORY_KEY, (d) => {
+        if (chrome.runtime.lastError) return;
+        let h = d[HISTORY_KEY] || [];
+        h = [{ text: item.slice(0, 80), ts: Date.now() }, ...h].slice(0, 10);
+        chrome.storage.local.set({ [HISTORY_KEY]: h });
+      });
+    } catch { /* ignore context invalidation */ }
   }
 
   function detectChatbot() {
-    const host = location.hostname;
+    const host = location.hostname.toLowerCase();
     if (host.includes("chatgpt") || host.includes("chat.openai")) return "chatgpt";
     if (host.includes("claude")) return "claude";
     if (host.includes("gemini")) return "gemini";
     if (host.includes("deepseek")) return "deepseek";
-    return null;
+    if (host.includes("perplexity")) return "perplexity";
+    if (host.includes("poe")) return "poe";
+    return "general";
   }
 
   let fabTimer = null;
@@ -1062,8 +1081,13 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   `;
   document.head.appendChild(style);
 
+  let injectDebounceTimer = null;
   const observer = new MutationObserver(() => {
-    if (!document.querySelector(".pp-fab-bar")) injectFab();
+    if (injectDebounceTimer) return;
+    injectDebounceTimer = setTimeout(() => {
+      injectDebounceTimer = null;
+      if (!document.querySelector(".pp-fab-bar")) injectFab();
+    }, 150);
   });
   observer.observe(document.body, { childList: true, subtree: true });
   injectFab();

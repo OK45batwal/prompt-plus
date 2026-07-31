@@ -383,6 +383,36 @@ function fetchTokenInfo() {
 fetchTokenInfo();
 setInterval(fetchTokenInfo, 3000);
 
+copyBtn?.addEventListener("click", () => {
+  const text = resultBody?.textContent || "";
+  if (!text || resultBody?.classList.contains("placeholder")) return;
+  navigator.clipboard.writeText(text).then(() => {
+    showMsg("Copied to clipboard!");
+    const orig = copyBtn.textContent;
+    copyBtn.textContent = "✓ Copied!";
+    setTimeout(() => { copyBtn.textContent = orig; }, 1500);
+  });
+});
+
+useBtn?.addEventListener("click", () => {
+  const text = input?.value?.trim() || "";
+  const enhanced = resultBody?.textContent || "";
+  if (!enhanced || resultBody?.classList.contains("placeholder")) return;
+  chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs?.[0]?.id) {
+      chrome.tabs.sendMessage(tabs[0].id, { action: "injectEnhanced", text, enhanced }, (ir) => {
+        if (!chrome.runtime.lastError && ir?.success && useBtn) {
+          const orig = useBtn.textContent;
+          useBtn.textContent = "✓ Injected!";
+          setTimeout(() => { useBtn.textContent = orig; }, 1500);
+        } else {
+          showMsg("Active tab input not found", true);
+        }
+      });
+    }
+  });
+});
+
 document.getElementById("open-dash")?.addEventListener("click", (e) => {
   e.preventDefault();
   chrome.tabs.create({ url: "https://prompt-plus-three.vercel.app/dashboard" });
