@@ -228,8 +228,9 @@
     // Place cleanly BELOW the chat input card at the bottom
     let top = rect.bottom + 6;
     if (top + 40 > window.innerHeight) {
-      top = Math.max(10, window.innerHeight - 44);
+      top = rect.top - 42;
     }
+    if (top < 10) top = 10;
 
     bar.style.top = top + "px";
     bar.style.bottom = "auto";
