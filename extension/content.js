@@ -225,16 +225,14 @@
     bar.style.position = "fixed";
     bar.style.zIndex = "999999";
 
-    // Place directly ABOVE the chat input card so text inside the box is NEVER covered
-    let top = rect.top - 42;
-    if (top < 10) {
-      top = rect.bottom + 6;
-      if (top + 40 > window.innerHeight) {
-        top = Math.max(10, window.innerHeight - 48);
-      }
+    // Place cleanly BELOW the chat input card at the bottom
+    let top = rect.bottom + 6;
+    if (top + 40 > window.innerHeight) {
+      top = Math.max(10, window.innerHeight - 44);
     }
 
     bar.style.top = top + "px";
+    bar.style.bottom = "auto";
     bar.style.left = Math.max(10, rect.left) + "px";
     bar.style.width = Math.min(rect.width, window.innerWidth - 20) + "px";
   }
