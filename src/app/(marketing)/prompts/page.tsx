@@ -48,7 +48,7 @@ export default function PromptsPage() {
             Free Prompt Library
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">
-            The Best Prompts, Curated for You
+            Curated Prompt Library
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto">
             Proven prompt templates from the AI community — copy any prompt, paste it into your
