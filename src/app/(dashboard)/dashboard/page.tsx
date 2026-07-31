@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Sparkles, Book, History, Folder, LayoutTemplate, GitCompare, ArrowRight, Zap, TrendingUp, Loader2, Flame, Copy, Check } from "lucide-react";
+import { Sparkles, Book, History, Folder, LayoutTemplate, GitCompare, ArrowRight, Zap, TrendingUp, Loader2, Search, Copy, Check, FileText, Code, GraduationCap, Megaphone, ChartLine, Briefcase, Lightbulb } from "lucide-react";
+import { curatedPrompts } from "@/lib/curated-prompts";
 
 const quickActions = [
   {
@@ -44,13 +45,24 @@ const quickActions = [
   },
 ];
 
+const categoryMeta: Record<string, { label: string; icon: typeof Code }> = {
+  coding: { label: "Coding", icon: Code },
+  writing: { label: "Writing", icon: FileText },
+  learning: { label: "Learning", icon: GraduationCap },
+  marketing: { label: "Marketing", icon: Megaphone },
+  analysis: { label: "Analysis", icon: ChartLine },
+  productivity: { label: "Productivity", icon: Briefcase },
+  creativity: { label: "Creativity", icon: Lightbulb },
+  career: { label: "Career", icon: Briefcase },
+};
+
 export default function DashboardPage() {
   const [usage, setUsage] = useState<{ totalPrompts: number; totalEnhancements: number; averageScore: number; monthly: { used: number } } | null>(null);
   const [collectionsCount, setCollectionsCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [trending, setTrending] = useState<{ id: string; title: string; description: string; prompt: string; usageCount: number; category: string }[]>([]);
-  const [trendingLoading, setTrendingLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
 
   useEffect(() => {
     Promise.all([
@@ -62,17 +74,20 @@ export default function DashboardPage() {
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    fetch("/api/v1/templates?isOfficial=true").then((r) => r.json()).then((json) => {
-      const list = Array.isArray(json.data) ? json.data : [];
-      setTrending([...list].sort((a, b) => b.usageCount - a.usageCount).slice(0, 6));
-    }).catch(() => {}).finally(() => setTrendingLoading(false));
-  }, []);
+  const filtered = curatedPrompts.filter((p) => {
+    const matchesCategory = category === "all" || p.category === category;
+    const q = search.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      p.title.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q) ||
+      p.prompt.toLowerCase().includes(q);
+    return matchesCategory && matchesSearch;
+  });
 
-  const copyTrending = async (t: { id: string; prompt: string }) => {
-    await navigator.clipboard.writeText(t.prompt);
-    setCopiedId(t.id);
-    try { await fetch(`/api/v1/templates/${t.id}/use`, { method: "POST" }); } catch { /* ignore */ }
+  const copyPrompt = async (id: string, prompt: string) => {
+    await navigator.clipboard.writeText(prompt);
+    setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -175,45 +190,58 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Trending Prompts */}
+      {/* Curated Prompt Collection */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Flame className="h-4 w-4 text-orange-500" />
-            <h3 className="font-semibold text-base tracking-tight">Trending Prompts</h3>
+            <Sparkles className="h-4 w-4 text-primary" />
+            <h3 className="font-semibold text-base tracking-tight">Curated Prompt Collection</h3>
           </div>
-          <Link href="/dashboard/templates" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-            View all templates <ArrowRight className="h-3 w-3" />
-          </Link>
+          <span className="text-xs text-muted-foreground">{filtered.length} prompts</span>
         </div>
-        {trendingLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="p-4 rounded-xl border bg-card animate-pulse">
-                <div className="h-3 w-32 bg-muted rounded mb-2" />
-                <div className="h-2 w-full bg-muted rounded mb-2" />
-                <div className="h-2 w-3/4 bg-muted rounded" />
-              </div>
-            ))}
+        <div className="flex flex-col sm:flex-row items-center gap-3 mb-4">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search prompts..."
+              className="h-10 w-full rounded-lg border bg-card pl-9 pr-3 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring"
+            />
           </div>
-        ) : trending.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            {trending.map((t, idx) => (
-              <div key={t.id} className="flex flex-col p-4 rounded-xl border bg-card hover:border-foreground/20 transition-colors">
-                <div className="flex items-center justify-between mb-1.5">
-                  <h4 className="font-semibold text-sm truncate">{t.title}</h4>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 font-medium flex items-center gap-0.5 shrink-0 ml-2">
-                    <Flame className="h-3 w-3" /> #{idx + 1}
-                  </span>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="h-10 rounded-lg border bg-card px-3 text-sm outline-none focus:border-ring"
+          >
+            <option value="all">All Categories</option>
+            {Object.entries(categoryMeta).map(([key, meta]) => (
+              <option key={key} value={key}>{meta.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          {filtered.map((p) => {
+            const meta = categoryMeta[p.category] || categoryMeta.creativity;
+            return (
+              <div key={p.title} className="flex flex-col p-4 rounded-xl border bg-card hover:border-foreground/20 transition-colors">
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <meta.icon className="h-4 w-4 text-primary" />
+                  </div>
+                  <h4 className="font-semibold text-sm truncate">{p.title}</h4>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-3 line-clamp-2 flex-1">{t.description || t.prompt}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-3 line-clamp-2 flex-1">{p.description}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-muted-foreground">{t.usageCount} uses</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground font-medium uppercase tracking-wider">
+                    {meta.label}
+                  </span>
                   <button
-                    onClick={() => copyTrending(t)}
+                    onClick={() => copyPrompt(p.title, p.prompt)}
                     className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-foreground text-background text-xs font-medium hover:bg-foreground/90 transition-colors active:scale-95"
                   >
-                    {copiedId === t.id ? (
+                    {copiedId === p.title ? (
                       <>
                         <Check className="h-3 w-3" /> Copied
                       </>
@@ -225,11 +253,12 @@ export default function DashboardPage() {
                   </button>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
+            );
+          })}
+        </div>
+        {filtered.length === 0 && (
           <div className="p-6 rounded-xl border bg-card/50 text-center">
-            <p className="text-sm text-muted-foreground">No trending prompts yet. Browse the templates library to get started.</p>
+            <p className="text-sm text-muted-foreground">No prompts match your search.</p>
           </div>
         )}
       </div>
