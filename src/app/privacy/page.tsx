@@ -14,8 +14,8 @@ export default function PrivacyPage() {
         <p>Account information (email, name) and prompt text you submit for enhancement. API keys you provide are encrypted at rest.</p>
         <h2 className="text-base font-semibold text-foreground">Data Retention</h2>
         <p>Prompt history is retained for your convenience. You can delete individual prompts or your entire account at any time.</p>
-        <h2 className="text-base font-semibold text-foreground">Third Parties</h2>
-        <p>We use AI providers (OpenAI, Anthropic, OpenRouter, NVIDIA) to process enhancements. Your prompts are sent to the provider you select. Each provider has its own data policy.</p>
+        <h2 className="text-base font-semibold text-foreground">Contact & Inquiries</h2>
+        <p>If you have any questions or data requests regarding this Privacy Policy, please contact us directly at <a href="mailto:promptplus2@gmail.com" className="text-primary hover:underline font-medium">promptplus2@gmail.com</a>.</p>
         <p className="text-xs mt-8">Last updated: July 2026</p>
       </main>
     </div>

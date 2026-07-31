@@ -10,12 +10,12 @@ export default function ContactPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <a
-            href="mailto:okbatwal@gmail.com"
+            href="mailto:promptplus2@gmail.com"
             className="p-6 rounded-xl border hover:border-foreground/20 transition-colors flex flex-col items-center text-center"
           >
             <Mail className="h-5 w-5 mb-3" />
-            <h3 className="font-medium text-sm">Email</h3>
-            <p className="text-sm text-muted-foreground mt-1">okbatwal@gmail.com</p>
+            <h3 className="font-medium text-sm">Email Support</h3>
+            <p className="text-sm text-muted-foreground mt-1">promptplus2@gmail.com</p>
           </a>
           <a
             href="https://github.com/okbatwal/prompt-plus/discussions"
