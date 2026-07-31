@@ -1,3 +1,5 @@
+import { NextRequest } from "next/server";
+
 interface RateLimitBucket {
   count: number;
   resetAt: number;
@@ -13,8 +15,38 @@ export interface RateLimitResult {
 }
 
 /**
+ * Extract verified client IP address from request headers.
+ * Security Note: On Vercel, x-real-ip and x-vercel-forwarded-for are set/overwritten by the edge proxy,
+ * making them untamperable by the client. Plain x-forwarded-for can be spoofed if untrusted headers pass through.
+ */
+export function extractClientIp(req: NextRequest | Request): string {
+  const headers = req.headers;
+  const realIp = headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+
+  const vercelIp = headers.get("x-vercel-forwarded-for");
+  if (vercelIp) return vercelIp.split(",")[0].trim();
+
+  const forwarded = headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+
+  return "127.0.0.1";
+}
+
+/**
+ * Generate standard HTTP X-RateLimit-* headers from a rate limit result.
+ */
+export function getRateLimitHeaders(result: RateLimitResult): Record<string, string> {
+  return {
+    "X-RateLimit-Limit": String(result.limit),
+    "X-RateLimit-Remaining": String(result.remaining),
+    "X-RateLimit-Reset": String(Math.ceil(result.resetMs / 1000)),
+  };
+}
+
+/**
  * Per-IP sliding-window rate limit for abuse protection.
- * Not a daily quota — used to prevent spam on public/unauthenticated routes.
+ * Supports in-memory storage with optional Upstash Redis REST fallback.
  */
 export function checkIpRateLimit(
   key: string,

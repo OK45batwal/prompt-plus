@@ -164,7 +164,54 @@ describe("Phase 1 Security & Correctness Hardening", () => {
       expect(result.valid).toBe(false);
       expect(result.reason).toContain("CSRF origin mismatch");
     });
+  describe("Provider Key Prefix Auto-Detection", () => {
+    it("should correctly auto-route OpenAI sk- prefix to openai provider", async () => {
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), { status: 200 })
+      );
+
+      const { callLLM } = await import("@/lib/llm/providers");
+      const res = await callLLM({
+        provider: "nvidia",
+        apiKey: "sk-proj-test12345",
+        userPrompt: "test",
+      });
+
+      expect(res.provider).toBe("openai");
+      fetchSpy.mockRestore();
+    });
+
+    it("should correctly auto-route sk-or- prefix to openrouter provider", async () => {
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), { status: 200 })
+      );
+
+      const { callLLM } = await import("@/lib/llm/providers");
+      const res = await callLLM({
+        provider: "nvidia",
+        apiKey: "sk-or-v1-test12345",
+        userPrompt: "test",
+      });
+
+      expect(res.provider).toBe("openrouter");
+      fetchSpy.mockRestore();
+    });
+
+    it("should correctly auto-route nvapi- prefix to nvidia provider", async () => {
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+        new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), { status: 200 })
+      );
+
+      const { callLLM } = await import("@/lib/llm/providers");
+      const res = await callLLM({
+        provider: "openai",
+        apiKey: "nvapi-test12345",
+        userPrompt: "test",
+      });
+
+      expect(res.provider).toBe("nvidia");
+      fetchSpy.mockRestore();
+    });
   });
-
-
+});
 });

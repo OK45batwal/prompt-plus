@@ -39,5 +39,52 @@ describe("Phase 3 Integration & Developer Experience Tests", () => {
     });
   });
 
+  describe("CSRF Protection on Mutating V1 Routes", () => {
+    it("should reject POST /api/v1/prompts/share missing CSRF headers", async () => {
+      const { auth } = await import("@/lib/auth/config");
+      vi.mocked(auth).mockResolvedValueOnce({ user: { id: "user-123" } } as never);
 
+      const { POST: sharePost } = await import("@/app/api/v1/prompts/share/route");
+      const { NextRequest } = await import("next/server");
+      const req = new NextRequest("http://localhost:3000/api/v1/prompts/share", {
+        method: "POST",
+        body: JSON.stringify({ promptId: "p1" }),
+      });
+      const res = await sharePost(req);
+      expect(res.status).toBe(403);
+      const json = await res.json();
+      expect(json.error).toContain("CSRF validation failed");
+    });
+
+    it("should reject DELETE /api/v1/prompts/share missing CSRF headers", async () => {
+      const { auth } = await import("@/lib/auth/config");
+      vi.mocked(auth).mockResolvedValueOnce({ user: { id: "user-123" } } as never);
+
+      const { DELETE: shareDelete } = await import("@/app/api/v1/prompts/share/route");
+      const { NextRequest } = await import("next/server");
+      const req = new NextRequest("http://localhost:3000/api/v1/prompts/share?promptId=p1", {
+        method: "DELETE",
+      });
+      const res = await shareDelete(req);
+      expect(res.status).toBe(403);
+      const json = await res.json();
+      expect(json.error).toContain("CSRF validation failed");
+    });
+
+    it("should reject POST /api/v1/prompts/[id]/versions missing CSRF headers", async () => {
+      const { auth } = await import("@/lib/auth/config");
+      vi.mocked(auth).mockResolvedValueOnce({ user: { id: "user-123" } } as never);
+
+      const { POST: createVersionPost } = await import("@/app/api/v1/prompts/[id]/versions/route");
+      const { NextRequest } = await import("next/server");
+      const req = new NextRequest("http://localhost:3000/api/v1/prompts/p1/versions", {
+        method: "POST",
+        body: JSON.stringify({ text: "v2" }),
+      });
+      const res = await createVersionPost(req);
+      expect(res.status).toBe(403);
+      const json = await res.json();
+      expect(json.error).toContain("CSRF validation failed");
+    });
+  });
 });

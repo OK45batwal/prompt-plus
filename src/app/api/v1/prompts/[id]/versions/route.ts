@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
-import { auth } from "@/lib/auth/config";
 import { getDb } from "@/lib/db/prisma";
+import { withAuth } from "@/lib/api/with-auth";
+import { jsonResponse } from "@/lib/api/response-headers";
 
 const createVersionSchema = z.object({
   text: z.string().min(1, "text is required"),
@@ -9,87 +10,73 @@ const createVersionSchema = z.object({
   changes: z.record(z.string(), z.unknown()).optional(),
 });
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const GET = withAuth(
+  async (request: NextRequest, { userId, requestId }) => {
+    const pathname = request.nextUrl.pathname;
+    const parts = pathname.split("/");
+    const versionsIdx = parts.indexOf("versions");
+    const promptId = versionsIdx > 0 ? parts[versionsIdx - 1] : "";
+
+    if (!promptId) {
+      return jsonResponse({ error: "promptId is required" }, { status: 400, requestId });
+    }
+
+    const prompt = await getDb().prompt.findFirst({
+      where: { id: promptId, userId },
+    });
+
+    if (!prompt) {
+      return jsonResponse({ error: "Prompt not found" }, { status: 404, requestId });
+    }
+
+    const versions = await getDb().version.findMany({
+      where: { promptId },
+      orderBy: { version: "desc" },
+    });
+
+    return jsonResponse({ data: versions }, { requestId });
   }
+);
 
-  const { id: promptId } = await params;
-  const userId = session.user.id;
+export const POST = withAuth(
+  async (request: NextRequest, { userId, requestId, body }) => {
+    const pathname = request.nextUrl.pathname;
+    const parts = pathname.split("/");
+    const versionsIdx = parts.indexOf("versions");
+    const promptId = versionsIdx > 0 ? parts[versionsIdx - 1] : "";
 
-  const prompt = await getDb().prompt.findFirst({
-    where: { id: promptId, userId },
-  });
+    if (!promptId) {
+      return jsonResponse({ error: "promptId is required" }, { status: 400, requestId });
+    }
 
-  if (!prompt) {
-    return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
-  }
+    const prompt = await getDb().prompt.findFirst({
+      where: { id: promptId, userId },
+    });
 
-  const versions = await getDb().version.findMany({
-    where: { promptId },
-    orderBy: { version: "desc" },
-  });
+    if (!prompt) {
+      return jsonResponse({ error: "Prompt not found" }, { status: 404, requestId });
+    }
 
-  return NextResponse.json({ data: versions });
-}
+    const { text, score, changes } = body || {};
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+    const latestVersion = await getDb().version.findFirst({
+      where: { promptId },
+      orderBy: { version: "desc" },
+    });
 
-  const { id: promptId } = await params;
-  const userId = session.user.id;
+    const nextVersionNum = (latestVersion?.version || 0) + 1;
 
-  const prompt = await getDb().prompt.findFirst({
-    where: { id: promptId, userId },
-  });
+    const versionObj = await getDb().version.create({
+      data: {
+        promptId,
+        version: nextVersionNum,
+        text,
+        score: score ? JSON.parse(JSON.stringify(score)) : undefined,
+        changes: changes ? JSON.parse(JSON.stringify(changes)) : undefined,
+      },
+    });
 
-  if (!prompt) {
-    return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
-  }
-
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  const parseResult = createVersionSchema.safeParse(body);
-  if (!parseResult.success) {
-    return NextResponse.json(
-      { error: "Validation failed", details: parseResult.error.flatten() },
-      { status: 400 }
-    );
-  }
-
-  const { text, score, changes } = parseResult.data;
-
-  const latestVersion = await getDb().version.findFirst({
-    where: { promptId },
-    orderBy: { version: "desc" },
-  });
-
-  const nextVersionNum = (latestVersion?.version || 0) + 1;
-
-  const versionObj = await getDb().version.create({
-    data: {
-      promptId,
-      version: nextVersionNum,
-      text,
-      score: score ? JSON.parse(JSON.stringify(score)) : undefined,
-      changes: changes ? JSON.parse(JSON.stringify(changes)) : undefined,
-    },
-  });
-
-  return NextResponse.json({ data: versionObj }, { status: 201 });
-}
+    return jsonResponse({ data: versionObj }, { status: 201, requestId });
+  },
+  { schema: createVersionSchema }
+);
