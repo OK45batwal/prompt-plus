@@ -47,8 +47,18 @@ export async function POST(request: NextRequest) {
 
   const { text, apiKey, provider, model, category, tone, length, level } = parseResult.data;
 
-  const resolvedProvider: "openai" | "anthropic" | "openrouter" | "nvidia" =
-    provider || (model?.includes("claude") ? "anthropic" : model?.includes("/") ? "openrouter" : model?.includes("nvidia") ? "nvidia" : "openai");
+  let resolvedProvider: "openai" | "anthropic" | "openrouter" | "nvidia";
+  if (provider === "nvidia" || provider === "openrouter" || provider === "anthropic" || provider === "openai") {
+    resolvedProvider = provider;
+  } else if (model?.startsWith("meta/") || model?.startsWith("nvidia/") || model?.startsWith("google/gemma") || model?.startsWith("mistralai/mistral-7b")) {
+    resolvedProvider = "nvidia";
+  } else if (model?.includes("claude")) {
+    resolvedProvider = "anthropic";
+  } else if (model?.includes(":") || model?.includes("/")) {
+    resolvedProvider = "openrouter";
+  } else {
+    resolvedProvider = "openai";
+  }
 
   // User key from the extension takes priority; otherwise serve via the server's own keys
   let effectiveKey = apiKey;

@@ -652,21 +652,11 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
       '<option value="microsoft/phi-3-mini-128k-instruct:free::openrouter">Phi-3 Mini 128K</option>' +
       '<option value="nousresearch/hermes-3-llama-3.1-405b:free::openrouter">Hermes 3 405B</option>' +
       '</optgroup>' +
-      '<optgroup label="OpenRouter Paid">' +
-      '<option value="openai/gpt-4o::openrouter">GPT-4o</option>' +
-      '<option value="anthropic/claude-3-5-sonnet-20241022::openrouter">Claude 3.5 Sonnet</option>' +
-      '<option value="google/gemini-1.5-pro::openrouter">Gemini 1.5 Pro</option>' +
-      '</optgroup>' +
-      '<optgroup label="NVIDIA">' +
+      '<optgroup label="NVIDIA Free">' +
       '<option value="meta/llama-3.3-70b-instruct::nvidia">Llama 3.3 70B (NV)</option>' +
-      '<option value="nvidia/llama-3.1-nemotron-70b-instruct::nvidia">Nemotron 70B</option>' +
+      '<option value="nvidia/llama-3.1-nemotron-70b-instruct::nvidia">Nemotron 70B (NV)</option>' +
       '<option value="google/gemma-2-27b-it::nvidia">Gemma 2 27B (NV)</option>' +
       '<option value="mistralai/mistral-7b-instruct-v0.3::nvidia">Mistral 7B (NV)</option>' +
-      '</optgroup>' +
-      '<optgroup label="Direct Keys">' +
-      '<option value="gpt-4o-mini::openai">GPT-4o Mini</option>' +
-      '<option value="gpt-4o::openai">GPT-4o</option>' +
-      '<option value="claude-3-5-sonnet-20241022::anthropic">Claude 3.5 Sonnet</option>' +
       '</optgroup>' +
       '</select>' +
       '</div>' +

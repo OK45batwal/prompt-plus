@@ -28,9 +28,18 @@ export const POST = withAuth(
     const { promptId, text, model, provider: reqProvider, category, tone, length, level, userApiKey } = parseResult.data;
     const startTime = Date.now();
 
-    const targetProvider =
-      reqProvider ||
-      (model?.includes("claude") ? "anthropic" : model?.includes("nvidia") ? "nvidia" : model?.includes("openrouter") || model?.includes("/") ? "openrouter" : "openai");
+    let targetProvider: "openai" | "anthropic" | "openrouter" | "google" | "nvidia";
+    if (reqProvider === "nvidia" || reqProvider === "openrouter" || reqProvider === "anthropic" || reqProvider === "google" || reqProvider === "openai") {
+      targetProvider = reqProvider;
+    } else if (model?.startsWith("meta/") || model?.startsWith("nvidia/") || model?.startsWith("google/gemma") || model?.startsWith("mistralai/mistral-7b")) {
+      targetProvider = "nvidia";
+    } else if (model?.includes("claude")) {
+      targetProvider = "anthropic";
+    } else if (model?.includes(":") || model?.includes("/")) {
+      targetProvider = "openrouter";
+    } else {
+      targetProvider = "openai";
+    }
 
     const userApiKeyRow = await getDb().apiKey.findFirst({
       where: {
@@ -41,15 +50,7 @@ export const POST = withAuth(
     });
 
     let apiKey: string | undefined = userApiKey;
-    let resolvedProvider = targetProvider === "openrouter"
-      ? "openrouter" as const
-      : targetProvider === "anthropic"
-      ? "anthropic" as const
-      : targetProvider === "nvidia"
-      ? "nvidia" as const
-      : targetProvider === "google"
-      ? "google" as const
-      : "openai" as const;
+    let resolvedProvider = targetProvider;
 
     if (!apiKey && userApiKeyRow) {
       try {
