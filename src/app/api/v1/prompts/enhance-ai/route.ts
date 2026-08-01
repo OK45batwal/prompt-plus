@@ -68,9 +68,13 @@ export const POST = withAuth(
       }
     }
 
-    if (!apiKey) {
+    if (!apiKey && resolvedProvider === "openrouter") {
+      apiKey = "";
+    }
+
+    if (apiKey === undefined && resolvedProvider !== "openrouter") {
       return jsonResponse(
-        { error: "No API key configured. Add your API key in Settings to use AI enhancement." },
+        { error: "No API key configured. Add your API key in Settings or choose an OpenRouter Free model." },
         { status: 402, requestId }
       );
     }
@@ -80,7 +84,7 @@ export const POST = withAuth(
     try {
       const response = await callLLM({
         provider: resolvedProvider,
-        apiKey,
+        apiKey: apiKey || "",
         model,
         systemPrompt: systemInstruction,
         userPrompt: metaPrompt,

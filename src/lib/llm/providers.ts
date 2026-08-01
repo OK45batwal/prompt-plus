@@ -110,13 +110,15 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
     "Content-Type": "application/json",
     ...(isOpenRouter
       ? {
-          Authorization: `Bearer ${apiKey}`,
+          ...(apiKey && apiKey.trim() ? { Authorization: `Bearer ${apiKey}` } : {}),
           "HTTP-Referer": "https://prompt-plus-three.vercel.app",
           "X-Title": "Prompt+",
         }
       : isAnthropic
       ? { "x-api-key": apiKey, "anthropic-version": "2023-06-01" }
-      : { Authorization: `Bearer ${apiKey}` }),
+      : apiKey && apiKey.trim()
+      ? { Authorization: `Bearer ${apiKey}` }
+      : {}),
   };
 
   const body = isAnthropic
@@ -126,7 +128,7 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
         messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
         temperature,
         max_tokens: maxTokens,
-        ...(responseFormatJson ? { response_format: { type: "json_object" } } : {}),
+        ...(responseFormatJson && !isNvidia ? { response_format: { type: "json_object" } } : {}),
       };
 
   const controller = new AbortController();
