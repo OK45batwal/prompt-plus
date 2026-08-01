@@ -20,9 +20,14 @@ chrome.runtime.onInstalled.addListener((details) => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "enhancePrompt") {
     (async () => {
-      const settings = await chrome.storage.local.get(STORAGE_KEY).catch(() => ({}));
-      const saved = settings[STORAGE_KEY] || {};
-      const apiKey = request.apiKey || saved.apiKey || "";
+      const data = await chrome.storage.local.get(STORAGE_KEY).catch(() => ({}));
+      const saved = data[STORAGE_KEY] || {};
+      let apiKey = request.apiKey || "";
+      if (!apiKey && saved.apiKeyEnc) {
+        apiKey = await decryptData(saved.apiKeyEnc);
+      } else if (!apiKey && saved.apiKey) {
+        apiKey = saved.apiKey;
+      }
 
       const urls = cachedWorkingUrl ? [cachedWorkingUrl, ...API_URLS.filter((u) => u !== cachedWorkingUrl)] : API_URLS;
       let lastErr = "";
@@ -107,21 +112,31 @@ function getLanguageModelAPI() {
   }
 
   if (request.action === "saveApiKey") {
-    chrome.storage.local.get(STORAGE_KEY, (data) => {
-      const settings = data[STORAGE_KEY] || {};
-      settings.apiKey = request.apiKey;
-      chrome.storage.local.set({ [STORAGE_KEY]: settings }, () => {
-        sendResponse({ success: true });
+    (async () => {
+      const encryptedKey = await encryptData(request.apiKey);
+      chrome.storage.local.get(STORAGE_KEY, (data) => {
+        const cur = data[STORAGE_KEY] || {};
+        cur.apiKeyEnc = encryptedKey;
+        cur.apiKey = ""; // Blank out unencrypted legacy key
+        chrome.storage.local.set({ [STORAGE_KEY]: cur }, () => sendResponse({ success: true }));
       });
-    });
+    })();
     return true;
   }
 
   if (request.action === "getApiKey") {
-    chrome.storage.local.get(STORAGE_KEY, (data) => {
-      const settings = data[STORAGE_KEY] || {};
-      sendResponse({ apiKey: settings.apiKey || "" });
-    });
+    (async () => {
+      chrome.storage.local.get(STORAGE_KEY, async (data) => {
+        const settings = data[STORAGE_KEY] || {};
+        let key = "";
+        if (settings.apiKeyEnc) {
+          key = await decryptData(settings.apiKeyEnc);
+        } else if (settings.apiKey) {
+          key = settings.apiKey;
+        }
+        sendResponse({ apiKey: key });
+      });
+    })();
     return true;
   }
 
