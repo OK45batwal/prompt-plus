@@ -475,3 +475,48 @@ bucketClearBtn?.addEventListener("click", () => {
 });
 
 updateBucketUI();
+
+// ---- Dynamic Popup Width Manager ----
+const sizeToggleBtn = document.getElementById("size-toggle");
+const sizeText = document.getElementById("size-text");
+
+const sizeModes = [
+  { mode: "standard", label: "↔️ 380px" },
+  { mode: "wide", label: "↔️ 480px" },
+  { mode: "full", label: "↔️ 540px" },
+  { mode: "compact", label: "↔️ 360px" },
+];
+
+function applyPopupWidth(modeName) {
+  document.body.classList.remove("compact-mode", "wide-mode", "full-mode");
+  const matched = sizeModes.find((s) => s.mode === modeName) || sizeModes[0];
+  if (matched.mode !== "standard") {
+    document.body.classList.add(`${matched.mode}-mode`);
+  }
+  if (sizeText) sizeText.textContent = matched.label;
+}
+
+try {
+  if (chrome?.storage?.local) {
+    chrome.storage.local.get("pp_popup_width", (d) => {
+      if (d?.pp_popup_width) applyPopupWidth(d.pp_popup_width);
+    });
+  }
+} catch { /* ignore */ }
+
+sizeToggleBtn?.addEventListener("click", () => {
+  let current = "standard";
+  if (document.body.classList.contains("compact-mode")) current = "compact";
+  else if (document.body.classList.contains("wide-mode")) current = "wide";
+  else if (document.body.classList.contains("full-mode")) current = "full";
+
+  const idx = sizeModes.findIndex((s) => s.mode === current);
+  const next = sizeModes[(idx + 1) % sizeModes.length];
+  applyPopupWidth(next.mode);
+
+  try {
+    if (chrome?.storage?.local) {
+      chrome.storage.local.set({ pp_popup_width: next.mode });
+    }
+  } catch { /* ignore */ }
+});

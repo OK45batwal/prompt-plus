@@ -11,12 +11,37 @@
       box-sizing: border-box;
     }
 
+    html {
+      width: 100%;
+      min-width: 360px;
+      max-width: 540px;
+    }
+
     body {
       width: 380px;
+      min-width: 360px;
+      max-width: 540px;
+      height: auto;
+      min-height: 480px;
+      max-height: 600px;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #090d16;
       color: #f8fafc;
       overflow-x: hidden;
+      overflow-y: auto;
+      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.wide-mode {
+      width: 480px;
+    }
+
+    body.full-mode {
+      width: 540px;
+    }
+
+    body.compact-mode {
+      width: 360px;
     }
 
     .header {
@@ -607,8 +632,13 @@
         <div class="header-enc"><span class="enc-dot"></span> SECURE</div>
       </div>
     </div>
-    <div class="key-badge" id="key-indicator">
-      <span id="key-text">No Key</span>
+    <div style="display:flex;align-items:center;gap:6px">
+      <button class="key-badge" id="size-toggle" title="Click to cycle dynamic width (380px / 480px / 540px)" style="cursor:pointer;user-select:none">
+        <span id="size-text">↔️ 380px</span>
+      </button>
+      <div class="key-badge" id="key-indicator">
+        <span id="key-text">No Key</span>
+      </div>
     </div>
   </div>
 
