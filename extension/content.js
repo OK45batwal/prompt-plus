@@ -163,28 +163,28 @@
 
     bar.innerHTML =
       '<button class="pp-fab-btn" id="pp-fab-btn" type="button" title="Enhance prompt with free On-Device AI (Gemini Nano)">' +
-        '<span class="pp-fab-icon">📱</span>' +
-        '<span class="pp-fab-text" id="pp-fab-text">Device Enhance</span>' +
+      '<span class="pp-fab-icon">📱</span>' +
+      '<span class="pp-fab-text" id="pp-fab-text">Device Enhance</span>' +
       '</button>' +
       '<button class="pp-fab-btn" id="pp-fab-bucket-cap" type="button" title="Capture & Carry conversation history to another chatbot (e.g. ChatGPT to Claude)">' +
-        '<span class="pp-fab-icon">📦</span>' +
-        '<span class="pp-fab-text">Carry Context</span>' +
+      '<span class="pp-fab-icon">📦</span>' +
+      '<span class="pp-fab-text">Carry Context</span>' +
       '</button>' +
       '<button class="pp-fab-btn" id="pp-fab-bucket-inj" type="button" style="display:none;" title="Inject saved conversation context from another chatbot">' +
-        '<span class="pp-fab-icon">💉</span>' +
-        '<span class="pp-fab-text" id="pp-fab-bucket-inj-text">Inject Context</span>' +
+      '<span class="pp-fab-icon">💉</span>' +
+      '<span class="pp-fab-text" id="pp-fab-bucket-inj-text">Inject Context</span>' +
       '</button>' +
       '<div class="pp-fab-badge" title="Powered by Chrome Gemini Nano On-Device AI">' +
-        '<span>📱 On-Device AI</span>' +
+      '<span>📱 On-Device AI</span>' +
       '</div>' +
       '<div class="pp-fab-token-wrap" title="Context Tokens Remaining">' +
-        '<div class="pp-fab-token-info">' +
-          '<span>Tokens: <strong id="pp-fab-used">0</strong> / <strong id="pp-fab-limit">128K</strong></span>' +
-          '<span class="pp-fab-remain-wrap"><strong id="pp-fab-remain">128K</strong> remaining</span>' +
-        '</div>' +
-        '<div class="pp-fab-token-track">' +
-          '<div class="pp-fab-token-fill" id="pp-fab-fill" style="width:0%"></div>' +
-        '</div>' +
+      '<div class="pp-fab-token-info">' +
+      '<span>Tokens: <strong id="pp-fab-used">0</strong> / <strong id="pp-fab-limit">128K</strong></span>' +
+      '<span class="pp-fab-remain-wrap"><strong id="pp-fab-remain">128K</strong> remaining</span>' +
+      '</div>' +
+      '<div class="pp-fab-token-track">' +
+      '<div class="pp-fab-token-fill" id="pp-fab-fill" style="width:0%"></div>' +
+      '</div>' +
       '</div>';
 
     document.body.appendChild(bar);
@@ -278,79 +278,6 @@
     bar.style.setProperty("display", "inline-flex", "important");
   }
 
-  function captureContextBucket() {
-    const bot = detectChatbot();
-    const botName = bot === "chatgpt" ? "ChatGPT"
-                  : bot === "claude" ? "Claude"
-                  : bot === "gemini" ? "Gemini"
-                  : bot === "deepseek" ? "DeepSeek"
-                  : bot === "perplexity" ? "Perplexity" : "Chatbot";
-
-    const sel = bot === "chatgpt" ? "[data-message-author-role]"
-              : bot === "claude" ? '.font-claude-message, .font-user-message, [class*="message"]'
-              : bot === "gemini" ? '.conversation-turn, [data-message]'
-              : ".message, .ds-message";
-
-    const els = Array.from(document.querySelectorAll(sel));
-    let conversationText = "";
-
-    if (els.length) {
-      conversationText = els.map((el, i) => {
-        const text = el.textContent ? el.textContent.trim() : "";
-        if (!text) return "";
-        const role = i % 2 === 0 ? "User" : "Assistant";
-        return `[${role}]: ${text}`;
-      }).filter(Boolean).join("\n\n");
-    } else {
-      conversationText = getConversationText();
-    }
-
-    if (!conversationText || conversationText.length < 10) {
-      showToast("No active conversation text found on page to capture");
-      return;
-    }
-
-    const payload = {
-      source: botName,
-      timestamp: Date.now(),
-      text: conversationText.slice(0, 12000),
-      formattedPrompt: `[CONVERSATION CONTEXT HANDOFF FROM ${botName.toUpperCase()}]\n\nThe user was previously discussing the following topic/task with ${botName}:\n\n${conversationText.slice(0, 12000)}\n\n[CONTINUATION INSTRUCTION]\nPlease seamlessly continue this discussion where ${botName} left off. Answer any open questions or complete the task specified.`
-    };
-
-    try {
-      chrome.storage.local.set({ pp_context_bucket: payload }, () => {
-        showToast(`📦 Captured conversation from ${botName}! Switch tabs to inject.`);
-        const injBtn = document.getElementById("pp-fab-bucket-inj");
-        const injText = document.getElementById("pp-fab-bucket-inj-text");
-        if (injBtn) injBtn.style.display = "inline-flex";
-        if (injText) injText.textContent = `Inject (${botName})`;
-      });
-    } catch {
-      showToast("Error saving Context Bucket");
-    }
-  }
-
-  function injectContextBucket() {
-    try {
-      chrome.storage.local.get("pp_context_bucket", (d) => {
-        const b = d?.pp_context_bucket;
-        if (!b || !b.formattedPrompt) {
-          showToast("No active Context Bucket found. Click 'Carry Context' on a chat first!");
-          return;
-        }
-        const el = getInput();
-        if (!el) {
-          showToast("No chat input box found on this page");
-          return;
-        }
-        setText(el, b.formattedPrompt);
-        showToast(`💉 Injected Context Bucket from ${b.source || "Chatbot"}!`);
-      });
-    } catch {
-      showToast("Error reading Context Bucket");
-    }
-  }
-
   function showToast(msg) {
     const t = document.createElement("div");
     t.textContent = msg;
@@ -440,23 +367,23 @@
     popoverEl.className = "pp-popover";
     popoverEl.innerHTML =
       '<div class="pp-pop-head">' +
-        '<div class="pp-pop-title">✦ Prompt+ Intelligence</div>' +
-        '<div class="pp-pop-mode" id="pp-pop-mode">📱 On-Device AI</div>' +
-        '<button class="pp-pop-close" id="pp-pop-close">' +
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
-        '</button>' +
+      '<div class="pp-pop-title">✦ Prompt+ Intelligence</div>' +
+      '<div class="pp-pop-mode" id="pp-pop-mode">📱 On-Device AI</div>' +
+      '<button class="pp-pop-close" id="pp-pop-close">' +
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+      '</button>' +
       '</div>' +
       '<div class="pp-pop-token">' +
-        '<div class="pp-pop-token-label"><span>Used: <strong id="pp-pop-token-used">0</strong> · Remaining: <strong id="pp-pop-token-remaining">128K</strong></span><span id="pp-pop-token-pct">0%</span></div>' +
-        '<div class="pp-pop-token-track"><div class="pp-pop-token-fill" id="pp-pop-token-fill" style="width:0%"></div></div>' +
+      '<div class="pp-pop-token-label"><span>Used: <strong id="pp-pop-token-used">0</strong> · Remaining: <strong id="pp-pop-token-remaining">128K</strong></span><span id="pp-pop-token-pct">0%</span></div>' +
+      '<div class="pp-pop-token-track"><div class="pp-pop-token-fill" id="pp-pop-token-fill" style="width:0%"></div></div>' +
       '</div>' +
       '<div class="pp-pop-body">' +
-        '<div class="pp-pop-result" id="pp-pop-result"></div>' +
+      '<div class="pp-pop-result" id="pp-pop-result"></div>' +
       '</div>' +
       '<div class="pp-pop-footer">' +
-        '<button class="pp-btn-keep" id="pp-pop-keep">Keep Original</button>' +
-        '<button class="pp-pop-copy" id="pp-pop-copy" disabled>📋 Copy</button>' +
-        '<button class="pp-btn-apply" id="pp-pop-use" disabled><span id="pp-pop-use-text">Use Enhanced</span><span>→</span></button>' +
+      '<button class="pp-btn-keep" id="pp-pop-keep">Keep Original</button>' +
+      '<button class="pp-pop-copy" id="pp-pop-copy" disabled>📋 Copy</button>' +
+      '<button class="pp-btn-apply" id="pp-pop-use" disabled><span id="pp-pop-use-text">Use Enhanced</span><span>→</span></button>' +
       '</div>';
 
     document.body.appendChild(popoverEl);
@@ -622,15 +549,15 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
         if (result) {
           result.innerHTML =
             '<div style="padding: 4px; color: #f8fafc;">' +
-              '<div style="font-weight: 600; color: #f59e0b; margin-bottom: 6px; font-size: 12px; display: flex; align-items: center; gap: 6px;">' +
-                '<span>🔑</span> No Server API Key' +
-              '</div>' +
-              '<div style="font-size: 11px; color: #94a3b8; margin-bottom: 10px; line-height: 1.4;">' +
-                'No API key configured. Switch to <strong>On-Device AI (Gemini Nano)</strong> for instant free enhancements without an API key.' +
-              '</div>' +
-              '<button id="pp-pop-switch-device" type="button" style="width: 100%; padding: 8px 12px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #93c5fd; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">' +
-                '<span>📱</span> Switch to On-Device AI Mode' +
-              '</button>' +
+            '<div style="font-weight: 600; color: #f59e0b; margin-bottom: 6px; font-size: 12px; display: flex; align-items: center; gap: 6px;">' +
+            '<span>🔑</span> No Server API Key' +
+            '</div>' +
+            '<div style="font-size: 11px; color: #94a3b8; margin-bottom: 10px; line-height: 1.4;">' +
+            'No API key configured. Switch to <strong>On-Device AI (Gemini Nano)</strong> for instant free enhancements without an API key.' +
+            '</div>' +
+            '<button id="pp-pop-switch-device" type="button" style="width: 100%; padding: 8px 12px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #93c5fd; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">' +
+            '<span>📱</span> Switch to On-Device AI Mode' +
+            '</button>' +
             '</div>';
           document.getElementById("pp-pop-switch-device")?.addEventListener("click", () => {
             currentMode = "device";
@@ -656,108 +583,108 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
     panelEl.innerHTML =
       '<div class="pp-backdrop"></div>' +
       '<div class="pp-side">' +
-        '<div class="pp-side-inner">' +
-          '<div class="pp-head">' +
-            '<div class="pp-head-left">' +
-              '<div class="pp-head-icon">✦</div>' +
-              '<div class="pp-head-info">' +
-                '<div class="pp-head-title">Prompt+ Intelligence</div>' +
-                '<div class="pp-head-enc"><span class="pp-enc-dot"></span> SECURE</div>' +
-              '</div>' +
-            '</div>' +
-            '<button class="pp-close-btn" id="pp-close-btn">' +
-              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
-            '</button>' +
-          '</div>' +
-          '<div class="pp-bots-strip">' +
-            '<div class="pp-bot-pill' + (activeChatbot === "chatgpt" ? " active" : "") + '"><span>🤖</span><span class="pp-bot-label">ChatGPT</span></div>' +
-            '<div class="pp-bot-pill' + (activeChatbot === "claude" ? " active" : "") + '"><span>🟣</span><span class="pp-bot-label">Claude</span></div>' +
-            '<div class="pp-bot-pill' + (activeChatbot === "gemini" ? " active" : "") + '"><span>✨</span><span class="pp-bot-label">Gemini</span></div>' +
-            '<div class="pp-bot-pill' + (activeChatbot === "deepseek" ? " active" : "") + '"><span>⚡</span><span class="pp-bot-label">DeepSeek</span></div>' +
-          '</div>' +
-          '<div class="pp-body" id="pp-body">' +
-            '<div class="pp-split-header">' +
-              '<div class="pp-split-label">ORIGINAL</div>' +
-              '<div class="pp-split-label-right">' +
-                '<span>IMPROVED</span>' +
-                '<button class="pp-copy-chip" id="pp-copy-btn" disabled>📋 Copy</button>' +
-              '</div>' +
-            '</div>' +
-            '<div class="pp-split-view">' +
-              '<div class="pp-split-original" id="pp-original-preview"></div>' +
-              '<div class="pp-split-improved" id="pp-enhanced-preview">' +
-                '<div class="pp-placeholder">Click "Apply Upgrade" below to see the AI-optimized result</div>' +
-              '</div>' +
-            '</div>' +
-            '<div id="pp-structured-sections" style="display:none">' +
-              '<div class="pp-section">' +
-                '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">ROLE</span></div>' +
-                '<div class="pp-section-body" id="pp-role-body">—</div>' +
-              '</div>' +
-              '<div class="pp-section">' +
-                '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">CONTEXT</span></div>' +
-                '<div class="pp-section-body" id="pp-context-body">—</div>' +
-              '</div>' +
-              '<div class="pp-section">' +
-                '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">INSTRUCTIONS</span></div>' +
-                '<div class="pp-section-body" id="pp-instructions-body">—</div>' +
-              '</div>' +
-              '<div class="pp-section">' +
-                '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">CONSTRAINTS</span></div>' +
-                '<div class="pp-section-body" id="pp-constraints-body">—</div>' +
-              '</div>' +
-            '</div>' +
-            '<div class="pp-opt-row">' +
-              '<div class="pp-opt-info"><div class="pp-opt-label">Token Saver</div><div class="pp-opt-sub">Concise output, ~40% fewer tokens</div></div>' +
-              '<label class="pp-toggle"><input type="checkbox" id="pp-ts-toggle"><div class="pp-toggle-slider"></div></label>' +
-            '</div>' +
-            '<div class="pp-model-row">' +
-              '<label class="pp-model-label">Model</label>' +
-              '<select id="pp-model" class="pp-select">' +
-                '<optgroup label="OpenRouter Free">' +
-                  '<option value="meta-llama/llama-3.3-70b-instruct:free::openrouter" selected>Llama 3.3 70B</option>' +
-                  '<option value="google/gemini-2.0-flash-exp:free::openrouter">Gemini 2.0 Flash</option>' +
-                  '<option value="deepseek/deepseek-r1:free::openrouter">DeepSeek R1</option>' +
-                  '<option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder 32B</option>' +
-                  '<option value="mistralai/mistral-small-24b-instruct-2501:free::openrouter">Mistral Small 24B</option>' +
-                  '<option value="microsoft/phi-3-mini-128k-instruct:free::openrouter">Phi-3 Mini 128K</option>' +
-                  '<option value="nousresearch/hermes-3-llama-3.1-405b:free::openrouter">Hermes 3 405B</option>' +
-                '</optgroup>' +
-                '<optgroup label="OpenRouter Paid">' +
-                  '<option value="openai/gpt-4o::openrouter">GPT-4o</option>' +
-                  '<option value="anthropic/claude-3-5-sonnet-20241022::openrouter">Claude 3.5 Sonnet</option>' +
-                  '<option value="google/gemini-1.5-pro::openrouter">Gemini 1.5 Pro</option>' +
-                '</optgroup>' +
-                '<optgroup label="NVIDIA">' +
-                  '<option value="meta/llama-3.3-70b-instruct::nvidia">Llama 3.3 70B (NV)</option>' +
-                  '<option value="nvidia/llama-3.1-nemotron-70b-instruct::nvidia">Nemotron 70B</option>' +
-                  '<option value="google/gemma-2-27b-it::nvidia">Gemma 2 27B (NV)</option>' +
-                  '<option value="mistralai/mistral-7b-instruct-v0.3::nvidia">Mistral 7B (NV)</option>' +
-                '</optgroup>' +
-                '<optgroup label="Direct Keys">' +
-                  '<option value="gpt-4o-mini::openai">GPT-4o Mini</option>' +
-                  '<option value="gpt-4o::openai">GPT-4o</option>' +
-                  '<option value="claude-3-5-sonnet-20241022::anthropic">Claude 3.5 Sonnet</option>' +
-                '</optgroup>' +
-              '</select>' +
-            '</div>' +
-          '</div>' +
-          '<div class="pp-token-bar" id="pp-token-bar">' +
-            '<div class="pp-token-label"><span>Context: <strong id="pp-token-used">0</strong> / <strong id="pp-token-limit">128K</strong> tokens</span><span id="pp-token-pct">0%</span></div>' +
-            '<div class="pp-token-track"><div class="pp-token-fill" id="pp-token-fill" style="width:0%"></div></div>' +
-          '</div>' +
-          '<div class="pp-footer">' +
-            '<div class="pp-footer-credit">Powered by <strong>Prompt+</strong></div>' +
-            '<div class="pp-footer-actions">' +
-              '<button class="pp-btn-keep" id="pp-keep-btn">Keep Original</button>' +
-              '<button class="pp-btn-apply" id="pp-enhance-btn">' +
-                '<span class="pp-btn-spinner" style="display:none"></span>' +
-                '<span id="pp-enhance-text">Apply Upgrade</span>' +
-                '<span>→</span>' +
-              '</button>' +
-            '</div>' +
-          '</div>' +
-        '</div>' +
+      '<div class="pp-side-inner">' +
+      '<div class="pp-head">' +
+      '<div class="pp-head-left">' +
+      '<div class="pp-head-icon">✦</div>' +
+      '<div class="pp-head-info">' +
+      '<div class="pp-head-title">Prompt+ Intelligence</div>' +
+      '<div class="pp-head-enc"><span class="pp-enc-dot"></span> SECURE</div>' +
+      '</div>' +
+      '</div>' +
+      '<button class="pp-close-btn" id="pp-close-btn">' +
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+      '</button>' +
+      '</div>' +
+      '<div class="pp-bots-strip">' +
+      '<div class="pp-bot-pill' + (activeChatbot === "chatgpt" ? " active" : "") + '"><span>🤖</span><span class="pp-bot-label">ChatGPT</span></div>' +
+      '<div class="pp-bot-pill' + (activeChatbot === "claude" ? " active" : "") + '"><span>🟣</span><span class="pp-bot-label">Claude</span></div>' +
+      '<div class="pp-bot-pill' + (activeChatbot === "gemini" ? " active" : "") + '"><span>✨</span><span class="pp-bot-label">Gemini</span></div>' +
+      '<div class="pp-bot-pill' + (activeChatbot === "deepseek" ? " active" : "") + '"><span>⚡</span><span class="pp-bot-label">DeepSeek</span></div>' +
+      '</div>' +
+      '<div class="pp-body" id="pp-body">' +
+      '<div class="pp-split-header">' +
+      '<div class="pp-split-label">ORIGINAL</div>' +
+      '<div class="pp-split-label-right">' +
+      '<span>IMPROVED</span>' +
+      '<button class="pp-copy-chip" id="pp-copy-btn" disabled>📋 Copy</button>' +
+      '</div>' +
+      '</div>' +
+      '<div class="pp-split-view">' +
+      '<div class="pp-split-original" id="pp-original-preview"></div>' +
+      '<div class="pp-split-improved" id="pp-enhanced-preview">' +
+      '<div class="pp-placeholder">Click "Apply Upgrade" below to see the AI-optimized result</div>' +
+      '</div>' +
+      '</div>' +
+      '<div id="pp-structured-sections" style="display:none">' +
+      '<div class="pp-section">' +
+      '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">ROLE</span></div>' +
+      '<div class="pp-section-body" id="pp-role-body">—</div>' +
+      '</div>' +
+      '<div class="pp-section">' +
+      '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">CONTEXT</span></div>' +
+      '<div class="pp-section-body" id="pp-context-body">—</div>' +
+      '</div>' +
+      '<div class="pp-section">' +
+      '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">INSTRUCTIONS</span></div>' +
+      '<div class="pp-section-body" id="pp-instructions-body">—</div>' +
+      '</div>' +
+      '<div class="pp-section">' +
+      '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">CONSTRAINTS</span></div>' +
+      '<div class="pp-section-body" id="pp-constraints-body">—</div>' +
+      '</div>' +
+      '</div>' +
+      '<div class="pp-opt-row">' +
+      '<div class="pp-opt-info"><div class="pp-opt-label">Token Saver</div><div class="pp-opt-sub">Concise output, ~40% fewer tokens</div></div>' +
+      '<label class="pp-toggle"><input type="checkbox" id="pp-ts-toggle"><div class="pp-toggle-slider"></div></label>' +
+      '</div>' +
+      '<div class="pp-model-row">' +
+      '<label class="pp-model-label">Model</label>' +
+      '<select id="pp-model" class="pp-select">' +
+      '<optgroup label="OpenRouter Free">' +
+      '<option value="meta-llama/llama-3.3-70b-instruct:free::openrouter" selected>Llama 3.3 70B</option>' +
+      '<option value="google/gemini-2.0-flash-exp:free::openrouter">Gemini 2.0 Flash</option>' +
+      '<option value="deepseek/deepseek-r1:free::openrouter">DeepSeek R1</option>' +
+      '<option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder 32B</option>' +
+      '<option value="mistralai/mistral-small-24b-instruct-2501:free::openrouter">Mistral Small 24B</option>' +
+      '<option value="microsoft/phi-3-mini-128k-instruct:free::openrouter">Phi-3 Mini 128K</option>' +
+      '<option value="nousresearch/hermes-3-llama-3.1-405b:free::openrouter">Hermes 3 405B</option>' +
+      '</optgroup>' +
+      '<optgroup label="OpenRouter Paid">' +
+      '<option value="openai/gpt-4o::openrouter">GPT-4o</option>' +
+      '<option value="anthropic/claude-3-5-sonnet-20241022::openrouter">Claude 3.5 Sonnet</option>' +
+      '<option value="google/gemini-1.5-pro::openrouter">Gemini 1.5 Pro</option>' +
+      '</optgroup>' +
+      '<optgroup label="NVIDIA">' +
+      '<option value="meta/llama-3.3-70b-instruct::nvidia">Llama 3.3 70B (NV)</option>' +
+      '<option value="nvidia/llama-3.1-nemotron-70b-instruct::nvidia">Nemotron 70B</option>' +
+      '<option value="google/gemma-2-27b-it::nvidia">Gemma 2 27B (NV)</option>' +
+      '<option value="mistralai/mistral-7b-instruct-v0.3::nvidia">Mistral 7B (NV)</option>' +
+      '</optgroup>' +
+      '<optgroup label="Direct Keys">' +
+      '<option value="gpt-4o-mini::openai">GPT-4o Mini</option>' +
+      '<option value="gpt-4o::openai">GPT-4o</option>' +
+      '<option value="claude-3-5-sonnet-20241022::anthropic">Claude 3.5 Sonnet</option>' +
+      '</optgroup>' +
+      '</select>' +
+      '</div>' +
+      '</div>' +
+      '<div class="pp-token-bar" id="pp-token-bar">' +
+      '<div class="pp-token-label"><span>Context: <strong id="pp-token-used">0</strong> / <strong id="pp-token-limit">128K</strong> tokens</span><span id="pp-token-pct">0%</span></div>' +
+      '<div class="pp-token-track"><div class="pp-token-fill" id="pp-token-fill" style="width:0%"></div></div>' +
+      '</div>' +
+      '<div class="pp-footer">' +
+      '<div class="pp-footer-credit">Powered by <strong>Prompt+</strong></div>' +
+      '<div class="pp-footer-actions">' +
+      '<button class="pp-btn-keep" id="pp-keep-btn">Keep Original</button>' +
+      '<button class="pp-btn-apply" id="pp-enhance-btn">' +
+      '<span class="pp-btn-spinner" style="display:none"></span>' +
+      '<span id="pp-enhance-text">Apply Upgrade</span>' +
+      '<span>→</span>' +
+      '</button>' +
+      '</div>' +
+      '</div>' +
+      '</div>' +
       '</div>';
 
     document.body.appendChild(panelEl);
@@ -887,13 +814,13 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
         if (enhancedPreview) {
           enhancedPreview.innerHTML =
             '<div style="padding: 8px; color: #f8fafc;">' +
-              '<div style="font-weight: 600; color: #f59e0b; margin-bottom: 6px; font-size: 13px;">🔑 No API Key Configured</div>' +
-              '<div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; line-height: 1.5;">' +
-                'No API key configured on server. You can switch to free <strong>On-Device AI</strong> (Gemini Nano) or add an API key in extension popup settings.' +
-              '</div>' +
-              '<button id="pp-panel-switch-device" type="button" style="padding: 8px 14px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #93c5fd; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">' +
-                '📱 Switch to On-Device AI' +
-              '</button>' +
+            '<div style="font-weight: 600; color: #f59e0b; margin-bottom: 6px; font-size: 13px;">🔑 No API Key Configured</div>' +
+            '<div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; line-height: 1.5;">' +
+            'No API key configured on server. You can switch to free <strong>On-Device AI</strong> (Gemini Nano) or add an API key in extension popup settings.' +
+            '</div>' +
+            '<button id="pp-panel-switch-device" type="button" style="padding: 8px 14px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #93c5fd; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">' +
+            '📱 Switch to On-Device AI' +
+            '</button>' +
             '</div>';
           document.getElementById("pp-panel-switch-device")?.addEventListener("click", () => {
             currentMode = "device";

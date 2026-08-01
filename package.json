@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "check-routes": "node scripts/check-api-routes.mjs",
+    "build:extension": "node scripts/package-extension.mjs",
     "test": "node scripts/check-api-routes.mjs && vitest run",
     "postinstall": "prisma generate",
     "check-env": "node scripts/check-env.mjs"

@@ -5,12 +5,16 @@ const API_URLS = [
 const STORAGE_KEY = "pp_settings";
 let cachedWorkingUrl = "";
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener((details) => {
   chrome.contextMenus.create({
     id: "enhance-selection",
     title: 'Enhance with Prompt+',
     contexts: ["selection"],
   });
+
+  if (details.reason === "install") {
+    chrome.tabs.create({ url: "https://prompt-plus-three.vercel.app/extension" });
+  }
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
