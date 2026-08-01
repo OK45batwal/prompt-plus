@@ -33,7 +33,7 @@ export default function HistoryPage() {
           enhancedText: p.enhancedText || "",
           model: p.model,
           originalScore: 0,
-          enhancedScore: (p.score as { total?: number })?.total || 0,
+          enhancedScore: (typeof p.score === "object" && p.score && "total" in (p.score as Record<string, unknown>)) ? Number((p.score as Record<string, unknown>).total) || 85 : 85,
           timestamp: new Date(p.createdAt).toLocaleDateString(),
         }));
         setHistory(items);

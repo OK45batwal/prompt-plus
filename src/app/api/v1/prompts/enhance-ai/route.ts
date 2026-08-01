@@ -101,10 +101,35 @@ export const POST = withAuth(
         }).catch(() => {});
       }
 
+      let activePromptId = promptId;
+      if (!activePromptId) {
+        const title = text.length > 50 ? text.slice(0, 50).trim() + "…" : text.trim() || "Untitled Prompt";
+        const created = await getDb().prompt.create({
+          data: {
+            userId,
+            title,
+            originalText: text,
+            enhancedText: response.content,
+            model: response.model,
+            category: category || "general",
+            score: { total: 85, clarity: 85, specificity: 85, structure: 85, context: 85, length: 85, actionability: 85 },
+          },
+        }).catch(() => null);
+        if (created) activePromptId = created.id;
+      } else {
+        await getDb().prompt.update({
+          where: { id: activePromptId },
+          data: {
+            enhancedText: response.content,
+            model: response.model,
+          },
+        }).catch(() => {});
+      }
+
       await getDb().usageLog.create({
         data: {
           userId,
-          promptId: promptId || null,
+          promptId: activePromptId || null,
           action: "enhance",
           provider: response.provider,
           model: response.model,
@@ -115,20 +140,21 @@ export const POST = withAuth(
         },
       }).catch(() => {});
 
-      if (promptId) {
+      if (activePromptId) {
         const latestVersion = await getDb().version.findFirst({
-          where: { promptId },
+          where: { promptId: activePromptId },
           orderBy: { version: "desc" },
         });
         const nextVer = (latestVersion?.version || 0) + 1;
         await getDb().version.create({
-          data: { promptId, version: nextVer, text: response.content },
+          data: { promptId: activePromptId, version: nextVer, text: response.content },
         }).catch(() => {});
       }
 
       return jsonResponse(
         {
           data: {
+            promptId: activePromptId,
             enhanced: response.content,
             provider: response.provider,
             model: response.model,

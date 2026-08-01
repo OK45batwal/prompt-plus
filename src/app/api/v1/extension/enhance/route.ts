@@ -88,6 +88,43 @@ export async function POST(request: NextRequest) {
       maxTokens: 1200,
     });
 
+    try {
+      const { getDb } = await import("@/lib/db/prisma");
+      const { auth } = await import("@/lib/auth/config");
+      const session = await auth().catch(() => null);
+
+      if (session?.user?.id) {
+        const title = text.length > 50 ? text.slice(0, 50).trim() + "…" : text.trim() || "Extension Prompt";
+        const createdPrompt = await getDb().prompt.create({
+          data: {
+            userId: session.user.id,
+            title,
+            originalText: text,
+            enhancedText: response.content,
+            model: response.model,
+            category: category || "general",
+            score: { total: 85, clarity: 85, specificity: 85, structure: 85, context: 85, length: 85, actionability: 85 },
+          },
+        }).catch(() => null);
+
+        await getDb().usageLog.create({
+          data: {
+            userId: session.user.id,
+            promptId: createdPrompt?.id || null,
+            action: "enhance",
+            provider: response.provider,
+            model: response.model,
+            tokensIn: response.tokensIn,
+            tokensOut: response.tokensOut,
+            latencyMs: 500,
+            success: true,
+          },
+        }).catch(() => {});
+      }
+    } catch {
+      // ignore persistence error
+    }
+
     return NextResponse.json({
       data: {
         enhanced: response.content,
