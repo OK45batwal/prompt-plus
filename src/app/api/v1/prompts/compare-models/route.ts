@@ -13,7 +13,7 @@ const DEFAULT_MODELS: Record<(typeof SUPPORTED_PROVIDERS)[number], string> = {
   openai: "gpt-4o-mini",
   anthropic: "claude-3-5-sonnet-20241022",
   openrouter: "meta-llama/llama-3.3-70b-instruct:free",
-  nvidia: "nvidia/llama-3.3-70b-instruct",
+  nvidia: "meta/llama-3.3-70b-instruct",
 };
 
 const compareSchema = z.object({

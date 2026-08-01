@@ -72,8 +72,30 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
       ? "meta/llama-3.3-70b-instruct"
       : "gpt-4o-mini");
 
-  if (isNvidia && model === "nvidia/llama-3.3-70b-instruct") {
-    model = "meta/llama-3.3-70b-instruct";
+  if (isNvidia) {
+    if (model === "nvidia/llama-3.3-70b-instruct" || model.includes("llama-3.3")) {
+      model = "meta/llama-3.3-70b-instruct";
+    } else if (model.includes("nemotron")) {
+      model = "nvidia/llama-3.1-nemotron-70b-instruct";
+    } else if (model.includes("gemma")) {
+      model = "google/gemma-2-27b-it";
+    } else if (model.includes("mistral")) {
+      model = "mistralai/mistral-7b-instruct-v0.3";
+    }
+  } else if (isOpenRouter) {
+    if (model === "llama3" || model.includes("llama-3.3")) {
+      model = "meta-llama/llama-3.3-70b-instruct:free";
+    } else if (model.includes("gemini") || model.includes("flash")) {
+      model = "google/gemini-2.0-flash-exp:free";
+    } else if (model.includes("deepseek") || model.includes("r1")) {
+      model = "deepseek/deepseek-r1:free";
+    } else if (model.includes("qwen") || model.includes("coder")) {
+      model = "qwen/qwen-2.5-coder-32b-instruct:free";
+    } else if (model.includes("phi")) {
+      model = "microsoft/phi-3-mini-128k-instruct:free";
+    } else if (model.includes("hermes")) {
+      model = "nousresearch/hermes-3-llama-3.1-405b:free";
+    }
   }
 
   const url = isOpenRouter
