@@ -213,5 +213,13 @@ describe("Phase 1 Security & Correctness Hardening", () => {
       fetchSpy.mockRestore();
     });
   });
+
+  describe("API Route Security Enforcer Gate", () => {
+    it("should pass static analysis route security check on all API v1 routes", async () => {
+      const { execSync } = await import("child_process");
+      const output = execSync("node scripts/check-api-routes.mjs", { encoding: "utf-8" });
+      expect(output).toContain("API Route Security Gate: All mutating API v1 routes strictly enforce withAuth");
+    });
+  });
 });
 });

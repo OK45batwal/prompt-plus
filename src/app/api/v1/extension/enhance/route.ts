@@ -1,3 +1,4 @@
+// @public-route: Chrome extension enhancement endpoint with custom key or IP rate limiting
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { callLLM } from "@/lib/llm/providers";

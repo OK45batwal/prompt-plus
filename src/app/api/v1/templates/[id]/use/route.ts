@@ -1,3 +1,4 @@
+// @public-route: Public template usage counter with IP rate limiting
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db/prisma";
 import { checkIpRateLimit, extractClientIp, getRateLimitHeaders } from "@/lib/rate-limit";

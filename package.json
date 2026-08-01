@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run",
+    "check-routes": "node scripts/check-api-routes.mjs",
+    "test": "node scripts/check-api-routes.mjs && vitest run",
     "postinstall": "prisma generate",
     "check-env": "node scripts/check-env.mjs"
   },
