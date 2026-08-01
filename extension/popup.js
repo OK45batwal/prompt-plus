@@ -448,7 +448,7 @@ bucketInjectBtn?.addEventListener("click", () => {
     if (!b || !b.formattedPrompt) return;
     chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs?.[0]?.id) {
-        chrome.tabs.sendMessage(tabs[0].id, { action: "injectEnhanced", enhanced: b.formattedPrompt }, (ir) => {
+        chrome.tabs.sendMessage(tabs[0].id, { action: "injectEnhanced", enhanced: b.formattedPrompt }, () => {
           showMsg(`Injected Context from ${b.source || "Chatbot"}!`);
         });
       }

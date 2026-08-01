@@ -24,7 +24,7 @@ export default function PromptEngineeringGuidePage() {
 
         <h2 className="text-2xl font-bold border-b pb-2">2. Role & Objective Conditioning</h2>
         <p className="text-sm leading-relaxed">
-          Explicitly assigning a high-level persona (e.g. <code>"You are a Principal Security Auditor"</code>) conditions the transformer's latent activation state to prioritize domain-specific terminology and edge-case detection over generic responses.
+          Explicitly assigning a high-level persona (e.g. <code>&quot;You are a Principal Security Auditor&quot;</code>) conditions the transformer&apos;s latent activation state to prioritize domain-specific terminology and edge-case detection over generic responses.
         </p>
 
         <h2 className="text-2xl font-bold border-b pb-2">3. Structural Boundary Constraints</h2>

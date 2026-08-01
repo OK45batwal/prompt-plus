@@ -23,7 +23,7 @@ export default function PromptCostCalculatorPage() {
           LLM Token Cost Calculator
         </h1>
         <p className="text-muted-foreground max-w-lg mx-auto text-sm">
-          Estimate API costs across OpenAI, Claude, Gemini, and DeepSeek. See how Prompt+'s Token Saver saves ~40% on token spend.
+          Estimate API costs across OpenAI, Claude, Gemini, and DeepSeek. See how Prompt+&apos;s Token Saver saves ~40% on token spend.
         </p>
       </div>
 

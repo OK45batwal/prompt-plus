@@ -10,7 +10,6 @@ import {
   Folder,
   GitCompare,
   BarChart3,
-  Key,
   Settings,
   PanelLeftClose,
   PanelLeft,

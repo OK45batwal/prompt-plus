@@ -10,10 +10,6 @@ interface LanguageModelAvailability {
   create(opts?: { temperature?: number; topK?: number }): Promise<LanguageModelSession>;
 }
 
-interface WindowWithLanguageModel extends Window {
-  LanguageModel?: LanguageModelAvailability;
-}
-
 export interface DeviceEnhanceOptions {
   text: string;
   category?: string;
