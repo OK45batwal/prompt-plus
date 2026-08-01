@@ -192,9 +192,19 @@
       openPopover();
     });
 
+    let rafPending = false;
+    const schedulePosition = () => {
+      if (rafPending) return;
+      rafPending = true;
+      requestAnimationFrame(() => {
+        positionFab(bar, input);
+        rafPending = false;
+      });
+    };
+
     input.addEventListener("input", updateFabTokenBar, { passive: true });
-    window.addEventListener("scroll", () => positionFab(bar, input), { passive: true });
-    window.addEventListener("resize", () => positionFab(bar, input), { passive: true });
+    window.addEventListener("scroll", schedulePosition, { passive: true });
+    window.addEventListener("resize", schedulePosition, { passive: true });
 
     updateFabTokenBar();
     if (fabTimer) clearInterval(fabTimer);
