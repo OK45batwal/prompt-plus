@@ -53,7 +53,7 @@ if (violations.length > 0) {
     console.error(`    Method: ${v.method}`);
     console.error(`    Error: ${v.reason}\n`);
   });
-  console.error("Fix violations by wrapping handlers with withAuth() or creating routes with createApiRoute.\n");
+  console.error("Fix violations by wrapping handlers with withAuth() or adding '// @public-route'.\n");
   process.exit(1);
 } else {
   console.log("✓ API Route Security Gate: All mutating API v1 routes strictly enforce withAuth & CSRF protection.");

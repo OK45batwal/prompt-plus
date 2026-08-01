@@ -8,7 +8,7 @@ This document records high-stakes architectural decisions, security contracts, a
 
 - **Status**: Accepted
 - **Context**: State-changing API routes (POST, PUT, PATCH, DELETE) previously had risk of omitting CSRF or session checks if built with raw `export async function POST`.
-- **Decision**: All API v1 routes must be wrapped with `withAuth()` (or created via `createApiRoute.authenticated()`). An automated static analysis checker script (`scripts/check-api-routes.mjs`) runs in CI and `npm test`. Any unwrapped mutating method lacking an explicit `// @public-route` annotation fails the build.
+- **Decision**: All API v1 routes must be wrapped with `withAuth()`. An automated static analysis checker script (`scripts/check-api-routes.mjs`) runs in CI and `npm test`. Any unwrapped mutating method lacking an explicit `// @public-route` annotation fails the build.
 - **Consequences**: Zero possibility of silently dropping anti-CSRF or session verification on new API routes.
 
 ---

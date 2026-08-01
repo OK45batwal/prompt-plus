@@ -97,7 +97,6 @@ model Prompt {
   user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   collection   Collection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
   versions     Version[]
-  analyses     Analysis[]
 
   @@index([userId])
   @@index([collectionId])
@@ -118,25 +117,6 @@ model Version {
   @@unique([promptId, version])
   @@index([promptId])
   @@map("versions")
-}
-
-model Analysis {
-  id          String   @id @default(cuid())
-  promptId    String   @map("prompt_id")
-  intent      String
-  category    String
-  complexity  Int
-  confidence  Decimal
-  entities    Json?
-  context     Json?
-  keywords    String   @default("[]")
-  missing     Json?
-  suggestions Json?
-  createdAt   DateTime @default(now()) @map("created_at")
-  prompt      Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
-
-  @@index([promptId])
-  @@map("analyses")
 }
 
 model Collection {

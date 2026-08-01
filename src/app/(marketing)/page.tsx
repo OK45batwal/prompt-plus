@@ -29,6 +29,7 @@ import {
   MonitorSmartphone,
   ListChecks,
   Repeat,
+  Infinity,
 } from "lucide-react";
 
 const features = [
@@ -188,6 +189,28 @@ export default function LandingPage() {
                 <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
                   {f.description}
                 </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Strip */}
+      <section className="border-t border-border/50 bg-card/40">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            {[
+              { icon: CircleDollarSign, label: "Free Forever", desc: "No paywall, ever" },
+              { icon: Infinity, label: "No Daily Limits", desc: "Enhance as much as you want" },
+              { icon: ShieldCheck, label: "MIT Open Source", desc: "Auditable on GitHub" },
+              { icon: Lock, label: "Private by Default", desc: "On-device AI option" },
+            ].map((t) => (
+              <div key={t.label} className="flex items-center justify-center gap-3">
+                <t.icon className="h-5 w-5 text-primary shrink-0" />
+                <div className="text-left">
+                  <div className="text-sm font-bold leading-tight">{t.label}</div>
+                  <div className="text-[11px] text-muted-foreground leading-tight">{t.desc}</div>
+                </div>
               </div>
             ))}
           </div>
