@@ -1,7 +1,7 @@
-import Metadata from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Curated AI Prompt Templates — Prompt+",
   description: "Browse curated, production-grade prompt templates for Coding, Marketing, Writing, and Data Analysis.",
 };

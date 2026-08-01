@@ -1,6 +1,7 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "The Ultimate AI Prompt Engineering Guide — Prompt+",
   description: "Learn research-backed prompt engineering techniques: Chain-of-Thought (CoT), Few-Shot conditioning, and structural boundary constraints.",
 };
