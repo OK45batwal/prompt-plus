@@ -14,6 +14,7 @@ const extensionEnhanceSchema = z.object({
   category: z.string().optional(),
   tone: z.string().optional(),
   length: z.string().optional(),
+  level: z.enum(["quick", "deep", "expert"]).optional().default("deep"),
 });
 
 export async function POST(request: NextRequest) {
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { text, apiKey, provider, model, category, tone, length } = parseResult.data;
+  const { text, apiKey, provider, model, category, tone, length, level } = parseResult.data;
 
   const resolvedProvider: "openai" | "anthropic" | "openrouter" | "nvidia" =
     provider || (model?.includes("claude") ? "anthropic" : model?.includes("/") ? "openrouter" : model?.includes("nvidia") ? "nvidia" : "openai");
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
     effectiveProvider = serverKey.provider;
   }
 
-  const { metaPrompt, systemInstruction } = buildArchitectMetaPrompt(text, category, tone, length);
+  const { metaPrompt, systemInstruction } = buildArchitectMetaPrompt(text, category, tone, length, level);
 
   try {
     const response = await callLLM({

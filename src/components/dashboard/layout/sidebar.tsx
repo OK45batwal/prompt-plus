@@ -16,6 +16,7 @@ import {
   PanelLeft,
   FileText,
   Shield,
+  Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
@@ -41,6 +42,7 @@ const contentNav = [
   { href: "/dashboard/library", label: "Library", icon: BookOpen },
   { href: "/dashboard/history", label: "History", icon: Clock },
   { href: "/dashboard/collections", label: "Collections", icon: Folder },
+  { href: "/dashboard/batch", label: "Batch", icon: Layers },
   { href: "/dashboard/compare", label: "Compare", icon: GitCompare },
 ];
 

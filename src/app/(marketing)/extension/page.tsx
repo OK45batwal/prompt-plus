@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ExternalLink, Puzzle, Zap, Sparkles, Copy, Layers } from "lucide-react";
 
 const steps = [
-  { icon: Puzzle, title: "Install", desc: "Load the unpacked extension from the extension/ folder in Chrome dev mode." },
+  { icon: Puzzle, title: "Install", desc: "Chrome Web Store review in progress — for now, load the unpacked extension from the extension/ folder via Developer Mode." },
   { icon: Sparkles, title: "Open a Chat", desc: "Visit ChatGPT, Claude, Gemini, or DeepSeek. A floating Prompt+ button appears near the input." },
   { icon: Copy, title: "Enhance", desc: "Click the button — a compact preview pops up right at your input. Review, then use it with one click." },
   { icon: Layers, title: "Configure", desc: "Pick On-Device or API mode. API mode works instantly with a free server model — add your own key for full model access." },
@@ -43,15 +43,15 @@ export default function ExtensionPage() {
         {/* Install instructions */}
         <div className="p-6 rounded-xl border bg-card mb-14">
           <h2 className="text-base font-bold mb-3">Manual Install (Developer Mode)</h2>
+          <p className="text-xs text-muted-foreground mb-4">
+            The extension is currently in Chrome Web Store review. Until it&apos;s listed, install it manually:
+          </p>
           <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
             <li>Open <code className="text-primary text-xs font-mono bg-primary/10 px-1.5 py-0.5 rounded">chrome://extensions</code></li>
             <li>Enable <strong>Developer mode</strong> (toggle in top-right)</li>
             <li>Click <strong>Load unpacked</strong></li>
             <li>Select the <code className="text-primary text-xs font-mono bg-primary/10 px-1.5 py-0.5 rounded">extension/</code> folder from the repo</li>
           </ol>
-          <p className="text-xs text-muted-foreground mt-4">
-            Load the unpacked extension from the <code className="text-primary text-xs font-mono bg-primary/10 px-1.5 py-0.5 rounded">extension/</code> folder.
-          </p>
         </div>
 
         {/* Features */}
@@ -74,6 +74,17 @@ export default function ExtensionPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* On-Device Requirements */}
+        <div className="p-6 rounded-xl border bg-amber-500/5 border-amber-500/20 mb-14">
+          <h2 className="text-base font-bold mb-2">On-Device AI Requirements</h2>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            On-Device mode uses Chrome&apos;s built-in Gemini Nano and needs <strong>Chrome 138 or later</strong> on
+            macOS 13+ / Windows 10+ / Linux, with ~22GB free storage, and the Prompt API enabled
+            (<code className="text-primary text-xs font-mono bg-primary/10 px-1.5 py-0.5 rounded">chrome://flags/#prompt-api-for-gemini-nano</code>).
+            Not supported? API mode works everywhere — a free server model is included, no key needed.
+          </p>
         </div>
 
         {/* CTA */}

@@ -54,6 +54,15 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
             <Link href="/extension" className="hover:text-foreground transition-colors">
               Extension
             </Link>
+            <Link href="/enhance-prompt-for-chatgpt" className="hover:text-foreground transition-colors">
+              ChatGPT
+            </Link>
+            <Link href="/enhance-prompt-for-claude" className="hover:text-foreground transition-colors">
+              Claude
+            </Link>
+            <Link href="/enhance-prompt-for-gemini" className="hover:text-foreground transition-colors">
+              Gemini
+            </Link>
             <a
               href="https://github.com/OK45batwal/prompt-plus/issues"
               target="_blank"

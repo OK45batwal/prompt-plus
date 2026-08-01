@@ -12,10 +12,14 @@ import {
   Zap,
   Calculator,
   PlusCircle,
+  Mic,
+  MicOff,
+  ExternalLink,
 } from "lucide-react";
-import { getSavedContextBlocks, ContextBlock } from "@/lib/context-memory";
+import { getSavedContextBlocks, saveCustomContextBlock, ContextBlock } from "@/lib/context-memory";
 import { estimateTokenCount, calculateCostEstimates } from "@/lib/token-calculator";
 import { enhanceWithDevice, checkDeviceAvailability, isDeviceAISupported } from "@/lib/llm/device-ai";
+import type { EnhanceLevel } from "@/lib/llm/meta-prompt";
 
 type Model =
   | "openrouter-llama3-free"
@@ -115,6 +119,12 @@ const categories = [
   "Other",
 ];
 
+const enhanceLevels: { id: EnhanceLevel; label: string; hint: string }[] = [
+  { id: "quick", label: "Quick", hint: "Concise structure & clarity" },
+  { id: "deep", label: "Deep", hint: "Full role, context & steps" },
+  { id: "expert", label: "Expert", hint: "Chain-of-thought + examples" },
+];
+
 export default function PromptBuilderPage() {
   const [prompt, setPrompt] = useState("");
   const [selectedLength, setSelectedLength] = useState("");
@@ -126,6 +136,11 @@ export default function PromptBuilderPage() {
   const [showCostBreakdown, setShowCostBreakdown] = useState(false);
   const [enhanceMode, setEnhanceMode] = useState<"api" | "device">("device");
   const [deviceState, setDeviceState] = useState<"unknown" | "available" | "unavailable" | "downloading">("unknown");
+  const [enhanceLevel, setEnhanceLevel] = useState<EnhanceLevel>("deep");
+  const [isListening, setIsListening] = useState(false);
+  const [showAddContext, setShowAddContext] = useState(false);
+  const [newContextName, setNewContextName] = useState("");
+  const [newContextContent, setNewContextContent] = useState("");
 
   const loadPrefs = () => {
     try {
@@ -142,7 +157,7 @@ export default function PromptBuilderPage() {
   const [selectedTone, setSelectedTone] = useState(initialPrefs.defaultTone || "");
 
   // Context Memory Blocks State
-  const [availableBlocks] = useState<ContextBlock[]>(() => getSavedContextBlocks());
+  const [availableBlocks, setAvailableBlocks] = useState<ContextBlock[]>(() => getSavedContextBlocks());
   const [selectedBlockIds, setSelectedBlockIds] = useState<string[]>(["nextjs-tailwind"]);
 
   const toggleContextBlock = (id: string) => {
@@ -202,6 +217,7 @@ export default function PromptBuilderPage() {
           category: selectedCategory,
           tone: selectedTone,
           length: selectedLength,
+          level: enhanceLevel,
         });
         enhanceProvider = "device";
       } else {
@@ -216,6 +232,7 @@ export default function PromptBuilderPage() {
             category: selectedCategory,
             tone: selectedTone,
             length: selectedLength,
+            level: enhanceLevel,
             userApiKey,
           }),
         });
@@ -330,6 +347,49 @@ export default function PromptBuilderPage() {
     setSelectedCategory("");
   };
 
+  const handleVoiceInput = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      setErrorNotice("Voice input not supported in this browser. Use Chrome or Edge.");
+      return;
+    }
+    const rec = new SR();
+    rec.lang = "en-US";
+    rec.interimResults = false;
+    rec.onstart = () => setIsListening(true);
+    rec.onend = () => setIsListening(false);
+    rec.onerror = () => setIsListening(false);
+    rec.onresult = (e: SpeechRecognitionEvent) => {
+      const transcript = e.results?.[0]?.[0]?.transcript || "";
+      if (transcript) setPrompt((prev) => (prev ? `${prev} ${transcript}` : transcript));
+    };
+    rec.start();
+  };
+
+  const handleAddContext = () => {
+    const name = newContextName.trim();
+    const content = newContextContent.trim();
+    if (!name || !content) return;
+    const block = saveCustomContextBlock({ name, description: "Custom saved context", category: "custom", content });
+    setAvailableBlocks((prev) => [...prev, block]);
+    setSelectedBlockIds((prev) => [...prev, block.id]);
+    setNewContextName("");
+    setNewContextContent("");
+    setShowAddContext(false);
+  };
+
+  const openInTarget = (target: "chatgpt" | "claude" | "gemini") => {
+    const text = result?.enhanced.text || prompt;
+    if (!text.trim()) return;
+    const url =
+      target === "chatgpt"
+        ? `https://chatgpt.com/?q=${encodeURIComponent(text)}`
+        : target === "claude"
+        ? `https://claude.ai/new?q=${encodeURIComponent(text)}`
+        : `https://gemini.google.com/app?q=${encodeURIComponent(text)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -435,6 +495,33 @@ export default function PromptBuilderPage() {
           </div>
           )}
 
+          {/* Enhancement Level Selector */}
+          <div className="p-3 rounded-lg border bg-card">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5 text-amber-500" /> Enhancement Level
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                {enhanceLevels.find((l) => l.id === enhanceLevel)?.hint}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {enhanceLevels.map((l) => (
+                <button
+                  key={l.id}
+                  type="button"
+                  onClick={() => setEnhanceLevel(l.id)}
+                  className={`h-8 rounded-lg border text-xs font-medium transition-colors ${enhanceLevel === l.id
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-muted-foreground border-border hover:bg-accent"
+                    }`}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Context Memory & System Rules Engine Selector */}
           <div className="p-3 rounded-lg border bg-accent/30 space-y-2">
             <div className="flex items-center justify-between">
@@ -463,12 +550,66 @@ export default function PromptBuilderPage() {
                   </button>
                 );
               })}
+              <button
+                type="button"
+                onClick={() => setShowAddContext(!showAddContext)}
+                className="text-[11px] px-2.5 py-1 rounded-full border border-dashed text-primary hover:bg-accent"
+              >
+                + Save Context
+              </button>
             </div>
+            {showAddContext && (
+              <div className="space-y-2 pt-2 border-t">
+                <input
+                  value={newContextName}
+                  onChange={(e) => setNewContextName(e.target.value)}
+                  placeholder="Context name (e.g. My SaaS brand voice)"
+                  className="w-full h-8 px-2 rounded-lg border bg-background text-xs outline-none focus:border-ring"
+                />
+                <textarea
+                  value={newContextContent}
+                  onChange={(e) => setNewContextContent(e.target.value)}
+                  placeholder="Context to auto-include in every enhancement (audience, brand, guidelines...)"
+                  className="w-full h-16 p-2 rounded-lg border bg-background text-xs outline-none focus:border-ring resize-none"
+                />
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddContext(false)}
+                    className="text-[11px] text-muted-foreground hover:text-foreground"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddContext}
+                    disabled={!newContextName.trim() || !newContextContent.trim()}
+                    className="text-[11px] px-2.5 py-1 rounded-lg bg-primary text-primary-foreground font-medium disabled:opacity-50"
+                  >
+                    Save & Activate
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Prompt Input */}
           <div>
-            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Your Prompt</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-medium text-muted-foreground block">Your Prompt</label>
+              <button
+                type="button"
+                onClick={handleVoiceInput}
+                className={`text-[11px] flex items-center gap-1 px-2 py-0.5 rounded-full border transition-colors ${
+                  isListening
+                    ? "bg-red-500/10 border-red-500/40 text-red-500"
+                    : "text-muted-foreground border-border hover:text-foreground hover:bg-accent"
+                }`}
+              >
+                {isListening ? <MicOff className="h-3 w-3" /> : <Mic className="h-3 w-3" />}
+                {isListening ? "Listening…" : "Voice input"}
+              </button>
+            </div>
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
@@ -620,6 +761,20 @@ export default function PromptBuilderPage() {
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold">Optimized Prompt</label>
                   <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      {(["chatgpt", "claude", "gemini"] as const).map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => openInTarget(t)}
+                          className="text-[10px] text-muted-foreground hover:text-foreground hover:bg-accent px-1.5 py-0.5 rounded flex items-center gap-0.5 capitalize"
+                          title={`Open in ${t}`}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          {t}
+                        </button>
+                      ))}
+                    </div>
                     <button onClick={handleCopy} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
                       {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
                       {copied ? "Copied" : "Copy"}

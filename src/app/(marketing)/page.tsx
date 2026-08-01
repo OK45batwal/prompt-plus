@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { PromptDemo } from "@/components/marketing/prompt-demo";
 import {
   Sparkles,
   ArrowRight,
@@ -22,8 +23,12 @@ import {
   Copy,
   Check,
   CheckCircle2,
-  Zap,
-  Globe
+  Globe,
+  CircleDollarSign,
+  ChevronDown,
+  MonitorSmartphone,
+  ListChecks,
+  Repeat,
 } from "lucide-react";
 
 const features = [
@@ -64,37 +69,18 @@ const modelBadges = [
   { name: "Llama 3 & DeepSeek", icon: Terminal },
 ];
 
-const samplePrompts = [
-  {
-    raw: "Write a blog post about artificial intelligence for business owners",
-    enhanced: `[ROLE & PERSONA]
-Act as an expert B2B tech journalist and AI strategist.
-
-[OBJECTIVE]
-Write an authoritative 1,200-word executive guide explaining actionable AI integration strategies for non-technical mid-sized business owners.
-
-[KEY REQUIREMENTS & CONSTRAINTS]
-- Tone: Professional, practical, and hype-free.
-- Structure: Clear executive summary, 3 core implementation phases, ROI calculation framework, and common pitfalls.
-- Formatting: Use bulleted lists, bold takeaways, and markdown headings.`,
-  },
-  {
-    raw: "Fix bugs in my Python web scraper",
-    enhanced: `[ROLE & PERSONA]
-Act as a Senior Python Systems & Web Scraping Engineer specializing in AsyncIO and Playwright.
-
-[TASK]
-Inspect the provided code, identify root causes of connection timeouts and memory leaks, and optimize error handling.
-
-[CONSTRAINTS]
-- Provide clean Python 3.12 code with inline explanatory comments.
-- Implement exponential backoff retries and dynamic user-agent rotation.`,
-  },
-];
-
 export default function LandingPage() {
-  const [activeSample, setActiveSample] = useState(0);
   const [copiedEmail, setCopiedEmail] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  const faqs = [
+    { q: "Is Prompt+ really free?", a: "Yes — 100% free with no daily limits, no quotas, and no credit card. Enhancements run on our free server model or fully on-device with Chrome's Gemini Nano, so it costs us almost nothing to keep it free." },
+    { q: "Does on-device AI require an API key?", a: "No. On-device mode uses Chrome 138+'s built-in Gemini Nano and runs entirely in your browser — private, offline, and free. Your prompt text never leaves your device." },
+    { q: "Which AI models does Prompt+ work with?", a: "The enhanced prompts work with any major model — ChatGPT, Claude, Gemini, DeepSeek, Llama, and more. API mode also lets you run enhancement itself on OpenRouter free models, NVIDIA, OpenAI, or Anthropic." },
+    { q: "Is there a Chrome extension?", a: "Yes. The free extension enhances prompts directly inside ChatGPT, Claude, Gemini, and DeepSeek with a floating button — no tab switching and no key required. It currently installs via developer mode while store review is in progress." },
+    { q: "What do you do with my prompts?", a: "Nothing — we never sell, rent, or train on your prompts. Your prompts and API keys (encrypted with AES-256-GCM) belong to you. You can delete your account and data at any time." },
+    { q: "Can I bring my own API key?", a: "Yes. Add OpenAI, Anthropic, OpenRouter, or NVIDIA keys in Settings for full model access. Keys are encrypted at rest. If you don't add one, the free server model covers you." },
+  ];
 
   const contactEmail = "promptplus2@gmail.com";
 
@@ -155,51 +141,7 @@ export default function LandingPage() {
           </div>
 
           {/* Interactive Live Demo Preview Box */}
-          <div className="mt-14 max-w-4xl mx-auto text-left rounded-2xl border bg-card/90 shadow-2xl backdrop-blur-xl overflow-hidden transform transition-all hover:border-primary/30">
-            <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-red-500/80 inline-block" />
-                <span className="h-3 w-3 rounded-full bg-yellow-500/80 inline-block" />
-                <span className="h-3 w-3 rounded-full bg-green-500/80 inline-block" />
-                <span className="text-xs font-medium text-muted-foreground ml-2">Live Refinement Demo</span>
-              </div>
-              <div className="flex items-center gap-1 text-xs">
-                {samplePrompts.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveSample(idx)}
-                    className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
-                      activeSample === idx
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent"
-                    }`}
-                  >
-                    Sample {idx + 1}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x border-border/60">
-              <div className="p-5 bg-muted/10">
-                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                  <Zap className="h-3.5 w-3.5 text-amber-500" />
-                  <span>Raw User Input</span>
-                </div>
-                <p className="text-sm font-mono text-foreground/90 bg-muted/40 p-3.5 rounded-xl border border-border/50">
-                  &ldquo;{samplePrompts[activeSample].raw}&rdquo;
-                </p>
-              </div>
-              <div className="p-5 bg-primary/5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider mb-2">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  <span>Prompt+ Production Output</span>
-                </div>
-                <pre className="text-xs font-mono text-foreground leading-relaxed bg-background/80 p-3.5 rounded-xl border border-primary/20 whitespace-pre-wrap max-h-56 overflow-y-auto">
-                  {samplePrompts[activeSample].enhanced}
-                </pre>
-              </div>
-            </div>
-          </div>
+          <PromptDemo />
 
           {/* Supported AI Models */}
           <div className="mt-12 sm:mt-16 pt-8 border-t border-border/50">
@@ -252,6 +194,40 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* How It Works */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 border-t border-border/50 bg-accent/10">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1 text-xs font-medium text-primary mb-4">
+              <ListChecks className="h-3.5 w-3.5" />
+              How It Works
+            </div>
+            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+              From Rough Idea to Production Prompt in 3 Steps
+            </h2>
+            <p className="text-muted-foreground mt-3 max-w-xl mx-auto text-sm sm:text-base">
+              No prompt-engineering knowledge needed. Paste, pick your level, and go.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {[
+              { icon: MonitorSmartphone, title: "1. Type Your Idea", desc: "Paste or dictate any rough thought — a blog topic, a code request, a marketing brief. No formatting needed." },
+              { icon: Repeat, title: "2. Pick Your Level", desc: "Quick for concise structure, Deep for full role/context/steps, or Expert for chain-of-thought reasoning." },
+              { icon: ListChecks, title: "3. Use It Anywhere", desc: "Copy, open in ChatGPT/Claude/Gemini with one click, or inject it live via the free Chrome extension." },
+            ].map((s) => (
+              <div key={s.title} className="p-6 rounded-2xl border bg-card">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                  <s.icon className="h-5 w-5" />
+                </div>
+                <h3 className="text-base font-bold">{s.title}</h3>
+                <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Browser Extension Section */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 border-t border-border/50">
         <div className="max-w-5xl mx-auto">
@@ -272,6 +248,66 @@ export default function LandingPage() {
               Get the Extension
               <ExternalLink className="h-3.5 w-3.5" />
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Free Forever Pricing */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 border-t border-border/50">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-3.5 py-1 text-xs font-medium text-green-600 dark:text-green-400 mb-4">
+              <CircleDollarSign className="h-3.5 w-3.5" />
+              Honest Pricing
+            </div>
+            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+              Free. Forever. No Quotas, No Paywall.
+            </h2>
+            <p className="text-muted-foreground mt-3 max-w-xl mx-auto text-sm sm:text-base">
+              Every competitor charges $9–19/month. Prompt+ is free — unlimited enhancements, no credit card, no daily caps.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border bg-card p-8 sm:p-10 relative overflow-hidden">
+            <div className="absolute -top-20 -right-20 w-56 h-56 rounded-full bg-green-500/10 blur-3xl" />
+            <div className="relative z-10">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div>
+                  <h3 className="text-xl font-extrabold">Prompt+ Free</h3>
+                  <p className="text-3xl sm:text-4xl font-extrabold mt-1">
+                    $0 <span className="text-base font-medium text-muted-foreground">/ forever</span>
+                  </p>
+                </div>
+                <Link
+                  href="/signup"
+                  className="h-11 inline-flex items-center justify-center rounded-xl bg-foreground text-background px-6 text-sm font-semibold hover:bg-foreground/90 transition-all"
+                >
+                  Start Free
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 mt-6 text-sm">
+                {[
+                  "Unlimited prompt enhancements",
+                  "On-device AI — free, private, offline",
+                  "Free server model out of the box",
+                  "6-dimension quality scoring",
+                  "Curated prompt library & templates",
+                  "Chrome extension — no key required",
+                  "Collections, versions & sharing",
+                  "Bring your own key for full model access",
+                ].map((f) => (
+                  <div key={f} className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-muted-foreground">{f}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-6">
+                How is it free? It&apos;s open-source (MIT), funded by optional donations, and on-device AI costs nothing to run.
+                IP-based throttling keeps the free servers healthy — never your wallet.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -331,6 +367,36 @@ export default function LandingPage() {
                 Read Terms of Service <ArrowRight className="h-3 w-3 ml-1" />
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 border-t border-border/50">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1 text-xs font-medium text-primary mb-4">
+              <MessageSquare className="h-3.5 w-3.5" />
+              FAQ
+            </div>
+            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">Questions? We&apos;ve Got Answers</h2>
+          </div>
+          <div className="space-y-3">
+            {faqs.map((f, idx) => (
+              <div key={f.q} className="rounded-xl border bg-card overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                  className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left"
+                >
+                  <span className="text-sm font-semibold">{f.q}</span>
+                  <ChevronDown className={`h-4 w-4 text-muted-foreground flex-shrink-0 transition-transform ${openFaq === idx ? "rotate-180" : ""}`} />
+                </button>
+                {openFaq === idx && (
+                  <p className="px-5 pb-4 text-sm text-muted-foreground leading-relaxed">{f.a}</p>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>

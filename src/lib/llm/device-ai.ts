@@ -1,4 +1,4 @@
-import { buildArchitectMetaPrompt } from "./meta-prompt";
+import { buildArchitectMetaPrompt, EnhanceLevel } from "./meta-prompt";
 
 interface LanguageModelSession {
   prompt(input: string): Promise<string>;
@@ -20,6 +20,7 @@ export interface DeviceEnhanceOptions {
   tone?: string;
   length?: string;
   tokenSaver?: boolean;
+  level?: EnhanceLevel;
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -70,7 +71,8 @@ export async function enhanceWithDevice(options: DeviceEnhanceOptions): Promise<
       options.text,
       options.category,
       options.tone,
-      options.length
+      options.length,
+      options.level
     );
 
     const tokenSaverClause = options.tokenSaver

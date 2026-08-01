@@ -38,5 +38,6 @@ export const enhancePromptSchema = z.object({
   category: z.string().optional(),
   tone: z.string().optional(),
   length: z.string().optional(),
+  level: z.enum(["quick", "deep", "expert"]).optional().default("deep"),
   userApiKey: z.string().optional(),
 });

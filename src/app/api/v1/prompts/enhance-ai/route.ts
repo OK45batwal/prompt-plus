@@ -25,7 +25,7 @@ export const POST = withAuth(
       );
     }
 
-    const { promptId, text, model, provider: reqProvider, category, tone, length, userApiKey } = parseResult.data;
+    const { promptId, text, model, provider: reqProvider, category, tone, length, level, userApiKey } = parseResult.data;
     const startTime = Date.now();
 
     const targetProvider =
@@ -74,7 +74,7 @@ export const POST = withAuth(
       );
     }
 
-    const { metaPrompt, systemInstruction } = buildArchitectMetaPrompt(text, category, tone, length);
+    const { metaPrompt, systemInstruction } = buildArchitectMetaPrompt(text, category, tone, length, level);
 
     try {
       const response = await callLLM({
