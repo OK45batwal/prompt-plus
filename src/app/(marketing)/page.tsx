@@ -205,9 +205,9 @@ export default function LandingPage() {
               { icon: ShieldCheck, label: "MIT Open Source", desc: "Auditable on GitHub" },
               { icon: Lock, label: "Private by Default", desc: "On-device AI option" },
             ].map((t) => (
-              <div key={t.label} className="flex items-center justify-center gap-3">
+              <div key={t.label} className="flex flex-col items-center gap-1.5 md:flex-row md:items-center md:justify-center md:gap-3">
                 <t.icon className="h-5 w-5 text-primary shrink-0" />
-                <div className="text-left">
+                <div className="text-center md:text-left">
                   <div className="text-sm font-bold leading-tight">{t.label}</div>
                   <div className="text-[11px] text-muted-foreground leading-tight">{t.desc}</div>
                 </div>

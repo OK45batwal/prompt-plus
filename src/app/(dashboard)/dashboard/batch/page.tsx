@@ -101,11 +101,13 @@ export default function BatchPage() {
                     {copiedIdx === idx ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
                     {copiedIdx === idx ? "Copied" : "Copy"}
                   </button>
-                  {(["chatgpt", "claude", "gemini"] as const).map((t) => (
-                    <button key={t} onClick={() => openIn(r.output, t)} className="text-[11px] text-muted-foreground hover:text-foreground capitalize flex items-center gap-0.5">
-                      <ExternalLink className="h-3 w-3" /> {t}
-                    </button>
-                  ))}
+                  <div className="hidden sm:flex items-center gap-2">
+                    {(["chatgpt", "claude", "gemini"] as const).map((t) => (
+                      <button key={t} onClick={() => openIn(r.output, t)} className="text-[11px] text-muted-foreground hover:text-foreground capitalize flex items-center gap-0.5">
+                        <ExternalLink className="h-3 w-3" /> {t}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
               <pre className="p-3 text-xs font-mono leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto">

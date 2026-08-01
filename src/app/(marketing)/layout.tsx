@@ -47,7 +47,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           <Link href="/">
             <Logo size={18} />
           </Link>
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
             <Link href="/features" className="hover:text-foreground transition-colors">
               Features
             </Link>

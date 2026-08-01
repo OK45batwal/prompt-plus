@@ -42,6 +42,8 @@ export function Header({ onMenuClick }: HeaderProps) {
     if (pathname === "/dashboard/history") return "History";
     if (pathname === "/dashboard/collections") return "Collections";
     if (pathname === "/dashboard/compare") return "Compare";
+    if (pathname === "/dashboard/batch") return "Batch";
+    if (pathname === "/dashboard/model-lab") return "Model Lab";
     if (pathname === "/dashboard/analytics") return "Analytics";
     if (pathname === "/dashboard/templates") return "Templates";
     if (pathname === "/dashboard/settings") return "Settings";
