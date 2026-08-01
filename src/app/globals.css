@@ -125,6 +125,40 @@ body {
 .hover-glow { transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out; }
 .hover-glow:hover { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
 
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.45);
+}
+
+.glass-card {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glow-pill-emerald {
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.glow-pill-blue {
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+}
+
+.glow-pill-purple {
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
