@@ -6,6 +6,182 @@ import { jsonResponse } from "@/lib/api/response-headers";
 
 export const revalidate = 3600; // Cache template listings for 1 hour
 
+const OFFICIAL_TEMPLATES = [
+  {
+    id: "tpl_seo_blog",
+    title: "High-Converting SEO Blog Article",
+    description: "Generates a structured, SEO-optimized blog post with headers, FAQs, and a compelling conclusion.",
+    category: "Blog Post",
+    model: "gpt-4o-mini",
+    usageCount: 1420,
+    isOfficial: true,
+    prompt: `You are an expert SEO content strategist and copywriter. Create a comprehensive, engaging 1500-word blog article on {{topic}} targeting {{target_audience}}.
+
+Instructions:
+1. Include an attention-grabbing hook and thesis statement in the introduction.
+2. Structure the article with clear H2 and H3 headings containing relevant keywords.
+3. Highlight key takeaways: {{key_takeaways}}.
+4. Maintain a {{tone}} tone of voice throughout.
+5. End with a summary conclusion and a strong Call to Action (CTA).`,
+  },
+  {
+    id: "tpl_cold_email",
+    title: "B2B Cold Sales Email Sequence",
+    description: "High-response 3-step cold email sequence tailored to specific buyer personas and pain points.",
+    category: "Email",
+    model: "claude-3-5-sonnet-20241022",
+    usageCount: 980,
+    isOfficial: true,
+    prompt: `You are a world-class B2B sales copywriter. Write a 3-step cold email sequence introducing {{product_name}} to a {{target_role}}.
+
+Email 1 (Initial Outreach):
+- Focus on addressing the pain point: {{pain_point}}.
+- Keep under 120 words with a low-friction call to action: {{call_to_action}}.
+
+Email 2 (Value Add Follow-up):
+- Share a short case study or metric-backed benefit.
+
+Email 3 (Final Check-in):
+- Professional break-up email offering a simple resource.`,
+  },
+  {
+    id: "tpl_nextjs_api",
+    title: "Next.js 16 API Route & Service Handler",
+    description: "Production-grade Next.js App Router API route with Zod validation, error handling, and Prisma ORM logic.",
+    category: "Code",
+    model: "meta-llama/llama-3.3-70b-instruct:free",
+    usageCount: 2150,
+    isOfficial: true,
+    prompt: `You are a Senior Full-Stack Engineer specializing in Next.js 16 (App Router), TypeScript, and Prisma. Write a complete, production-ready API route for {{feature_description}}.
+
+Requirements:
+1. Target table/model: {{database_table}}.
+2. Auth requirement: {{auth_requirement}}.
+3. Use Zod for strict body/query validation.
+4. Implement try/catch error handling with proper HTTP status codes.
+5. Return crisp TypeScript code with zero placeholder comments.`,
+  },
+  {
+    id: "tpl_viral_x_thread",
+    title: "Viral X (Twitter) Hook & Story Thread",
+    description: "Compelling 7-tweet story thread designed for high engagement, retweets, and audience growth.",
+    category: "Social Media",
+    model: "gpt-4o-mini",
+    usageCount: 1840,
+    isOfficial: true,
+    prompt: `You are a viral social media strategist. Write a 7-tweet thread sharing a core lesson about {{core_lesson}} targeting {{audience_persona}}.
+
+Structure:
+- Tweet 1: High-impact {{hook_type}} hook that stops scrolling immediately.
+- Tweet 2-5: Step-by-step breakdown with crisp bullet points and actionable insights.
+- Tweet 6: Summary metric or key takeaway.
+- Tweet 7: Call to Action (CTA) asking readers to follow and retweet the first tweet.`,
+  },
+  {
+    id: "tpl_tech_tutorial",
+    title: "Step-by-Step Technical Guide & Tutorial",
+    description: "Clear, beginner-friendly technical tutorial with code blocks, prerequisites, and common troubleshooting steps.",
+    category: "Tutorial",
+    model: "claude-3-5-sonnet-20241022",
+    usageCount: 760,
+    isOfficial: true,
+    prompt: `You are a Principal Developer Advocate. Write an in-depth, step-by-step technical tutorial on {{technology}} for developers with {{skill_level}} experience.
+
+Goal: {{end_goal}}
+
+Sections:
+1. Prerequisites & Required Tools.
+2. Step-by-Step Walkthrough with complete code snippets.
+3. Verification & Testing Commands.
+4. Top 3 Common Pitfalls & Troubleshooting Solutions.`,
+  },
+  {
+    id: "tpl_saas_landing_copy",
+    title: "SaaS Landing Page Hero & Feature Copy",
+    description: "High-converting SaaS landing page copy including Hero H1, Subheadline, Feature Pillars, and Social Proof triggers.",
+    category: "Marketing",
+    model: "meta-llama/llama-3.3-70b-instruct:free",
+    usageCount: 1290,
+    isOfficial: true,
+    prompt: `You are an elite SaaS landing page conversion strategist. Write complete landing page copy for {{saas_product}} built for {{target_customer}}.
+
+Sections Required:
+1. Hero Section: Punchy H1 headline, subheadline, and primary CTA button text.
+2. Value Proposition Grid: 3 core benefit pillars highlighting {{primary_feature}}.
+3. How It Works: 3-step customer onboarding breakdown.
+4. Social Proof & FAQ: 3 objection-killing FAQ items.`,
+  },
+  {
+    id: "tpl_python_async",
+    title: "Production Python Async Pipeline",
+    description: "Clean, performant Python async pipeline script using asyncio, aiohttp, and structured logging.",
+    category: "Code",
+    model: "meta/llama-3.3-70b-instruct",
+    usageCount: 1610,
+    isOfficial: true,
+    prompt: `You are a Python Systems Architect. Write an asynchronous Python script for {{task_purpose}}.
+
+Specifications:
+1. Input format: {{input_data_format}}.
+2. Error handling: {{error_handling_strategy}}.
+3. Use asyncio and typing annotations.
+4. Include structured JSON logging and graceful shutdown handling.`,
+  },
+  {
+    id: "tpl_linkedin_thought_leadership",
+    title: "LinkedIn Executive Industry Insights",
+    description: "Polished LinkedIn post positioning you as an industry expert with strong formatting and conversation starters.",
+    category: "Social Media",
+    model: "gpt-4o-mini",
+    usageCount: 1120,
+    isOfficial: true,
+    prompt: `You are an executive personal branding expert. Write an engaging LinkedIn post discussing {{key_insight}} in the {{industry}} sector.
+
+Formatting Guidelines:
+- Hook in the first 2 lines (before the 'see more' fold).
+- Use single-sentence line breaks for mobile readability.
+- Conclude with an open question to drive comments and CTA: {{cta}}.`,
+  },
+  {
+    id: "tpl_sql_optimizer",
+    title: "SQL Query & Indexing Strategy Audit",
+    description: "Optimizes slow SQL queries, recommends composite indexes, and analyzes execution query plans.",
+    category: "Code",
+    model: "gpt-4o-mini",
+    usageCount: 890,
+    isOfficial: true,
+    prompt: `You are a Principal Database Administrator. Analyze and optimize the following SQL query for {{database_engine}}:
+
+Slow Query:
+\`\`\`sql
+{{slow_query}}
+\`\`\`
+
+Table Schema:
+{{table_schema}}
+
+Provide:
+1. Rewritten optimal query with execution rationale.
+2. Recommended indexes (B-Tree, GIN, composite) with DDL statements.
+3. Memory and IO bottleneck breakdown.`,
+  },
+  {
+    id: "tpl_midjourney_prompt",
+    title: "Photorealistic AI Image Generation Blueprint",
+    description: "Detailed DALL-E 3 & Midjourney v6 prompt with camera lens, lighting, composition, and rendering flags.",
+    category: "Marketing",
+    model: "gpt-4o-mini",
+    usageCount: 1950,
+    isOfficial: true,
+    prompt: `Create a ultra-detailed photorealistic Midjourney v6 / DALL-E 3 image prompt for: {{subject}}.
+
+Include exact parameters for:
+- Lighting: {{lighting_style}}
+- Camera Lens & Angle: {{camera_lens}}
+- Aspect Ratio & Render Flags: --ar 16:9 --v 6.0 --style raw --q 2`,
+  },
+];
+
 export async function GET(request: NextRequest) {
   // Public template browsing allowed
   const { searchParams } = new URL(request.url);
@@ -40,6 +216,17 @@ export async function GET(request: NextRequest) {
     where,
     orderBy: { usageCount: "desc" },
   });
+
+  if (templates.length === 0) {
+    // Return filtered official fallback templates when database templates are empty
+    let fallback = OFFICIAL_TEMPLATES;
+    if (category) fallback = fallback.filter((t) => t.category.toLowerCase() === category.toLowerCase());
+    if (search) {
+      const q = search.toLowerCase();
+      fallback = fallback.filter((t) => t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q));
+    }
+    return NextResponse.json({ data: fallback });
+  }
 
   return NextResponse.json({ data: templates });
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Copy, Check, FileText, Mail, Code, Share2, Book, ShoppingBag, Star, BadgeCheck } from "lucide-react";
+import { Search, Copy, Check, FileText, Mail, Code, Share2, Book, ShoppingBag, Star, BadgeCheck, Terminal } from "lucide-react";
+import { ExportCodeModal } from "@/components/prompts/export-code-modal";
 
 interface TemplateItem {
   id: string;
@@ -22,6 +23,7 @@ export default function TemplatesPage() {
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
+  const [exportItem, setExportItem] = useState<{ title: string; text: string } | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -191,26 +193,46 @@ export default function TemplatesPage() {
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => copyTemplate(template)}
-                  className="w-full h-8 inline-flex items-center justify-center rounded-lg border text-xs font-medium hover:bg-accent transition-colors"
-                >
-                  {copiedId === template.id ? (
-                    <>
-                      <Check className="h-3.5 w-3.5 mr-1 text-green-600" /> Copied & Counted
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-3.5 w-3.5 mr-1" /> Use Template
-                    </>
-                  )}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setExportItem({ title: template.title, text: template.prompt })}
+                    className="h-8 px-2.5 rounded-lg border text-xs font-medium hover:bg-accent transition-colors flex items-center gap-1 shrink-0"
+                    title="Fill Variables & Export Code"
+                  >
+                    <Terminal className="h-3.5 w-3.5" /> Code
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => copyTemplate(template)}
+                    className="flex-1 h-8 inline-flex items-center justify-center rounded-lg border text-xs font-medium hover:bg-accent transition-colors"
+                  >
+                    {copiedId === template.id ? (
+                      <>
+                        <Check className="h-3.5 w-3.5 mr-1 text-green-600" /> Copied & Counted
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3.5 w-3.5 mr-1" /> Use Template
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Export Code & Variable Modal */}
+      {exportItem && (
+        <ExportCodeModal
+          isOpen={!!exportItem}
+          onClose={() => setExportItem(null)}
+          title={exportItem.title}
+          promptText={exportItem.text}
+        />
+      )}
     </div>
   );
 }
