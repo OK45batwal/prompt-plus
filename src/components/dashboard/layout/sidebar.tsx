@@ -17,6 +17,7 @@ import {
   FileText,
   Shield,
   Layers,
+  FlaskConical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
@@ -43,6 +44,7 @@ const contentNav = [
   { href: "/dashboard/history", label: "History", icon: Clock },
   { href: "/dashboard/collections", label: "Collections", icon: Folder },
   { href: "/dashboard/batch", label: "Batch", icon: Layers },
+  { href: "/dashboard/model-lab", label: "Model Lab", icon: FlaskConical },
   { href: "/dashboard/compare", label: "Compare", icon: GitCompare },
 ];
 
