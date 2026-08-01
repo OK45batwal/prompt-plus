@@ -119,7 +119,9 @@
     if (host.includes("claude")) return "claude";
     if (host.includes("gemini")) return "gemini";
     if (host.includes("deepseek")) return "deepseek";
+    if (host.includes("grok") || host.includes("x.ai")) return "grok";
     if (host.includes("perplexity")) return "perplexity";
+    if (host.includes("copilot")) return "copilot";
     if (host.includes("poe")) return "poe";
     return "general";
   }

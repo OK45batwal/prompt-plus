@@ -36,6 +36,10 @@
     "https://gemini.google.com/*",
     "https://chat.deepseek.com/*",
     "https://deepseek.com/*",
+    "https://grok.com/*",
+    "https://x.ai/*",
+    "https://www.perplexity.ai/*",
+    "https://copilot.microsoft.com/*",
     "http://localhost:3000/*",
     "https://*.vercel.app/*"
   ],
@@ -47,7 +51,11 @@
         "https://claude.ai/*",
         "https://gemini.google.com/*",
         "https://chat.deepseek.com/*",
-        "https://deepseek.com/*"
+        "https://deepseek.com/*",
+        "https://grok.com/*",
+        "https://x.ai/*",
+        "https://www.perplexity.ai/*",
+        "https://copilot.microsoft.com/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"

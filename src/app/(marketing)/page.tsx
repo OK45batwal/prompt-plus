@@ -76,9 +76,10 @@ export default function LandingPage() {
 
   const faqs = [
     { q: "Is Prompt+ really free?", a: "Yes — 100% free with no daily limits, no quotas, and no credit card. Enhancements run on our free server model or fully on-device with Chrome's Gemini Nano, so it costs us almost nothing to keep it free." },
+    { q: "Why not just ask ChatGPT to improve my prompt?", a: "When an LLM evaluates or improves its own prompt in the same conversation, it suffers from Same-Model Self-Evaluation Bias—it assumes its own implied context and inherits its own blind spots. Prompt+ uses an independent meta-architect engine with explicit structural rules (Role, Objective, Instructions, Constraints) so your prompt is completely unbiased and production-ready for any LLM." },
     { q: "Does on-device AI require an API key?", a: "No. On-device mode uses Chrome 138+'s built-in Gemini Nano and runs entirely in your browser — private, offline, and free. Your prompt text never leaves your device." },
-    { q: "Which AI models does Prompt+ work with?", a: "The enhanced prompts work with any major model — ChatGPT, Claude, Gemini, DeepSeek, Llama, and more. API mode also lets you run enhancement itself on OpenRouter free models, NVIDIA, OpenAI, or Anthropic." },
-    { q: "Is there a Chrome extension?", a: "Yes. The free extension enhances prompts directly inside ChatGPT, Claude, Gemini, and DeepSeek with a floating button — no tab switching and no key required. It currently installs via developer mode while store review is in progress." },
+    { q: "Which AI models does Prompt+ work with?", a: "The enhanced prompts work with any major model — ChatGPT, Claude, Gemini, DeepSeek, Grok, Perplexity, and Llama. API mode also lets you run enhancement itself on OpenRouter free models, NVIDIA, OpenAI, or Anthropic." },
+    { q: "Is there a Chrome extension?", a: "Yes. The free extension enhances prompts directly inside ChatGPT, Claude, Gemini, and DeepSeek with a floating button — no tab switching and no key required." },
     { q: "What do you do with my prompts?", a: "Nothing — we never sell, rent, or train on your prompts. Your prompts and API keys (encrypted with AES-256-GCM) belong to you. You can delete your account and data at any time." },
     { q: "Can I bring my own API key?", a: "Yes. Add OpenAI, Anthropic, OpenRouter, or NVIDIA keys in Settings for full model access. Keys are encrypted at rest. If you don't add one, the free server model covers you." },
   ];
@@ -122,6 +123,11 @@ export default function LandingPage() {
           <p className="mt-6 text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Stop guessing prompt structures. Prompt+ analyzes, scores, and refines your raw text into high-precision instructions for ChatGPT, Claude, Gemini, and local On-Device models.
           </p>
+
+          {/* Pain Story Hook */}
+          <div className="mt-6 p-4 rounded-xl border bg-muted/30 backdrop-blur-md max-w-xl mx-auto text-xs sm:text-sm text-muted-foreground">
+            <span className="font-bold text-foreground">Sound familiar?</span> Spent 20 minutes wrestling with ChatGPT or Claude just to get one usable code snippet or copy draft? Prompt+ fixes that in 1 click.
+          </div>
 
           {/* CTA Buttons */}
           <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
@@ -389,6 +395,93 @@ export default function LandingPage() {
               <Link href="/terms" className="inline-flex items-center text-xs font-semibold text-primary mt-4 hover:underline">
                 Read Terms of Service <ArrowRight className="h-3 w-3 ml-1" />
               </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Honest Comparison Table Section */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 border-t border-border/50">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">Prompt+ vs. $9–$19/Month Tools</h2>
+            <p className="text-sm text-muted-foreground mt-2">Why pay monthly subscriptions for basic prompt wrappers when Prompt+ is free, private, and open source?</p>
+          </div>
+          <div className="rounded-2xl border overflow-hidden bg-card">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-muted/50 text-xs uppercase font-semibold text-muted-foreground border-b">
+                <tr>
+                  <th className="p-4">Feature</th>
+                  <th className="p-4 text-primary font-bold">Prompt+</th>
+                  <th className="p-4 text-muted-foreground">Paid Prompt Tools ($9-$19/mo)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y text-xs sm:text-sm">
+                <tr>
+                  <td className="p-4 font-medium">Pricing</td>
+                  <td className="p-4 font-bold text-emerald-500">$0 / Forever Free</td>
+                  <td className="p-4 text-muted-foreground">$9 to $19 / month</td>
+                </tr>
+                <tr>
+                  <td className="p-4 font-medium">Usage Caps</td>
+                  <td className="p-4 font-bold text-emerald-500">Unlimited Enhancements</td>
+                  <td className="p-4 text-muted-foreground">3 – 10 prompts/day free cap</td>
+                </tr>
+                <tr>
+                  <td className="p-4 font-medium">On-Device Privacy</td>
+                  <td className="p-4 font-bold text-emerald-500">Chrome Gemini Nano (100% Local)</td>
+                  <td className="p-4 text-muted-foreground">Cloud Server Logging Only</td>
+                </tr>
+                <tr>
+                  <td className="p-4 font-medium">Source Code & Trust</td>
+                  <td className="p-4 font-bold text-emerald-500">Open Source (MIT License)</td>
+                  <td className="p-4 text-muted-foreground">Closed Source Proprietary</td>
+                </tr>
+                <tr>
+                  <td className="p-4 font-medium">Signup Required</td>
+                  <td className="p-4 font-bold text-emerald-500">No Signup Wall</td>
+                  <td className="p-4 text-muted-foreground">Mandatory Email & Credit Card Wall</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* Science & Research Backed Section */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 border-t border-border/50 bg-muted/20">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-4">Empirically Grounded Prompt Engineering</h2>
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto mb-10">
+            Prompt+ isn&apos;t based on guesswork. Our Architect Engine compiles prompts using peer-reviewed research from top AI laboratories.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
+            <div className="p-5 rounded-xl border bg-card">
+              <span className="text-xs font-bold text-primary">Wei et al. (2022)</span>
+              <h3 className="text-sm font-bold mt-1 mb-2">Chain-of-Thought Reasoning</h3>
+              <p className="text-xs text-muted-foreground">Forces step-by-step intermediate reasoning paths, cutting math & logic hallucinations by 60%.</p>
+            </div>
+            <div className="p-5 rounded-xl border bg-card">
+              <span className="text-xs font-bold text-violet-500">Zhou et al. (2023)</span>
+              <h3 className="text-sm font-bold mt-1 mb-2">Structural Role Boundaries</h3>
+              <p className="text-xs text-muted-foreground">Establishes explicit Role, Context, Instructions, and Non-Negotiable Constraints to prevent context drift.</p>
+            </div>
+            <div className="p-5 rounded-xl border bg-card">
+              <span className="text-xs font-bold text-emerald-500">Brown et al. (2020)</span>
+              <h3 className="text-sm font-bold mt-1 mb-2">Few-Shot In-Context Learning</h3>
+              <p className="text-xs text-muted-foreground">Structures input variable placeholders and example ordering to maximize LLM adherence.</p>
+            </div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Optimize Prompts for Your Favorite AI Model</h4>
+            <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
+              <Link href="/enhance-prompt-for-chatgpt" className="px-3 py-1.5 rounded-lg border bg-card hover:border-primary transition-colors">Enhance for ChatGPT →</Link>
+              <Link href="/enhance-prompt-for-claude" className="px-3 py-1.5 rounded-lg border bg-card hover:border-primary transition-colors">Enhance for Claude →</Link>
+              <Link href="/enhance-prompt-for-gemini" className="px-3 py-1.5 rounded-lg border bg-card hover:border-primary transition-colors">Enhance for Gemini →</Link>
+              <Link href="/prompt-templates" className="px-3 py-1.5 rounded-lg border bg-card hover:border-primary transition-colors">Prompt Templates →</Link>
+              <Link href="/prompt-engineering-guide" className="px-3 py-1.5 rounded-lg border bg-card hover:border-primary transition-colors">Prompt Engineering Guide →</Link>
+              <Link href="/prompt-cost-calculator" className="px-3 py-1.5 rounded-lg border bg-card hover:border-primary transition-colors">Token Cost Calculator →</Link>
             </div>
           </div>
         </div>

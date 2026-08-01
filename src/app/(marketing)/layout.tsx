@@ -2,8 +2,26 @@ import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Prompt+",
+    "operatingSystem": "Web, Chrome OS, Windows, macOS, Linux",
+    "applicationCategory": "ProductivityApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "Transform simple prompts into professional, AI-optimized instructions with free On-Device AI."
+  };
+
   return (
     <div className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link href="/">
@@ -11,18 +29,24 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           </Link>
           <div className="flex items-center gap-4">
             <Link
+              href="/features"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
+            >
+              Features
+            </Link>
+            <Link
               href="/extension"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
             >
               Extension
             </Link>
             <a
-              href="https://github.com/OK45batwal/prompt-plus/issues"
+              href="https://github.com/OK45batwal/prompt-plus"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline-flex items-center gap-1"
             >
-              GitHub
+              GitHub (MIT)
             </a>
             <Link
               href="/login"
@@ -54,6 +78,15 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
             <Link href="/extension" className="hover:text-foreground transition-colors">
               Extension
             </Link>
+            <Link href="/prompt-templates" className="hover:text-foreground transition-colors">
+              Templates
+            </Link>
+            <Link href="/prompt-engineering-guide" className="hover:text-foreground transition-colors">
+              Guide
+            </Link>
+            <Link href="/prompt-cost-calculator" className="hover:text-foreground transition-colors">
+              Cost Calculator
+            </Link>
             <Link href="/enhance-prompt-for-chatgpt" className="hover:text-foreground transition-colors">
               ChatGPT
             </Link>
@@ -64,12 +97,12 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               Gemini
             </Link>
             <a
-              href="https://github.com/OK45batwal/prompt-plus/issues"
+              href="https://github.com/OK45batwal/prompt-plus"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"
             >
-              GitHub Issues
+              GitHub Repo
             </a>
             <Link href="/docs" className="hover:text-foreground transition-colors">
               Docs

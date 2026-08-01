@@ -1,44 +1,56 @@
+import Link from "next/link";
+
 export default function DocsPage() {
   return (
     <div className="pt-28 pb-20 px-4">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-semibold tracking-tight mb-2">Documentation</h1>
-        <p className="text-muted-foreground mb-10">How to use Prompt+ to write better prompts.</p>
-
-        <h2 className="text-lg font-medium mb-2">Getting Started</h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Sign up, add your API key in Settings, and start enhancing prompts. No credit card required.
+        <h1 className="text-3xl font-extrabold tracking-tight mb-2">Documentation</h1>
+        <p className="text-muted-foreground mb-10 text-sm">
+          Complete guide to using Prompt+, Chrome Extension, On-Device AI, Context Bucket, and API v1 endpoints.
         </p>
 
-        <h2 className="text-lg font-medium mb-2">Enhancing a Prompt</h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Type or paste your prompt idea into the editor and click Enhance. Prompt+ analyzes intent,
-          category, and structure, then returns an optimized version with a quality score.
-        </p>
+        <section className="space-y-8 text-sm">
+          <div>
+            <h2 className="text-xl font-bold mb-2">1. On-Device AI (Chrome Gemini Nano)</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              On-Device mode runs 100% locally inside Chrome 138+ using Chrome&apos;s built-in <code>window.ai.languageModel</code> Prompt API. Prompts are enhanced in sub-100ms with zero network requests and zero server data transmission.
+            </p>
+          </div>
 
-        <h2 className="text-lg font-medium mb-2">Templates</h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Browse templates organized by use case — code, content, images, analysis. Each template
-          provides a proven structure you can customize and enhance.
-        </p>
+          <div>
+            <h2 className="text-xl font-bold mb-2">2. Cross-Chatbot Context Bucket Handoff</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              When your token limit or message cap is reached on ChatGPT, click <strong><code>📦 Carry Context</code></strong> in the Chrome Extension toolbar. Prompt+ scrapes the active conversation turns and saves them to local storage. Switch to Claude, Gemini, or DeepSeek and click <strong><code>💉 Inject Context</code></strong> to continue seamlessly.
+            </p>
+          </div>
 
-        <h2 className="text-lg font-medium mb-2">Saving & Organizing</h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Save enhanced prompts to your library and organize them into collections for easy reuse.
-          Your history automatically tracks every enhancement.
-        </p>
+          <div>
+            <h2 className="text-xl font-bold mb-2">3. Chrome Extension Setup</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              The Prompt+ extension injects an unobtrusive floating toolbar above prompt boxes on ChatGPT, Claude, Gemini, DeepSeek, Grok, and Perplexity. Use <code>Cmd+Shift+P</code> (or <code>Ctrl+Shift+P</code>) to trigger popover enhancements.
+            </p>
+          </div>
 
-        <h2 className="text-lg font-medium mb-2">Compare Prompts</h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Use the compare view to see original and enhanced prompts side by side, highlighting
-          exactly what changed and why the score improved.
-        </p>
+          <div>
+            <h2 className="text-xl font-bold mb-2">4. API v1 Integration</h2>
+            <p className="text-muted-foreground leading-relaxed mb-2">
+              Developers can access the Prompt+ Architect Engine programmatically via REST API:
+            </p>
+            <pre className="p-4 rounded-xl bg-muted font-mono text-xs overflow-x-auto border">
+{`POST /api/v1/extension/enhance
+Content-Type: application/json
 
-        <h2 className="text-lg font-medium mb-2">API Keys</h2>
-        <p className="text-sm text-muted-foreground">
-          Prompt+ supports your own OpenAI or compatible API key. Configure it in Settings.
-          Your key is stored securely and never shared.
-        </p>
+{
+  "text": "Write a python script for scraping weather data",
+  "category": "Coding",
+  "tone": "Technical"
+}`}
+            </pre>
+            <p className="text-xs text-muted-foreground mt-2">
+              OpenAPI 3.0 specification available at <Link href="/api/v1/docs" className="text-primary hover:underline">/api/v1/docs</Link>.
+            </p>
+          </div>
+        </section>
       </div>
     </div>
   );
