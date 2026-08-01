@@ -333,6 +333,28 @@
       <div class="result-body placeholder" id="result-body">Click button above to see AI-optimized result</div>
     </div>
 
+    <!-- Active Context Bucket Handoff Card -->
+    <div id="bucket-card" style="display:none; margin-top: 10px; padding: 10px 12px; background: #0f172a; border: 1px solid rgba(59,130,246,0.3); border-radius: 8px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+        <span style="font-size: 11px; font-weight: 700; color: #60a5fa;">📦 Active Context Bucket</span>
+        <span id="bucket-source" style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(59,130,246,0.2); color: #93c5fd; font-weight: 600;">ChatGPT</span>
+      </div>
+      <div id="bucket-preview" style="font-size: 10px; color: #94a3b8; line-height: 1.4; max-height: 44px; overflow: hidden; text-overflow: ellipsis; white-space: pre-line; margin-bottom: 8px;">
+        Context captured from previous chatbot session...
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <button id="bucket-inject-btn" type="button" style="flex:1; font-size: 10px; font-weight:600; padding: 5px 8px; border-radius: 6px; border: none; background: #2563eb; color: #fff; cursor: pointer;">
+          💉 Inject Into Active Chat
+        </button>
+        <button id="bucket-copy-btn" type="button" style="font-size: 10px; font-weight:600; padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #cbd5e1; cursor: pointer;">
+          📋 Copy
+        </button>
+        <button id="bucket-clear-btn" type="button" style="font-size: 10px; font-weight:600; padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(239,68,68,0.3); background: rgba(239,68,68,0.1); color: #fca5a5; cursor: pointer;">
+          🗑️
+        </button>
+      </div>
+    </div>
+
     <div class="settings">
       <div class="settings-title" id="settings-toggle">
         <span class="chev">▶</span> Settings

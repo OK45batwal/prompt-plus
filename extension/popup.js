@@ -417,3 +417,61 @@ document.getElementById("open-dash")?.addEventListener("click", (e) => {
   e.preventDefault();
   chrome.tabs.create({ url: "https://prompt-plus-three.vercel.app/dashboard" });
 });
+
+// ---- Context Bucket Management ----
+const bucketCard = document.getElementById("bucket-card");
+const bucketSource = document.getElementById("bucket-source");
+const bucketPreview = document.getElementById("bucket-preview");
+const bucketInjectBtn = document.getElementById("bucket-inject-btn");
+const bucketCopyBtn = document.getElementById("bucket-copy-btn");
+const bucketClearBtn = document.getElementById("bucket-clear-btn");
+
+function updateBucketUI() {
+  try {
+    if (!chrome?.storage?.local) return;
+    chrome.storage.local.get("pp_context_bucket", (d) => {
+      const b = d?.pp_context_bucket;
+      if (b && b.formattedPrompt && bucketCard) {
+        bucketCard.style.display = "block";
+        if (bucketSource) bucketSource.textContent = b.source || "Chatbot";
+        if (bucketPreview) bucketPreview.textContent = b.text ? b.text.slice(0, 150) + "…" : "Conversation context ready";
+      } else if (bucketCard) {
+        bucketCard.style.display = "none";
+      }
+    });
+  } catch { /* ignore context error */ }
+}
+
+bucketInjectBtn?.addEventListener("click", () => {
+  chrome.storage.local.get("pp_context_bucket", (d) => {
+    const b = d?.pp_context_bucket;
+    if (!b || !b.formattedPrompt) return;
+    chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs?.[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: "injectEnhanced", enhanced: b.formattedPrompt }, (ir) => {
+          showMsg(`Injected Context from ${b.source || "Chatbot"}!`);
+        });
+      }
+    });
+  });
+});
+
+bucketCopyBtn?.addEventListener("click", () => {
+  chrome.storage.local.get("pp_context_bucket", (d) => {
+    const b = d?.pp_context_bucket;
+    if (b && b.formattedPrompt) {
+      navigator.clipboard.writeText(b.formattedPrompt).then(() => {
+        showMsg("Copied Context Bucket to clipboard!");
+      });
+    }
+  });
+});
+
+bucketClearBtn?.addEventListener("click", () => {
+  chrome.storage.local.remove("pp_context_bucket", () => {
+    showMsg("Context Bucket cleared");
+    updateBucketUI();
+  });
+});
+
+updateBucketUI();

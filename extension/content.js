@@ -166,6 +166,14 @@
         '<span class="pp-fab-icon">📱</span>' +
         '<span class="pp-fab-text" id="pp-fab-text">Device Enhance</span>' +
       '</button>' +
+      '<button class="pp-fab-btn" id="pp-fab-bucket-cap" type="button" title="Capture & Carry conversation history to another chatbot (e.g. ChatGPT to Claude)">' +
+        '<span class="pp-fab-icon">📦</span>' +
+        '<span class="pp-fab-text">Carry Context</span>' +
+      '</button>' +
+      '<button class="pp-fab-btn" id="pp-fab-bucket-inj" type="button" style="display:none;" title="Inject saved conversation context from another chatbot">' +
+        '<span class="pp-fab-icon">💉</span>' +
+        '<span class="pp-fab-text" id="pp-fab-bucket-inj-text">Inject Context</span>' +
+      '</button>' +
       '<div class="pp-fab-badge" title="Powered by Chrome Gemini Nano On-Device AI">' +
         '<span>📱 On-Device AI</span>' +
       '</div>' +
@@ -191,6 +199,32 @@
       currentText = getText(el);
       openPopover();
     });
+
+    bar.querySelector("#pp-fab-bucket-cap").addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      captureContextBucket();
+    });
+
+    const injBtn = bar.querySelector("#pp-fab-bucket-inj");
+    const injText = bar.querySelector("#pp-fab-bucket-inj-text");
+    injBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      injectContextBucket();
+    });
+
+    try {
+      if (chrome?.storage?.local) {
+        chrome.storage.local.get("pp_context_bucket", (d) => {
+          const b = d?.pp_context_bucket;
+          if (b && b.formattedPrompt) {
+            injBtn.style.display = "inline-flex";
+            if (injText) injText.textContent = `Inject (${b.source || "Bucket"})`;
+          }
+        });
+      }
+    } catch { /* ignore */ }
 
     let rafPending = false;
     const schedulePosition = () => {
@@ -242,6 +276,79 @@
     bar.style.setProperty("bottom", "auto", "important");
     bar.style.setProperty("left", Math.max(10, rect.left) + "px", "important");
     bar.style.setProperty("display", "inline-flex", "important");
+  }
+
+  function captureContextBucket() {
+    const bot = detectChatbot();
+    const botName = bot === "chatgpt" ? "ChatGPT"
+                  : bot === "claude" ? "Claude"
+                  : bot === "gemini" ? "Gemini"
+                  : bot === "deepseek" ? "DeepSeek"
+                  : bot === "perplexity" ? "Perplexity" : "Chatbot";
+
+    const sel = bot === "chatgpt" ? "[data-message-author-role]"
+              : bot === "claude" ? '.font-claude-message, .font-user-message, [class*="message"]'
+              : bot === "gemini" ? '.conversation-turn, [data-message]'
+              : ".message, .ds-message";
+
+    const els = Array.from(document.querySelectorAll(sel));
+    let conversationText = "";
+
+    if (els.length) {
+      conversationText = els.map((el, i) => {
+        const text = el.textContent ? el.textContent.trim() : "";
+        if (!text) return "";
+        const role = i % 2 === 0 ? "User" : "Assistant";
+        return `[${role}]: ${text}`;
+      }).filter(Boolean).join("\n\n");
+    } else {
+      conversationText = getConversationText();
+    }
+
+    if (!conversationText || conversationText.length < 10) {
+      showToast("No active conversation text found on page to capture");
+      return;
+    }
+
+    const payload = {
+      source: botName,
+      timestamp: Date.now(),
+      text: conversationText.slice(0, 12000),
+      formattedPrompt: `[CONVERSATION CONTEXT HANDOFF FROM ${botName.toUpperCase()}]\n\nThe user was previously discussing the following topic/task with ${botName}:\n\n${conversationText.slice(0, 12000)}\n\n[CONTINUATION INSTRUCTION]\nPlease seamlessly continue this discussion where ${botName} left off. Answer any open questions or complete the task specified.`
+    };
+
+    try {
+      chrome.storage.local.set({ pp_context_bucket: payload }, () => {
+        showToast(`📦 Captured conversation from ${botName}! Switch tabs to inject.`);
+        const injBtn = document.getElementById("pp-fab-bucket-inj");
+        const injText = document.getElementById("pp-fab-bucket-inj-text");
+        if (injBtn) injBtn.style.display = "inline-flex";
+        if (injText) injText.textContent = `Inject (${botName})`;
+      });
+    } catch {
+      showToast("Error saving Context Bucket");
+    }
+  }
+
+  function injectContextBucket() {
+    try {
+      chrome.storage.local.get("pp_context_bucket", (d) => {
+        const b = d?.pp_context_bucket;
+        if (!b || !b.formattedPrompt) {
+          showToast("No active Context Bucket found. Click 'Carry Context' on a chat first!");
+          return;
+        }
+        const el = getInput();
+        if (!el) {
+          showToast("No chat input box found on this page");
+          return;
+        }
+        setText(el, b.formattedPrompt);
+        showToast(`💉 Injected Context Bucket from ${b.source || "Chatbot"}!`);
+      });
+    } catch {
+      showToast("Error reading Context Bucket");
+    }
   }
 
   function showToast(msg) {
