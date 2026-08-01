@@ -193,30 +193,6 @@ export function Sidebar({ collapsed = false, onToggle, isMobile = false, isAdmin
         </nav>
       </ScrollArea>
 
-      {/* Usage Banner */}
-      {!collapsed && (
-        <div className="p-3 border-t">
-          <div className="rounded-lg bg-accent/50 p-3">
-            <div className="flex items-center justify-between text-xs mb-2">
-              <span className="text-muted-foreground">Daily Usage</span>
-              <span className="font-medium">5/20</span>
-            </div>
-            <div className="h-1.5 bg-background rounded-full overflow-hidden">
-              <div
-                className="h-full bg-foreground rounded-full transition-all"
-                style={{ width: "25%" }}
-              />
-            </div>
-            <Link
-              href="/dashboard/settings"
-              className="mt-2 flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Key className="h-3 w-3" />
-              Add API Key for unlimited
-            </Link>
-          </div>
-        </div>
-      )}
     </aside>
   );
 }
