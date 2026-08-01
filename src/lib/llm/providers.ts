@@ -49,10 +49,10 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
     }
   } else if (provider === "openrouter" && apiKey.startsWith("nvapi-")) {
     provider = "nvidia";
-    options.model = "nvidia/llama-3.3-70b-instruct";
+    options.model = "meta/llama-3.3-70b-instruct";
   } else if (provider === "openai" && apiKey.startsWith("nvapi-")) {
     provider = "nvidia";
-    options.model = "nvidia/llama-3.3-70b-instruct";
+    options.model = "meta/llama-3.3-70b-instruct";
   } else if (provider === "openai" && apiKey.startsWith("sk-or-")) {
     provider = "openrouter";
     options.model = "meta-llama/llama-3.3-70b-instruct:free";
@@ -62,15 +62,19 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
   const isAnthropic = provider === "anthropic";
   const isNvidia = provider === "nvidia";
 
-  const model =
+  let model =
     options.model ||
     (isOpenRouter
       ? "meta-llama/llama-3.3-70b-instruct:free"
       : isAnthropic
       ? "claude-3-5-sonnet-20241022"
       : isNvidia
-      ? "nvidia/llama-3.3-70b-instruct"
+      ? "meta/llama-3.3-70b-instruct"
       : "gpt-4o-mini");
+
+  if (isNvidia && model === "nvidia/llama-3.3-70b-instruct") {
+    model = "meta/llama-3.3-70b-instruct";
+  }
 
   const url = isOpenRouter
     ? "https://openrouter.ai/api/v1/chat/completions"

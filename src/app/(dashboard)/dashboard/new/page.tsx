@@ -85,7 +85,7 @@ const models: { id: Model; name: string; icon: string; free: boolean; provider?:
   { id: "openrouter-mistral-small-free", name: "Mistral Small 24B (OpenRouter Free)", icon: "🌬️", free: true, provider: "openrouter", rawModel: "mistralai/mistral-small-24b-instruct-2501:free" },
   { id: "openrouter-phi3-free", name: "Phi-3 Mini 128K (OpenRouter Free)", icon: "🔬", free: true, provider: "openrouter", rawModel: "microsoft/phi-3-mini-128k-instruct:free" },
   { id: "openrouter-hermes3-free", name: "Hermes 3 405B (OpenRouter Free)", icon: "🏛️", free: true, provider: "openrouter", rawModel: "nousresearch/hermes-3-llama-3.1-405b:free" },
-  { id: "nvidia-llama3", name: "Llama 3.3 70B (NVIDIA)", icon: "🦙", free: true, provider: "nvidia", rawModel: "nvidia/llama-3.3-70b-instruct" },
+  { id: "nvidia-llama3", name: "Llama 3.3 70B (NVIDIA)", icon: "🦙", free: true, provider: "nvidia", rawModel: "meta/llama-3.3-70b-instruct" },
   { id: "nvidia-nemotron", name: "Nemotron 70B (NVIDIA)", icon: "⚡", free: true, provider: "nvidia", rawModel: "nvidia/llama-3.1-nemotron-70b-instruct" },
   { id: "nvidia-gemma2", name: "Gemma 2 27B (NVIDIA)", icon: "🔷", free: true, provider: "nvidia", rawModel: "google/gemma-2-27b-it" },
   { id: "nvidia-mistral", name: "Mistral 7B (NVIDIA)", icon: "🌬️", free: true, provider: "nvidia", rawModel: "mistralai/mistral-7b-instruct-v0.3" },
