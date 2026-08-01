@@ -551,9 +551,9 @@ npm run lint
 
 ---
 
-## 📄 License & Credits
+## 📄 License & Terms
 
-Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
+Copyright &copy; 2026 **Prompt+**. All rights reserved. Proprietary software.
 
 <div align="center">
   <sub>Built with Next.js 16, TypeScript, Tailwind CSS v4, and ❤️</sub>

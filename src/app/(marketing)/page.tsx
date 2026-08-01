@@ -405,7 +405,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">Prompt+ vs. $9–$19/Month Tools</h2>
-            <p className="text-sm text-muted-foreground mt-2">Why pay monthly subscriptions for basic prompt wrappers when Prompt+ is free, private, and open source?</p>
+            <p className="text-sm text-muted-foreground mt-2">Why pay monthly subscriptions for basic prompt wrappers when Prompt+ is 100% free and private?</p>
           </div>
           <div className="rounded-2xl border overflow-hidden bg-card">
             <table className="w-full text-left text-sm">
@@ -433,9 +433,9 @@ export default function LandingPage() {
                   <td className="p-4 text-muted-foreground">Cloud Server Logging Only</td>
                 </tr>
                 <tr>
-                  <td className="p-4 font-medium">Source Code & Trust</td>
-                  <td className="p-4 font-bold text-emerald-500">Open Source (MIT License)</td>
-                  <td className="p-4 text-muted-foreground">Closed Source Proprietary</td>
+                  <td className="p-4 font-medium">Security & Trust</td>
+                  <td className="p-4 font-bold text-emerald-500">AES-256 Encrypted & Private</td>
+                  <td className="p-4 text-muted-foreground">Unencrypted Logs</td>
                 </tr>
                 <tr>
                   <td className="p-4 font-medium">Signup Required</td>

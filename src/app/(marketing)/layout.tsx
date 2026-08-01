@@ -46,7 +46,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               rel="noopener noreferrer"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:inline-flex items-center gap-1"
             >
-              GitHub (MIT)
+              GitHub
             </a>
             <Link
               href="/login"
