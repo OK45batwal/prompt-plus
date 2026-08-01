@@ -130,7 +130,7 @@ export default function LandingPage() {
           </div>
 
           {/* CTA Buttons */}
-          <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+          <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
             <Link
               href="/signup"
               className="h-11 sm:h-12 w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-foreground text-background px-7 text-sm font-semibold hover:bg-foreground/90 transition-all shadow-lg hover:shadow-xl active:scale-95 group"
@@ -138,6 +138,14 @@ export default function LandingPage() {
               Start Building Free
               <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
             </Link>
+            <a
+              href="/api/v1/extension/download"
+              download="prompt-plus-extension.zip"
+              className="h-11 sm:h-12 w-full sm:w-auto inline-flex items-center justify-center rounded-xl border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 px-6 text-sm font-semibold transition-all active:scale-95 gap-2 shadow-sm"
+            >
+              <Puzzle className="h-4 w-4" />
+              Download Extension (.zip)
+            </a>
             <Link
               href="/dashboard/new"
               className="h-11 sm:h-12 w-full sm:w-auto inline-flex items-center justify-center rounded-xl border bg-card/80 backdrop-blur-md px-6 text-sm font-semibold hover:bg-accent transition-all active:scale-95"
@@ -270,13 +278,23 @@ export default function LandingPage() {
                 Install the free Chrome extension to enhance prompts directly inside ChatGPT, Claude, Gemini, and DeepSeek — with zero tab switching.
               </p>
             </div>
-            <Link
-              href="/extension"
-              className="h-10 w-full sm:w-auto inline-flex items-center justify-center rounded-lg bg-foreground text-background px-5 text-sm font-semibold hover:bg-foreground/90 transition-colors gap-2"
-            >
-              Get the Extension
-              <ExternalLink className="h-3.5 w-3.5" />
-            </Link>
+            <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+              <a
+                href="/api/v1/extension/download"
+                download="prompt-plus-extension.zip"
+                className="h-10 w-full sm:w-auto inline-flex items-center justify-center rounded-lg bg-primary text-primary-foreground px-5 text-sm font-semibold hover:bg-primary/90 transition-colors gap-2"
+              >
+                <Puzzle className="h-3.5 w-3.5" />
+                Download Zip
+              </a>
+              <Link
+                href="/extension"
+                className="h-10 w-full sm:w-auto inline-flex items-center justify-center rounded-lg border bg-background px-4 text-sm font-semibold hover:bg-accent transition-colors gap-1.5"
+              >
+                Setup Guide
+                <ExternalLink className="h-3.5 w-3.5 opacity-70" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>

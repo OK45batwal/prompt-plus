@@ -21,10 +21,20 @@ export default function ExtensionPage() {
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">
             Enhance Prompts Directly in Your Chat
           </h1>
-          <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto">
+          <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto mb-6">
             Use Prompt+ inside ChatGPT, Claude, Gemini, and DeepSeek — without leaving the page.
             One click on the floating button enhances your prompt, right at the input.
           </p>
+          <div className="flex justify-center">
+            <a
+              href="/api/v1/extension/download"
+              download="prompt-plus-extension.zip"
+              className="h-11 inline-flex items-center justify-center rounded-xl bg-primary text-primary-foreground px-6 text-sm font-semibold hover:bg-primary/90 transition-all shadow-md gap-2"
+            >
+              <Puzzle className="h-4 w-4" />
+              Download Extension Package (.zip)
+            </a>
+          </div>
         </div>
 
         {/* Steps */}
