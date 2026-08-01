@@ -20,6 +20,7 @@ import { getSavedContextBlocks, saveCustomContextBlock, ContextBlock } from "@/l
 import { estimateTokenCount, calculateCostEstimates } from "@/lib/token-calculator";
 import { enhanceWithDevice, checkDeviceAvailability, isDeviceAISupported } from "@/lib/llm/device-ai";
 import type { EnhanceLevel } from "@/lib/llm/meta-prompt";
+import { useToast } from "@/components/ui/toast";
 
 type Model =
   | "openrouter-llama3-free"
@@ -126,6 +127,7 @@ const enhanceLevels: { id: EnhanceLevel; label: string; hint: string }[] = [
 ];
 
 export default function PromptBuilderPage() {
+  const { toast } = useToast();
   const [prompt, setPrompt] = useState("");
   const [selectedLength, setSelectedLength] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -293,6 +295,7 @@ export default function PromptBuilderPage() {
         enhancedScoring: enhancedScoreData.data || { total: 0, dimensions: { clarity: 0, specificity: 0, structure: 0, context: 0, length: 0, actionability: 0 }, strengths: [], weaknesses: [], recommendations: [] },
       };
       setResult(resultData);
+      toast("Prompt enhanced successfully!", "success");
 
       // Save prompt and results to the server
       try {
@@ -335,6 +338,7 @@ export default function PromptBuilderPage() {
     if (result?.enhanced.text) {
       navigator.clipboard.writeText(result.enhanced.text);
       setCopied(true);
+      toast("Copied enhanced prompt to clipboard!", "success");
       setTimeout(() => setCopied(false), 2000);
     }
   };

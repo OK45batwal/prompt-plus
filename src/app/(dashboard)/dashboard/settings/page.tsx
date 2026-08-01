@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { User, Key, Bell, Palette, Save, Eye, EyeOff, Check, ExternalLink, Trash2, Loader2, AlertTriangle } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSession, signOut } from "next-auth/react";
+import { useToast } from "@/components/ui/toast";
 
 type SettingsTab = "profile" | "api-keys" | "preferences" | "notifications";
 
@@ -143,6 +144,7 @@ function DeleteAccountSection() {
 }
 
 export default function SettingsPage() {
+  const { toast } = useToast();
   const sessionResult = useSession();
   const session = sessionResult?.data;
   const { setTheme, resolvedTheme } = useTheme();
@@ -256,6 +258,7 @@ export default function SettingsPage() {
 
       setSavedKeys((prev) => ({ ...prev, [provider]: true }));
       setApiKeysInput((prev) => ({ ...prev, [provider]: "" }));
+      toast(`API key saved for ${provider.toUpperCase()}!`, "success");
     } finally {
       setIsSavingKey((prev) => ({ ...prev, [provider]: false }));
     }
