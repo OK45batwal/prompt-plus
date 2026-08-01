@@ -5,6 +5,7 @@ import { Sidebar } from "./sidebar";
 import { Header } from "./header";
 import { MobileNav } from "./mobile-nav";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { CommandPalette } from "../command-palette";
 
 export function DashboardLayout({ children, isAdmin }: { children: React.ReactNode; isAdmin?: boolean }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -12,6 +13,9 @@ export function DashboardLayout({ children, isAdmin }: { children: React.ReactNo
 
   return (
     <div className="flex h-dvh overflow-hidden">
+      {/* Global Command Palette */}
+      <CommandPalette />
+
       {/* Desktop Sidebar */}
       <Sidebar
         collapsed={sidebarCollapsed}

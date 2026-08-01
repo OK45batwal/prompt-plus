@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Plus, Grid, List, Book, Star, Sparkles, Copy, Check, Code, FileText, GraduationCap, Megaphone, ChartLine, Briefcase, Lightbulb } from "lucide-react";
+import { Search, Plus, Grid, List, Book, Star, Sparkles, Copy, Check, Code, FileText, GraduationCap, Megaphone, ChartLine, Briefcase, Lightbulb, Terminal } from "lucide-react";
 import { curatedPrompts } from "@/lib/curated-prompts";
 import { useToast } from "@/components/ui/toast";
+import { ExportCodeModal } from "@/components/prompts/export-code-modal";
 
 interface Prompt {
   id: string;
@@ -39,6 +40,7 @@ export default function LibraryPage() {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedTitle, setCopiedTitle] = useState<string | null>(null);
+  const [exportPrompt, setExportPrompt] = useState<{ title: string; text: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/v1/prompts?pageSize=50")
@@ -287,21 +289,25 @@ export default function LibraryPage() {
                     <span className="text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground font-medium uppercase tracking-wider">
                       {meta.label}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => handleCopyCurated(p.title, p.prompt)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-foreground text-background text-xs font-medium hover:bg-foreground/90 transition-colors active:scale-95"
-                    >
-                      {copiedTitle === p.title ? (
-                        <>
-                          <Check className="h-3.5 w-3.5" /> Copied
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-3.5 w-3.5" /> Copy
-                        </>
-                      )}
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setExportPrompt({ title: p.title, text: p.prompt })}
+                        className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg border bg-background text-muted-foreground hover:text-foreground text-xs font-medium transition-colors"
+                        title="Export Code & Fill Variables"
+                      >
+                        <Terminal className="h-3.5 w-3.5" />
+                        Code
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyCurated(p.title, p.prompt)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-foreground text-background text-xs font-medium hover:bg-foreground/90 transition-colors active:scale-95"
+                      >
+                        {copiedTitle === p.title ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                        {copiedTitle === p.title ? "Copied" : "Copy"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -309,6 +315,16 @@ export default function LibraryPage() {
           </div>
         )}
       </div>
+
+      {/* Export Code Modal */}
+      {exportPrompt && (
+        <ExportCodeModal
+          isOpen={!!exportPrompt}
+          onClose={() => setExportPrompt(null)}
+          title={exportPrompt.title}
+          promptText={exportPrompt.text}
+        />
+      )}
     </div>
   );
 }

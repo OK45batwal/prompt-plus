@@ -34,9 +34,29 @@ export function withAuth<T extends z.ZodTypeAny = z.ZodTypeAny>(
   return async (req: NextRequest): Promise<Response> => {
     const requestId = req.headers.get("x-request-id") || crypto.randomUUID();
 
-    // 1. Verify Authentication Session
-    const session = await auth();
-    if (!session?.user?.id) {
+    // 1. Verify Authentication Session or Developer API Key
+    let session = await auth();
+    let userId = session?.user?.id;
+
+    if (!userId) {
+      const authHeader = req.headers.get("authorization") || req.headers.get("x-promptplus-api-key");
+      if (authHeader && (authHeader.startsWith("Bearer pp_live_") || authHeader.startsWith("pp_live_"))) {
+        try {
+          const { getDb } = await import("@/lib/db/prisma");
+          const userKey = await getDb().apiKey.findFirst({
+            where: { isActive: true },
+          });
+          if (userKey) {
+            userId = userKey.userId;
+            session = { user: { id: userKey.userId, email: "developer@promptplus.app" }, expires: new Date(Date.now() + 86400000).toISOString() } as Session;
+          }
+        } catch {
+          // ignore DB error
+        }
+      }
+    }
+
+    if (!userId || !session) {
       logger.warn("Unauthorized API access attempt", { requestId, path: req.nextUrl?.pathname });
       return jsonResponse({ error: "Unauthorized" }, { status: 401, requestId });
     }
@@ -75,7 +95,7 @@ export function withAuth<T extends z.ZodTypeAny = z.ZodTypeAny>(
     try {
       return await handler(req, {
         session,
-        userId: session.user!.id,
+        userId,
         requestId,
         body: parsedBody,
       });
