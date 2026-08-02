@@ -118,6 +118,48 @@ body {
 .animate-stagger > *:nth-child(7) { animation-delay: 360ms; }
 .animate-stagger > *:nth-child(8) { animation-delay: 420ms; }
 
+/* Float animation for icons/logo */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float { animation: float 3s ease-in-out infinite; }
+.animate-float-slow { animation: float 5s ease-in-out infinite; }
+.animate-float-delay { animation: float 3.5s ease-in-out infinite; animation-delay: 1s; }
+
+/* Spin slow for sparkle/star icons */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow { animation: spin-slow 8s linear infinite; }
+
+/* Pulse glow for logo and accent items */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+  50% { box-shadow: 0 0 18px 4px rgba(37, 99, 235, 0.25); }
+}
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+
+/* Shimmer sweep for badges */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.15) 50%, transparent 75%);
+  background-size: 200% auto;
+  animation: shimmer 2.5s linear infinite;
+}
+
+/* Bounce-in for hero badge */
+@keyframes bounce-in {
+  0% { transform: scale(0.8); opacity: 0; }
+  70% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.animate-bounce-in { animation: bounce-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
 .hover-lift { transition: transform 0.15s ease-out, box-shadow 0.15s ease-out; will-change: transform; }
 .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 .dark .hover-lift:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }

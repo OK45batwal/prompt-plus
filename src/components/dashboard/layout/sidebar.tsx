@@ -103,15 +103,22 @@ export function Sidebar({ collapsed = false, onToggle, isMobile = false, isAdmin
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all group",
                 isActive(item.href)
                   ? "bg-accent text-accent-foreground font-medium"
                   : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
                 item.accent && !isActive(item.href) && "text-foreground font-medium"
               )}
             >
-              <item.icon className="h-4 w-4 shrink-0" />
+              <item.icon className={cn(
+                "h-4 w-4 shrink-0 transition-transform group-hover:scale-110",
+                isActive(item.href) && "text-primary",
+                item.accent && "animate-pulse-glow"
+              )} />
               {!collapsed && <span>{item.label}</span>}
+              {isActive(item.href) && !collapsed && (
+                <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              )}
             </Link>
           ))}
 
@@ -123,14 +130,20 @@ export function Sidebar({ collapsed = false, onToggle, isMobile = false, isAdmin
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all group",
                 isActive(item.href)
                   ? "bg-accent text-accent-foreground font-medium"
                   : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
               )}
             >
-              <item.icon className="h-4 w-4 shrink-0" />
+              <item.icon className={cn(
+                "h-4 w-4 shrink-0 transition-transform group-hover:scale-110",
+                isActive(item.href) && "text-primary"
+              )} />
               {!collapsed && <span>{item.label}</span>}
+              {isActive(item.href) && !collapsed && (
+                <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              )}
             </Link>
           ))}
 

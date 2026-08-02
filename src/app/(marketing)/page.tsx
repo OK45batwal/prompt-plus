@@ -104,10 +104,11 @@ export default function LandingPage() {
       <section className="pt-28 pb-16 sm:pt-36 sm:pb-24 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto text-center">
           {/* Release Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs sm:text-sm font-medium text-primary mb-8 shadow-sm backdrop-blur-md animate-fade-in hover:border-primary/50 transition-all cursor-default">
-            <Sparkles className="h-4 w-4 animate-spin text-blue-500" style={{ animationDuration: "6s" }} />
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs sm:text-sm font-medium text-primary mb-8 shadow-sm backdrop-blur-md animate-bounce-in hover:border-primary/50 transition-all cursor-default relative overflow-hidden">
+            <span className="absolute inset-0 animate-shimmer pointer-events-none" />
+            <Sparkles className="h-4 w-4 animate-spin-slow text-blue-500" />
             <span>Prompt+ v2.0 Live</span>
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
             <span className="text-muted-foreground font-normal">Next-Gen AI Prompt Studio</span>
           </div>
 
@@ -163,13 +164,13 @@ export default function LandingPage() {
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">
               Optimized for Industry-Leading AI Models
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs font-medium">
-              {modelBadges.map((m) => (
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs font-medium animate-stagger">
+              {modelBadges.map((m, i) => (
                 <div
                   key={m.name}
-                  className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg border bg-card/50 backdrop-blur-sm text-foreground/80 shadow-2xs hover:border-primary/40 transition-colors"
+                  className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg border bg-card/50 backdrop-blur-sm text-foreground/80 shadow-2xs hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 hover:-translate-y-0.5"
                 >
-                  <m.icon className="h-3.5 w-3.5 text-primary" />
+                  <m.icon className={`h-3.5 w-3.5 text-primary ${i === 2 ? 'animate-spin-slow' : i === 0 ? 'animate-float' : ''}`} />
                   <span>{m.name}</span>
                 </div>
               ))}
@@ -190,13 +191,15 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
-            {features.map((f) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 animate-stagger">
+            {features.map((f, i) => (
               <div
                 key={f.title}
                 className="group relative p-6 sm:p-8 rounded-2xl border bg-card hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden"
               >
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.color} text-white flex items-center justify-center mb-5 shadow-md`}>
+                {/* Subtle background glow on hover */}
+                <div className={`absolute inset-0 opacity-0 group-hover:opacity-5 bg-gradient-to-br ${f.color} transition-opacity duration-500 pointer-events-none`} />
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.color} text-white flex items-center justify-center mb-5 shadow-md group-hover:scale-110 transition-transform duration-300 ${i % 2 === 0 ? 'animate-float' : 'animate-float-delay'}`}>
                   <f.icon className="h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-bold tracking-tight">{f.title}</h3>
