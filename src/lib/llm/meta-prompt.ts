@@ -34,6 +34,15 @@ chain-of-thought reasoning, explicit role personas, constraints, negative direct
 Return ONLY the final enhanced prompt framework. Do NOT add introductory or conversational meta-text.`,
 };
 
+export function sanitizeUserInput(input: string): string {
+  if (!input) return "";
+  return input
+    .replace(/\[system override\]/gi, "")
+    .replace(/ignore (all )?previous instructions/gi, "")
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .trim();
+}
+
 export function buildArchitectMetaPrompt(
   originalPrompt: string,
   category?: string,
@@ -41,6 +50,7 @@ export function buildArchitectMetaPrompt(
   length?: string,
   level: EnhanceLevel = "deep"
 ): { metaPrompt: string; systemInstruction: string } {
+  const sanitizedPrompt = sanitizeUserInput(originalPrompt);
   const cat = category || "General Task";
   const preferredTone = tone || "Professional & Clear";
   const preferredLength = length || "Comprehensive & Structured";
@@ -55,7 +65,7 @@ export function buildArchitectMetaPrompt(
       : "";
 
   const metaPrompt = `[ORIGINAL USER PROMPT]:
-"${originalPrompt.trim()}"
+"${sanitizedPrompt}"
 
 [TARGET DOMAIN]: ${cat}
 [PREFERRED TONE]: ${preferredTone}

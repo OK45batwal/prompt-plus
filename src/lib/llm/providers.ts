@@ -133,17 +133,31 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000);
-  const res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body), signal: controller.signal }).catch((err: unknown) => {
-    clearTimeout(timeout);
-    throw new LLMError(err instanceof Error && err.name === "AbortError" ? "Request timed out after 30s" : `${provider} request failed`, provider);
-  });
-  clearTimeout(timeout);
-  const data = await res.json().catch(() => ({}));
+  
+  let res: Response | null = null;
+  let data: Record<string, unknown> = {};
+  let lastErrMessage = "";
 
-  if (!res.ok) {
-    if (res.status === 401) {
+  // Retry loop for transient 5xx / timeout network errors
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body), signal: controller.signal });
+      data = await res.json().catch(() => ({}));
+      if (res.ok) break;
+      if (res.status < 500 && res.status !== 429) break; // Don't retry client errors (400, 401, 403)
+      lastErrMessage = (data as { error?: { message?: string } })?.error?.message || `${provider} API error (${res.status})`;
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 1000 * attempt));
+    } catch (err: unknown) {
+      lastErrMessage = err instanceof Error && err.name === "AbortError" ? "Request timed out after 30s" : `${provider} connection failed`;
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 1000 * attempt));
+    }
+  }
+  clearTimeout(timeout);
+
+  if (!res || !res.ok) {
+    if (res?.status === 401) {
       const hint = isNvidia
-        ? "Invalid NVIDIA API Key (expected nvapi-...). Please check your key in API Vault or choose an OpenRouter free model."
+        ? "Invalid NVIDIA API Key (expected nvapi-...). Check your key in API Vault or choose an OpenRouter free model."
         : isOpenRouter
         ? "Invalid OpenRouter API Key (expected sk-or-...). Check your key in API Vault."
         : isAnthropic
@@ -151,16 +165,36 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
         : "Invalid OpenAI API Key (expected sk-...). Check your key in API Vault.";
       throw new LLMError(hint, provider, 401);
     }
-    const errMsg = data.error?.message || `${provider} API error (${res.status})`;
-    throw new LLMError(errMsg, provider, res.status);
+
+    // Failover: If primary provider encounters a 5xx/network error and wasn't openrouter, try OpenRouter free tier as fallback
+    if (!isOpenRouter && provider !== "openrouter") {
+      try {
+        return await callLLM({
+          ...options,
+          provider: "openrouter",
+          apiKey: "",
+          model: "meta-llama/llama-3.3-70b-instruct:free",
+        });
+      } catch {
+        // Ignore fallback error and throw primary error
+      }
+    }
+
+    throw new LLMError(lastErrMessage || `${provider} API error (${res?.status || 500})`, provider, res?.status);
   }
 
-  const text = (isAnthropic ? data.content?.[0]?.text : data.choices?.[0]?.message?.content) || "";
+  const parsed = data as {
+    content?: Array<{ text?: string }>;
+    choices?: Array<{ message?: { content?: string } }>;
+    usage?: { input_tokens?: number; output_tokens?: number; prompt_tokens?: number; completion_tokens?: number };
+  };
+
+  const text = (isAnthropic ? parsed.content?.[0]?.text : parsed.choices?.[0]?.message?.content) || "";
 
   return {
     content: text,
-    tokensIn: (isAnthropic ? data.usage?.input_tokens : data.usage?.prompt_tokens) || userPrompt.length,
-    tokensOut: (isAnthropic ? data.usage?.output_tokens : data.usage?.completion_tokens) || text.length,
+    tokensIn: (isAnthropic ? parsed.usage?.input_tokens : parsed.usage?.prompt_tokens) || userPrompt.length,
+    tokensOut: (isAnthropic ? parsed.usage?.output_tokens : parsed.usage?.completion_tokens) || text.length,
     provider,
     model,
   };
