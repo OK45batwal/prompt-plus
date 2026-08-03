@@ -34,9 +34,7 @@ const OPENROUTER_FREE_MODELS = [
   "deepseek/deepseek-r1:free",
   "meta-llama/llama-3.1-8b-instruct:free",
   "qwen/qwen-2.5-coder-32b-instruct:free",
-  "mistralai/mistral-small-24b-instruct-2501:free",
-  "google/gemma-2-9b-it:free",
-  "nousresearch/hermes-3-llama-3.1-405b:free",
+  "mistralai/mistral-7b-instruct:free",
 ];
 
 export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
@@ -107,9 +105,7 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
       } else if (clean.includes("qwen") || clean.includes("coder")) {
         model = "qwen/qwen-2.5-coder-32b-instruct:free";
       } else if (clean.includes("mistral")) {
-        model = "mistralai/mistral-small-24b-instruct-2501:free";
-      } else if (clean.includes("gemma")) {
-        model = "google/gemma-2-9b-it:free";
+        model = "mistralai/mistral-7b-instruct:free";
       } else if (clean.includes("llama-3.1") || clean.includes("llama3")) {
         model = "meta-llama/llama-3.1-8b-instruct:free";
       } else {
@@ -191,20 +187,22 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
       throw new LLMError(hint, provider, 401);
     }
 
-    // Automatic Failover: If primary provider/model returns 404/400 or fails, try active free OpenRouter models in sequence
+    // Automatic Failover: If primary provider/model returns 404/400 ("No endpoints found"), try active free OpenRouter models in sequence
     for (const fallbackModel of OPENROUTER_FREE_MODELS) {
-      try {
-        return await callLLM({
-          userPrompt,
-          systemPrompt,
-          temperature,
-          maxTokens,
-          provider: "openrouter",
-          apiKey: "",
-          model: fallbackModel,
-        });
-      } catch {
-        // Try next free model in list
+      if (fallbackModel !== model) {
+        try {
+          return await callLLM({
+            userPrompt,
+            systemPrompt,
+            temperature,
+            maxTokens,
+            provider: "openrouter",
+            apiKey: "",
+            model: fallbackModel,
+          });
+        } catch {
+          // Try next free model in list
+        }
       }
     }
 
