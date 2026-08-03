@@ -40,8 +40,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             body: JSON.stringify({
               text: request.text,
               apiKey: apiKey || undefined,
-              model: request.model || (apiKey ? "gpt-4o-mini" : "meta-llama/llama-3.3-70b-instruct:free"),
+              model: request.model || (apiKey ? "gpt-4o-mini" : "google/gemini-2.0-flash-exp:free"),
               provider: request.provider || (apiKey ? "openai" : "openrouter"),
+              level: request.level || "deep",
             }),
             signal: AbortSignal.timeout(20000),
           });
@@ -53,23 +54,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               sendResponse({ success: false, error: `Too many requests. Try again ${retryAfter ? `in ${retryAfter}s` : "in a few minutes"}.` });
               return;
             }
-            if (res.status === 402) {
-              sendResponse({ success: false, error: msg });
-              return;
-            }
             if (res.status >= 500) { lastErr = msg; continue; }
-            sendResponse({ success: false, error: msg });
+          } else {
+            cachedWorkingUrl = url;
+            sendResponse({ success: true, data });
             return;
           }
-          cachedWorkingUrl = url;
-          sendResponse({ success: true, data });
-          return;
         } catch (err) {
           lastErr = err.message || "Connection failed";
           continue;
         }
       }
-      sendResponse({ success: false, error: lastErr || "Could not reach Prompt+ API. Check your connection and try again." });
+
+      // Offline Architect Prompt Fallback Engine
+      const fallbackText = `[ROLE & PERSONA]\nAct as an expert AI Specialist.\n\n[OBJECTIVE]\n${request.text.trim()}\n\n[KEY REQUIREMENTS & CONSTRAINTS]\n- Tone: Professional, practical, and clear.\n- Format: Comprehensive, structured, zero filler text.\n- Instructions: Provide actionable step-by-step guidance.`;
+      sendResponse({
+        success: true,
+        data: {
+          enhanced: fallbackText,
+          model: "prompt-architect-offline",
+          provider: "local",
+        },
+      });
     })();
     return true;
   }

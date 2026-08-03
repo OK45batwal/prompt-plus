@@ -1142,6 +1142,29 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   observer.observe(document.body, { childList: true, subtree: true });
   injectFab();
 
+  // Inline keyboard shortcut (Cmd+Shift+E / Ctrl+Shift+E)
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "E" || e.key === "e")) {
+      const activeInput = getInput();
+      if (!activeInput) return;
+      const val = getText(activeInput);
+      if (!val.trim()) return;
+      e.preventDefault();
+      showToast("✨ Enhancing prompt with Prompt+...");
+      chrome.runtime.sendMessage(
+        { action: "enhancePrompt", text: val },
+        (res) => {
+          if (res && res.success && res.data?.enhanced) {
+            setText(activeInput, res.data.enhanced);
+            showToast("✨ Enhanced with Prompt+!");
+          } else {
+            showToast("⚠️ Could not enhance prompt");
+          }
+        }
+      );
+    }
+  });
+
   loadSettings((s) => { currentMode = s.mode || "device"; });
 
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
