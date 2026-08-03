@@ -376,6 +376,6 @@ Copyright &copy; 2026 **Prompt+**. All rights reserved. Proprietary software.
 
   <sub>Designed & developed with ❤️ by <a href="https://github.com/OK45batwal">OK45batwal</a></sub>
   <br><br>
-  <a href="https://prompt-plus-7md4ow7pu-unkown3.vercel.app"><strong>🌐 Visit Production App →</strong></a>
+  <a href="https://prompt-plus-three.vercel.app/"><strong>🌐 Visit Production App →</strong></a>
 
 </div>
