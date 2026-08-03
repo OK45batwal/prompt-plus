@@ -101,6 +101,8 @@ model Prompt {
   @@index([userId])
   @@index([collectionId])
   @@index([createdAt])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, category])
   @@map("prompts")
 }
 
@@ -197,6 +199,7 @@ model UsageLog {
 
   @@index([userId])
   @@index([createdAt])
+  @@index([userId, action, createdAt(sort: Desc)])
   @@map("usage_logs")
 }
 
