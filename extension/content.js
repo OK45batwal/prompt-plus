@@ -293,21 +293,23 @@
       return;
     }
 
-    // Dynamic top coordinate calculation: float cleanly above chat container
-    const barHeight = 38;
-    let top = rect.top - barHeight - 8;
-    if (top < 12) {
-      top = rect.bottom + 8;
+    // Position floating toolbar cleanly above top-right of chat container
+    const barHeight = bar.offsetHeight || 36;
+    const barWidth = bar.offsetWidth || 320;
+    const viewportWidth = window.innerWidth;
+
+    let top = rect.top - barHeight - 6;
+    if (top < 8) {
+      // If near top of viewport, dock top-right inside container
+      top = rect.top + 8;
     }
 
-    // Ensure left coordinate stays inside visible viewport
-    const viewportWidth = window.innerWidth;
-    const barWidth = bar.offsetWidth || 240;
-    let left = rect.left;
+    // Align to top-right of chat input card
+    let left = rect.right - barWidth - 8;
+    if (left < 16) left = 16;
     if (left + barWidth > viewportWidth - 16) {
       left = Math.max(16, viewportWidth - barWidth - 16);
     }
-    if (left < 16) left = 16;
 
     bar.style.setProperty("position", "fixed", "important");
     bar.style.setProperty("z-index", "99999999", "important");
