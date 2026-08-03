@@ -11,11 +11,12 @@ export const DELETE = withAuth(
       return jsonResponse({ error: "Too many attempts. Try again later." }, { status: 429, rateLimit: rl, requestId });
     }
 
-    await getDb().user.update({
-      where: { id: userId },
-      data: { deletedAt: new Date(), email: `deleted-${userId}@promptplus.placeholder`, name: null, passwordHash: null, resetToken: null, resetTokenExpiry: null },
-    });
+    await getDb().$transaction([
+      getDb().usageLog.deleteMany({ where: { userId } }),
+      getDb().analytics.deleteMany({ where: { userId } }),
+      getDb().user.delete({ where: { id: userId } }),
+    ]);
 
-    return jsonResponse({ message: "Account deleted" }, { requestId });
+    return jsonResponse({ message: "Account deleted. All associated data has been permanently removed." }, { requestId });
   }
 );
