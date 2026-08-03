@@ -1,8 +1,8 @@
-export interface LLMRequestOptions {
-  provider: "openai" | "anthropic" | "openrouter" | "google" | "nvidia";
-  apiKey: string;
+export interface LLMOptions {
+  provider?: "openai" | "anthropic" | "openrouter" | "nvidia" | "google";
+  apiKey?: string;
   model?: string;
-  systemPrompt?: string;
+  systemPrompt: string;
   userPrompt: string;
   temperature?: number;
   maxTokens?: number;
@@ -11,49 +11,54 @@ export interface LLMRequestOptions {
 
 export interface LLMResponse {
   content: string;
-  tokensIn: number;
-  tokensOut: number;
-  provider: string;
+  tokensIn?: number;
+  tokensOut?: number;
   model: string;
+  provider: string;
 }
 
 export class LLMError extends Error {
-  constructor(message: string, public provider: string, public statusCode?: number) {
+  provider: string;
+  statusCode?: number;
+
+  constructor(message: string, provider: string, statusCode?: number) {
     super(message);
     this.name = "LLMError";
+    this.provider = provider;
+    this.statusCode = statusCode;
   }
 }
 
-export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> {
-  let provider = options.provider;
+const OPENROUTER_FREE_MODELS = [
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "google/gemini-2.0-flash-exp:free",
+  "deepseek/deepseek-r1:free",
+  "qwen/qwen-2.5-coder-32b-instruct:free",
+  "mistralai/mistral-7b-instruct:free",
+];
+
+export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
   const {
-    apiKey,
-    systemPrompt = "You are a helpful AI assistant.",
+    apiKey = "",
+    systemPrompt,
     userPrompt,
     temperature = 0.7,
-    maxTokens = 1000,
+    maxTokens = 4096,
     responseFormatJson = false,
   } = options;
 
-  // Auto-detect key prefix mismatch to prevent 401 errors
-  if (provider === "nvidia" && !apiKey.startsWith("nvapi-")) {
-    if (apiKey.startsWith("sk-or-")) {
-      provider = "openrouter";
-      options.model = options.model?.includes("llama") ? "meta-llama/llama-3.3-70b-instruct:free" : "meta-llama/llama-3.3-70b-instruct:free";
-    } else if (apiKey.startsWith("sk-ant-")) {
-      provider = "anthropic";
-      options.model = "claude-3-5-sonnet-20241022";
-    } else if (apiKey.startsWith("sk-")) {
-      provider = "openai";
-      options.model = "gpt-4o-mini";
-    }
-  } else if (provider === "openrouter" && apiKey.startsWith("nvapi-")) {
-    provider = "nvidia";
-    options.model = "meta/llama-3.3-70b-instruct";
-  } else if (provider === "openai" && apiKey.startsWith("nvapi-")) {
-    provider = "nvidia";
-    options.model = "meta/llama-3.3-70b-instruct";
-  } else if (provider === "openai" && apiKey.startsWith("sk-or-")) {
+  let provider = options.provider || "openrouter";
+
+  // Auto-route based on API key prefix if provided
+  if (apiKey) {
+    if (apiKey.startsWith("nvapi-")) provider = "nvidia";
+    else if (apiKey.startsWith("sk-or-")) provider = "openrouter";
+    else if (apiKey.startsWith("sk-ant-")) provider = "anthropic";
+    else if (apiKey.startsWith("sk-")) provider = "openai";
+  }
+
+  // Auto-select free OpenRouter model if no API key is provided
+  if (!apiKey && provider !== "openrouter") {
     provider = "openrouter";
     options.model = "meta-llama/llama-3.3-70b-instruct:free";
   }
@@ -129,6 +134,7 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
       : {}),
   };
 
+  // NOTE: OpenRouter free models reject response_format: { type: "json_object" }. Only send response_format to OpenAI!
   const body = isAnthropic
     ? { model, system: systemPrompt, messages: [{ role: "user", content: userPrompt }], max_tokens: maxTokens, temperature }
     : {
@@ -136,23 +142,23 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
         messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
         temperature,
         max_tokens: maxTokens,
-        ...(responseFormatJson && !isNvidia ? { response_format: { type: "json_object" } } : {}),
+        ...(responseFormatJson && !isNvidia && !isOpenRouter ? { response_format: { type: "json_object" } } : {}),
       };
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000);
-  
+
   let res: Response | null = null;
   let data: Record<string, unknown> = {};
   let lastErrMessage = "";
 
-  // Retry loop for transient 5xx / timeout network errors
+  // Retry loop for transient network errors
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
       res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body), signal: controller.signal });
       data = await res.json().catch(() => ({}));
       if (res.ok) break;
-      if (res.status < 500 && res.status !== 429) break; // Don't retry client errors (400, 401, 403)
+      if (res.status < 500 && res.status !== 429 && res.status !== 404) break; // Don't retry auth errors (401, 403)
       lastErrMessage = (data as { error?: { message?: string } })?.error?.message || `${provider} API error (${res.status})`;
       if (attempt < 2) await new Promise((r) => setTimeout(r, 1000 * attempt));
     } catch (err: unknown) {
@@ -165,26 +171,28 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
   if (!res || !res.ok) {
     if (res?.status === 401) {
       const hint = isNvidia
-        ? "Invalid NVIDIA API Key (expected nvapi-...). Check your key in API Vault or choose an OpenRouter free model."
+        ? "Invalid NVIDIA API Key. Check your key in API Vault or choose an OpenRouter free model."
         : isOpenRouter
-        ? "Invalid OpenRouter API Key (expected sk-or-...). Check your key in API Vault."
+        ? "Invalid OpenRouter API Key. Check your key in API Vault."
         : isAnthropic
-        ? "Invalid Anthropic API Key (expected sk-ant-...). Check your key in API Vault."
-        : "Invalid OpenAI API Key (expected sk-...). Check your key in API Vault.";
+        ? "Invalid Anthropic API Key. Check your key in API Vault."
+        : "Invalid OpenAI API Key. Check your key in API Vault.";
       throw new LLMError(hint, provider, 401);
     }
 
-    // Failover: If primary provider or model returns 404/5xx, fallback to primary working free model
-    if (res?.status === 404 || (!isOpenRouter && provider !== "openrouter")) {
-      try {
-        return await callLLM({
-          ...options,
-          provider: "openrouter",
-          apiKey: "",
-          model: "meta-llama/llama-3.3-70b-instruct:free",
-        });
-      } catch {
-        // Ignore fallback error and throw primary error
+    // Failover: If primary model returns 404/400 or fails, try free OpenRouter models in sequence
+    for (const fallbackModel of OPENROUTER_FREE_MODELS) {
+      if (fallbackModel !== model) {
+        try {
+          return await callLLM({
+            ...options,
+            provider: "openrouter",
+            apiKey: "",
+            model: fallbackModel,
+          });
+        } catch {
+          // Try next free model in list
+        }
       }
     }
 
@@ -194,16 +202,19 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
   const parsed = data as {
     content?: Array<{ text?: string }>;
     choices?: Array<{ message?: { content?: string } }>;
-    usage?: { input_tokens?: number; output_tokens?: number; prompt_tokens?: number; completion_tokens?: number };
+    usage?: { prompt_tokens?: number; completion_tokens?: number };
+    model?: string;
   };
 
-  const text = (isAnthropic ? parsed.content?.[0]?.text : parsed.choices?.[0]?.message?.content) || "";
+  const textOutput = isAnthropic
+    ? parsed.content?.[0]?.text || ""
+    : parsed.choices?.[0]?.message?.content || "";
 
   return {
-    content: text,
-    tokensIn: (isAnthropic ? parsed.usage?.input_tokens : parsed.usage?.prompt_tokens) || userPrompt.length,
-    tokensOut: (isAnthropic ? parsed.usage?.output_tokens : parsed.usage?.completion_tokens) || text.length,
+    content: textOutput,
+    tokensIn: parsed.usage?.prompt_tokens,
+    tokensOut: parsed.usage?.completion_tokens,
+    model: parsed.model || model,
     provider,
-    model,
   };
 }
