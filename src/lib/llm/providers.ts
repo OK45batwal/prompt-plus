@@ -66,8 +66,9 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
   }
 
   // Strip any internal suffix like ::openrouter, ::nvidia, ::openai, etc.
-  if (options.model) {
-    options.model = options.model.replace(/::(openrouter|nvidia|openai|anthropic)/gi, "").replace(/^openrouter\//gi, "").trim();
+  let reqModel = options.model || "";
+  if (reqModel) {
+    reqModel = reqModel.replace(/::(openrouter|nvidia|openai|anthropic)/gi, "").replace(/^openrouter\//gi, "").trim();
   }
 
   const isOpenRouter = provider === "openrouter";
@@ -75,7 +76,7 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
   const isNvidia = provider === "nvidia";
 
   let model =
-    options.model ||
+    reqModel ||
     (isOpenRouter
       ? "google/gemini-2.0-flash-exp:free"
       : isAnthropic
@@ -85,14 +86,17 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
       : "gpt-4o-mini");
 
   if (isNvidia) {
-    if (model === "nvidia/llama-3.3-70b-instruct" || model.includes("llama-3.3")) {
+    const clean = model.toLowerCase();
+    if (clean.includes("llama-3.3") || clean.includes("llama3.3") || clean.includes("llama3")) {
       model = "meta/llama-3.3-70b-instruct";
-    } else if (model.includes("nemotron")) {
+    } else if (clean.includes("nemotron")) {
       model = "nvidia/llama-3.1-nemotron-70b-instruct";
-    } else if (model.includes("gemma")) {
+    } else if (clean.includes("gemma")) {
       model = "google/gemma-2-27b-it";
-    } else if (model.includes("mistral")) {
+    } else if (clean.includes("mistral")) {
       model = "mistralai/mistral-7b-instruct-v0.3";
+    } else if (!model.includes("/")) {
+      model = "meta/llama-3.3-70b-instruct";
     }
   } else if (isOpenRouter) {
     const clean = model.toLowerCase();
@@ -108,9 +112,6 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
         model = "google/gemma-2-9b-it:free";
       } else if (clean.includes("llama-3.1") || clean.includes("llama3")) {
         model = "meta-llama/llama-3.1-8b-instruct:free";
-      } else if (clean.includes("llama-3.3")) {
-        // If user specifically requests llama 3.3 in free mode, map to paid slug if key exists, else free flash
-        model = "google/gemini-2.0-flash-exp:free";
       } else {
         model = "google/gemini-2.0-flash-exp:free";
       }
@@ -190,19 +191,20 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
       throw new LLMError(hint, provider, 401);
     }
 
-    // Failover: If primary model is unavailable (e.g. 404/400), try active free OpenRouter models in sequence
+    // Automatic Failover: If primary provider/model returns 404/400 or fails, try active free OpenRouter models in sequence
     for (const fallbackModel of OPENROUTER_FREE_MODELS) {
-      if (fallbackModel !== model) {
-        try {
-          return await callLLM({
-            ...options,
-            provider: "openrouter",
-            apiKey: "",
-            model: fallbackModel,
-          });
-        } catch {
-          // Try next free model in list
-        }
+      try {
+        return await callLLM({
+          userPrompt,
+          systemPrompt,
+          temperature,
+          maxTokens,
+          provider: "openrouter",
+          apiKey: "",
+          model: fallbackModel,
+        });
+      } catch {
+        // Try next free model in list
       }
     }
 
