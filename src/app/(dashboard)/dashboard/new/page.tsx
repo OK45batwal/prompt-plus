@@ -285,6 +285,27 @@ export default function PromptBuilderPage() {
       setResult(resultData);
       toast("Prompt enhanced successfully!", "success");
 
+      // Auto-save to Local History
+      if (typeof window !== "undefined") {
+        try {
+          const newItem = {
+            id: `hist_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            originalText: prompt,
+            enhancedText: finalEnhancedText,
+            model: enhanceProvider === "device" ? "Gemini Nano (On-Device)" : selectedModelData?.name || selectedModel,
+            originalScore: scoreData.data?.total || 45,
+            enhancedScore: enhancedScoreData.data?.total || 88,
+            timestamp: new Date().toISOString(),
+          };
+          const existingRaw = localStorage.getItem("pp_local_history");
+          const existing = existingRaw ? JSON.parse(existingRaw) : [];
+          const updated = [newItem, ...existing.filter((x: { originalText: string }) => x.originalText !== prompt)].slice(0, 100);
+          localStorage.setItem("pp_local_history", JSON.stringify(updated));
+        } catch {
+          // ignore
+        }
+      }
+
       // Save prompt and results to the server
       try {
         const createRes = await fetch("/api/v1/prompts", {
