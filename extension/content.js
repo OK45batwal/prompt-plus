@@ -1178,9 +1178,9 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   // Inline keyboard shortcut (Cmd+Shift+E / Ctrl+Shift+E)
   document.addEventListener("keydown", (e) => {
     if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "E" || e.key === "e")) {
+      const selectionText = window.getSelection()?.toString()?.trim();
       const activeInput = getInput();
-      if (!activeInput) return;
-      const val = getText(activeInput);
+      const val = selectionText || (activeInput ? getText(activeInput) : "");
       if (!val.trim()) return;
       e.preventDefault();
       showToast("✨ Enhancing prompt with Prompt+...");
@@ -1188,8 +1188,12 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
         { action: "enhancePrompt", text: val },
         (res) => {
           if (res && res.success && res.data?.enhanced) {
-            setText(activeInput, res.data.enhanced);
-            showToast("✨ Enhanced with Prompt+!");
+            if (activeInput) {
+              setText(activeInput, res.data.enhanced);
+            } else {
+              navigator.clipboard.writeText(res.data.enhanced);
+            }
+            showToast("✨ Enhanced & inserted into chat!");
           } else {
             showToast("⚠️ Could not enhance prompt");
           }
@@ -1210,7 +1214,7 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
     if (request.action === "openEnhancePanel" && request.text) {
       currentTarget = getInput();
       currentText = request.text;
-      setText(currentTarget, request.text);
+      if (currentTarget) setText(currentTarget, request.text);
       openPanel();
     }
     if (request.action === "getTokenInfo") {
