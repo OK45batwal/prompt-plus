@@ -6,6 +6,20 @@ import { jsonResponse } from "@/lib/api/response-headers";
 
 export const revalidate = 3600; // Cache template listings for 1 hour
 
+export function extractTemplateVariables(promptText: string): Array<{ name: string; label: string }> {
+  if (!promptText) return [];
+  const matches = promptText.match(/\{\{([^}]+)\}\}/g);
+  if (!matches) return [];
+  const uniqueNames = Array.from(new Set(matches.map((m) => m.replace(/[\{\}]/g, "").trim())));
+  return uniqueNames.map((name) => {
+    const label = name
+      .split("_")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+    return { name, label };
+  });
+}
+
 const OFFICIAL_TEMPLATES = [
   {
     id: "tpl_seo_blog",
@@ -302,76 +316,49 @@ export async function GET(request: NextRequest) {
     ];
   }
 
-  const templates = await getDb().template.findMany({
+  const dbTemplates = await getDb().template.findMany({
     where,
     orderBy: { usageCount: "desc" },
+  }).catch(() => []);
+
+  // Filter fallback official templates
+  let fallback = OFFICIAL_TEMPLATES;
+  if (category) fallback = fallback.filter((t) => t.category.toLowerCase() === category.toLowerCase());
+  if (search) {
+    const q = search.toLowerCase();
+    fallback = fallback.filter((t) => t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) || t.prompt.toLowerCase().includes(q));
+  }
+
+  // Merge database templates and official fallback templates (deduplicating by id)
+  const existingIds = new Set(dbTemplates.map((t) => t.id));
+  const combined = [...dbTemplates, ...fallback.filter((f) => !existingIds.has(f.id))];
+
+  return jsonResponse({ data: combined });
+}
+
+export const POST = withAuth(async (request: NextRequest) => {
+  const body = await request.json();
+  const validation = createTemplateSchema.safeParse(body);
+
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: "Invalid request payload", details: validation.error.flatten() },
+      { status: 400 }
+    );
+  }
+
+  const { title, name, description, category, model, isOfficial, prompt } = validation.data;
+
+  const template = await getDb().template.create({
+    data: {
+      title: title || name || "Untitled Template",
+      description,
+      category,
+      model: model || null,
+      isOfficial: isOfficial ?? false,
+      prompt,
+    },
   });
 
-  if (templates.length === 0) {
-    // Return filtered official fallback templates when database templates are empty
-    let fallback = OFFICIAL_TEMPLATES;
-    if (category) fallback = fallback.filter((t) => t.category.toLowerCase() === category.toLowerCase());
-    if (search) {
-      const q = search.toLowerCase();
-      fallback = fallback.filter((t) => t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q));
-    }
-    return NextResponse.json({ data: fallback });
-  }
-
-  return NextResponse.json({ data: templates });
-}
-
-export function extractTemplateVariables(prompt: string): Array<{ name: string; label: string; type: string; required: boolean }> {
-  const matches = prompt.matchAll(/\{\{([a-zA-Z0-9_-]+)\}\}/g);
-  const varsMap = new Map<string, { name: string; label: string; type: string; required: boolean }>();
-
-  for (const match of matches) {
-    const varName = match[1].trim();
-    if (varName && !varsMap.has(varName)) {
-      varsMap.set(varName, {
-        name: varName,
-        label: varName.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-        type: "text",
-        required: true,
-      });
-    }
-  }
-
-  return Array.from(varsMap.values());
-}
-
-export const POST = withAuth(
-  async (req, context) => {
-    const { requestId, body } = context;
-    const { name, description, prompt, category, models } = body!;
-    const variables = extractTemplateVariables(prompt);
-
-    const template = await getDb().template.create({
-      data: {
-        title: name,
-        description: description || null,
-        category: category || "other",
-        prompt,
-        variables,
-        model: models?.[0] || null,
-        isOfficial: false,
-      },
-    });
-
-    return jsonResponse(
-      {
-        data: {
-          id: template.id,
-          name: template.title,
-          description: template.description,
-          prompt: template.prompt,
-          variables,
-          category: template.category,
-          isOfficial: template.isOfficial,
-        },
-      },
-      { status: 201, requestId }
-    );
-  },
-  { schema: createTemplateSchema }
-);
+  return jsonResponse({ data: template }, { status: 201 });
+});
