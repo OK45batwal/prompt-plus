@@ -14,7 +14,7 @@
 
   <!-- Sleek Glowing Shields Bar -->
   <p align="center">
-    <a href="https://prompt-plus-7md4ow7pu-unkown3.vercel.app">
+    <a href="https://prompt-plus-three.vercel.app/">
       <img src="https://img.shields.io/badge/Production-Live%20Vercel-3b82f6?style=for-the-badge&logo=vercel&logoColor=white" alt="Live App" />
     </a>
     <a href="#-browser-extension">
