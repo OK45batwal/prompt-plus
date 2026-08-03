@@ -180,6 +180,96 @@ Include exact parameters for:
 - Camera Lens & Angle: {{camera_lens}}
 - Aspect Ratio & Render Flags: --ar 16:9 --v 6.0 --style raw --q 2`,
   },
+  {
+    id: "tpl_ai_agent_system",
+    title: "Autonomous AI Agent System Prompt & Tool Contract",
+    description: "Production-grade system prompt defining persona, constraints, tool calling schema, and edge case safety guidelines.",
+    category: "Code",
+    model: "claude-3-5-sonnet-20241022",
+    usageCount: 2310,
+    isOfficial: true,
+    prompt: `You are an Autonomous AI Agent designed for {{agent_role}}.
+
+### IDENTITY & GOAL
+Your core goal is: {{primary_goal}}
+
+### SYSTEM RULES & CONSTRAINTS
+1. Strict Tool Execution: Invoke available tools only when required arguments are verified.
+2. Safety & Fallbacks: Never execute destructive operations without user confirmation.
+3. Tone & Behavior: {{behavior_tone}}
+
+### OUTPUT FORMAT
+Provide concise, step-by-step reasoning followed by executable JSON tool calls.`,
+  },
+  {
+    id: "tpl_youtube_script",
+    title: "High-Retention YouTube Video Script",
+    description: "Engaging 10-minute video script with visual cues, pattern interrupts, retention hooks, and CTA overlays.",
+    category: "Social Media",
+    model: "gpt-4o-mini",
+    usageCount: 1480,
+    isOfficial: true,
+    prompt: `You are a YouTube viral strategist. Write a complete 8-minute video script on {{video_topic}} targeting {{target_viewer}}.
+
+Script Structure:
+- 0:00 - 0:30 Hook: High-stakes statement & visual pattern interrupt.
+- 0:30 - 2:00 Context & Problem Statement.
+- 2:00 - 6:00 Core Breakdown: 3 actionable steps with [Visual Cue] tags.
+- 6:00 - 7:30 Common Mistakes & Key Takeaways.
+- 7:30 - 8:00 Outro & End Screen CTA: {{end_cta}}.`,
+  },
+  {
+    id: "tpl_product_launch",
+    title: "Product Hunt & TechCrunch Launch Copy",
+    description: "Compelling launch copy with tagline, founder story, key features bullet list, and maker comment.",
+    category: "Marketing",
+    model: "gpt-4o-mini",
+    usageCount: 1730,
+    isOfficial: true,
+    prompt: `You are a startup launch copywriter. Write Product Hunt & TechCrunch launch copy for {{product_name}}, an innovative {{product_category}}.
+
+Include:
+1. Tagline (under 60 characters).
+2. The Problem Statement: What pain does {{target_user}} face?
+3. The Solution & Top 3 Features.
+4. First Maker Comment introducing the team and special promo offer: {{launch_offer}}.`,
+  },
+  {
+    id: "tpl_unit_test_suite",
+    title: "Comprehensive Vitest / Jest Unit Test Suite",
+    description: "Generates thorough unit & integration test cases with mock handlers, edge cases, and 100% code coverage.",
+    category: "Code",
+    model: "meta-llama/llama-3.3-70b-instruct:free",
+    usageCount: 1590,
+    isOfficial: true,
+    prompt: `You are a Lead QA Automation Engineer. Write a comprehensive Vitest / Jest test suite for the following TypeScript module:
+
+Target Code:
+\`\`\`typescript
+{{code_to_test}}
+\`\`\`
+
+Requirements:
+1. Cover happy paths, invalid inputs, boundary conditions, and async error rejections.
+2. Mock external API calls and database connections.
+3. Use descriptive test names (\`describe\`, \`it\`).`,
+  },
+  {
+    id: "tpl_customer_support_sop",
+    title: "Customer Support Resolution SOP & Email",
+    description: "Empathetic, clear customer service response SOP for resolving billing, technical, or account issues.",
+    category: "Email",
+    model: "gpt-4o-mini",
+    usageCount: 940,
+    isOfficial: true,
+    prompt: `You are a Customer Experience Manager. Write an empathetic, professional customer support email resolving a customer issue regarding {{issue_description}}.
+
+Guidelines:
+1. Acknowledge the inconvenience and validate their frustration.
+2. Provide a clear 3-step resolution process.
+3. Offer compensation or account credit: {{compensation_offer}}.
+4. End with a personal escalation contact line.`,
+  },
 ];
 
 export async function GET(request: NextRequest) {
