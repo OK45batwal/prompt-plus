@@ -6,7 +6,7 @@
   <br>
 
   <!-- Animated Typing SVG — Perfectly Scaled -->
-  <a href="https://prompt-plus-7md4ow7pu-unkown3.vercel.app">
+  <a href="https://prompt-plus-three.vercel.app/">
     <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=19&duration=2200&pause=800&color=60A5FA&center=true&vCenter=true&width=520&lines=%E2%9A%A1+Production+AI+Prompt+Engineering;%F0%9F%93%B1+On-Device+Gemini+Nano+(100%25+Offline);%F0%9F%A7%A9+Chrome+Extension+for+AI+Chatbots;%F0%9F%8C%90+OpenRouter+%2B+NVIDIA+Free+Tier;%F0%9F%92%AF+100%25+Free+%E2%80%94+Zero+Paywalls" alt="Typing SVG" />
   </a>
 
