@@ -126,7 +126,7 @@ export default function PromptBuilderPage() {
   const [copied, setCopied] = useState(false);
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [showCostBreakdown, setShowCostBreakdown] = useState(false);
-  const [enhanceMode, setEnhanceMode] = useState<"api" | "device">("device");
+  const [enhanceMode, setEnhanceMode] = useState<"api" | "device">("api");
   const [deviceState, setDeviceState] = useState<"unknown" | "available" | "unavailable" | "downloading">("unknown");
   const [enhanceLevel, setEnhanceLevel] = useState<EnhanceLevel>("deep");
   const [isListening, setIsListening] = useState(false);

@@ -94,12 +94,14 @@ describe("Phase 1 Security & Correctness Hardening", () => {
   });
 
   describe("Server API Key Resolver", () => {
-    it("should return null when no server keys are configured", () => {
+    it("should return openrouter free fallback when no server keys are configured", () => {
       delete process.env.NVIDIA_API_KEY;
       delete process.env.OPENROUTER_API_KEY;
       delete process.env.OPENAI_API_KEY;
       delete process.env.ANTHROPIC_API_KEY;
-      expect(resolveServerApiKey("openai")).toBeNull();
+      const res = resolveServerApiKey("openai");
+      expect(res.provider).toBe("openrouter");
+      expect(res.apiKey).toBe("");
     });
 
     it("should prefer the requested provider when its key exists", () => {
@@ -119,12 +121,14 @@ describe("Phase 1 Security & Correctness Hardening", () => {
       expect(result?.apiKey).toBe("nvapi-test");
     });
 
-    it("should return null for an unknown preferred provider with no configured keys", () => {
+    it("should return openrouter free fallback for an unknown preferred provider with no configured keys", () => {
       delete process.env.NVIDIA_API_KEY;
       delete process.env.OPENROUTER_API_KEY;
       delete process.env.OPENAI_API_KEY;
       delete process.env.ANTHROPIC_API_KEY;
-      expect(resolveServerApiKey("google")).toBeNull();
+      const res = resolveServerApiKey("google");
+      expect(res.provider).toBe("openrouter");
+      expect(res.apiKey).toBe("");
     });
   });
 

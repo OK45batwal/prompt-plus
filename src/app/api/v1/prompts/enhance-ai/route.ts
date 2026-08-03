@@ -62,21 +62,14 @@ export const POST = withAuth(
 
     if (!apiKey) {
       const serverKey = resolveServerApiKey(resolvedProvider);
-      if (serverKey) {
-        apiKey = serverKey.apiKey;
-        resolvedProvider = serverKey.provider;
-      }
+      apiKey = serverKey.apiKey;
+      resolvedProvider = serverKey.provider;
     }
 
-    if (!apiKey && resolvedProvider === "openrouter") {
+    if (!apiKey && resolvedProvider !== "openrouter") {
+      // Fallback to openrouter free tier
+      resolvedProvider = "openrouter";
       apiKey = "";
-    }
-
-    if (apiKey === undefined && resolvedProvider !== "openrouter") {
-      return jsonResponse(
-        { error: "No API key configured. Add your API key in Settings or choose an OpenRouter Free model." },
-        { status: 402, requestId }
-      );
     }
 
     const { metaPrompt, systemInstruction } = buildArchitectMetaPrompt(text, category, tone, length, level);

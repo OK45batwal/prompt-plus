@@ -40,8 +40,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             body: JSON.stringify({
               text: request.text,
               apiKey: apiKey || undefined,
-              model: request.model || "gpt-4o-mini",
-              provider: request.provider || "openai",
+              model: request.model || (apiKey ? "gpt-4o-mini" : "meta-llama/llama-3.3-70b-instruct:free"),
+              provider: request.provider || (apiKey ? "openai" : "openrouter"),
             }),
             signal: AbortSignal.timeout(20000),
           });
