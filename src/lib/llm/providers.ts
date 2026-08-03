@@ -30,11 +30,13 @@ export class LLMError extends Error {
 }
 
 const OPENROUTER_FREE_MODELS = [
-  "meta-llama/llama-3.3-70b-instruct:free",
   "google/gemini-2.0-flash-exp:free",
   "deepseek/deepseek-r1:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
   "qwen/qwen-2.5-coder-32b-instruct:free",
-  "mistralai/mistral-7b-instruct:free",
+  "mistralai/mistral-small-24b-instruct-2501:free",
+  "google/gemma-2-9b-it:free",
+  "nousresearch/hermes-3-llama-3.1-405b:free",
 ];
 
 export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
@@ -60,7 +62,7 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
   // Auto-select free OpenRouter model if no API key is provided
   if (!apiKey && provider !== "openrouter") {
     provider = "openrouter";
-    options.model = "meta-llama/llama-3.3-70b-instruct:free";
+    options.model = "google/gemini-2.0-flash-exp:free";
   }
 
   // Strip any internal suffix like ::openrouter, ::nvidia, ::openai, etc.
@@ -75,7 +77,7 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
   let model =
     options.model ||
     (isOpenRouter
-      ? "meta-llama/llama-3.3-70b-instruct:free"
+      ? "google/gemini-2.0-flash-exp:free"
       : isAnthropic
       ? "claude-3-5-sonnet-20241022"
       : isNvidia
@@ -94,20 +96,29 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
     }
   } else if (isOpenRouter) {
     const clean = model.toLowerCase();
-    if (!model || model === "default" || clean.includes("gpt-4o-mini")) {
-      model = "meta-llama/llama-3.3-70b-instruct:free";
-    } else if (clean.includes("llama-3.3") || clean.includes("llama3.3") || clean.includes("llama-3")) {
-      model = "meta-llama/llama-3.3-70b-instruct:free";
-    } else if (clean.includes("gemini") || clean.includes("flash")) {
-      model = "google/gemini-2.0-flash-exp:free";
-    } else if (clean.includes("deepseek") || clean.includes("r1")) {
-      model = "deepseek/deepseek-r1:free";
-    } else if (clean.includes("qwen")) {
-      model = "qwen/qwen-2.5-coder-32b-instruct:free";
-    } else if (clean.includes("mistral")) {
-      model = "mistralai/mistral-7b-instruct:free";
-    } else if (clean.includes("phi")) {
-      model = "microsoft/phi-3-medium-128k-instruct:free";
+    if (!apiKey) {
+      // Free mode (no API key) — map to active 100% free OpenRouter models
+      if (clean.includes("deepseek") || clean.includes("r1")) {
+        model = "deepseek/deepseek-r1:free";
+      } else if (clean.includes("qwen") || clean.includes("coder")) {
+        model = "qwen/qwen-2.5-coder-32b-instruct:free";
+      } else if (clean.includes("mistral")) {
+        model = "mistralai/mistral-small-24b-instruct-2501:free";
+      } else if (clean.includes("gemma")) {
+        model = "google/gemma-2-9b-it:free";
+      } else if (clean.includes("llama-3.1") || clean.includes("llama3")) {
+        model = "meta-llama/llama-3.1-8b-instruct:free";
+      } else if (clean.includes("llama-3.3")) {
+        // If user specifically requests llama 3.3 in free mode, map to paid slug if key exists, else free flash
+        model = "google/gemini-2.0-flash-exp:free";
+      } else {
+        model = "google/gemini-2.0-flash-exp:free";
+      }
+    } else {
+      // Paid mode (API key supplied) — use full model slugs
+      if (clean.includes("llama-3.3")) {
+        model = "meta-llama/llama-3.3-70b-instruct";
+      }
     }
   }
 
@@ -134,7 +145,6 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
       : {}),
   };
 
-  // NOTE: OpenRouter free models reject response_format: { type: "json_object" }. Only send response_format to OpenAI!
   const body = isAnthropic
     ? { model, system: systemPrompt, messages: [{ role: "user", content: userPrompt }], max_tokens: maxTokens, temperature }
     : {
@@ -158,7 +168,7 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
       res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body), signal: controller.signal });
       data = await res.json().catch(() => ({}));
       if (res.ok) break;
-      if (res.status < 500 && res.status !== 429 && res.status !== 404) break; // Don't retry auth errors (401, 403)
+      if (res.status < 500 && res.status !== 429 && res.status !== 404 && res.status !== 400) break;
       lastErrMessage = (data as { error?: { message?: string } })?.error?.message || `${provider} API error (${res.status})`;
       if (attempt < 2) await new Promise((r) => setTimeout(r, 1000 * attempt));
     } catch (err: unknown) {
@@ -180,7 +190,7 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
       throw new LLMError(hint, provider, 401);
     }
 
-    // Failover: If primary model returns 404/400 or fails, try free OpenRouter models in sequence
+    // Failover: If primary model is unavailable (e.g. 404/400), try active free OpenRouter models in sequence
     for (const fallbackModel of OPENROUTER_FREE_MODELS) {
       if (fallbackModel !== model) {
         try {

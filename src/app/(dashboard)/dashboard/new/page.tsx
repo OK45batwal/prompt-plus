@@ -23,17 +23,16 @@ import type { EnhanceLevel } from "@/lib/llm/meta-prompt";
 import { useToast } from "@/components/ui/toast";
 
 type Model =
-  | "openrouter-llama3-free"
   | "openrouter-gemini-flash-free"
   | "openrouter-deepseek-r1-free"
+  | "openrouter-llama31-free"
   | "openrouter-qwen-coder-free"
   | "openrouter-mistral-small-free"
-  | "openrouter-phi3-free"
-  | "openrouter-hermes3-free"
+  | "openrouter-gemma2-free"
+  | "openrouter-llama33"
   | "nvidia-llama3"
   | "nvidia-nemotron"
-  | "nvidia-gemma2"
-  | "nvidia-mistral";
+  | "nvidia-gemma2";
 
 interface Analysis {
   intent: string;
@@ -73,17 +72,16 @@ interface EnhancedResult {
 }
 
 const models: { id: Model; name: string; icon: string; free: boolean; provider?: string; rawModel?: string }[] = [
-  { id: "openrouter-llama3-free", name: "Llama 3.3 70B (OpenRouter Free)", icon: "🦙", free: true, provider: "openrouter", rawModel: "meta-llama/llama-3.3-70b-instruct:free" },
   { id: "openrouter-gemini-flash-free", name: "Gemini 2.0 Flash (OpenRouter Free)", icon: "⚡", free: true, provider: "openrouter", rawModel: "google/gemini-2.0-flash-exp:free" },
   { id: "openrouter-deepseek-r1-free", name: "DeepSeek R1 (OpenRouter Free)", icon: "🧠", free: true, provider: "openrouter", rawModel: "deepseek/deepseek-r1:free" },
+  { id: "openrouter-llama31-free", name: "Llama 3.1 8B (OpenRouter Free)", icon: "🦙", free: true, provider: "openrouter", rawModel: "meta-llama/llama-3.1-8b-instruct:free" },
   { id: "openrouter-qwen-coder-free", name: "Qwen 2.5 Coder 32B (OpenRouter Free)", icon: "💻", free: true, provider: "openrouter", rawModel: "qwen/qwen-2.5-coder-32b-instruct:free" },
   { id: "openrouter-mistral-small-free", name: "Mistral Small 24B (OpenRouter Free)", icon: "🌬️", free: true, provider: "openrouter", rawModel: "mistralai/mistral-small-24b-instruct-2501:free" },
-  { id: "openrouter-phi3-free", name: "Phi-3 Mini 128K (OpenRouter Free)", icon: "🔬", free: true, provider: "openrouter", rawModel: "microsoft/phi-3-mini-128k-instruct:free" },
-  { id: "openrouter-hermes3-free", name: "Hermes 3 405B (OpenRouter Free)", icon: "🏛️", free: true, provider: "openrouter", rawModel: "nousresearch/hermes-3-llama-3.1-405b:free" },
+  { id: "openrouter-gemma2-free", name: "Gemma 2 9B (OpenRouter Free)", icon: "🔷", free: true, provider: "openrouter", rawModel: "google/gemma-2-9b-it:free" },
+  { id: "openrouter-llama33", name: "Llama 3.3 70B (OpenRouter)", icon: "🦙", free: false, provider: "openrouter", rawModel: "meta-llama/llama-3.3-70b-instruct" },
   { id: "nvidia-llama3", name: "Llama 3.3 70B (NVIDIA Free)", icon: "🦙", free: true, provider: "nvidia", rawModel: "meta/llama-3.3-70b-instruct" },
   { id: "nvidia-nemotron", name: "Nemotron 70B (NVIDIA Free)", icon: "⚡", free: true, provider: "nvidia", rawModel: "nvidia/llama-3.1-nemotron-70b-instruct" },
   { id: "nvidia-gemma2", name: "Gemma 2 27B (NVIDIA Free)", icon: "🔷", free: true, provider: "nvidia", rawModel: "google/gemma-2-27b-it" },
-  { id: "nvidia-mistral", name: "Mistral 7B (NVIDIA Free)", icon: "🌬️", free: true, provider: "nvidia", rawModel: "mistralai/mistral-7b-instruct-v0.3" },
 ];
 
 const tones = [
@@ -144,7 +142,7 @@ export default function PromptBuilderPage() {
   };
   const initialPrefs = typeof window !== "undefined" ? loadPrefs() : {};
   const [selectedModel, setSelectedModel] = useState<Model>(
-    models.some((m) => m.id === initialPrefs.defaultModel) ? initialPrefs.defaultModel : "gpt-4"
+    models.some((m) => m.id === initialPrefs.defaultModel) ? (initialPrefs.defaultModel as Model) : "openrouter-gemini-flash-free"
   );
   const [selectedTone, setSelectedTone] = useState(initialPrefs.defaultTone || "");
 
