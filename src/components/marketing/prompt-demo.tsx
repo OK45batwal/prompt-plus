@@ -63,28 +63,28 @@ export function PromptDemo() {
   };
 
   return (
-    <div className="mt-12 max-w-4xl mx-auto text-left rounded-2xl border border-primary/20 bg-card/90 shadow-2xl backdrop-blur-xl overflow-hidden transition-all duration-300 hover:border-primary/40 hover:shadow-primary/10">
+    <div className="mt-12 max-w-4xl mx-auto text-left rounded-2xl border bg-card/90 backdrop-blur-xl overflow-hidden transition-all duration-300 hover:border-primary/40 shadow-[0_2px_16px_rgba(79,70,229,0.05)]">
       {/* Top Header Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b bg-muted/40 backdrop-blur-md">
         <div className="flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
           </span>
           <span className="text-xs font-semibold text-foreground tracking-wide uppercase flex items-center gap-1.5">
-            Live Refinement Engine
+            Live refinement engine
           </span>
         </div>
 
         {/* Interactive Sample Tabs */}
-        <div className="flex items-center gap-1 bg-background/60 p-1 rounded-xl border border-border/50">
+        <div className="flex items-center gap-1 bg-background/60 p-1 rounded-full border border-border/50">
           {samplePrompts.map((s, idx) => (
             <button
               key={idx}
               onClick={() => setActiveSample(idx)}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
                 activeSample === idx
-                  ? "bg-primary text-primary-foreground shadow-sm scale-105"
+                  ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
               }`}
             >
@@ -101,25 +101,25 @@ export function PromptDemo() {
         <div className="p-5 bg-muted/20 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">
-              <span className="flex items-center gap-1.5 text-amber-500">
-                <Zap className="h-3.5 w-3.5 animate-pulse" />
-                Raw User Input
+              <span className="flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5" />
+                Raw user input
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium">
-                Vague / Unstructured
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
+                Unstructured
               </span>
             </div>
-            <div className="p-4 rounded-xl border bg-background/80 font-mono text-xs text-foreground/90 leading-relaxed shadow-2xs">
+            <div className="p-4 rounded-xl border bg-background/80 font-mono text-xs text-foreground/90 leading-relaxed">
               &ldquo;{current.raw}&rdquo;
             </div>
           </div>
 
           <div className="mt-4 pt-3 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
             <span className="flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
               ~{tokens} input tokens
             </span>
-            <span className="font-mono text-emerald-600 dark:text-emerald-400 font-medium">
+            <span className="font-mono text-primary font-medium">
               Est. ${cheapest.toFixed(5)}/req
             </span>
           </div>
@@ -132,27 +132,27 @@ export function PromptDemo() {
           <div>
             <div className="flex items-center justify-between text-xs font-semibold text-primary uppercase tracking-wider mb-2.5">
               <span className="flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 animate-spin-slow text-blue-500" />
-                Prompt+ Production Output
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                Prompt+ production output
               </span>
               <button
                 onClick={handleCopy}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-background border text-[11px] font-medium text-foreground hover:bg-accent transition-colors shadow-2xs"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-background border text-[11px] font-medium text-foreground hover:bg-accent transition-colors"
               >
-                {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                {copied ? "Copied!" : "Copy"}
+                {copied ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
+                {copied ? "Copied" : "Copy"}
               </button>
             </div>
 
-            <pre className="text-xs font-mono text-foreground leading-relaxed bg-background/90 p-4 rounded-xl border border-primary/20 whitespace-pre-wrap max-h-60 overflow-y-auto shadow-inner">
+            <pre className="text-xs font-mono text-foreground leading-relaxed bg-background/90 p-4 rounded-xl border border-primary/20 whitespace-pre-wrap max-h-60 overflow-y-auto">
               {current.enhanced}
             </pre>
           </div>
 
           <div className="mt-4 pt-3 border-t border-primary/10 flex items-center justify-between text-[11px] text-primary/80 font-medium">
             <span className="flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              100% Ready for GPT-4, Claude & Gemini
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              Ready for GPT-4, Claude & Gemini
             </span>
             <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
               Score: 98/100

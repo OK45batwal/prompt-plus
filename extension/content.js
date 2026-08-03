@@ -43,7 +43,7 @@
     if (pctEl) pctEl.textContent = info.pct + "%";
     fill.style.width = info.pct + "%";
     if (info.pct > 80) fill.style.background = "linear-gradient(90deg, #f59e0b, #ef4444)";
-    else fill.style.background = "linear-gradient(90deg, #22c55e, #3b82f6)";
+    else fill.style.background = "#6366f1";
   }
 
   function getInput() {
@@ -146,8 +146,8 @@
 
     fillEl.style.width = info.pct + "%";
     if (info.pct > 80) fillEl.style.background = "linear-gradient(90deg, #f59e0b, #ef4444)";
-    else if (info.pct > 50) fillEl.style.background = "linear-gradient(90deg, #3b82f6, #f59e0b)";
-    else fillEl.style.background = "linear-gradient(90deg, #22c55e, #3b82f6)";
+    else if (info.pct > 50) fillEl.style.background = "linear-gradient(90deg, #6366f1, #f59e0b)";
+    else fillEl.style.background = "#6366f1";
   }
 
   function injectFab() {
@@ -285,7 +285,7 @@
     t.textContent = msg;
     Object.assign(t.style, {
       position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
-      background: "rgba(15,23,42,0.9)", color: "#f1f5f9", padding: "10px 20px", borderRadius: "14px",
+      background: "rgba(10,10,12,0.9)", color: "#f1f5f9", padding: "10px 20px", borderRadius: "14px",
       fontSize: "13px", zIndex: "100000001", boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
       border: "1px solid rgba(124,58,237,0.3)", fontFamily: "-apple-system, sans-serif",
       backdropFilter: "blur(12px)", transition: "opacity 0.3s",
@@ -360,7 +360,7 @@
     remainEl.textContent = remaining.toLocaleString();
     pctEl.textContent = info.pct + "%";
     fill.style.width = info.pct + "%";
-    fill.style.background = info.pct > 80 ? "linear-gradient(90deg, #f59e0b, #ef4444)" : "linear-gradient(90deg, #22c55e, #3b82f6)";
+    fill.style.background = info.pct > 80 ? "linear-gradient(90deg, #f59e0b, #ef4444)" : "#6366f1";
   }
 
   function renderPopover(input, text) {
@@ -550,14 +550,14 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
       if (err.message && (err.message.includes("No API key") || err.message.includes("API key"))) {
         if (result) {
           result.innerHTML =
-            '<div style="padding: 4px; color: #f8fafc;">' +
+            '<div style="padding: 4px; color: #f4f4f5;">' +
             '<div style="font-weight: 600; color: #f59e0b; margin-bottom: 6px; font-size: 12px; display: flex; align-items: center; gap: 6px;">' +
             '<span>🔑</span> No Server API Key' +
             '</div>' +
             '<div style="font-size: 11px; color: #94a3b8; margin-bottom: 10px; line-height: 1.4;">' +
             'No API key configured. Switch to <strong>On-Device AI (Gemini Nano)</strong> for instant free enhancements without an API key.' +
             '</div>' +
-            '<button id="pp-pop-switch-device" type="button" style="width: 100%; padding: 8px 12px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #93c5fd; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">' +
+            '<button id="pp-pop-switch-device" type="button" style="width: 100%; padding: 8px 12px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #a5b4fc; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">' +
             '<span>📱</span> Switch to On-Device AI Mode' +
             '</button>' +
             '</div>';
@@ -805,12 +805,12 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
       if (err.message && (err.message.includes("No API key") || err.message.includes("API key"))) {
         if (enhancedPreview) {
           enhancedPreview.innerHTML =
-            '<div style="padding: 8px; color: #f8fafc;">' +
+            '<div style="padding: 8px; color: #f4f4f5;">' +
             '<div style="font-weight: 600; color: #f59e0b; margin-bottom: 6px; font-size: 13px;">🔑 No API Key Configured</div>' +
             '<div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; line-height: 1.5;">' +
             'No API key configured on server. You can switch to free <strong>On-Device AI</strong> (Gemini Nano) or add an API key in extension popup settings.' +
             '</div>' +
-            '<button id="pp-panel-switch-device" type="button" style="padding: 8px 14px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #93c5fd; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">' +
+            '<button id="pp-panel-switch-device" type="button" style="padding: 8px 14px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #a5b4fc; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">' +
             '📱 Switch to On-Device AI' +
             '</button>' +
             '</div>';
@@ -882,13 +882,13 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   gap: 10px !important;
   padding: 5px 12px !important;
   border-radius: 10px !important;
-  background: rgba(15, 23, 42, 0.96) !important;
+  background: #0a0a0c !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(59, 130, 246, 0.35) !important;
+  border: 1px solid rgba(99, 102, 241, 0.35) !important;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-  color: #f8fafc !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif !important;
+  color: #f4f4f5 !important;
   width: fit-content !important;
   max-width: calc(100vw - 32px) !important;
   height: 38px !important;
@@ -906,20 +906,20 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   padding: 6px 14px !important;
   border-radius: 7px !important;
   border: none !important;
-  background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
+  background: #6366f1 !important;
   color: #ffffff !important;
   font-size: 12px !important;
   font-weight: 600 !important;
   line-height: 1.2 !important;
   cursor: pointer !important;
   white-space: nowrap !important;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif !important;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4) !important;
   transition: transform 0.15s ease, opacity 0.15s ease !important;
   margin: 0 !important;
   outline: none !important;
 }
-.pp-fab-bar .pp-fab-btn:hover { opacity: 0.95 !important; transform: translateY(-1px) !important; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5) !important; }
+.pp-fab-bar .pp-fab-btn:hover { opacity: 0.95 !important; transform: translateY(-1px) !important; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.5) !important; }
 .pp-fab-bar .pp-fab-badge {
   all: initial !important;
   box-sizing: border-box !important;
@@ -935,7 +935,7 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   font-weight: 600 !important;
   line-height: 1.2 !important;
   white-space: nowrap !important;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif !important;
   letter-spacing: 0.03em !important;
   margin: 0 !important;
 }
@@ -946,7 +946,7 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   flex-direction: column !important;
   gap: 3px !important;
   min-width: 130px !important;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif !important;
   margin: 0 !important;
 }
 .pp-fab-bar .pp-fab-token-info {
@@ -960,9 +960,9 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   color: #94a3b8 !important;
   white-space: nowrap !important;
   gap: 10px !important;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif !important;
 }
-.pp-fab-bar .pp-fab-token-info strong { color: #93c5fd !important; font-weight: 600 !important; }
+.pp-fab-bar .pp-fab-token-info strong { color: #a5b4fc !important; font-weight: 600 !important; }
 .pp-fab-bar .pp-fab-remain-wrap { color: #34d399 !important; font-size: 10px !important; font-weight: 500 !important; }
 .pp-fab-bar .pp-fab-token-track {
   all: initial !important;
@@ -979,37 +979,37 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   display: block !important;
   height: 100% !important;
   border-radius: 4px !important;
-  background: linear-gradient(90deg, #22c55e, #3b82f6) !important;
+  background: #6366f1 !important;
   transition: width 0.4s ease !important;
 }
 
 .pp-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99999999; opacity: 0; transition: opacity 0.25s ease; }
 
 .pp-side { position: fixed; top: 0; right: 0; width: 520px; max-width: 96vw; height: 100vh; z-index: 100000000; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-.pp-side-inner { height: 100%; background: #090d16; display: flex; flex-direction: column; box-shadow: -8px 0 40px rgba(0,0,0,0.4); font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #f8fafc; }
+.pp-side-inner { height: 100%; background: #0a0a0c; display: flex; flex-direction: column; box-shadow: -8px 0 40px rgba(0,0,0,0.4); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif; color: #f4f4f5; }
 
 .pp-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
 .pp-head-left { display: flex; align-items: center; gap: 12px; }
-.pp-head-icon { width: 42px; height: 42px; border-radius: 10px; background: #1d4ed8; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; }
+.pp-head-icon { width: 42px; height: 42px; border-radius: 10px; background: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; }
 .pp-head-info { display: flex; flex-direction: column; gap: 2px; }
-.pp-head-title { font-size: 17px; font-weight: 800; color: #f8fafc; letter-spacing: -0.03em; }
+.pp-head-title { font-size: 17px; font-weight: 800; color: #f4f4f5; letter-spacing: -0.03em; }
 .pp-head-enc { font-size: 10px; font-weight: 600; color: #22c55e; text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; gap: 4px; }
 .pp-enc-dot { width: 5px; height: 5px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,0.5); display: inline-block; animation: ppPulse 2s infinite; }
 @keyframes ppPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 .pp-close-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #64748b; cursor: pointer; padding: 7px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-.pp-close-btn:hover { background: rgba(255,255,255,0.08); color: #f8fafc; transform: rotate(90deg); }
+.pp-close-btn:hover { background: rgba(255,255,255,0.08); color: #f4f4f5; transform: rotate(90deg); }
 
 .pp-bots-strip { display: flex; gap: 6px; padding: 8px 20px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
 .pp-bot-pill { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 6px 4px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); font-size: 11px; font-weight: 500; color: #64748b; cursor: pointer; transition: all 0.15s; }
 .pp-bot-pill:hover { background: rgba(255,255,255,0.08); transform: translateY(-1px); }
-.pp-bot-pill.active { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.4); color: #93c5fd; }
+.pp-bot-pill.active { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.4); color: #a5b4fc; }
 .pp-bot-label { font-size: 10px; }
 
 .pp-token-bar { padding: 8px 20px 6px; background: rgba(255,255,255,0.02); border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
 .pp-token-label { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #64748b; margin-bottom: 5px; }
-.pp-token-label strong { color: #93c5fd; font-weight: 600; }
+.pp-token-label strong { color: #a5b4fc; font-weight: 600; }
 .pp-token-track { height: 4px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
-.pp-token-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #22c55e, #3b82f6); transition: width 0.6s ease; }
+.pp-token-fill { height: 100%; border-radius: 4px; background: #6366f1; transition: width 0.6s ease; }
 
 .pp-body { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
 .pp-body::-webkit-scrollbar { width: 4px; }
@@ -1018,53 +1018,53 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
 
 .pp-split-header { display: flex; justify-content: space-between; align-items: center; }
 .pp-split-label { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; }
-.pp-split-label-right { display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 600; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.06em; }
+.pp-split-label-right { display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 600; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.06em; }
 .pp-copy-chip { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); color: #64748b; cursor: pointer; transition: all 0.15s; font-family: inherit; }
 .pp-copy-chip:hover { background: rgba(255,255,255,0.08); color: #94a3b8; }
 .pp-copy-chip:disabled { opacity: 0.3; cursor: not-allowed; }
 
 .pp-split-view { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .pp-split-original, .pp-split-improved { padding: 14px; border-radius: 8px; font-size: 13px; line-height: 1.7; min-height: 60px; white-space: pre-wrap; word-break: break-word; }
-.pp-split-original { background: #0f172a; color: #94a3b8; border: 1px solid rgba(255,255,255,0.06); }
-.pp-split-improved { background: #0f172a; color: #f8fafc; border: 1px solid rgba(255,255,255,0.08); }
+.pp-split-original { background: #131316; color: #94a3b8; border: 1px solid rgba(255,255,255,0.06); }
+.pp-split-improved { background: #131316; color: #f4f4f5; border: 1px solid rgba(255,255,255,0.08); }
 .pp-placeholder { color: #64748b; font-style: italic; font-size: 12px; }
 
-.pp-section { background: #0f172a; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 14px 16px; transition: border-color 0.15s; }
+.pp-section { background: #131316; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 14px 16px; transition: border-color 0.15s; }
 .pp-section:hover { border-color: rgba(59,130,246,0.2); }
 .pp-section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.pp-section-bar { width: 3px; height: 16px; border-radius: 2px; background: #3b82f6; }
-.pp-section-title { font-size: 11px; font-weight: 700; color: #f8fafc; text-transform: uppercase; letter-spacing: 0.06em; }
+.pp-section-bar { width: 3px; height: 16px; border-radius: 2px; background: #6366f1; }
+.pp-section-title { font-size: 11px; font-weight: 700; color: #f4f4f5; text-transform: uppercase; letter-spacing: 0.06em; }
 .pp-section-body { font-size: 13px; line-height: 1.7; color: #94a3b8; white-space: pre-wrap; word-break: break-word; }
 
 .pp-opt-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
 .pp-opt-info { display: flex; flex-direction: column; gap: 1px; }
-.pp-opt-label { font-size: 12px; font-weight: 600; color: #93c5fd; }
+.pp-opt-label { font-size: 12px; font-weight: 600; color: #a5b4fc; }
 .pp-opt-sub { font-size: 10px; color: #64748b; }
 .pp-toggle { position: relative; width: 34px; height: 20px; flex-shrink: 0; cursor: pointer; }
 .pp-toggle input { display: none; }
 .pp-toggle-slider { position: absolute; inset: 0; background: rgba(255,255,255,0.1); border-radius: 10px; transition: 0.2s; cursor: pointer; }
 .pp-toggle-slider::before { content: ""; position: absolute; width: 14px; height: 14px; left: 3px; bottom: 3px; background: #64748b; border-radius: 50%; transition: 0.2s; }
 .pp-toggle input:checked + .pp-toggle-slider { background: rgba(59,130,246,0.4); }
-.pp-toggle input:checked + .pp-toggle-slider::before { transform: translateX(14px); background: #3b82f6; }
+.pp-toggle input:checked + .pp-toggle-slider::before { transform: translateX(14px); background: #6366f1; }
 
 .pp-model-row { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
 .pp-model-label { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0; }
-.pp-select { flex: 1; background: #0f172a; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; color: #f8fafc; padding: 8px 30px 8px 12px; font-size: 13px; font-family: inherit; outline: none; cursor: pointer; transition: border-color 0.15s; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+.pp-select { flex: 1; background: #131316; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; color: #f4f4f5; padding: 8px 30px 8px 12px; font-size: 13px; font-family: inherit; outline: none; cursor: pointer; transition: border-color 0.15s; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
 .pp-select:hover { border-color: rgba(59,130,246,0.4); }
-.pp-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
-.pp-select optgroup { background: #0f172a; color: #64748b; }
-.pp-select option { background: #0f172a; color: #f8fafc; }
+.pp-select:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+.pp-select optgroup { background: #131316; color: #64748b; }
+.pp-select option { background: #131316; color: #f4f4f5; }
 
 .pp-footer { display: flex; align-items: center; justify-content: space-between; padding: 14px 22px; background: rgba(255,255,255,0.03); border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
 .pp-footer-credit { font-size: 12px; color: #64748b; letter-spacing: 0.01em; }
-.pp-footer-credit strong { color: #93c5fd; font-weight: 700; }
+.pp-footer-credit strong { color: #a5b4fc; font-weight: 700; }
 .pp-footer-actions { display: flex; gap: 8px; }
 
 .pp-btn-keep { padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #64748b; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; font-family: inherit; }
 .pp-btn-keep:hover { background: rgba(255,255,255,0.06); color: #94a3b8; border-color: rgba(255,255,255,0.12); }
 
-.pp-btn-apply { padding: 10px 24px; border-radius: 8px; border: none; background: #3b82f6; color: #ffffff; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; font-family: inherit; }
-.pp-btn-apply:hover { background: #2563eb; transform: translateY(-2px); }
+.pp-btn-apply { padding: 10px 24px; border-radius: 8px; border: none; background: #6366f1; color: #ffffff; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; font-family: inherit; }
+.pp-btn-apply:hover { background: #4f46e5; transform: translateY(-2px); }
 .pp-btn-apply:active { transform: translateY(0); }
 .pp-btn-apply:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
@@ -1077,7 +1077,7 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   width: 460px;
   max-width: calc(100vw - 24px);
   max-height: 70vh;
-  background: #090d16;
+  background: #0a0a0c;
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 14px;
   box-shadow: 0 16px 60px rgba(0,0,0,0.55);
@@ -1085,8 +1085,8 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: #f8fafc;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif;
+  color: #f4f4f5;
 }
 .pp-pop-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -1098,7 +1098,7 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
 .pp-pop-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
 .pp-pop-mode {
   font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 6px;
-  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.4); color: #93c5fd;
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.4); color: #a5b4fc;
   margin-left: auto; margin-right: 8px;
 }
 .pp-pop-close {
@@ -1106,19 +1106,19 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   color: #64748b; cursor: pointer; padding: 5px; border-radius: 6px;
   display: flex; align-items: center; justify-content: center; transition: all 0.15s;
 }
-.pp-pop-close:hover { background: rgba(255,255,255,0.08); color: #f8fafc; }
+.pp-pop-close:hover { background: rgba(255,255,255,0.08); color: #f4f4f5; }
 .pp-pop-token { padding: 8px 16px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
 .pp-pop-token-label { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #64748b; margin-bottom: 5px; }
-.pp-pop-token-label strong { color: #93c5fd; font-weight: 600; }
+.pp-pop-token-label strong { color: #a5b4fc; font-weight: 600; }
 .pp-pop-token-track { height: 4px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
-.pp-pop-token-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #22c55e, #3b82f6); transition: width 0.6s ease; }
+.pp-pop-token-fill { height: 100%; border-radius: 4px; background: #6366f1; transition: width 0.6s ease; }
 .pp-pop-body { flex: 1; overflow-y: auto; padding: 14px 16px; }
 .pp-pop-body::-webkit-scrollbar { width: 4px; }
 .pp-pop-body::-webkit-scrollbar-track { background: transparent; }
 .pp-pop-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
 .pp-pop-result {
-  font-size: 13px; line-height: 1.7; color: #f8fafc; white-space: pre-wrap; word-break: break-word;
-  background: #0f172a; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;
+  font-size: 13px; line-height: 1.7; color: #f4f4f5; white-space: pre-wrap; word-break: break-word;
+  background: #131316; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;
 }
 .pp-pop-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 12px 16px; background: rgba(255,255,255,0.03); border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
 .pp-pop-copy {
@@ -1126,7 +1126,7 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   background: rgba(255,255,255,0.03); color: #94a3b8; font-size: 13px; font-weight: 500;
   cursor: pointer; transition: all 0.15s; font-family: inherit;
 }
-.pp-pop-copy:hover:not(:disabled) { background: rgba(255,255,255,0.06); color: #f8fafc; }
+.pp-pop-copy:hover:not(:disabled) { background: rgba(255,255,255,0.06); color: #f4f4f5; }
 .pp-pop-copy:disabled { opacity: 0.35; cursor: not-allowed; }
   `;
   document.head.appendChild(style);

@@ -16,6 +16,15 @@ const resultBody = document.getElementById("result-body");
 const copyBtn = document.getElementById("copy-btn");
 const useBtn = document.getElementById("use-btn");
 
+const ICON = {
+  device: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
+  zap: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
+  sparkle: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>',
+  key: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.6 7.6a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+  gear: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  spinner: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="pp-spin"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>',
+};
+
 const modeDevice = document.getElementById("mode-device");
 const modeServer = document.getElementById("mode-server");
 
@@ -67,7 +76,7 @@ function setMode(mode) {
   if (resultMode) resultMode.textContent = mode === "device" ? "On-Device" : "API Server";
 
   if (mode === "device") {
-    btnIcon.textContent = "📱";
+    btnIcon.innerHTML = ICON.device;
     btnText.textContent = "Device Enhance";
     modelSelect.style.display = "none";
     modelLabel.style.display = "none";
@@ -81,7 +90,7 @@ function setMode(mode) {
       }
     });
   } else {
-    btnIcon.textContent = "⚡";
+    btnIcon.innerHTML = ICON.zap;
     btnText.textContent = "Apply Upgrade";
     modelSelect.style.display = "";
     modelLabel.style.display = "";
@@ -159,7 +168,7 @@ btn?.addEventListener("click", async () => {
     if (!text) { showMsg("Enter a prompt first", true); return; }
 
     btn.disabled = true;
-    btn.innerHTML = '<span>⏳</span><span>Enhancing…</span>';
+    btn.innerHTML = `<span>${ICON.spinner}</span><span>Enhancing…</span>`;
     if (resultCard) resultCard.style.display = "block";
     if (resultBody) {
       resultBody.classList.remove("placeholder");
@@ -211,19 +220,19 @@ btn?.addEventListener("click", async () => {
       if (isApiKeyErr) {
         resultBody.classList.remove("placeholder");
         resultBody.innerHTML = `
-          <div style="padding: 6px 0; color: #f8fafc;">
-            <div style="font-weight: 600; color: #f59e0b; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; font-size: 12px;">
-              <span>🔑</span> No API Key Configured
+          <div style="padding: 6px 0; color: #f4f4f5;">
+            <div style="font-weight: 600; color: #d97706; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; font-size: 12px;">
+              <span>${ICON.key}</span> No API Key Configured
             </div>
-            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px; line-height: 1.5;">
+            <div style="font-size: 11px; color: #a3a3ad; margin-bottom: 12px; line-height: 1.5;">
               Cloud AI requires an API key. You can switch to free <strong>On-Device AI</strong> (no key needed) or add an API key.
             </div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
-              <button id="err-switch-device" type="button" style="padding: 8px 12px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #93c5fd; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 6px;">
-                <span>📱</span> Switch to On-Device AI (Free & Offline)
+              <button id="err-switch-device" type="button" style="padding: 8px 12px; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.5); color: #a5b4fc; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 6px;">
+                <span>${ICON.device}</span> Switch to On-Device AI (Free & Offline)
               </button>
-              <button id="err-open-key-input" type="button" style="padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 6px;">
-                <span>⚙️</span> Add API Key in Settings below
+              <button id="err-open-key-input" type="button" style="padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e4e4e7; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 6px;">
+                <span>${ICON.gear}</span> Add API Key in Settings below
               </button>
             </div>
           </div>
@@ -247,8 +256,8 @@ btn?.addEventListener("click", async () => {
   } finally {
     btn.disabled = false;
     btn.innerHTML = currentMode === "device"
-      ? '<span>📱</span><span>Device Enhance</span>'
-      : '<span>⚡</span><span>Apply Upgrade</span>';
+      ? `<span>${ICON.device}</span><span>Device Enhance</span>`
+      : `<span>${ICON.zap}</span><span>Apply Upgrade</span>`;
   }
 });
 
@@ -261,7 +270,7 @@ document.addEventListener("click", (e) => {
       navigator.clipboard.writeText(resultBody.textContent);
       if (cBtn) {
         cBtn.textContent = "✓ Copied";
-        setTimeout(() => { cBtn.textContent = "📋 Copy"; }, 1500);
+        setTimeout(() => { cBtn.textContent = "Copy"; }, 1500);
       }
     }
   } else if (target.id === "use-btn" || target.closest("#use-btn")) {
@@ -367,7 +376,7 @@ function updatePopupTokenBar(info) {
   limitEl.textContent = (info.limit / 1000).toFixed(0) + "K";
   pctEl.textContent = info.pct + "%";
   fill.style.width = info.pct + "%";
-  fill.style.background = info.pct > 80 ? "linear-gradient(90deg, #f59e0b, #ef4444)" : "linear-gradient(90deg, #34d399, #7C3AED)";
+  fill.style.background = info.pct > 80 ? "linear-gradient(90deg, #d97706, #ef4444)" : "#6366f1";
 }
 
 function fetchTokenInfo() {
@@ -481,10 +490,10 @@ const sizeToggleBtn = document.getElementById("size-toggle");
 const sizeText = document.getElementById("size-text");
 
 const sizeModes = [
-  { mode: "standard", label: "↔️ 380px" },
-  { mode: "wide", label: "↔️ 480px" },
-  { mode: "full", label: "↔️ 540px" },
-  { mode: "compact", label: "↔️ 360px" },
+  { mode: "standard", label: "380px" },
+  { mode: "wide", label: "480px" },
+  { mode: "full", label: "540px" },
+  { mode: "compact", label: "360px" },
 ];
 
 function applyPopupWidth(modeName) {

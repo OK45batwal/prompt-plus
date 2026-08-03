@@ -38,12 +38,12 @@
       height: auto;
       min-height: 480px;
       max-height: 600px;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #090d16;
-      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif;
+      background: #0a0a0c;
+      color: #f4f4f5;
       overflow-x: hidden;
       overflow-y: auto;
-      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     body.wide-mode {
@@ -76,14 +76,13 @@
     .header-icon {
       width: 32px;
       height: 32px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      border-radius: 9px;
+      background: #6366f1;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 15px;
       color: #fff;
-      box-shadow: 0 0 12px rgba(99, 102, 241, 0.35);
     }
 
     .header-info {
@@ -95,7 +94,7 @@
     .header-title {
       font-size: 13px;
       font-weight: 700;
-      color: #f8fafc;
+      color: #f4f4f5;
       letter-spacing: -0.01em;
     }
 
@@ -186,9 +185,9 @@
     }
 
     .mode-btn.active {
-      background: rgba(59, 130, 246, 0.12);
-      border-color: rgba(59, 130, 246, 0.4);
-      color: #93c5fd;
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
     }
 
     .mode-btn:hover:not(.active) {
@@ -207,10 +206,10 @@
     textarea {
       width: 100%;
       min-height: 84px;
-      background: #0f172a;
+      background: #131316;
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 8px;
-      color: #f8fafc;
+      color: #f4f4f5;
       padding: 10px 12px;
       font-size: 13px;
       line-height: 1.5;
@@ -221,8 +220,8 @@
     }
 
     textarea:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+      border-color: #6366f1;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
     }
 
     textarea::placeholder {
@@ -251,7 +250,7 @@
       cursor: pointer;
       transition: all 0.15s;
       margin-top: 10px;
-      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      background: #6366f1;
       color: #ffffff;
       display: flex;
       align-items: center;
@@ -271,7 +270,7 @@
 
     .result-card {
       margin-top: 10px;
-      background: #0f172a;
+      background: #131316;
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 8px;
       overflow: hidden;
@@ -311,7 +310,7 @@
     }
 
     .result-actions button:hover:not(:disabled) {
-      color: #f8fafc;
+      color: #f4f4f5;
       background: rgba(255, 255, 255, 0.08);
     }
 
@@ -321,9 +320,9 @@
     }
 
     .result-actions button.use {
-      background: rgba(59, 130, 246, 0.15);
-      border-color: rgba(59, 130, 246, 0.4);
-      color: #93c5fd;
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
     }
 
     .result-mode {
@@ -331,9 +330,9 @@
       font-weight: 600;
       padding: 2px 6px;
       border-radius: 4px;
-      background: rgba(59, 130, 246, 0.12);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      color: #93c5fd;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
       display: inline-flex;
       align-items: center;
     }
@@ -425,7 +424,7 @@
       justify-content: space-between;
       margin-top: 8px;
       padding: 8px 10px;
-      background: #0f172a;
+      background: #131316;
       border-radius: 6px;
       border: 1px solid rgba(255, 255, 255, 0.06);
     }
@@ -436,7 +435,7 @@
     }
 
     .opt-label strong {
-      color: #93c5fd;
+      color: #a5b4fc;
       font-weight: 600;
     }
 
@@ -480,12 +479,12 @@
     }
 
     .toggle input:checked+.toggle-slider {
-      background: rgba(59, 130, 246, 0.4);
+      background: rgba(99, 102, 241, 0.4);
     }
 
     .toggle input:checked+.toggle-slider::before {
       transform: translateX(14px);
-      background: #3b82f6;
+      background: #6366f1;
     }
 
     .model-label {
@@ -499,10 +498,10 @@
 
     .model-select {
       width: 100%;
-      background: #0f172a;
+      background: #131316;
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 6px;
-      color: #f8fafc;
+      color: #f4f4f5;
       padding: 7px 10px;
       font-size: 12px;
       font-family: inherit;
@@ -515,20 +514,20 @@
     }
 
     .model-select optgroup {
-      background: #0f172a;
+      background: #131316;
       color: #64748b;
       font-size: 11px;
     }
 
     .model-select option {
-      background: #0f172a;
-      color: #f8fafc;
+      background: #131316;
+      color: #f4f4f5;
     }
 
     .api-card {
       margin-top: 8px;
       padding: 10px 12px;
-      background: #0f172a;
+      background: #131316;
       border-radius: 8px;
       border: 1px solid rgba(255, 255, 255, 0.06);
     }
@@ -547,7 +546,7 @@
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 6px;
-      color: #f8fafc;
+      color: #f4f4f5;
       padding: 7px 10px;
       font-size: 11px;
       font-family: ui-monospace, SFMono-Regular, monospace;
@@ -556,8 +555,8 @@
     }
 
     .api-card input:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+      border-color: #6366f1;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
     }
 
     .api-card input::placeholder {
@@ -580,7 +579,7 @@
     }
 
     .token-label strong {
-      color: #93c5fd;
+      color: #a5b4fc;
       font-weight: 600;
     }
 
@@ -594,7 +593,7 @@
     .token-fill {
       height: 100%;
       border-radius: 3px;
-      background: linear-gradient(90deg, #22c55e, #3b82f6);
+      background: #6366f1;
       transition: width 0.6s ease;
     }
 
@@ -610,12 +609,12 @@
     }
 
     .footer strong {
-      color: #93c5fd;
+      color: #a5b4fc;
       font-weight: 600;
     }
 
     .footer a {
-      color: #93c5fd;
+      color: #a5b4fc;
       text-decoration: none;
       font-weight: 500;
     }
@@ -632,7 +631,14 @@
     }
 
     .mode-hint.warn {
-      color: #f59e0b;
+      color: #d97706;
+    }
+
+    .pp-spin {
+      animation: pp-spin 0.8s linear infinite;
+    }
+    @keyframes pp-spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -648,7 +654,7 @@
     </div>
     <div style="display:flex;align-items:center;gap:6px">
       <button class="key-badge" id="size-toggle" title="Click to cycle dynamic width (380px / 480px / 540px)" style="cursor:pointer;user-select:none">
-        <span id="size-text">↔️ 380px</span>
+        <span id="size-text">380px</span>
       </button>
       <div class="key-badge" id="key-indicator">
         <span id="key-text">No Key</span>
@@ -658,10 +664,12 @@
 
   <div class="mode-bar">
     <button class="mode-btn active" id="mode-device">
-      <span>📱</span> On-Device
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      On-Device
     </button>
     <button class="mode-btn" id="mode-server">
-      <span>⚡</span> API Based
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      API Based
     </button>
   </div>
 
@@ -674,7 +682,9 @@
     </div>
 
     <button class="btn-enhance" id="enhance-btn">
-      <span id="btn-icon">✨</span>
+      <span id="btn-icon">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>
+      </span>
       <span id="btn-text">Enhance Prompt</span>
     </button>
 
@@ -685,7 +695,7 @@
         <span>Enhanced Prompt</span>
         <div class="result-actions">
           <div class="result-mode" id="result-mode">On-Device</div>
-          <button id="copy-btn" disabled>📋 Copy</button>
+          <button id="copy-btn" disabled>Copy</button>
           <button id="use-btn" class="use" disabled>Use in Tab →</button>
         </div>
       </div>
