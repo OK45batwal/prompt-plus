@@ -1,187 +1,141 @@
 <div align="center">
 
-  <!-- Crisp Cyberpunk Header Banner — Zero Text Clipping -->
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:090d16,50:1e1b4b,100:311b92&height=180&section=header&text=PROMPT%2B%20STUDIO&fontSize=40&fontColor=ffffff&fontAlign=50&fontAlignY=40&desc=AI%20Prompt%20Engineering%20Platform&descSize=15&descAlign=50&descAlignY=66" width="100%" alt="Prompt+ Banner" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0a0a0c,60:1e1b4b,100:4f46e5&height=150&section=header&text=PROMPT%2B&fontSize=44&fontColor=ffffff&fontAlign=50&fontAlignY=38&desc=AI%20Prompt%20Engineering%20Platform%20%2B%20Chrome%20Extension&descSize=14&descAlign=50&descAlignY=64" width="100%" alt="Prompt+ banner" />
+
+  <h1>Prompt+</h1>
+  <p>
+    <strong>Enterprise-grade AI prompt engineering.</strong> Rewrite rough ideas into role-conditioned, constraint-rich
+    instructions built for <strong>ChatGPT · Claude · Gemini · DeepSeek</strong> — with a private, offline
+    <strong>On-Device Gemini Nano</strong> mode and a native browser extension.
+  </p>
 
   <br>
 
-  <!-- Animated Typing SVG — Perfectly Scaled -->
-  <a href="https://prompt-plus-three.vercel.app/">
-    <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=19&duration=2200&pause=800&color=60A5FA&center=true&vCenter=true&width=520&lines=%E2%9A%A1+Production+AI+Prompt+Engineering;%F0%9F%93%B1+On-Device+Gemini+Nano+(100%25+Offline);%F0%9F%A7%A9+Chrome+Extension+for+AI+Chatbots;%F0%9F%8C%90+OpenRouter+%2B+NVIDIA+Free+Tier;%F0%9F%92%AF+100%25+Free+%E2%80%94+Zero+Paywalls" alt="Typing SVG" />
-  </a>
-
-  <br><br>
-
-  <!-- Sleek Glowing Shields Bar -->
-  <p align="center">
+  <p>
     <a href="https://prompt-plus-three.vercel.app/">
-      <img src="https://img.shields.io/badge/Production-Live%20Vercel-3b82f6?style=for-the-badge&logo=vercel&logoColor=white" alt="Live App" />
+      <img src="https://img.shields.io/badge/Production-Live-6366f1?style=for-the-badge&logo=vercel&logoColor=white&labelColor=0a0a0c" alt="Live app" />
     </a>
-    <a href="#-browser-extension">
-      <img src="https://img.shields.io/badge/Extension-v2.1.0-8b5cf6?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Extension" />
-    </a>
-    <a href="#-tech-stack">
-      <img src="https://img.shields.io/badge/Framework-Next.js%2016-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" />
+    <a href="#browser-extension">
+      <img src="https://img.shields.io/badge/Extension-v2.1.0-a78bfa?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=0a0a0c" alt="Extension" />
     </a>
     <a href="https://github.com/OK45batwal/Prompt-plus">
-      <img src="https://img.shields.io/github/stars/OK45batwal/Prompt-plus?style=for-the-badge&logo=github&color=f59e0b" alt="Stars" />
+      <img src="https://img.shields.io/github/stars/OK45batwal/Prompt-plus?style=for-the-badge&logo=github&logoColor=white&labelColor=0a0a0c&color=eab308" alt="Stars" />
     </a>
     <a href="https://github.com/OK45batwal/Prompt-plus/actions">
-      <img src="https://img.shields.io/github/actions/workflow/status/OK45batwal/Prompt-plus/ci.yml?style=for-the-badge&logo=githubactions&label=CI&color=10b981" alt="CI" />
+      <img src="https://img.shields.io/github/actions/workflow/status/OK45batwal/Prompt-plus/ci.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=CI&labelColor=0a0a0c&color=10b981" alt="CI" />
+    </a>
+    <a href="LICENSE">
+      <img src="https://img.shields.io/badge/License-Proprietary-ef4444?style=for-the-badge&labelColor=0a0a0c&color=ef4444" alt="License" />
     </a>
   </p>
 
-  <!-- Quick Nav Pills -->
-  <p align="center">
-    <a href="#-why-prompt"><strong>Why Prompt+</strong></a> •
-    <a href="#-visual-tour"><strong>Visual Tour</strong></a> •
-    <a href="#-8-step-compiler"><strong>Compiler</strong></a> •
-    <a href="#-browser-extension"><strong>Extension</strong></a> •
-    <a href="#-api-specifications"><strong>API Specs</strong></a> •
-    <a href="#-tech-stack"><strong>Tech Stack</strong></a> •
-    <a href="#-quickstart"><strong>Quickstart</strong></a>
+  <!-- Nav -->
+  <p>
+    <a href="#features"><strong>Features</strong></a> ·
+    <a href="#visual-tour"><strong>Visual Tour</strong></a> ·
+    <a href="#compiler"><strong>Compiler</strong></a> ·
+    <a href="#browser-extension"><strong>Extension</strong></a> ·
+    <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
+    <a href="#api-reference"><strong>API Reference</strong></a> ·
+    <a href="#quickstart"><strong>Quickstart</strong></a>
   </p>
 
 </div>
 
-<br>
+---
+
+## Features
 
 <div align="center">
-  <table width="100%">
-    <tr>
-      <td style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 14px 18px;">
-        <p align="center" style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.6;">
-          ⚡ <strong>Prompt+</strong> is an enterprise-grade AI prompt engineering platform and Chrome extension. It rewrites simple ideas into role-conditioned, constraint-rich instructions optimized for <strong>ChatGPT, Claude, Gemini, and DeepSeek</strong>. Features <strong>On-Device Gemini Nano AI</strong> for offline processing with zero latency.
-        </p>
-      </td>
-    </tr>
-  </table>
-</div>
 
-<br>
+<table width="100%">
+  <tr>
+    <td width="33%" valign="top">
+      <p align="center"><strong>⚡ 8-Step Compiler</strong></p>
+      <p align="center" style="font-size:13px;color:#94a3b8">Intent analysis, context-gap detection, role conditioning and boundary constraints — prompts are <em>compiled</em>, not reworded.</p>
+    </td>
+    <td width="33%" valign="top">
+      <p align="center"><strong>📱 On-Device Gemini Nano</strong></p>
+      <p align="center" style="font-size:13px;color:#94a3b8">Runs 100% locally in Chrome 138+ via the Prompt API. Fully private, zero cost, offline, no API key required.</p>
+    </td>
+    <td width="34%" valign="top">
+      <p align="center"><strong>🛰️ Free-Tier AI Routing</strong></p>
+      <p align="center" style="font-size:13px;color:#94a3b8">Out-of-the-box routing to OpenRouter Free and NVIDIA NIM free models — bring your own key or stay on the free server tier.</p>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <p align="center"><strong>📊 6-Metric Quality Audit</strong></p>
+      <p align="center" style="font-size:13px;color:#94a3b8">Clarity, Specificity, Structure, Context, Constraints, Actionability — scored with a 100-point quality index.</p>
+    </td>
+    <td valign="top">
+      <p align="center"><strong>📚 Curated Library</strong></p>
+      <p align="center" style="font-size:13px;color:#94a3b8">Hand-crafted prompt blueprints with 1-click copy, collections, version history and templates.</p>
+    </td>
+    <td valign="top">
+      <p align="center"><strong>🔐 AES-256 Key Vault</strong></p>
+      <p align="center" style="font-size:13px;color:#94a3b8">Per-provider API keys encrypted with AES-256-GCM. Optional — free models cover you by default.</p>
+    </td>
+  </tr>
+</table>
+</div>
 
 ---
 
-## ⚡ Why Prompt+?
+## Visual Tour
 
 <div align="center">
-
-  <table width="100%">
-    <tr>
-      <td width="50%" valign="top" style="border-top: 3px solid #3b82f6; background: #0f172a; padding: 14px; border-radius: 8px;">
-        <div align="center">
-          <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/High%20Voltage.png" width="36" alt="Compiler" />
-          <h4 style="color: #60a5fa; margin: 6px 0;">8-Step Compiler</h4>
-        </div>
-        <p style="font-size: 12px; color: #cbd5e1; line-height: 1.5; margin: 0;">
-          Intent analysis, context gap detection, role conditioning, and boundary constraints. Prompts are structurally compiled, not just reworded.
-        </p>
-      </td>
-      <td width="50%" valign="top" style="border-top: 3px solid #8b5cf6; background: #0f172a; padding: 14px; border-radius: 8px;">
-        <div align="center">
-          <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Mobile%20Phone.png" width="36" alt="Local AI" />
-          <h4 style="color: #c084fc; margin: 6px 0;">On-Device Gemini Nano</h4>
-        </div>
-        <p style="font-size: 12px; color: #cbd5e1; line-height: 1.5; margin: 0;">
-          Runs 100% locally inside Chrome 138+ (Prompt API). Completely private, zero cost, works offline, and requires no API key.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td width="50%" valign="top" style="border-top: 3px solid #10b981; background: #0f172a; padding: 14px; border-radius: 8px;">
-        <div align="center">
-          <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Globe%20With%20Meridians.png" width="36" alt="Free Tier" />
-          <h4 style="color: #34d399; margin: 6px 0;">Free Tier AI Routing</h4>
-        </div>
-        <p style="font-size: 12px; color: #cbd5e1; line-height: 1.5; margin: 0;">
-          Out-of-the-box routing to OpenRouter Free (Llama 3.3 70B, Gemini 2.0 Flash, DeepSeek R1) & NVIDIA Free API models.
-        </p>
-      </td>
-      <td width="50%" valign="top" style="border-top: 3px solid #f59e0b; background: #0f172a; padding: 14px; border-radius: 8px;">
-        <div align="center">
-          <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Bar%20Chart.png" width="36" alt="Audit" />
-          <h4 style="color: #fbbf24; margin: 6px 0;">6-Metric Quality Audit</h4>
-        </div>
-        <p style="font-size: 12px; color: #cbd5e1; line-height: 1.5; margin: 0;">
-          Evaluates Clarity, Specificity, Structure, Context, Constraints, and Actionability with a 100-point quality score index.
-        </p>
-      </td>
-    </tr>
-    <tr>
-      <td width="50%" valign="top" style="border-top: 3px solid #ec4899; background: #0f172a; padding: 14px; border-radius: 8px;">
-        <div align="center">
-          <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Books.png" width="36" alt="Library" />
-          <h4 style="color: #f472b6; margin: 6px 0;">Curated Library</h4>
-        </div>
-        <p style="font-size: 12px; color: #cbd5e1; line-height: 1.5; margin: 0;">
-          24 hand-crafted prompt blueprints with 1-click Copy & Toast notifications directly inside the Prompt Library.
-        </p>
-      </td>
-      <td width="50%" valign="top" style="border-top: 3px solid #06b6d4; background: #0f172a; padding: 14px; border-radius: 8px;">
-        <div align="center">
-          <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Locked.png" width="36" alt="Vault" />
-          <h4 style="color: #22d3ee; margin: 6px 0;">AES-256 Key Vault</h4>
-        </div>
-        <p style="font-size: 12px; color: #cbd5e1; line-height: 1.5; margin: 0;">
-          Per-provider API key vault encrypted with AES-256-GCM. Bringing your own key is optional — free server models cover you.
-        </p>
-      </td>
-    </tr>
-  </table>
-
-</div>
-
-<br>
-
----
-
-## 🎨 Visual Tour
-
-<div align="center">
-
   <table>
     <tr>
       <td width="50%">
-        <img src="./public/screenshots/landing.png" alt="Landing Page" width="100%" style="border-radius: 8px; border: 1px solid #334155;" />
-        <p align="center"><sub><strong>🌐 Landing Page & Hero Section</strong></sub></p>
+        <img src="./public/screenshots/landing.png" alt="Landing page" width="100%" />
+        <p align="center"><sub><strong>Landing page & hero</strong></sub></p>
       </td>
       <td width="50%">
-        <img src="./public/screenshots/dashboard-home.png" alt="Dashboard Home" width="100%" style="border-radius: 8px; border: 1px solid #334155;" />
-        <p align="center"><sub><strong>📊 Dashboard Command Center & Quick Stats</strong></sub></p>
-      </td>
-    </tr>
-    <tr>
-      <td width="50%">
-        <img src="./public/screenshots/dashboard-new.png" alt="Prompt Builder" width="100%" style="border-radius: 8px; border: 1px solid #334155;" />
-        <p align="center"><sub><strong>✨ AI Prompt Builder (On-Device / API Modes)</strong></sub></p>
-      </td>
-      <td width="50%">
-        <img src="./public/screenshots/dashboard-library.png" alt="Prompt Library" width="100%" style="border-radius: 8px; border: 1px solid #334155;" />
-        <p align="center"><sub><strong>📚 Saved Prompts & Curated Blueprints</strong></sub></p>
+        <img src="./public/screenshots/dashboard-home.png" alt="Dashboard home" width="100%" />
+        <p align="center"><sub><strong>Dashboard command center & quick stats</strong></sub></p>
       </td>
     </tr>
     <tr>
       <td width="50%">
-        <img src="./public/screenshots/dashboard-collections.png" alt="Collections" width="100%" style="border-radius: 8px; border: 1px solid #334155;" />
-        <p align="center"><sub><strong>📁 Custom Prompt Collections</strong></sub></p>
+        <img src="./public/screenshots/dashboard-new.png" alt="Prompt builder" width="100%" />
+        <p align="center"><sub><strong>AI prompt builder (On-Device / API modes)</strong></sub></p>
       </td>
       <td width="50%">
-        <img src="./public/screenshots/extension-page.png" alt="Extension Page" width="100%" style="border-radius: 8px; border: 1px solid #334155;" />
-        <p align="center"><sub><strong>🧩 Manifest V3 Chrome Extension Overview</strong></sub></p>
+        <img src="./public/screenshots/dashboard-analytics.png" alt="Analytics" width="100%" />
+        <p align="center"><sub><strong>Usage analytics & quality trends</strong></sub></p>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%">
+        <img src="./public/screenshots/dashboard-library.png" alt="Prompt library" width="100%" />
+        <p align="center"><sub><strong>Saved prompts & curated blueprints</strong></sub></p>
+      </td>
+      <td width="50%">
+        <img src="./public/screenshots/dashboard-collections.png" alt="Collections" width="100%" />
+        <p align="center"><sub><strong>Custom prompt collections</strong></sub></p>
+      </td>
+    </tr>
+    <tr>
+      <td width="50%">
+        <img src="./public/screenshots/dashboard-templates.png" alt="Templates" width="100%" />
+        <p align="center"><sub><strong>Reusable prompt templates</strong></sub></p>
+      </td>
+      <td width="50%">
+        <img src="./public/screenshots/dashboard-settings.png" alt="Settings & security" width="100%" />
+        <p align="center"><sub><strong>Settings & security controls</strong></sub></p>
       </td>
     </tr>
   </table>
-
 </div>
-
-<br>
 
 ---
 
-## 🔄 8-Step Compiler
+## Compiler
+
+The Prompt+ compiler is a deterministic, stage-gated pipeline that transforms a raw idea into an architecturally structured, constraint-rich instruction.
 
 ```mermaid
-%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#1e1b4b', 'primaryTextColor': '#ffffff', 'primaryBorderColor': '#6366f1', 'lineColor': '#60a5fa', 'secondaryColor': '#0f172a', 'tertiaryColor': '#090d16'}}}%%
 flowchart LR
     A[Raw Input] -->|Domain| B[1. Intent Analysis]
     B -->|Gaps| C[2. Context Detection]
@@ -191,92 +145,105 @@ flowchart LR
     F -->|Audit| G[6. Quality Audit]
     G -->|Snapshot| H[7. Version Index]
     H -->|Inject| I[8. One-Click Insertion]
-
-    style A fill:#0f172a,stroke:#3b82f6,stroke-width:2px
-    style E fill:#1e1b4b,stroke:#8b5cf6,stroke-width:2px
-    style I fill:#064e3b,stroke:#10b981,stroke-width:2px
 ```
 
 <details>
-<summary><strong>🔍 Expand Detailed Compiler Stage Breakdown</strong></summary>
-<br>
+<summary><strong>Expand the per-stage breakdown</strong></summary>
 
-| Step | Stage | Functional Workflow |
+| Step | Stage | Functional workflow |
 | :--- | :--- | :--- |
 | **01** | **Input Acquisition** | Captures raw prompt via web UI, keyboard shortcut (`⌘+Shift+K`), or floating action button. |
-| **02** | **Intent Analysis** | Classifies domain (*Engineering*, *Data*, *Marketing*, *Writing*) and determines complexity. |
-| **03** | **Context Gap Detection** | Identifies missing role personas, output guidelines, constraints, and format guards. |
-| **04** | **Meta-Prompt Compilation** | Builds 8-stage architectural instruction wrappers while preserving core user intent. |
-| **05** | **LLM Dispatch Engine** | Selects Gemini Nano (On-Device), OpenRouter Free, or NVIDIA Free API based on key availability. |
-| **06** | **Architectural Rewrite** | Restructures input into clean sections: *Role*, *Context*, *Instructions*, *Constraints*, *Variables*. |
-| **07** | **Quality Audit** | Evaluates Clarity, Specificity, Structure, Context, Constraints, and Actionability (0-100 score). |
-| **08** | **Delivery & Sync** | Inserts transformed prompt into target chatbot textfield or saves snapshot to user Library. |
+| **02** | **Intent Analysis** | Classifies domain (*Engineering, Data, Marketing, Writing*) and determines complexity. |
+| **03** | **Context-Gap Detection** | Identifies missing role personas, output guidelines, constraints, and format guards. |
+| **04** | **Meta-Prompt Compilation** | Wraps input in 8-stage architectural instructions while preserving core intent. |
+| **05** | **LLM Dispatch Engine** | Selects Gemini Nano (On-Device), OpenRouter Free, or NVIDIA Free based on key availability. |
+| **06** | **Architectural Rewrite** | Restructures into *Role · Context · Instructions · Constraints · Variables*. |
+| **07** | **Quality Audit** | Rates Clarity, Specificity, Structure, Context, Constraints, Actionability (0–100). |
+| **08** | **Delivery & Sync** | Inserts the prompt into the target chatbot or saves a snapshot to the Library. |
 
 </details>
 
-<br>
-
 ---
 
-## 🔌 Browser Extension
+## Browser Extension
 
-The **Prompt+ Browser Extension (Manifest V3)** integrates natively into **ChatGPT** (`chatgpt.com`), **Claude** (`claude.ai`), **Gemini** (`gemini.google.com`), and **DeepSeek** (`deepseek.com`).
-
-<div align="center">
+The **Manifest V3 extension** drops straight into **ChatGPT**, **Claude AI**, **Gemini**, and **DeepSeek**. It adds a sparkle FAB, a structured side panel, and a quick-enhance popup in the same single-accent, dark, premium design as the web app.
 
 ```
-┌───────────────────────────────────────────────────┐
-│  ✦  Prompt+ Intelligence          [• Free Server] │
-├───────────────────────────────────────────────────┤
-│  [ 📱 On-Device ]        [ ⚡ API Based ]          │
-│  On-Device AI — enhanced via Gemini Nano          │
-│                                                   │
-│  [ Paste or type raw prompt idea...           ]   │
-│                                                   │
-│  Token Saver — ~40% fewer tokens in output        │
-│  Model: Llama 3.3 70B (OpenRouter Free)   v       │
-│                                                   │
-│  [          ✨ Self-Enhance Prompt →          ]   │
-│                                                   │
-│  API Key (optional)  [ sk-or-... or nvapi-... ]   │
-├───────────────────────────────────────────────────┤
-│  Context: 1,240 / 128K tokens              [ 1% ] │
-│  Powered by Prompt+                 [Dashboard →] │
-└───────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│  ✦  Prompt+ Intelligence           [ • SECURE ]   │
+│                                                  │
+│  ( On-Device )          ( API Based )            │
+│  On-Device AI — enhanced via Gemini Nano        │
+│                                                  │
+│  [ Paste or type your prompt to enhance...   ]   │
+│  [              ✦  Enhance Prompt           ]    │
+│                                                  │
+│  ▸ Settings  › Token Saver › Model ▸ API Key    │
+│  Context: 1,240 / 128K tokens           [ 1% ]  │
+│  Prompt+ Intelligence            [ Dashboard ]   │
+└──────────────────────────────────────────────────┘
 ```
-
-</div>
 
 <details>
-<summary><strong>📥 Click to View Extension Installation Instructions</strong></summary>
-<br>
+<summary><strong>📥 Install the extension</strong></summary>
 
-1. Open `chrome://extensions` in Chrome, Brave, or Edge.
-2. Toggle **Developer mode** on in the top right corner.
-3. Click **Load unpacked** and select the `/extension` directory in this repository.
-4. Open any AI chatbot website (`chatgpt.com`, `claude.ai`, `gemini.google.com`, or `deepseek.com`).
-5. For On-Device mode, use Chrome 138+ with Gemini Nano enabled (`chrome://flags/#prompt-api-for-gemini-nano`).
+1. Open `chrome://extensions` (or Brave / Edge equivalents).
+2. Toggle **Developer mode** on (top-right).
+3. Click **Load unpacked** and select the [`/extension`](./extension) folder.
+4. Visit a supported chatbot — `chatgpt.com`, `claude.ai`, `gemini.google.com`, or `deepseek.com`.
+5. For **On-Device** mode: use Chrome 138+ and enable Gemini Nano at `chrome://flags/#prompt-api-for-gemini-nano`.
+6. Release: `npm run build:extension` → `dist/prompt-plus-extension-v1.1.0.zip`.
 
 </details>
 
-<br>
+---
+
+## Tech Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Framework** | Next.js 16 (App Router, Turbopack), React 19, TypeScript 5, Tailwind CSS v4, Lucide icons |
+| **Security & auth** | NextAuth.js v5, bcrypt (cost 12), AES-256-GCM key vault, CSRF protection, rate limiting |
+| **Database & ORM** | Prisma ORM v7, PostgreSQL (Neon Serverless / Prisma Postgres) |
+| **AI model routing** | Chrome Gemini Nano, OpenRouter Free, NVIDIA NIM, OpenAI, Anthropic |
+| **Testing & CI** | Vitest v4, Playwright E2E, GitHub Actions CI pipeline |
+| **Platform** | Vercel Serverless, `@vercel/analytics`, `@vercel/speed-insights` |
 
 ---
 
-## 💻 Quickstart
+## API Reference
 
-<div align="center">
-  <table width="100%">
-    <tr>
-      <td style="background: #090d16; border: 1px solid #1e293b; border-radius: 8px; padding: 10px 16px;">
-        <span style="color: #ef4444;">●</span> <span style="color: #eab308;">●</span> <span style="color: #22c55e;">●</span> &nbsp; <strong style="color: #94a3b8; font-family: monospace;">bash — terminal</strong>
-      </td>
-    </tr>
-    <tr>
-      <td style="background: #0f172a; padding: 14px 16px;">
+Authenticated **`/api/v1`** REST endpoints.
+
+<details>
+<summary><strong>📡 Expand full endpoint table</strong></summary>
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/prompts` | List prompts (pagination, search, filter) |
+| `POST` | `/api/v1/prompts` | Create a prompt |
+| `GET` | `/api/v1/prompts/[id]` | Get a single prompt |
+| `PUT` | `/api/v1/prompts/[id]` | Update a prompt |
+| `DELETE` | `/api/v1/prompts/[id]` | Delete a prompt |
+| `GET` | `/api/v1/prompts/[id]/versions` | List version history |
+| `POST` | `/api/v1/prompts/enhance-ai` | **Core** — enhance a prompt via LLM |
+| `POST` | `/api/v1/prompts/analyze` | Analyze prompt intent & complexity |
+| `POST` | `/api/v1/prompts/score` | Score prompt quality |
+| `POST` | `/api/v1/prompts/share` | Generate a share token |
+| `GET/POST` | `/api/v1/collections` | List / create collections |
+| `GET/PUT/DELETE` | `/api/v1/collections/[id]` | Single-collection CRUD |
+| `GET/POST` | `/api/v1/templates` | List / create templates |
+| `POST` | `/api/v1/extension/enhance` | Extension enhancement endpoint |
+
+</details>
+
+---
+
+## Quickstart
 
 ```bash
-# 1. Clone repository
+# 1. Clone the repository
 git clone https://github.com/OK45batwal/Prompt-plus.git
 cd Prompt-plus
 
@@ -286,96 +253,41 @@ npm install
 # 3. Configure environment
 cp .env.example .env.local
 
-# 4. Initialize Database schema
+# 4. Initialize the database schema
 npx prisma db push
 
-# 5. Launch development server
+# 5. Start the development server
 npm run dev
 ```
 
-      </td>
-    </tr>
-  </table>
-</div>
-
-<br>
+Then open `http://localhost:3000` (web) or install the extension from `chrome://extensions`.
 
 ---
 
-## 🏗️ Tech Stack
+## Featured Scripts
 
-<div align="center">
-  <table width="100%">
-    <tr>
-      <td width="22%"><b>Core Framework</b></td>
-      <td>Next.js 16 (App Router, Turbopack), React 19, TypeScript 5, Tailwind CSS v4, Lucide Icons</td>
-    </tr>
-    <tr>
-      <td width="22%"><b>Security & Auth</b></td>
-      <td>NextAuth.js v5, bcrypt (cost 12), AES-256-GCM Key Vault, CSRF Protection, Rate Limiting</td>
-    </tr>
-    <tr>
-      <td width="22%"><b>Database & ORM</b></td>
-      <td>Prisma ORM v7, PostgreSQL (Neon Serverless / Prisma Postgres)</td>
-    </tr>
-    <tr>
-      <td width="22%"><b>AI Model Routing</b></td>
-      <td>Chrome Gemini Nano (On-Device), OpenRouter Free Models, NVIDIA NIM API, OpenAI, Anthropic</td>
-    </tr>
-    <tr>
-      <td width="22%"><b>Testing & CI</b></td>
-      <td>Vitest v4, Vercel Serverless, GitHub Actions Automated Gate Pipeline</td>
-    </tr>
-  </table>
-</div>
+| Command | Purpose |
+| :--- | :--- |
+| `npm run dev` | Start the Next.js dev server |
+| `npm run build` | Production build + extension packaging |
+| `npm run lint` | ESLint over the codebase |
+| `npm test` | API route checks + Vitest suite |
+| `npm run test:e2e` | Playwright end-to-end tests |
+| `npm run build:extension` | Package the browser extension |
+| `npm run check-env` | Validate required environment variables |
 
-<br>
+> **Prefer a compressed, one-time self-hosted setup?** Reference [`.env.example`](./.env.example) and [`docs/`](./docs) for the full configuration guide.
 
 ---
-
-## 🛠️ API Specifications
-
-<details>
-<summary><strong>📡 Expand Full REST API Reference Table</strong></summary>
-<br>
-
-### V1 Endpoints (Authenticated)
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/v1/prompts` | List prompts (pagination, search, filter) |
-| `POST` | `/api/v1/prompts` | Create a new prompt |
-| `GET` | `/api/v1/prompts/[id]` | Get single prompt |
-| `PUT` | `/api/v1/prompts/[id]` | Update prompt |
-| `DELETE` | `/api/v1/prompts/[id]` | Delete prompt |
-| `GET` | `/api/v1/prompts/[id]/versions` | List version history |
-| `POST` | `/api/v1/prompts/enhance-ai` | **Core** — Enhance prompt via LLM |
-| `POST` | `/api/v1/prompts/analyze` | Analyze prompt intent & complexity |
-| `POST` | `/api/v1/prompts/score` | Score prompt quality |
-| `POST` | `/api/v1/prompts/share` | Generate share token |
-| `GET/POST` | `/api/v1/collections` | List / create collections |
-| `GET/PUT/DELETE` | `/api/v1/collections/[id]` | Single collection CRUD |
-| `GET/POST` | `/api/v1/templates` | List / create templates |
-| `POST` | `/api/v1/extension/enhance` | Extension enhancement endpoint |
-
-</details>
-
-<br>
-
----
-
-## 📄 License & Terms
-
-Copyright &copy; 2026 **Prompt+**. All rights reserved. Proprietary software.
-
-<br>
 
 <div align="center">
 
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:090d16,100:1e1b4b&height=100&section=footer" width="100%" alt="Footer Wave" />
+**License** — Copyright © 2026 **Prompt+**. All rights reserved. See [`LICENSE`](./LICENSE).
 
-  <sub>Designed & developed with ❤️ by <a href="https://github.com/OK45batwal">OK45batwal</a></sub>
-  <br><br>
-  <a href="https://prompt-plus-three.vercel.app/"><strong>🌐 Visit Production App →</strong></a>
+[**🌐 Visit the production app**](https://prompt-plus-three.vercel.app/) · [**View source on GitHub**](https://github.com/OK45batwal/Prompt-plus) · [**Author: OK45batwal**](https://github.com/OK45batwal)
+
+<br>
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:1e1b4b,1:4f46e5&height=90&section=footer" width="100%" alt="footer" />
 
 </div>
