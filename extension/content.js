@@ -151,17 +151,24 @@
   }
 
   function injectFab() {
-    if (document.querySelector(".pp-fab-bar")) return;
+    const existing = document.querySelector(".pp-fab-bar");
+    if (existing) {
+      if (existing._targetInput && document.body.contains(existing._targetInput)) {
+        return;
+      }
+      try { existing.remove(); } catch { /* ignore */ }
+    }
     const input = getInput();
     if (!input || !input.parentElement) return;
 
     const rect = input.getBoundingClientRect();
-    if (!rect || rect.width === 0) { setTimeout(injectFab, 1000); return; }
+    if (!rect || rect.width === 0) { setTimeout(injectFab, 800); return; }
 
     currentMode = "device"; // Always force On-Device AI on chatbot floating toolbar
 
     const bar = document.createElement("div");
     bar.className = "pp-fab-bar";
+    bar._targetInput = input;
 
     bar.innerHTML =
       '<button class="pp-fab-btn" id="pp-fab-btn" type="button" title="Enhance prompt with free On-Device AI (Gemini Nano)">' +
@@ -273,6 +280,12 @@
 
   function positionFab(bar, input) {
     if (!bar || !input) return;
+    if (!document.body.contains(input)) {
+      try { bar.remove(); } catch { /* ignore */ }
+      setTimeout(injectFab, 200);
+      return;
+    }
+
     const card = getChatContainer(input) || input;
     const rect = card.getBoundingClientRect();
     if (!rect || rect.width === 0 || rect.height === 0) {
@@ -1169,7 +1182,12 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
     if (injectDebounceTimer) return;
     injectDebounceTimer = setTimeout(() => {
       injectDebounceTimer = null;
-      if (!document.querySelector(".pp-fab-bar")) injectFab();
+      const currentInput = getInput();
+      const existingBar = document.querySelector(".pp-fab-bar");
+      if (!existingBar || !existingBar._targetInput || !document.body.contains(existingBar._targetInput) || (currentInput && existingBar._targetInput !== currentInput)) {
+        if (existingBar) { try { existingBar.remove(); } catch { /* ignore */ } }
+        injectFab();
+      }
     }, 150);
   });
   observer.observe(document.body, { childList: true, subtree: true });
