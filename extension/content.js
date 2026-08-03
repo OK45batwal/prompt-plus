@@ -242,7 +242,17 @@
     window.addEventListener("scroll", schedulePosition, { passive: true });
     window.addEventListener("resize", schedulePosition, { passive: true });
 
+    // Dynamic container observer for realtime resizing & layout shifts
+    try {
+      const container = getChatContainer(input) || input;
+      if (typeof ResizeObserver !== "undefined") {
+        const ro = new ResizeObserver(schedulePosition);
+        ro.observe(container);
+      }
+    } catch { /* fallback */ }
+
     updateFabTokenBar();
+    schedulePosition();
     if (fabTimer) clearInterval(fabTimer);
     fabTimer = setInterval(updateFabTokenBar, 2500);
   }
@@ -251,11 +261,11 @@
     if (!input) return null;
     const form = input.closest("form");
     if (form) return form;
-    const composer = input.closest("[class*='composer'], [class*='chat-input'], [class*='prompt-container']");
+    const composer = input.closest("[class*='composer'], [class*='chat-input'], [class*='prompt-container'], [data-id='root']");
     if (composer) return composer;
     let el = input.parentElement;
     while (el && el.parentElement && el.tagName !== "BODY" && el.tagName !== "MAIN") {
-      if (el.offsetHeight >= 50 && el.querySelector("button, [role='button']")) return el;
+      if (el.offsetHeight >= 40 && el.querySelector("button, [role='button']")) return el;
       el = el.parentElement;
     }
     return input.parentElement || input;
@@ -265,19 +275,34 @@
     if (!bar || !input) return;
     const card = getChatContainer(input) || input;
     const rect = card.getBoundingClientRect();
-    if (!rect || rect.width === 0) return;
-
-    let top = rect.top - 44;
-    if (top < 10) {
-      top = Math.max(10, rect.top + 6);
+    if (!rect || rect.width === 0 || rect.height === 0) {
+      bar.style.setProperty("display", "none", "important");
+      return;
     }
+
+    // Dynamic top coordinate calculation: float cleanly above chat container
+    const barHeight = 38;
+    let top = rect.top - barHeight - 8;
+    if (top < 12) {
+      top = rect.bottom + 8;
+    }
+
+    // Ensure left coordinate stays inside visible viewport
+    const viewportWidth = window.innerWidth;
+    const barWidth = bar.offsetWidth || 240;
+    let left = rect.left;
+    if (left + barWidth > viewportWidth - 16) {
+      left = Math.max(16, viewportWidth - barWidth - 16);
+    }
+    if (left < 16) left = 16;
 
     bar.style.setProperty("position", "fixed", "important");
     bar.style.setProperty("z-index", "99999999", "important");
-    bar.style.setProperty("top", top + "px", "important");
+    bar.style.setProperty("top", `${Math.round(top)}px`, "important");
     bar.style.setProperty("bottom", "auto", "important");
-    bar.style.setProperty("left", Math.max(10, rect.left) + "px", "important");
+    bar.style.setProperty("left", `${Math.round(left)}px`, "important");
     bar.style.setProperty("display", "inline-flex", "important");
+    bar.style.setProperty("transition", "top 0.15s ease-out, left 0.15s ease-out", "important");
   }
 
   function showToast(msg) {
