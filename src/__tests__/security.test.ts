@@ -178,6 +178,7 @@ describe("Phase 1 Security & Correctness Hardening", () => {
       const res = await callLLM({
         provider: "nvidia",
         apiKey: "sk-proj-test12345",
+        systemPrompt: "You are a test assistant.",
         userPrompt: "test",
       });
 
@@ -194,6 +195,7 @@ describe("Phase 1 Security & Correctness Hardening", () => {
       const res = await callLLM({
         provider: "nvidia",
         apiKey: "sk-or-v1-test12345",
+        systemPrompt: "You are a test assistant.",
         userPrompt: "test",
       });
 
@@ -210,6 +212,7 @@ describe("Phase 1 Security & Correctness Hardening", () => {
       const res = await callLLM({
         provider: "openai",
         apiKey: "nvapi-test12345",
+        systemPrompt: "You are a test assistant.",
         userPrompt: "test",
       });
 
