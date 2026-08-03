@@ -905,8 +905,8 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   gap: 6px !important;
   padding: 6px 14px !important;
   border-radius: 7px !important;
-  border: none !important;
-  background: #6366f1 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
   color: #ffffff !important;
   font-size: 12px !important;
   font-weight: 600 !important;
@@ -914,12 +914,20 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   cursor: pointer !important;
   white-space: nowrap !important;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif !important;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4) !important;
-  transition: transform 0.15s ease, opacity 0.15s ease !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px -2px rgba(99, 102, 241, 0.45) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   margin: 0 !important;
   outline: none !important;
 }
-.pp-fab-bar .pp-fab-btn:hover { opacity: 0.95 !important; transform: translateY(-1px) !important; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.5) !important; }
+.pp-fab-bar .pp-fab-btn:hover {
+  background: linear-gradient(135deg, #5850ec 0%, #4338ca 100%) !important;
+  transform: translateY(-1px) scale(1.02) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 20px -2px rgba(99, 102, 241, 0.6) !important;
+}
+.pp-fab-bar .pp-fab-btn:active {
+  transform: translateY(0px) scale(0.97) !important;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(99, 102, 241, 0.3) !important;
+}
 .pp-fab-bar .pp-fab-badge {
   all: initial !important;
   box-sizing: border-box !important;
@@ -1063,9 +1071,9 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
 .pp-btn-keep { padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #64748b; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; font-family: inherit; }
 .pp-btn-keep:hover { background: rgba(255,255,255,0.06); color: #94a3b8; border-color: rgba(255,255,255,0.12); }
 
-.pp-btn-apply { padding: 10px 24px; border-radius: 8px; border: none; background: #6366f1; color: #ffffff; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; font-family: inherit; }
-.pp-btn-apply:hover { background: #4f46e5; transform: translateY(-2px); }
-.pp-btn-apply:active { transform: translateY(0); }
+.pp-btn-apply { padding: 10px 24px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.18); background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #ffffff; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 6px; font-family: inherit; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px -2px rgba(99, 102, 241, 0.45); }
+.pp-btn-apply:hover { background: linear-gradient(135deg, #5850ec 0%, #4338ca 100%); transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 20px -2px rgba(99, 102, 241, 0.6); }
+.pp-btn-apply:active { transform: translateY(0px) scale(0.98); }
 .pp-btn-apply:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
 .pp-btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: ppSpin 0.6s linear infinite; }
