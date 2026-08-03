@@ -58,6 +58,11 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
     options.model = "meta-llama/llama-3.3-70b-instruct:free";
   }
 
+  // Strip any internal suffix like ::openrouter, ::nvidia, ::openai, etc.
+  if (options.model) {
+    options.model = options.model.replace(/::(openrouter|nvidia|openai|anthropic)/gi, "").replace(/^openrouter\//gi, "").trim();
+  }
+
   const isOpenRouter = provider === "openrouter";
   const isAnthropic = provider === "anthropic";
   const isNvidia = provider === "nvidia";
@@ -83,18 +88,21 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
       model = "mistralai/mistral-7b-instruct-v0.3";
     }
   } else if (isOpenRouter) {
-    if (model === "llama3" || model.includes("llama-3.3")) {
+    const clean = model.toLowerCase();
+    if (!model || model === "default" || clean.includes("gpt-4o-mini")) {
       model = "meta-llama/llama-3.3-70b-instruct:free";
-    } else if (model.includes("gemini") || model.includes("flash")) {
+    } else if (clean.includes("llama-3.3") || clean.includes("llama3.3") || clean.includes("llama-3")) {
+      model = "meta-llama/llama-3.3-70b-instruct:free";
+    } else if (clean.includes("gemini") || clean.includes("flash")) {
       model = "google/gemini-2.0-flash-exp:free";
-    } else if (model.includes("deepseek") || model.includes("r1")) {
+    } else if (clean.includes("deepseek") || clean.includes("r1")) {
       model = "deepseek/deepseek-r1:free";
-    } else if (model.includes("qwen") || model.includes("coder")) {
+    } else if (clean.includes("qwen")) {
       model = "qwen/qwen-2.5-coder-32b-instruct:free";
-    } else if (model.includes("phi")) {
-      model = "microsoft/phi-3-mini-128k-instruct:free";
-    } else if (model.includes("hermes")) {
-      model = "nousresearch/hermes-3-llama-3.1-405b:free";
+    } else if (clean.includes("mistral")) {
+      model = "mistralai/mistral-7b-instruct:free";
+    } else if (clean.includes("phi")) {
+      model = "microsoft/phi-3-medium-128k-instruct:free";
     }
   }
 
@@ -166,8 +174,8 @@ export async function callLLM(options: LLMRequestOptions): Promise<LLMResponse> 
       throw new LLMError(hint, provider, 401);
     }
 
-    // Failover: If primary provider encounters a 5xx/network error and wasn't openrouter, try OpenRouter free tier as fallback
-    if (!isOpenRouter && provider !== "openrouter") {
+    // Failover: If primary provider or model returns 404/5xx, fallback to primary working free model
+    if (res?.status === 404 || (!isOpenRouter && provider !== "openrouter")) {
       try {
         return await callLLM({
           ...options,
