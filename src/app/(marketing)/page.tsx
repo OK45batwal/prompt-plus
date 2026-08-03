@@ -213,17 +213,17 @@ export default function LandingPage() {
       </section>
 
       {/* Trust Strip */}
-      <section className="border-t border-border/50 bg-card/40">
+      <section className="border-t border-border/50 bg-card/40 backdrop-blur-md">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             {[
-              { icon: CircleDollarSign, label: "Free Forever", desc: "No paywall, ever" },
-              { icon: Infinity, label: "No Daily Limits", desc: "Enhance as much as you want" },
-              { icon: ShieldCheck, label: "MIT Open Source", desc: "Auditable on GitHub" },
-              { icon: Lock, label: "Private by Default", desc: "On-device AI option" },
+              { icon: CircleDollarSign, label: "Free Forever", desc: "No paywall, ever", anim: "animate-spin-slow" },
+              { icon: Infinity, label: "No Daily Limits", desc: "Enhance as much as you want", anim: "animate-pulse" },
+              { icon: ShieldCheck, label: "MIT Open Source", desc: "Auditable on GitHub", anim: "animate-float" },
+              { icon: Lock, label: "Private by Default", desc: "On-device AI option", anim: "animate-float-delay" },
             ].map((t) => (
-              <div key={t.label} className="flex flex-col items-center gap-1.5 md:flex-row md:items-center md:justify-center md:gap-3">
-                <t.icon className="h-5 w-5 text-primary shrink-0" />
+              <div key={t.label} className="flex flex-col items-center gap-1.5 md:flex-row md:items-center md:justify-center md:gap-3 group">
+                <t.icon className={`h-5 w-5 text-primary shrink-0 transition-transform group-hover:scale-125 ${t.anim}`} />
                 <div className="text-center md:text-left">
                   <div className="text-sm font-bold leading-tight">{t.label}</div>
                   <div className="text-[11px] text-muted-foreground leading-tight">{t.desc}</div>
@@ -250,15 +250,15 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 animate-stagger">
             {[
-              { icon: MonitorSmartphone, title: "1. Type Your Idea", desc: "Paste or dictate any rough thought — a blog topic, a code request, a marketing brief. No formatting needed." },
-              { icon: Repeat, title: "2. Pick Your Level", desc: "Quick for concise structure, Deep for full role/context/steps, or Expert for chain-of-thought reasoning." },
-              { icon: ListChecks, title: "3. Use It Anywhere", desc: "Copy, open in ChatGPT/Claude/Gemini with one click, or inject it live via the free Chrome extension." },
+              { icon: MonitorSmartphone, title: "1. Type Your Idea", desc: "Paste or dictate any rough thought — a blog topic, a code request, a marketing brief. No formatting needed.", anim: "animate-float" },
+              { icon: Repeat, title: "2. Pick Your Level", desc: "Quick for concise structure, Deep for full role/context/steps, or Expert for chain-of-thought reasoning.", anim: "animate-spin-slow" },
+              { icon: ListChecks, title: "3. Use It Anywhere", desc: "Copy, open in ChatGPT/Claude/Gemini with one click, or inject it live via the free Chrome extension.", anim: "animate-float-delay" },
             ].map((s) => (
-              <div key={s.title} className="p-6 rounded-2xl border bg-card">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
-                  <s.icon className="h-5 w-5" />
+              <div key={s.title} className="p-6 rounded-2xl border bg-card hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <s.icon className={`h-5 w-5 ${s.anim}`} />
                 </div>
                 <h3 className="text-base font-bold">{s.title}</h3>
                 <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{s.desc}</p>
@@ -271,9 +271,9 @@ export default function LandingPage() {
       {/* Browser Extension Section */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 border-t border-border/50">
         <div className="max-w-5xl mx-auto">
-          <div className="rounded-2xl border bg-card p-8 sm:p-10 flex flex-col sm:flex-row items-center gap-6 sm:gap-10">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Puzzle className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
+          <div className="rounded-2xl border border-primary/30 bg-card/80 backdrop-blur-xl p-8 sm:p-10 flex flex-col sm:flex-row items-center gap-6 sm:gap-10 shadow-xl hover:border-primary/50 transition-all group">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300 animate-float">
+              <Puzzle className="h-7 w-7 sm:h-8 sm:w-8 animate-pulse" />
             </div>
             <div className="text-center sm:text-left flex-1">
               <h2 className="text-lg sm:text-xl font-bold tracking-tight">Use Prompt+ Right Inside Your Chat</h2>
