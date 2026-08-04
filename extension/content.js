@@ -250,15 +250,22 @@
     document.body.appendChild(bar);
     positionFab(bar, input);
 
-    bar.querySelector("#pp-fab-btn").addEventListener("click", (e) => {
+    const handleEnhanceClick = (e) => {
       e.preventDefault();
       e.stopPropagation();
       const el = getInput() || input;
       if (!el) { showToast("No input field found"); return; }
       currentTarget = el;
       currentText = getText(el);
+      if (!currentText.trim()) {
+        showToast("💡 Type or paste a prompt in the chat box first!");
+        return;
+      }
       openPopover();
-    });
+    };
+
+    bar.querySelector(".pp-fab-brain-badge")?.addEventListener("click", handleEnhanceClick);
+    bar.querySelector("#pp-fab-btn")?.addEventListener("click", handleEnhanceClick);
 
     bar.querySelector("#pp-fab-bucket-cap").addEventListener("click", (e) => {
       e.preventDefault();
