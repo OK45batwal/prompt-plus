@@ -40,13 +40,13 @@ export function getRateLimitHeaders(result: RateLimitResult): Record<string, str
   return {
     "X-RateLimit-Limit": String(result.limit),
     "X-RateLimit-Remaining": String(result.remaining),
-    "X-RateLimit-Reset": String(Math.ceil(result.resetMs / 1000)),
+    "X-RateLimit-Reset": String(Math.ceil((Date.now() + result.resetMs) / 1000)),
   };
 }
 
 /**
  * Per-IP sliding-window rate limit for abuse protection.
- * Supports in-memory storage with optional Upstash Redis REST fallback.
+ * Supports distributed Upstash Redis REST or in-memory sliding window fallback.
  */
 export function checkIpRateLimit(
   key: string,
@@ -66,7 +66,7 @@ export function checkIpRateLimit(
   return {
     allowed: bucket.count <= limit,
     remaining: Math.max(0, limit - bucket.count),
-    resetMs: bucket.resetAt - now,
+    resetMs: Math.max(0, bucket.resetAt - now),
     limit,
   };
 }
