@@ -28,8 +28,12 @@ type Model =
   | "openrouter-llama31-free"
   | "openrouter-qwen-coder-free"
   | "openrouter-mistral-small-free"
-  | "openrouter-gemma2-free"
-  | "openrouter-llama33"
+  | "openai-gpt4o"
+  | "openai-gpt4o-mini"
+  | "openai-o3-mini"
+  | "anthropic-claude-35-sonnet"
+  | "anthropic-claude-35-haiku"
+  | "anthropic-claude-3-opus"
   | "nvidia-llama3"
   | "nvidia-nemotron"
   | "nvidia-gemma2";
@@ -76,9 +80,12 @@ const models: { id: Model; name: string; icon: string; free: boolean; provider?:
   { id: "openrouter-deepseek-r1-free", name: "DeepSeek R1 (OpenRouter Free)", icon: "🧠", free: true, provider: "openrouter", rawModel: "deepseek/deepseek-r1:free" },
   { id: "openrouter-llama31-free", name: "Llama 3.1 8B (OpenRouter Free)", icon: "🦙", free: true, provider: "openrouter", rawModel: "meta-llama/llama-3.1-8b-instruct:free" },
   { id: "openrouter-qwen-coder-free", name: "Qwen 2.5 Coder 32B (OpenRouter Free)", icon: "💻", free: true, provider: "openrouter", rawModel: "qwen/qwen-2.5-coder-32b-instruct:free" },
-  { id: "openrouter-mistral-small-free", name: "Mistral Small 24B (OpenRouter Free)", icon: "🌬️", free: true, provider: "openrouter", rawModel: "mistralai/mistral-small-24b-instruct-2501:free" },
-  { id: "openrouter-gemma2-free", name: "Gemma 2 9B (OpenRouter Free)", icon: "🔷", free: true, provider: "openrouter", rawModel: "google/gemma-2-9b-it:free" },
-  { id: "openrouter-llama33", name: "Llama 3.3 70B (OpenRouter)", icon: "🦙", free: false, provider: "openrouter", rawModel: "meta-llama/llama-3.3-70b-instruct" },
+  { id: "openai-gpt4o", name: "ChatGPT GPT-4o (OpenAI)", icon: "🤖", free: false, provider: "openai", rawModel: "gpt-4o" },
+  { id: "openai-gpt4o-mini", name: "ChatGPT GPT-4o Mini (OpenAI)", icon: "⚡", free: false, provider: "openai", rawModel: "gpt-4o-mini" },
+  { id: "openai-o3-mini", name: "ChatGPT o3-Mini (OpenAI Reasoning)", icon: "🧠", free: false, provider: "openai", rawModel: "o3-mini" },
+  { id: "anthropic-claude-35-sonnet", name: "Claude 3.5 Sonnet (Anthropic)", icon: "🎭", free: false, provider: "anthropic", rawModel: "claude-3-5-sonnet-20241022" },
+  { id: "anthropic-claude-35-haiku", name: "Claude 3.5 Haiku (Anthropic)", icon: "🕊️", free: false, provider: "anthropic", rawModel: "claude-3-5-haiku-20241022" },
+  { id: "anthropic-claude-3-opus", name: "Claude 3 Opus (Anthropic)", icon: "👑", free: false, provider: "anthropic", rawModel: "claude-3-opus-20240229" },
   { id: "nvidia-llama3", name: "Llama 3.3 70B (NVIDIA Free)", icon: "🦙", free: true, provider: "nvidia", rawModel: "meta/llama-3.3-70b-instruct" },
   { id: "nvidia-nemotron", name: "Nemotron 70B (NVIDIA Free)", icon: "⚡", free: true, provider: "nvidia", rawModel: "nvidia/llama-3.1-nemotron-70b-instruct" },
   { id: "nvidia-gemma2", name: "Gemma 2 27B (NVIDIA Free)", icon: "🔷", free: true, provider: "nvidia", rawModel: "google/gemma-2-27b-it" },

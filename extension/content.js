@@ -683,20 +683,27 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
       '<div class="pp-model-row">' +
       '<label class="pp-model-label">Model</label>' +
       '<select id="pp-model" class="pp-select">' +
-      '<optgroup label="OpenRouter Free">' +
-      '<option value="meta-llama/llama-3.3-70b-instruct:free::openrouter" selected>Llama 3.3 70B</option>' +
-      '<option value="google/gemini-2.0-flash-exp:free::openrouter">Gemini 2.0 Flash</option>' +
-      '<option value="deepseek/deepseek-r1:free::openrouter">DeepSeek R1</option>' +
-      '<option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder 32B</option>' +
-      '<option value="mistralai/mistral-small-24b-instruct-2501:free::openrouter">Mistral Small 24B</option>' +
-      '<option value="microsoft/phi-3-mini-128k-instruct:free::openrouter">Phi-3 Mini 128K</option>' +
-      '<option value="nousresearch/hermes-3-llama-3.1-405b:free::openrouter">Hermes 3 405B</option>' +
+      '<optgroup label="OpenRouter Free Tier">' +
+      '<option value="google/gemini-2.0-flash-exp:free::openrouter" selected>Gemini 2.0 Flash (Free)</option>' +
+      '<option value="deepseek/deepseek-r1:free::openrouter">DeepSeek R1 (Free)</option>' +
+      '<option value="meta-llama/llama-3.1-8b-instruct:free::openrouter">Llama 3.1 8B (Free)</option>' +
+      '<option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder 32B (Free)</option>' +
+      '<option value="mistralai/mistral-7b-instruct:free::openrouter">Mistral 7B (Free)</option>' +
       '</optgroup>' +
-      '<optgroup label="NVIDIA Free">' +
+      '<optgroup label="OpenAI ChatGPT">' +
+      '<option value="gpt-4o-mini::openai">ChatGPT GPT-4o Mini</option>' +
+      '<option value="gpt-4o::openai">ChatGPT GPT-4o</option>' +
+      '<option value="o3-mini::openai">ChatGPT o3-Mini (Reasoning)</option>' +
+      '</optgroup>' +
+      '<optgroup label="Anthropic Claude">' +
+      '<option value="claude-3-5-sonnet-20241022::anthropic">Claude 3.5 Sonnet</option>' +
+      '<option value="claude-3-5-haiku-20241022::anthropic">Claude 3.5 Haiku</option>' +
+      '<option value="claude-3-opus-20240229::anthropic">Claude 3 Opus</option>' +
+      '</optgroup>' +
+      '<optgroup label="NVIDIA Nim Free Tier">' +
       '<option value="meta/llama-3.3-70b-instruct::nvidia">Llama 3.3 70B (NV)</option>' +
       '<option value="nvidia/llama-3.1-nemotron-70b-instruct::nvidia">Nemotron 70B (NV)</option>' +
       '<option value="google/gemma-2-27b-it::nvidia">Gemma 2 27B (NV)</option>' +
-      '<option value="mistralai/mistral-7b-instruct-v0.3::nvidia">Mistral 7B (NV)</option>' +
       '</optgroup>' +
       '</select>' +
       '</div>' +
