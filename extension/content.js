@@ -254,14 +254,9 @@
       e.preventDefault();
       e.stopPropagation();
       const el = getInput() || input;
-      if (!el) { showToast("No input field found"); return; }
       currentTarget = el;
-      currentText = getText(el);
-      if (!currentText.trim()) {
-        showToast("💡 Type or paste a prompt in the chat box first!");
-        return;
-      }
-      openPopover();
+      currentText = el ? getText(el) : "";
+      openPanel();
     };
 
     bar.querySelector(".pp-fab-brain-badge")?.addEventListener("click", handleEnhanceClick);
@@ -396,15 +391,17 @@
 
   function openPanel() {
     if (panelEl) { closePanel(); return; }
-    const input = currentTarget;
-    const text = currentText;
-    if (!text.trim()) return;
+    const input = currentTarget || getInput();
+    const text = currentText || (input ? getText(input) : "");
 
     settings = null;
     loadSettings((s) => {
       settings = s;
       currentMode = s.mode || "device";
       renderPanel(input, text, settings);
+      if (text.trim()) {
+        doEnhance(input, text);
+      }
     });
   }
 
@@ -416,119 +413,8 @@
 
   let settings = null;
 
-  // ---- Compact popover (new primary UX) ----
-  let popoverEl = null;
-  let popoverTimer = null;
+  // ---- Primary Side Panel UX ----
 
-  function openPopover() {
-    if (popoverEl) { closePopover(); return; }
-    const input = currentTarget;
-    const text = currentText;
-    if (!input || !text.trim()) {
-      showToast("Type a prompt in the chat input first");
-      return;
-    }
-
-    loadSettings((s) => {
-      settings = s;
-      currentMode = s.mode || "device";
-      renderPopover(input, text);
-    });
-  }
-
-  function closePopover() {
-    if (popoverEl) { popoverEl.remove(); popoverEl = null; }
-    if (popoverTimer) { clearInterval(popoverTimer); popoverTimer = null; }
-    document.removeEventListener("keydown", popoverEscHandler);
-  }
-
-  function popoverEscHandler(e) {
-    if (e.key === "Escape") closePopover();
-  }
-
-  function updatePopoverTokenBar() {
-    const fill = document.getElementById("pp-pop-token-fill");
-    const usedEl = document.getElementById("pp-pop-token-used");
-    const remainEl = document.getElementById("pp-pop-token-remaining");
-    const pctEl = document.getElementById("pp-pop-token-pct");
-    if (!fill || !usedEl || !remainEl) return;
-    const info = getTokenInfo();
-    const remaining = Math.max(0, info.limit - info.used);
-    usedEl.textContent = info.used.toLocaleString();
-    remainEl.textContent = remaining.toLocaleString();
-    pctEl.textContent = info.pct + "%";
-    fill.style.width = info.pct + "%";
-    fill.style.background = info.pct > 80 ? "linear-gradient(90deg, #f59e0b, #ef4444)" : "#6366f1";
-  }
-
-  function renderPopover(input, text) {
-    currentMode = "device"; // Always force On-Device AI mode for popover
-    popoverEl = document.createElement("div");
-    popoverEl.className = "pp-popover";
-    popoverEl.innerHTML =
-      '<div class="pp-pop-head">' +
-      '<div class="pp-pop-title">✦ Prompt+ Intelligence</div>' +
-      '<div class="pp-pop-mode" id="pp-pop-mode">📱 On-Device AI</div>' +
-      '<button class="pp-pop-close" id="pp-pop-close">' +
-      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
-      '</button>' +
-      '</div>' +
-      '<div class="pp-pop-token">' +
-      '<div class="pp-pop-token-label"><span>Used: <strong id="pp-pop-token-used">0</strong> · Remaining: <strong id="pp-pop-token-remaining">128K</strong></span><span id="pp-pop-token-pct">0%</span></div>' +
-      '<div class="pp-pop-token-track"><div class="pp-pop-token-fill" id="pp-pop-token-fill" style="width:0%"></div></div>' +
-      '</div>' +
-      '<div class="pp-pop-body">' +
-      '<div class="pp-pop-result" id="pp-pop-result"></div>' +
-      '</div>' +
-      '<div class="pp-pop-footer">' +
-      '<button class="pp-btn-keep" id="pp-pop-keep">Keep Original</button>' +
-      '<button class="pp-pop-copy" id="pp-pop-copy" disabled>📋 Copy</button>' +
-      '<button class="pp-btn-apply" id="pp-pop-use" disabled><span id="pp-pop-use-text">Use Enhanced</span><span>→</span></button>' +
-      '</div>';
-
-    document.body.appendChild(popoverEl);
-    positionPopover(input);
-
-    updatePopoverTokenBar();
-    popoverTimer = setInterval(updatePopoverTokenBar, 3000);
-
-    popoverEl.querySelector("#pp-pop-close").onclick = closePopover;
-    popoverEl.querySelector("#pp-pop-keep").onclick = () => {
-      if (currentText) setText(input, currentText);
-      closePopover();
-    };
-    document.addEventListener("keydown", popoverEscHandler);
-
-    const result = popoverEl.querySelector("#pp-pop-result");
-    result.textContent = text;
-
-    popoverEl.querySelector("#pp-pop-copy").onclick = () => {
-      navigator.clipboard.writeText(currentEnhanced || result.textContent);
-      const cb = popoverEl.querySelector("#pp-pop-copy");
-      cb.textContent = "✓ Copied";
-      setTimeout(() => { cb.textContent = "📋 Copy"; }, 1500);
-    };
-
-    popoverEl.querySelector("#pp-pop-use").onclick = () => {
-      if (currentEnhanced) setText(input, currentEnhanced);
-      closePopover();
-    };
-
-    doEnhancePopover(input, text);
-  }
-
-  function positionPopover(input) {
-    if (!popoverEl) return;
-    const rect = input.getBoundingClientRect();
-    if (!rect || rect.width === 0) return;
-    popoverEl.style.bottom = (window.innerHeight - rect.top + 10) + "px";
-    popoverEl.style.right = (window.innerWidth - rect.right + 10) + "px";
-    if (rect.top < 420) {
-      popoverEl.style.bottom = (window.innerHeight - rect.bottom - 60) + "px";
-    }
-  }
-
-  let popoverEnhancing = false;
 
   function getLanguageModelAPI() {
     if (typeof LanguageModel !== "undefined") return LanguageModel;
@@ -606,73 +492,7 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
     });
   }
 
-  async function doEnhancePopover(input, text) {
-    if (popoverEnhancing) return;
-    popoverEnhancing = true;
 
-    const fabText = document.getElementById("pp-fab-text");
-    const fabTextOrig = fabText?.textContent || "";
-    const result = document.getElementById("pp-pop-result");
-    const useBtn = document.getElementById("pp-pop-use");
-    const useText = document.getElementById("pp-pop-use-text");
-    const copyBtn = document.getElementById("pp-pop-copy");
-    if (useBtn) useBtn.disabled = true;
-    if (copyBtn) copyBtn.disabled = true;
-    if (fabText) fabText.textContent = "Enhancing…";
-
-    try {
-      let res;
-      if (currentMode === "device") {
-        res = await sendDeviceEnhance(text, !!(settings?.tokenSaver), "pp-pop-result");
-        if (!res || !res.success) throw new Error(res?.error || "Device AI not available (Chrome 138+ with Gemini Nano required)");
-        currentEnhanced = res.enhanced || "";
-      } else {
-        const modelVal = settings?.model || "meta-llama/llama-3.3-70b-instruct:free::openrouter";
-        const parts = modelVal.split("::");
-        const model = parts[0];
-        const provider = parts[1] || "openai";
-        res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver: !!(settings?.tokenSaver) });
-        if (!res || !res.success) throw new Error(res?.error || "Failed");
-        currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
-      }
-
-      if (!currentEnhanced) throw new Error("No output received");
-      if (result) result.textContent = currentEnhanced;
-      if (useBtn) useBtn.disabled = false;
-      if (copyBtn) copyBtn.disabled = false;
-      if (useText) useText.textContent = "Use Enhanced";
-      saveHistory(text);
-    } catch (err) {
-      showToast(err.message);
-      if (useText) useText.textContent = "Use Enhanced";
-      if (err.message && (err.message.includes("No API key") || err.message.includes("API key"))) {
-        if (result) {
-          result.innerHTML =
-            '<div style="padding: 4px; color: #f4f4f5;">' +
-            '<div style="font-weight: 600; color: #f59e0b; margin-bottom: 6px; font-size: 12px; display: flex; align-items: center; gap: 6px;">' +
-            '<span>🔑</span> No Server API Key' +
-            '</div>' +
-            '<div style="font-size: 11px; color: #94a3b8; margin-bottom: 10px; line-height: 1.4;">' +
-            'No API key configured. Switch to <strong>On-Device AI (Gemini Nano)</strong> for instant free enhancements without an API key.' +
-            '</div>' +
-            '<button id="pp-pop-switch-device" type="button" style="width: 100%; padding: 8px 12px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #a5b4fc; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">' +
-            '<span>📱</span> Switch to On-Device AI Mode' +
-            '</button>' +
-            '</div>';
-          document.getElementById("pp-pop-switch-device")?.addEventListener("click", () => {
-            currentMode = "device";
-            const modeEl = document.getElementById("pp-pop-mode");
-            if (modeEl) modeEl.textContent = "📱 On-Device";
-            saveSettings({ mode: "device" });
-            doEnhancePopover(input, text);
-          });
-        }
-      }
-    } finally {
-      popoverEnhancing = false;
-      if (fabText) fabText.textContent = fabTextOrig;
-    }
-  }
 
   function renderPanel(input, text, s) {
     panelEl = document.createElement("div");
