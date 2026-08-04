@@ -86,5 +86,21 @@ describe("Phase 3 Integration & Developer Experience Tests", () => {
       const json = await res.json();
       expect(json.error).toContain("CSRF validation failed");
     });
+
+    it("should reject unauthenticated POST /api/v1/templates/[id]/use", async () => {
+      const { auth } = await import("@/lib/auth/config");
+      vi.mocked(auth).mockResolvedValueOnce(null as never);
+
+      const { POST: usePost } = await import("@/app/api/v1/templates/[id]/use/route");
+      const { NextRequest } = await import("next/server");
+      const req = new NextRequest("http://localhost:3000/api/v1/templates/tpl1/use", {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      });
+      const res = await usePost(req, { params: Promise.resolve({ id: "tpl1" }) });
+      expect(res.status).toBe(401);
+      const json = await res.json();
+      expect(json.error).toBe("Unauthorized");
+    });
   });
 });

@@ -86,4 +86,16 @@ describe("Validation Schemas", () => {
       expect(createCollectionSchema.safeParse({ name: "Work Prompts" }).success).toBe(true);
     });
   });
+
+  describe("detectProviderFromKey", () => {
+    it("should auto-detect provider key prefixes accurately", async () => {
+      const { detectProviderFromKey } = await import("@/lib/llm/providers");
+      expect(detectProviderFromKey("nvapi-12345")).toBe("nvidia");
+      expect(detectProviderFromKey("sk-or-v1-abcdef")).toBe("openrouter");
+      expect(detectProviderFromKey("sk-ant-api03-xyz")).toBe("anthropic");
+      expect(detectProviderFromKey("sk-proj-999")).toBe("openai");
+      expect(detectProviderFromKey("sk-123456")).toBe("openai");
+      expect(detectProviderFromKey("", "custom_fallback")).toBe("custom_fallback");
+    });
+  });
 });

@@ -37,6 +37,16 @@ const OPENROUTER_FREE_MODELS = [
   "mistralai/mistral-7b-instruct:free",
 ];
 
+export function detectProviderFromKey(apiKey: string, fallbackProvider: LLMOptions["provider"] = "openrouter"): NonNullable<LLMOptions["provider"]> {
+  if (!apiKey) return fallbackProvider || "openrouter";
+  const k = apiKey.trim();
+  if (k.startsWith("nvapi-")) return "nvidia";
+  if (k.startsWith("sk-or-")) return "openrouter";
+  if (k.startsWith("sk-ant-")) return "anthropic";
+  if (k.startsWith("sk-proj-") || k.startsWith("sk-admin-") || k.startsWith("sk-")) return "openai";
+  return fallbackProvider || "openrouter";
+}
+
 export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
   const {
     apiKey = "",
@@ -51,10 +61,7 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
 
   // Auto-route based on API key prefix if provided
   if (apiKey) {
-    if (apiKey.startsWith("nvapi-")) provider = "nvidia";
-    else if (apiKey.startsWith("sk-or-")) provider = "openrouter";
-    else if (apiKey.startsWith("sk-ant-")) provider = "anthropic";
-    else if (apiKey.startsWith("sk-")) provider = "openai";
+    provider = detectProviderFromKey(apiKey, provider);
   }
 
   // Auto-select free OpenRouter model if no API key is provided

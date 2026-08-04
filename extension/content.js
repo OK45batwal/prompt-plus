@@ -46,17 +46,28 @@
     else fill.style.background = "#6366f1";
   }
 
+  function sanitizeContextText(text) {
+    if (!text) return "";
+    return String(text)
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "")
+      .trim();
+  }
+
   function captureContextBucket() {
     const rawText = getConversationText() || (currentTarget ? getText(currentTarget) : "");
-    if (!rawText.trim()) {
+    const cleanText = sanitizeContextText(rawText);
+    if (!cleanText) {
       showToast("⚠️ No conversation text found to carry context.");
       return;
     }
     const source = detectChatbot().toUpperCase();
-    const formatted = `[IMPORTED CONTEXT FROM ${source}]\nThe following background context was captured from a prior chat session:\n\n"""\n${rawText.trim().slice(-4000)}\n"""\n\nPlease use this background context to answer my follow-up request:`;
+    const formatted = `[IMPORTED CONTEXT FROM ${source}]\nThe following background context was captured from a prior chat session:\n\n"""\n${cleanText.slice(-4000)}\n"""\n\nPlease use this background context to answer my follow-up request:`;
     const bucket = {
       source,
-      rawText: rawText.trim(),
+      rawText: cleanText,
       formattedPrompt: formatted,
       timestamp: Date.now(),
     };
@@ -68,10 +79,11 @@
           const injBtn = document.getElementById("pp-fab-bucket-inj");
           if (injBtn) injBtn.style.display = "inline-flex";
         });
+      } else {
+        showToast("⚠️ Extension local storage not available on this tab.");
       }
     } catch {
-      localStorage.setItem("pp_context_bucket", JSON.stringify(bucket));
-      showToast(`📦 Context captured from ${source}!`);
+      showToast("⚠️ Could not write to extension storage.");
     }
   }
 
@@ -86,7 +98,8 @@
         showToast("⚠️ Active chat input field not found.");
         return;
       }
-      setText(input, bucket.formattedPrompt);
+      const sanitized = sanitizeContextText(bucket.formattedPrompt);
+      setText(input, sanitized);
       showToast(`💉 Injected context from ${bucket.source || "Bucket"} into chat!`);
     };
 
@@ -96,8 +109,7 @@
           applyInject(d?.pp_context_bucket);
         });
       } else {
-        const raw = localStorage.getItem("pp_context_bucket");
-        applyInject(raw ? JSON.parse(raw) : null);
+        showToast("⚠️ Extension storage not available.");
       }
     } catch {
       showToast("⚠️ Could not load context bucket");

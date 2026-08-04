@@ -1,22 +1,22 @@
-// @public-route: Public template usage counter with IP rate limiting
-import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db/prisma";
 import { checkIpRateLimit, extractClientIp, getRateLimitHeaders } from "@/lib/rate-limit";
+import { withAuth } from "@/lib/api/with-auth";
+import { jsonResponse } from "@/lib/api/response-headers";
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id: templateId } = await params;
+export const POST = withAuth(async (request, { requestId }) => {
+  const url = new URL(request.url);
+  const parts = url.pathname.split("/");
+  const useIdx = parts.indexOf("use");
+  const templateId = useIdx > 0 ? parts[useIdx - 1] : "";
   const ip = extractClientIp(request);
 
   const rateCheck = checkIpRateLimit(`tpluse:${ip}`, 60, 60 * 60 * 1000);
   const rateLimitHeaders = getRateLimitHeaders(rateCheck);
 
   if (!rateCheck.allowed) {
-    return NextResponse.json(
+    return jsonResponse(
       { error: "Too many requests from this address. Try again later." },
-      { status: 429, headers: { ...rateLimitHeaders, "Retry-After": String(Math.ceil(rateCheck.resetMs / 1000)) } }
+      { status: 429, headers: { ...rateLimitHeaders, "Retry-After": String(Math.ceil(rateCheck.resetMs / 1000)) }, requestId }
     );
   }
 
@@ -28,11 +28,11 @@ export async function POST(
       },
     });
 
-    return NextResponse.json(
+    return jsonResponse(
       { data: { id: template.id, usageCount: template.usageCount } },
-      { headers: rateLimitHeaders }
+      { headers: rateLimitHeaders, requestId }
     );
   } catch {
-    return NextResponse.json({ error: "Template not found" }, { status: 404, headers: rateLimitHeaders });
+    return jsonResponse({ error: "Template not found" }, { status: 404, headers: rateLimitHeaders, requestId });
   }
-}
+});
