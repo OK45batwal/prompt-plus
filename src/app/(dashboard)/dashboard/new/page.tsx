@@ -493,7 +493,7 @@ export default function PromptBuilderPage() {
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </button>
             {showModelDropdown && (
-              <div className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg py-1">
+              <div className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg py-1 max-h-64 overflow-y-auto scrollbar-thin">
                 {models.map((model) => (
                   <button
                     key={model.id}
@@ -501,12 +501,12 @@ export default function PromptBuilderPage() {
                       setSelectedModel(model.id);
                       setShowModelDropdown(false);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors text-left"
                   >
-                    <span>{model.icon}</span>
-                    <span>{model.name}</span>
+                    <span className="shrink-0">{model.icon}</span>
+                    <span className="truncate">{model.name}</span>
                     {model.free && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 ml-auto">FREE</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 ml-auto shrink-0">FREE</span>
                     )}
                   </button>
                 ))}
