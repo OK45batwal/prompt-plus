@@ -251,16 +251,26 @@
     positionFab(bar, input);
 
     const handleEnhanceClick = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       const el = getInput() || input;
       currentTarget = el;
       currentText = el ? getText(el) : "";
       openPanel();
     };
 
+    bar.addEventListener("click", (e) => {
+      if (e.target.closest(".pp-fab-brain-badge") || e.target.closest("#pp-fab-btn")) {
+        handleEnhanceClick(e);
+      }
+    });
+
     bar.querySelector(".pp-fab-brain-badge")?.addEventListener("click", handleEnhanceClick);
+    bar.querySelector(".pp-fab-brain-badge")?.addEventListener("mousedown", handleEnhanceClick);
     bar.querySelector("#pp-fab-btn")?.addEventListener("click", handleEnhanceClick);
+    bar.querySelector("#pp-fab-btn")?.addEventListener("mousedown", handleEnhanceClick);
 
     bar.querySelector("#pp-fab-bucket-cap").addEventListener("click", (e) => {
       e.preventDefault();
@@ -858,8 +868,12 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   justify-content: center !important;
   box-shadow: 0 4px 14px rgba(59, 7, 100, 0.5) !important;
   cursor: pointer !important;
+  pointer-events: auto !important;
+  user-select: none !important;
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
+.pp-fab-bar .pp-fab-brain-badge * { pointer-events: none !important; }
+.pp-fab-bar .pp-fab-btn * { pointer-events: none !important; }
 .pp-fab-bar .pp-fab-brain-badge:hover {
   transform: scale(1.08) rotate(6deg) !important;
 }
