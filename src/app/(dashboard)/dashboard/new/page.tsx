@@ -459,9 +459,18 @@ export default function PromptBuilderPage() {
           </button>
         </div>
         {enhanceMode === "device" && deviceState === "unavailable" && (
-          <p className="mt-2 text-[11px] text-amber-700 dark:text-amber-400">
-            Not supported in this browser. Use Chrome 138+ with Gemini Nano enabled (Settings → Experimental AI → Prompt API), or switch to API mode.
-          </p>
+          <div className="mt-2.5 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-700 dark:text-amber-300 flex items-center justify-between gap-2">
+            <span>
+              On-Device Gemini Nano requires Chrome 138+ with Prompt API enabled (chrome://flags → Enable Prompt API).
+            </span>
+            <button
+              type="button"
+              onClick={() => setEnhanceMode("api")}
+              className="px-2.5 py-1 rounded-md bg-primary text-primary-foreground text-[10px] font-semibold shrink-0 hover:opacity-90 transition-opacity flex items-center gap-1"
+            >
+              <Zap className="h-3 w-3" /> Switch to API Mode
+            </button>
+          </div>
         )}
       </div>
 
