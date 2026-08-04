@@ -97,7 +97,7 @@ describe("Phase 3 Integration & Developer Experience Tests", () => {
         method: "POST",
         headers: { "X-Requested-With": "XMLHttpRequest" },
       });
-      const res = await usePost(req, { params: Promise.resolve({ id: "tpl1" }) });
+      const res = await usePost(req);
       expect(res.status).toBe(401);
       const json = await res.json();
       expect(json.error).toBe("Unauthorized");

@@ -95,7 +95,7 @@ describe("Validation Schemas", () => {
       expect(detectProviderFromKey("sk-ant-api03-xyz")).toBe("anthropic");
       expect(detectProviderFromKey("sk-proj-999")).toBe("openai");
       expect(detectProviderFromKey("sk-123456")).toBe("openai");
-      expect(detectProviderFromKey("", "custom_fallback")).toBe("custom_fallback");
+      expect(detectProviderFromKey("", "google")).toBe("google");
     });
   });
 });
