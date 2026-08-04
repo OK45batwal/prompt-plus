@@ -440,10 +440,11 @@ function updateBucketUI() {
     if (!chrome?.storage?.local) return;
     chrome.storage.local.get("pp_context_bucket", (d) => {
       const b = d?.pp_context_bucket;
-      if (b && b.formattedPrompt && bucketCard) {
+      if (b && (b.formattedPrompt || b.rawText) && bucketCard) {
         bucketCard.style.display = "block";
         if (bucketSource) bucketSource.textContent = b.source || "Chatbot";
-        if (bucketPreview) bucketPreview.textContent = b.text ? b.text.slice(0, 150) + "…" : "Conversation context ready";
+        const snippet = b.rawText || b.text || b.formattedPrompt || "";
+        if (bucketPreview) bucketPreview.textContent = snippet ? snippet.slice(0, 140) + "…" : "Conversation context ready";
       } else if (bucketCard) {
         bucketCard.style.display = "none";
       }

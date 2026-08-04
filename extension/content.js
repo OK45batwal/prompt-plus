@@ -46,6 +46,64 @@
     else fill.style.background = "#6366f1";
   }
 
+  function captureContextBucket() {
+    const rawText = getConversationText() || (currentTarget ? getText(currentTarget) : "");
+    if (!rawText.trim()) {
+      showToast("⚠️ No conversation text found to carry context.");
+      return;
+    }
+    const source = detectChatbot().toUpperCase();
+    const formatted = `[IMPORTED CONTEXT FROM ${source}]\nThe following background context was captured from a prior chat session:\n\n"""\n${rawText.trim().slice(-4000)}\n"""\n\nPlease use this background context to answer my follow-up request:`;
+    const bucket = {
+      source,
+      rawText: rawText.trim(),
+      formattedPrompt: formatted,
+      timestamp: Date.now(),
+    };
+
+    try {
+      if (chrome?.storage?.local) {
+        chrome.storage.local.set({ pp_context_bucket: bucket }, () => {
+          showToast(`📦 Context captured from ${source}! Ready to carry into other AI chats.`);
+          const injBtn = document.getElementById("pp-fab-bucket-inj");
+          if (injBtn) injBtn.style.display = "inline-flex";
+        });
+      }
+    } catch {
+      localStorage.setItem("pp_context_bucket", JSON.stringify(bucket));
+      showToast(`📦 Context captured from ${source}!`);
+    }
+  }
+
+  function injectContextBucket() {
+    const applyInject = (bucket) => {
+      if (!bucket || !bucket.formattedPrompt) {
+        showToast("⚠️ No context saved in bucket.");
+        return;
+      }
+      const input = getInput() || currentTarget;
+      if (!input) {
+        showToast("⚠️ Active chat input field not found.");
+        return;
+      }
+      setText(input, bucket.formattedPrompt);
+      showToast(`💉 Injected context from ${bucket.source || "Bucket"} into chat!`);
+    };
+
+    try {
+      if (chrome?.storage?.local) {
+        chrome.storage.local.get("pp_context_bucket", (d) => {
+          applyInject(d?.pp_context_bucket);
+        });
+      } else {
+        const raw = localStorage.getItem("pp_context_bucket");
+        applyInject(raw ? JSON.parse(raw) : null);
+      }
+    } catch {
+      showToast("⚠️ Could not load context bucket");
+    }
+  }
+
   function getInput() {
     let el = document.querySelector("#prompt-textarea, textarea[data-id='root']");
     if (el) return el;
