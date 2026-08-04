@@ -531,14 +531,16 @@
     }
 
     .result-actions button.use {
-      background: #6366f1;
-      border-color: #6366f1;
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       color: #ffffff;
-      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.28);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 8px rgba(99, 102, 241, 0.35);
     }
 
     .result-actions button.use:hover:not(:disabled) {
-      background: #5850ec;
+      background: linear-gradient(135deg, #5850ec 0%, #4338ca 100%);
+      transform: translateY(-1px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 4px 14px rgba(99, 102, 241, 0.5);
     }
 
     .result-mode {
