@@ -171,30 +171,23 @@
     bar._targetInput = input;
 
     bar.innerHTML =
-      '<button class="pp-fab-btn" id="pp-fab-btn" type="button" title="Enhance prompt with free On-Device AI (Gemini Nano)">' +
-      '<span class="pp-fab-icon">📱</span>' +
-      '<span class="pp-fab-text" id="pp-fab-text">Device Enhance</span>' +
+      '<div class="pp-fab-brain-badge" title="Prompt+ Intelligence Engine">' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M12 2a5 5 0 0 0-5 5v14a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z"/>' +
+      '<path d="M17 7a5 5 0 0 1 5 5v3a5 5 0 0 1-5 5"/>' +
+      '<path d="M7 7a5 5 0 0 0-5 5v3a5 5 0 0 0 5 5"/>' +
+      '</svg>' +
+      '</div>' +
+      '<button class="pp-fab-btn" id="pp-fab-btn" type="button" title="Enhance prompt with Prompt+ Intelligence">' +
+      '<span class="pp-fab-icon">⚡</span>' +
+      '<span class="pp-fab-text" id="pp-fab-text">Enhance Prompt</span>' +
       '</button>' +
-      '<button class="pp-fab-btn" id="pp-fab-bucket-cap" type="button" title="Capture & Carry conversation history to another chatbot (e.g. ChatGPT to Claude)">' +
+      '<button class="pp-fab-btn-sub" id="pp-fab-bucket-cap" type="button" title="Carry conversation history to another chatbot">' +
       '<span class="pp-fab-icon">📦</span>' +
-      '<span class="pp-fab-text">Carry Context</span>' +
       '</button>' +
-      '<button class="pp-fab-btn" id="pp-fab-bucket-inj" type="button" style="display:none;" title="Inject saved conversation context from another chatbot">' +
+      '<button class="pp-fab-btn-sub" id="pp-fab-bucket-inj" type="button" style="display:none;" title="Inject saved context">' +
       '<span class="pp-fab-icon">💉</span>' +
-      '<span class="pp-fab-text" id="pp-fab-bucket-inj-text">Inject Context</span>' +
-      '</button>' +
-      '<div class="pp-fab-badge" title="Powered by Chrome Gemini Nano On-Device AI">' +
-      '<span>📱 On-Device AI</span>' +
-      '</div>' +
-      '<div class="pp-fab-token-wrap" title="Context Tokens Remaining">' +
-      '<div class="pp-fab-token-info">' +
-      '<span>Tokens: <strong id="pp-fab-used">0</strong> / <strong id="pp-fab-limit">128K</strong></span>' +
-      '<span class="pp-fab-remain-wrap"><strong id="pp-fab-remain">128K</strong> remaining</span>' +
-      '</div>' +
-      '<div class="pp-fab-token-track">' +
-      '<div class="pp-fab-token-fill" id="pp-fab-fill" style="width:0%"></div>' +
-      '</div>' +
-      '</div>';
+      '</button>';
 
     document.body.appendChild(bar);
     positionFab(bar, input);
@@ -620,45 +613,42 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
     panelEl = document.createElement("div");
     panelEl.className = "pp-panel";
 
-    const activeChatbot = detectChatbot();
-
     panelEl.innerHTML =
       '<div class="pp-backdrop"></div>' +
       '<div class="pp-side">' +
       '<div class="pp-side-inner">' +
       '<div class="pp-head">' +
       '<div class="pp-head-left">' +
-      '<div class="pp-head-icon">✦</div>' +
+      '<div class="pp-head-icon">⚡</div>' +
       '<div class="pp-head-info">' +
-      '<div class="pp-head-title">Prompt+ Intelligence</div>' +
-      '<div class="pp-head-enc"><span class="pp-enc-dot"></span> SECURE</div>' +
+      '<div class="pp-head-title">Prompt+ Intelligence Activated</div>' +
+      '<div class="pp-head-enc"><span class="pp-enc-dot"></span> END-TO-END ENCRYPTED</div>' +
       '</div>' +
       '</div>' +
-      '<button class="pp-close-btn" id="pp-close-btn">' +
-      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
-      '</button>' +
+      '<button class="pp-close-btn" id="pp-close-btn">✕</button>' +
       '</div>' +
-      '<div class="pp-bots-strip">' +
-      '<div class="pp-bot-pill' + (activeChatbot === "chatgpt" ? " active" : "") + '"><span>🤖</span><span class="pp-bot-label">ChatGPT</span></div>' +
-      '<div class="pp-bot-pill' + (activeChatbot === "claude" ? " active" : "") + '"><span>🟣</span><span class="pp-bot-label">Claude</span></div>' +
-      '<div class="pp-bot-pill' + (activeChatbot === "gemini" ? " active" : "") + '"><span>✨</span><span class="pp-bot-label">Gemini</span></div>' +
-      '<div class="pp-bot-pill' + (activeChatbot === "deepseek" ? " active" : "") + '"><span>⚡</span><span class="pp-bot-label">DeepSeek</span></div>' +
+      '<div class="pp-tab-bar-wrap">' +
+      '<div class="pp-tab-track">' +
+      '<button class="pp-tab-btn active" id="pp-tab-improved" type="button">Improved</button>' +
+      '<button class="pp-tab-btn" id="pp-tab-changes" type="button">Changes</button>' +
+      '</div>' +
       '</div>' +
       '<div class="pp-body" id="pp-body">' +
-      '<div class="pp-split-header">' +
+      '<div class="pp-split-view">' +
+      '<div class="pp-col-left">' +
       '<div class="pp-split-label">ORIGINAL</div>' +
-      '<div class="pp-split-label-right">' +
-      '<span>IMPROVED</span>' +
+      '<div class="pp-split-original" id="pp-original-preview"></div>' +
+      '</div>' +
+      '<div class="pp-col-right">' +
+      '<div id="pp-view-improved">' +
+      '<div class="pp-split-header">' +
+      '<div class="pp-split-label-right">IMPROVED</div>' +
       '<button class="pp-copy-chip" id="pp-copy-btn" disabled>📋 Copy</button>' +
       '</div>' +
-      '</div>' +
-      '<div class="pp-split-view">' +
-      '<div class="pp-split-original" id="pp-original-preview"></div>' +
       '<div class="pp-split-improved" id="pp-enhanced-preview">' +
       '<div class="pp-placeholder">Click "Apply Upgrade" below to see the AI-optimized result</div>' +
       '</div>' +
-      '</div>' +
-      '<div id="pp-structured-sections" style="display:none">' +
+      '<div id="pp-structured-sections" style="display:none; margin-top: 12px;">' +
       '<div class="pp-section">' +
       '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">ROLE</span></div>' +
       '<div class="pp-section-body" id="pp-role-body">—</div>' +
@@ -674,6 +664,18 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
       '<div class="pp-section">' +
       '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">CONSTRAINTS</span></div>' +
       '<div class="pp-section-body" id="pp-constraints-body">—</div>' +
+      '</div>' +
+      '</div>' +
+      '</div>' +
+      '<div id="pp-view-changes" style="display:none;">' +
+      '<div class="pp-outcome-badge">✨ OUTCOME: STRONG STRUCTURAL UPGRADE</div>' +
+      '<ul class="pp-changes-list">' +
+      '<li><span class="pp-check">✓</span> Expanded minimal instructions into a multi-step strategic action plan.</li>' +
+      '<li><span class="pp-check">✓</span> Introduced measurable constraints to improve output precision and control.</li>' +
+      '<li><span class="pp-check">✓</span> Added expert role definition to align AI tone and perspective.</li>' +
+      '<li><span class="pp-check">✓</span> Expanded real-world context to reduce generic responses.</li>' +
+      '</ul>' +
+      '</div>' +
       '</div>' +
       '</div>' +
       '<div class="pp-opt-row">' +
@@ -713,7 +715,7 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
       '<div class="pp-token-track"><div class="pp-token-fill" id="pp-token-fill" style="width:0%"></div></div>' +
       '</div>' +
       '<div class="pp-footer">' +
-      '<div class="pp-footer-credit">Powered by <strong>Prompt+</strong></div>' +
+      '<div class="pp-footer-credit">Optimized by <strong>Prompt+</strong></div>' +
       '<div class="pp-footer-actions">' +
       '<button class="pp-btn-keep" id="pp-keep-btn">Keep Original</button>' +
       '<button class="pp-btn-apply" id="pp-enhance-btn">' +
@@ -749,6 +751,26 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
     } else if (s && s.model) {
       const sel = panelEl.querySelector("#pp-model");
       if (sel) sel.value = s.model;
+    }
+
+    const tabImp = panelEl.querySelector("#pp-tab-improved");
+    const tabChg = panelEl.querySelector("#pp-tab-changes");
+    const viewImp = panelEl.querySelector("#pp-view-improved");
+    const viewChg = panelEl.querySelector("#pp-view-changes");
+
+    if (tabImp && tabChg) {
+      tabImp.addEventListener("click", () => {
+        tabImp.classList.add("active");
+        tabChg.classList.remove("active");
+        if (viewImp) viewImp.style.display = "block";
+        if (viewChg) viewChg.style.display = "none";
+      });
+      tabChg.addEventListener("click", () => {
+        tabChg.classList.add("active");
+        tabImp.classList.remove("active");
+        if (viewImp) viewImp.style.display = "none";
+        if (viewChg) viewChg.style.display = "block";
+      });
     }
 
     panelEl.querySelector("#pp-close-btn").onclick = closePanel;
@@ -926,22 +948,35 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   box-sizing: border-box !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 10px !important;
-  padding: 5px 12px !important;
-  border-radius: 10px !important;
-  background: #0a0a0c !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(99, 102, 241, 0.35) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif !important;
-  color: #f4f4f5 !important;
+  gap: 8px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   width: fit-content !important;
-  max-width: calc(100vw - 32px) !important;
   height: 38px !important;
   margin: 0 !important;
-  line-height: 1 !important;
   transition: opacity 0.15s ease !important;
+}
+.pp-fab-bar .pp-fab-brain-badge {
+  all: initial !important;
+  box-sizing: border-box !important;
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #2e1065 0%, #3b0764 100%) !important;
+  border: 1px solid rgba(168, 85, 247, 0.4) !important;
+  color: #c084fc !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 4px 14px rgba(59, 7, 100, 0.5) !important;
+  cursor: pointer !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.pp-fab-bar .pp-fab-brain-badge:hover {
+  transform: scale(1.08) rotate(6deg) !important;
 }
 .pp-fab-bar .pp-fab-btn {
   all: initial !important;
@@ -949,178 +984,130 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 6px !important;
-  padding: 6px 14px !important;
-  border-radius: 7px !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+  gap: 8px !important;
+  height: 38px !important;
+  padding: 0 20px !important;
+  border-radius: 9999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
   color: #ffffff !important;
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  line-height: 1.2 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
   cursor: pointer !important;
   white-space: nowrap !important;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px -2px rgba(99, 102, 241, 0.45) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 16px rgba(29, 78, 216, 0.45) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   margin: 0 !important;
   outline: none !important;
 }
 .pp-fab-bar .pp-fab-btn:hover {
-  background: linear-gradient(135deg, #5850ec 0%, #4338ca 100%) !important;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
   transform: translateY(-1px) scale(1.02) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 20px -2px rgba(99, 102, 241, 0.6) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 20px rgba(29, 78, 216, 0.6) !important;
 }
 .pp-fab-bar .pp-fab-btn:active {
   transform: translateY(0px) scale(0.97) !important;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(99, 102, 241, 0.3) !important;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2) !important;
 }
-.pp-fab-bar .pp-fab-badge {
+.pp-fab-bar .pp-fab-btn-sub {
   all: initial !important;
   box-sizing: border-box !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 4px !important;
-  padding: 3px 8px !important;
-  border-radius: 5px !important;
-  background: rgba(34, 197, 94, 0.12) !important;
-  border: 1px solid rgba(34, 197, 94, 0.35) !important;
-  color: #4ade80 !important;
-  font-size: 10px !important;
-  font-weight: 600 !important;
-  line-height: 1.2 !important;
-  white-space: nowrap !important;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif !important;
-  letter-spacing: 0.03em !important;
-  margin: 0 !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
 }
-.pp-fab-bar .pp-fab-token-wrap {
-  all: initial !important;
-  box-sizing: border-box !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 3px !important;
-  min-width: 130px !important;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif !important;
-  margin: 0 !important;
-}
-.pp-fab-bar .pp-fab-token-info {
-  all: initial !important;
-  box-sizing: border-box !important;
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  font-size: 10px !important;
-  line-height: 1.2 !important;
-  color: #94a3b8 !important;
-  white-space: nowrap !important;
-  gap: 10px !important;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif !important;
-}
-.pp-fab-bar .pp-fab-token-info strong { color: #a5b4fc !important; font-weight: 600 !important; }
-.pp-fab-bar .pp-fab-remain-wrap { color: #34d399 !important; font-size: 10px !important; font-weight: 500 !important; }
-.pp-fab-bar .pp-fab-token-track {
-  all: initial !important;
-  box-sizing: border-box !important;
-  display: block !important;
-  height: 4px !important;
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-radius: 4px !important;
-  overflow: hidden !important;
-}
-.pp-fab-bar .pp-fab-token-fill {
-  all: initial !important;
-  box-sizing: border-box !important;
-  display: block !important;
-  height: 100% !important;
-  border-radius: 4px !important;
-  background: #6366f1 !important;
-  transition: width 0.4s ease !important;
+.pp-fab-bar .pp-fab-btn-sub:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.08) !important;
 }
 
-.pp-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99999999; opacity: 0; transition: opacity 0.25s ease; }
+.pp-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 99999999; opacity: 0; transition: opacity 0.25s ease; }
 
-.pp-side { position: fixed; top: 0; right: 0; width: 520px; max-width: 96vw; height: 100vh; z-index: 100000000; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-.pp-side-inner { height: 100%; background: #0a0a0c; display: flex; flex-direction: column; box-shadow: -8px 0 40px rgba(0,0,0,0.4); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif; color: #f4f4f5; }
+.pp-side { position: fixed; top: 0; right: 0; width: 560px; max-width: 96vw; height: 100vh; z-index: 100000000; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.pp-side-inner { height: 100%; background: #ffffff; display: flex; flex-direction: column; box-shadow: -12px 0 50px rgba(15, 23, 42, 0.15); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #0f172a; }
 
-.pp-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
+.pp-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
 .pp-head-left { display: flex; align-items: center; gap: 12px; }
-.pp-head-icon { width: 42px; height: 42px; border-radius: 10px; background: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; }
-.pp-head-info { display: flex; flex-direction: column; gap: 2px; }
-.pp-head-title { font-size: 17px; font-weight: 800; color: #f4f4f5; letter-spacing: -0.03em; }
-.pp-head-enc { font-size: 10px; font-weight: 600; color: #22c55e; text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; gap: 4px; }
-.pp-enc-dot { width: 5px; height: 5px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,0.5); display: inline-block; animation: ppPulse 2s infinite; }
+.pp-head-icon { width: 38px; height: 38px; border-radius: 10px; background: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; font-weight: bold; }
+.pp-head-info { display: flex; flex-direction: column; gap: 3px; }
+.pp-head-title { font-size: 15px; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
+.pp-head-enc { font-size: 10px; font-weight: 700; color: #0284c7; background: #e0f2fe; border: 1px solid #bae6fd; padding: 2px 8px; border-radius: 9999px; letter-spacing: 0.04em; display: inline-flex; align-items: center; gap: 4px; width: fit-content; }
+.pp-enc-dot { width: 6px; height: 6px; border-radius: 50%; background: #0284c7; display: inline-block; animation: ppPulse 2s infinite; }
 @keyframes ppPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-.pp-close-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #64748b; cursor: pointer; padding: 7px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-.pp-close-btn:hover { background: rgba(255,255,255,0.08); color: #f4f4f5; transform: rotate(90deg); }
+.pp-close-btn { background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 18px; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.pp-close-btn:hover { background: #f1f5f9; color: #0f172a; }
 
-.pp-bots-strip { display: flex; gap: 6px; padding: 8px 20px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
-.pp-bot-pill { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 6px 4px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); font-size: 11px; font-weight: 500; color: #64748b; cursor: pointer; transition: all 0.15s; }
-.pp-bot-pill:hover { background: rgba(255,255,255,0.08); transform: translateY(-1px); }
-.pp-bot-pill.active { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.4); color: #a5b4fc; }
-.pp-bot-label { font-size: 10px; }
+.pp-tab-bar-wrap { display: flex; justify-content: center; padding: 14px 24px 0; background: #ffffff; flex-shrink: 0; }
+.pp-tab-track { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 9999px; padding: 3px; display: inline-flex; gap: 4px; }
+.pp-tab-btn { border-radius: 9999px; padding: 6px 24px; font-size: 13px; font-weight: 600; cursor: pointer; border: 2px solid transparent; background: transparent; color: #64748b; transition: all 0.2s ease; outline: none; font-family: inherit; }
+.pp-tab-btn.active { background: #ffffff; border-color: #10b981; color: #047857; font-weight: 700; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); }
 
-.pp-token-bar { padding: 8px 20px 6px; background: rgba(255,255,255,0.02); border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
-.pp-token-label { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #64748b; margin-bottom: 5px; }
-.pp-token-label strong { color: #a5b4fc; font-weight: 600; }
-.pp-token-track { height: 4px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
-.pp-token-fill { height: 100%; border-radius: 4px; background: #6366f1; transition: width 0.6s ease; }
+.pp-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; background: #ffffff; }
+.pp-split-view { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.pp-col-left, .pp-col-right { display: flex; flex-direction: column; gap: 10px; }
 
-.pp-body { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
-.pp-body::-webkit-scrollbar { width: 4px; }
-.pp-body::-webkit-scrollbar-track { background: transparent; }
-.pp-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+.pp-split-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; }
+.pp-split-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.pp-split-label-right { font-size: 11px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.06em; }
+.pp-copy-chip { font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; color: #475569; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+.pp-copy-chip:hover { background: #e2e8f0; color: #0f172a; }
 
-.pp-split-header { display: flex; justify-content: space-between; align-items: center; }
-.pp-split-label { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; }
-.pp-split-label-right { display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 600; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.06em; }
-.pp-copy-chip { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); color: #64748b; cursor: pointer; transition: all 0.15s; font-family: inherit; }
-.pp-copy-chip:hover { background: rgba(255,255,255,0.08); color: #94a3b8; }
-.pp-copy-chip:disabled { opacity: 0.3; cursor: not-allowed; }
+.pp-split-original { background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; padding: 14px; border-radius: 12px; font-size: 13px; line-height: 1.7; min-height: 120px; white-space: pre-wrap; word-break: break-word; }
+.pp-split-improved { background: #ffffff; color: #0f172a; border: 1px solid #e2e8f0; padding: 14px; border-radius: 12px; font-size: 13px; line-height: 1.7; min-height: 80px; white-space: pre-wrap; word-break: break-word; }
 
-.pp-split-view { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.pp-split-original, .pp-split-improved { padding: 14px; border-radius: 8px; font-size: 13px; line-height: 1.7; min-height: 60px; white-space: pre-wrap; word-break: break-word; }
-.pp-split-original { background: #131316; color: #94a3b8; border: 1px solid rgba(255,255,255,0.06); }
-.pp-split-improved { background: #131316; color: #f4f4f5; border: 1px solid rgba(255,255,255,0.08); }
-.pp-placeholder { color: #64748b; font-style: italic; font-size: 12px; }
+.pp-section { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); }
+.pp-section-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.pp-section-bar { width: 4px; height: 16px; border-radius: 2px; background: #2563eb; }
+.pp-section-title { font-size: 12px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.04em; }
+.pp-section-body { font-size: 13px; line-height: 1.6; color: #475569; white-space: pre-wrap; word-break: break-word; }
 
-.pp-section { background: #131316; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 14px 16px; transition: border-color 0.15s; }
-.pp-section:hover { border-color: rgba(59,130,246,0.2); }
-.pp-section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.pp-section-bar { width: 3px; height: 16px; border-radius: 2px; background: #6366f1; }
-.pp-section-title { font-size: 11px; font-weight: 700; color: #f4f4f5; text-transform: uppercase; letter-spacing: 0.06em; }
-.pp-section-body { font-size: 13px; line-height: 1.7; color: #94a3b8; white-space: pre-wrap; word-break: break-word; }
+.pp-outcome-badge { background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; display: inline-block; margin-bottom: 16px; letter-spacing: 0.02em; }
+.pp-changes-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px; }
+.pp-changes-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #334155; line-height: 1.5; }
+.pp-check { color: #2563eb; font-weight: bold; flex-shrink: 0; font-size: 14px; }
 
-.pp-opt-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
+.pp-opt-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid #f1f5f9; }
 .pp-opt-info { display: flex; flex-direction: column; gap: 1px; }
-.pp-opt-label { font-size: 12px; font-weight: 600; color: #a5b4fc; }
+.pp-opt-label { font-size: 12px; font-weight: 600; color: #0f172a; }
 .pp-opt-sub { font-size: 10px; color: #64748b; }
 .pp-toggle { position: relative; width: 34px; height: 20px; flex-shrink: 0; cursor: pointer; }
 .pp-toggle input { display: none; }
-.pp-toggle-slider { position: absolute; inset: 0; background: rgba(255,255,255,0.1); border-radius: 10px; transition: 0.2s; cursor: pointer; }
-.pp-toggle-slider::before { content: ""; position: absolute; width: 14px; height: 14px; left: 3px; bottom: 3px; background: #64748b; border-radius: 50%; transition: 0.2s; }
-.pp-toggle input:checked + .pp-toggle-slider { background: rgba(59,130,246,0.4); }
-.pp-toggle input:checked + .pp-toggle-slider::before { transform: translateX(14px); background: #6366f1; }
+.pp-toggle-slider { position: absolute; inset: 0; background: #cbd5e1; border-radius: 10px; transition: 0.2s; cursor: pointer; }
+.pp-toggle-slider::before { content: ""; position: absolute; width: 14px; height: 14px; left: 3px; bottom: 3px; background: #ffffff; border-radius: 50%; transition: 0.2s; }
+.pp-toggle input:checked + .pp-toggle-slider { background: #2563eb; }
+.pp-toggle input:checked + .pp-toggle-slider::before { transform: translateX(14px); background: #ffffff; }
 
 .pp-model-row { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
 .pp-model-label { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0; }
-.pp-select { flex: 1; background: #131316; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; color: #f4f4f5; padding: 8px 30px 8px 12px; font-size: 13px; font-family: inherit; outline: none; cursor: pointer; transition: border-color 0.15s; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
-.pp-select:hover { border-color: rgba(59,130,246,0.4); }
-.pp-select:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
-.pp-select optgroup { background: #131316; color: #64748b; }
-.pp-select option { background: #131316; color: #f4f4f5; }
+.pp-select { flex: 1; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; color: #0f172a; padding: 8px 30px 8px 12px; font-size: 13px; font-family: inherit; outline: none; cursor: pointer; transition: border-color 0.15s; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
 
-.pp-footer { display: flex; align-items: center; justify-content: space-between; padding: 14px 22px; background: rgba(255,255,255,0.03); border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
-.pp-footer-credit { font-size: 12px; color: #64748b; letter-spacing: 0.01em; }
-.pp-footer-credit strong { color: #a5b4fc; font-weight: 700; }
-.pp-footer-actions { display: flex; gap: 8px; }
+.pp-token-bar { padding: 8px 24px 6px; background: #f8fafc; border-top: 1px solid #e2e8f0; flex-shrink: 0; }
+.pp-token-label { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #64748b; margin-bottom: 5px; }
+.pp-token-label strong { color: #0284c7; font-weight: 600; }
+.pp-token-track { height: 4px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+.pp-token-fill { height: 100%; border-radius: 4px; background: #0284c7; transition: width 0.6s ease; }
 
-.pp-btn-keep { padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #64748b; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; font-family: inherit; }
-.pp-btn-keep:hover { background: rgba(255,255,255,0.06); color: #94a3b8; border-color: rgba(255,255,255,0.12); }
+.pp-footer { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; flex-shrink: 0; }
+.pp-footer-credit { font-size: 12px; color: #64748b; }
+.pp-footer-credit strong { color: #0f172a; font-weight: 700; }
+.pp-footer-actions { display: flex; gap: 10px; }
 
-.pp-btn-apply { padding: 10px 24px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.18); background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #ffffff; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 6px; font-family: inherit; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px -2px rgba(99, 102, 241, 0.45); }
-.pp-btn-apply:hover { background: linear-gradient(135deg, #5850ec 0%, #4338ca 100%); transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 20px -2px rgba(99, 102, 241, 0.6); }
-.pp-btn-apply:active { transform: translateY(0px) scale(0.98); }
+.pp-btn-keep { padding: 10px 20px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+.pp-btn-keep:hover { background: #f1f5f9; color: #0f172a; }
+
+.pp-btn-apply { padding: 10px 24px; border-radius: 8px; border: none; background: #0284c7; color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; font-family: inherit; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35); }
+.pp-btn-apply:hover { background: #0369a1; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(2, 132, 199, 0.45); }
+.pp-btn-apply:active { transform: translateY(0px); }
 .pp-btn-apply:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
 .pp-btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: ppSpin 0.6s linear infinite; }
