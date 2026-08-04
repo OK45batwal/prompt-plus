@@ -74,6 +74,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           enhanced: fallbackText,
           model: "prompt-architect-offline",
           provider: "local",
+          note: lastErr ? `Network fallback (${lastErr})` : "Offline fallback",
         },
       });
     })();

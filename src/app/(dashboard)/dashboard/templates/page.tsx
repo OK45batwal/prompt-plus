@@ -294,6 +294,7 @@ export default function TemplatesPage() {
   useEffect(() => {
     let isMounted = true;
     async function load() {
+      setLoading(true);
       try {
         const params = new URLSearchParams();
         if (filterCategory !== "all") params.set("category", filterCategory);
@@ -309,6 +310,8 @@ export default function TemplatesPage() {
         }
       } catch {
         // keep static default
+      } finally {
+        if (isMounted) setLoading(false);
       }
     }
     load();
@@ -414,8 +417,8 @@ export default function TemplatesPage() {
               <div key={i} className="p-4 rounded-lg border bg-card animate-pulse">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-lg bg-muted" />
-                  <div className="flex-1">
-                    <div className="h-4 w-24 bg-muted rounded mb-1" />
+                  <div className="flex-1 space-y-1">
+                    <div className="h-4 w-32 bg-muted rounded" />
                     <div className="h-3 w-16 bg-muted rounded" />
                   </div>
                 </div>
@@ -456,7 +459,9 @@ export default function TemplatesPage() {
                     <button
                       type="button"
                       onClick={() => toggleFavorite(template.id)}
-                      className="text-muted-foreground hover:text-amber-400 p-1 transition-colors"
+                      className={`p-1 transition-colors ${
+                        favorites[template.id] ? "text-amber-400 fill-amber-400" : "text-muted-foreground hover:text-amber-400"
+                      }`}
                     >
                       <span className="sr-only">Favorite</span>
                       ★
