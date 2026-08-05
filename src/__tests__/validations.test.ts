@@ -98,4 +98,30 @@ describe("Validation Schemas", () => {
       expect(detectProviderFromKey("", "google")).toBe("google");
     });
   });
+
+  describe("LLM In-Memory Response Caching & Dynamic Scoring", () => {
+    it("should manage cache entries and clear cache on command", async () => {
+      const { llmResponseCache, getLLMCacheStats, clearLLMCache } = await import("@/lib/llm/providers");
+      clearLLMCache();
+      expect(getLLMCacheStats().totalEntries).toBe(0);
+
+      llmResponseCache.set("test-key", {
+        response: { content: "Cached enhancement", model: "gpt-4o-mini", provider: "openai" },
+        expiresAt: Date.now() + 600000,
+      });
+
+      expect(getLLMCacheStats().activeEntries).toBe(1);
+      clearLLMCache();
+      expect(getLLMCacheStats().totalEntries).toBe(0);
+    });
+
+    it("should calculate dynamic prompt quality scores accurately", async () => {
+      const { calculateDynamicPromptScore } = await import("@/lib/scoring");
+      const score = calculateDynamicPromptScore("[ROLE]\nAct as an expert Next.js engineer.\n\n[CONTEXT]\nBuilding SaaS app.\n\n[CONSTRAINTS]\nUse TypeScript.");
+      expect(score.total).toBeGreaterThan(60);
+      expect(score.dimensions.clarity).toBeGreaterThan(50);
+      expect(score.dimensions.specificity).toBeGreaterThan(50);
+      expect(score.strengths.length).toBeGreaterThan(0);
+    });
+  });
 });

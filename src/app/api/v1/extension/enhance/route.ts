@@ -4,7 +4,8 @@ import { z } from "zod";
 import { callLLM } from "@/lib/llm/providers";
 import { buildArchitectMetaPrompt } from "@/lib/llm/meta-prompt";
 import { resolveServerApiKey } from "@/lib/llm/server-api-key";
-import { checkIpRateLimit } from "@/lib/rate-limit";
+import { checkIpRateLimit, extractClientIp } from "@/lib/rate-limit";
+import { calculateDynamicPromptScore } from "@/lib/scoring";
 
 const extensionEnhanceSchema = z.object({
   text: z.string().min(1).max(10000),
@@ -24,9 +25,7 @@ const FALLBACK_FREE_MODELS = [
 ];
 
 export async function POST(request: NextRequest) {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-    || request.headers.get("x-real-ip")
-    || "unknown";
+  const ip = extractClientIp(request);
 
   const rateCheck = checkIpRateLimit(`ext:${ip}`, 120, 60 * 60 * 1000);
   if (!rateCheck.allowed) {
@@ -123,7 +122,7 @@ export async function POST(request: NextRequest) {
                 enhancedText: response.content,
                 model: response.model,
                 category: category || "general",
-                score: { total: 85, clarity: 85, specificity: 85, structure: 85, context: 85, length: 85, actionability: 85 },
+                score: JSON.parse(JSON.stringify(calculateDynamicPromptScore(response.content))),
               },
             }).catch(() => null);
 

@@ -7,6 +7,7 @@ import { resolveServerApiKey } from "@/lib/llm/server-api-key";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 import { buildArchitectMetaPrompt } from "@/lib/llm/meta-prompt";
+import { calculateDynamicPromptScore } from "@/lib/scoring";
 
 export const POST = withAuth(
   async (request: NextRequest, { userId, requestId }) => {
@@ -108,7 +109,7 @@ export const POST = withAuth(
                 enhancedText: response.content,
                 model: response.model,
                 category: category || "general",
-                score: { total: 85, clarity: 85, specificity: 85, structure: 85, context: 85, length: 85, actionability: 85 },
+                score: JSON.parse(JSON.stringify(calculateDynamicPromptScore(response.content))),
               },
             }).catch(() => null);
             if (created) activePromptId = created.id;

@@ -42,7 +42,20 @@ interface CacheEntry {
   expiresAt: number;
 }
 
-const llmResponseCache = new Map<string, CacheEntry>();
+export const llmResponseCache = new Map<string, CacheEntry>();
+
+export function getLLMCacheStats() {
+  const now = Date.now();
+  let validCount = 0;
+  for (const [, entry] of llmResponseCache) {
+    if (now < entry.expiresAt) validCount++;
+  }
+  return { totalEntries: llmResponseCache.size, activeEntries: validCount };
+}
+
+export function clearLLMCache() {
+  llmResponseCache.clear();
+}
 
 export function detectProviderFromKey(apiKey: string, fallbackProvider: LLMOptions["provider"] = "openrouter"): NonNullable<LLMOptions["provider"]> {
   if (!apiKey) return fallbackProvider || "openrouter";
