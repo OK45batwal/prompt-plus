@@ -31,7 +31,7 @@ const modeServer = document.getElementById("mode-server");
 const settingsToggle = document.getElementById("settings-toggle");
 const settingsBody = document.getElementById("settings-body");
 
-let currentMode = "device";
+let currentMode = "server";
 let tokenSaver = false;
 const tsToggle = document.getElementById("ts-toggle");
 
@@ -123,7 +123,7 @@ settingsToggle?.addEventListener("click", () => {
 // Load settings
 chrome.runtime?.sendMessage?.({ action: "getSettings" }, (res) => {
   const s = res?.settings || {};
-  setMode(s.mode || "device");
+  setMode(s.mode || "server");
   if (s.model && modelSelect) modelSelect.value = s.model;
   if (s.tokenSaver && tsToggle) { tsToggle.checked = true; tokenSaver = true; }
 });
@@ -529,4 +529,10 @@ sizeToggleBtn?.addEventListener("click", () => {
       chrome.storage.local.set({ pp_popup_width: next.mode });
     }
   } catch { /* ignore */ }
+});
+
+const openDashBtn = document.getElementById("open-dash");
+openDashBtn?.addEventListener("click", (e) => {
+  e.preventDefault();
+  chrome.tabs.create({ url: "https://prompt-plus-three.vercel.app/dashboard" });
 });
