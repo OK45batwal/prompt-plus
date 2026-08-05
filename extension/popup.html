@@ -856,12 +856,24 @@
 <body>
   <div class="header">
     <div class="header-left">
-      <div class="header-icon">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>
+      <div class="header-icon" style="background: transparent; box-shadow: none; width: auto; height: auto;">
+        <svg width="26" height="26" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="popLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#1D70F5" />
+              <stop offset="100%" stopColor="#8B5CF6" />
+            </linearGradient>
+          </defs>
+          <path d="M22 90V28C22 16 32 10 52 10C72 10 85 22 85 40C85 58 72 68 52 68H42V90H22Z" fill="url(#popLogoGrad)"/>
+          <path d="M26 68L56 38M56 38H42M56 38V52" stroke="white" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
       </div>
       <div class="header-info">
-        <div class="header-title">Prompt+ Intelligence</div>
-        <div class="header-enc"><span class="enc-dot"></span> SECURE</div>
+        <div class="header-title" style="display: flex; align-items: center; gap: 2px;">
+          <span style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: 15px;">P</span><span style="font-weight: 800; font-size: 14px;">rompt</span><span style="color: #3b82f6; font-weight: 900; font-size: 16px;">+</span>
+          <span style="font-weight: 500; color: #a1a1aa; font-size: 11px; margin-left: 4px;">Architect AI</span>
+        </div>
+        <div class="header-enc"><span class="enc-dot"></span> SECURE &amp; ACTIVE</div>
       </div>
     </div>
     <div class="header-right">

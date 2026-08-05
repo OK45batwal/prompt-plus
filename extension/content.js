@@ -251,11 +251,11 @@
     bar._targetInput = input;
 
     bar.innerHTML =
-      '<div class="pp-fab-brain-badge" title="Prompt+ Intelligence Engine">' +
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-      '<path d="M12 2a5 5 0 0 0-5 5v14a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z"/>' +
-      '<path d="M17 7a5 5 0 0 1 5 5v3a5 5 0 0 1-5 5"/>' +
-      '<path d="M7 7a5 5 0 0 0-5 5v3a5 5 0 0 0 5 5"/>' +
+      '<div class="pp-fab-brain-badge" title="Prompt+ Intelligence Engine" style="background: transparent; padding: 0;">' +
+      '<svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+      '<defs><linearGradient id="fabLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#1D70F5"/><stop offset="100%" stopColor="#8B5CF6"/></linearGradient></defs>' +
+      '<path d="M22 90V28C22 16 32 10 52 10C72 10 85 22 85 40C85 58 72 68 52 68H42V90H22Z" fill="url(#fabLogoGrad)"/>' +
+      '<path d="M26 68L56 38M56 38H42M56 38V52" stroke="white" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>' +
       '</svg>' +
       '</div>' +
       '<button class="pp-fab-btn" id="pp-fab-btn" type="button" title="Enhance prompt with Prompt+ Intelligence">' +
