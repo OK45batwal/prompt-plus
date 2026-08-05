@@ -430,7 +430,7 @@ useBtn?.addEventListener("click", () => {
 
 document.getElementById("open-dash")?.addEventListener("click", (e) => {
   e.preventDefault();
-  chrome.tabs.create({ url: "https://prompt-plus-three.vercel.app/dashboard" });
+  chrome.tabs.create({ url: "https://promptplus.vercel.app/dashboard" });
 });
 
 // ---- Context Bucket Management ----
@@ -540,5 +540,5 @@ sizeToggleBtn?.addEventListener("click", () => {
 const openDashBtn = document.getElementById("open-dash");
 openDashBtn?.addEventListener("click", (e) => {
   e.preventDefault();
-  chrome.tabs.create({ url: "https://prompt-plus-three.vercel.app/dashboard" });
+  chrome.tabs.create({ url: "https://promptplus.vercel.app/dashboard" });
 });

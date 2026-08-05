@@ -166,7 +166,7 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
     ...(isOpenRouter
       ? {
           ...(apiKey && apiKey.trim() ? { Authorization: `Bearer ${apiKey}` } : {}),
-          "HTTP-Referer": "https://prompt-plus-three.vercel.app",
+          "HTTP-Referer": "https://promptplus.vercel.app",
           "X-Title": "Prompt+",
         }
       : isAnthropic

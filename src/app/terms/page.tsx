@@ -150,7 +150,7 @@ export default function TermsPage() {
       </header>
       <main className="flex-1 max-w-3xl mx-auto w-full p-6 sm:p-10">
         <h1 className="text-2xl font-bold text-foreground mb-1">Terms of Service</h1>
-        <p className="text-xs text-muted-foreground mb-8">Last updated: August 3, 2026 · Applies to prompt-plus-three.vercel.app and the Prompt+ Chrome extension</p>
+        <p className="text-xs text-muted-foreground mb-8">Last updated: August 3, 2026 · Applies to promptplus.vercel.app and the Prompt+ Chrome extension</p>
 
         <div className="space-y-8">
           {sections.map((s) => (

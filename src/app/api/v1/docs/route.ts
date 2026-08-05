@@ -9,7 +9,7 @@ export async function GET() {
       description: "Production API for prompt engineering, enhancement, versioning, and sharing.",
     },
     servers: [
-      { url: "https://prompt-plus-three.vercel.app/api/v1", description: "Production Server" },
+      { url: "https://promptplus.vercel.app/api/v1", description: "Production Server" },
       { url: "http://localhost:3000/api/v1", description: "Local Development Server" },
     ],
     paths: {

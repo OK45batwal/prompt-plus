@@ -19,7 +19,7 @@ function createTransporter() {
   return null;
 }
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://prompt-plus-three.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://promptplus.vercel.app";
 
 function otpHtml(otp: string, intro: string, subject: string): string {
   return `<!DOCTYPE html>
