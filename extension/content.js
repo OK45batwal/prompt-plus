@@ -234,7 +234,17 @@
     const rect = input.getBoundingClientRect();
     if (!rect || rect.width === 0) { setTimeout(injectFab, 800); return; }
 
-    currentMode = "device"; // Always force On-Device AI on chatbot floating toolbar
+    try {
+      if (chrome?.storage?.local) {
+        chrome.storage.local.get("pp_settings", (data) => {
+          const saved = data?.pp_settings || {};
+          if (saved.mode) currentMode = saved.mode;
+          else currentMode = "api";
+        });
+      }
+    } catch {
+      currentMode = "api";
+    }
 
     const bar = document.createElement("div");
     bar.className = "pp-fab-bar";
@@ -499,16 +509,18 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
             const localRes = await runDeviceEnhanceInContent(text, tokenSaver, targetId);
             resolve(localRes);
           } catch {
-            resolve(r || { success: false, error: "Device AI failed" });
+            const apiRes = await enhanceApi(text, targetId);
+            resolve(apiRes);
           }
         }
-      }).catch(async (e) => {
+      }).catch(async () => {
         chrome.runtime.onMessage.removeListener(handler);
         try {
           const localRes = await runDeviceEnhanceInContent(text, tokenSaver, targetId);
           resolve(localRes);
         } catch {
-          resolve({ success: false, error: e.message });
+          const apiRes = await enhanceApi(text, targetId);
+          resolve(apiRes);
         }
       });
     });
