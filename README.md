@@ -12,7 +12,7 @@
   <br>
 
   <p>
-    <a href="https://promptplus.vercel.app/">
+    <a href="https://prompt-plus-three.vercel.app/">
       <img src="https://img.shields.io/badge/Production-Live-6366f1?style=for-the-badge&logo=vercel&logoColor=white&labelColor=0a0a0c" alt="Live app" />
     </a>
     <a href="#browser-extension">
@@ -284,7 +284,7 @@ Then open `http://localhost:3000` (web) or install the extension from `chrome://
 
 **License** — Copyright © 2026 **Prompt+**. All rights reserved. See [`LICENSE`](./LICENSE).
 
-[**🌐 Visit the production app**](https://promptplus.vercel.app/) · [**View source on GitHub**](https://github.com/OK45batwal/Prompt-plus) · [**Author: OK45batwal**](https://github.com/OK45batwal)
+[**🌐 Visit the production app**](https://prompt-plus-three.vercel.app/) · [**View source on GitHub**](https://github.com/OK45batwal/Prompt-plus) · [**Author: OK45batwal**](https://github.com/OK45batwal)
 
 <br>
 

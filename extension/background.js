@@ -1,6 +1,6 @@
 const API_URLS = [
   "http://localhost:3000/api/v1/extension/enhance",
-  "https://promptplus.vercel.app/api/v1/extension/enhance",
+  "https://prompt-plus-three.vercel.app/api/v1/extension/enhance",
 ];
 const STORAGE_KEY = "pp_settings";
 let cachedWorkingUrl = "";
@@ -13,7 +13,7 @@ chrome.runtime.onInstalled.addListener((details) => {
   });
 
   if (details.reason === "install") {
-    chrome.tabs.create({ url: "https://promptplus.vercel.app/extension" });
+    chrome.tabs.create({ url: "https://prompt-plus-three.vercel.app/extension" });
   }
 });
 
