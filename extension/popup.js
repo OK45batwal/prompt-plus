@@ -180,21 +180,32 @@ btn?.addEventListener("click", async () => {
     if (uBtn) uBtn.disabled = true;
 
     let enhanced = "";
-    try {
-      enhanced = await deviceEnhance(text, tokenSaver);
-    } catch {
-      // Fallback to local Master Architect Compiler
-      enhanced = `[ROLE & PERSONA]\nAct as an elite AI Specialist & Senior Domain Expert.\n\n[OBJECTIVE]\n${text.trim()}\n\n[KEY REQUIREMENTS & CONSTRAINTS]\n- Tone: Professional, practical, authoritative, and clear.\n- Format: Comprehensive, structured, zero filler text.\n- Instructions: Provide actionable step-by-step guidance with code blocks, bullet points, and exact templates.`;
+    if (currentMode === "device") {
+      try {
+        enhanced = await deviceEnhance(text, tokenSaver);
+      } catch {
+        enhanced = `[ROLE & PERSONA]\nAct as an elite AI Specialist & Senior Domain Expert.\n\n[OBJECTIVE]\n${text.trim()}\n\n[KEY REQUIREMENTS & CONSTRAINTS]\n- Tone: Professional, practical, authoritative, and clear.\n- Format: Comprehensive, structured, zero filler text.\n- Instructions: Provide actionable step-by-step guidance with code blocks, bullet points, and exact templates.`;
+      }
+    } else {
+      const modelSelectEl = document.getElementById("model-select");
+      const modelVal = modelSelectEl?.value || "google/gemini-2.0-flash-exp:free::openrouter";
+      const parts = modelVal.split("::");
+      const model = parts[0];
+      const provider = parts[1] || "openrouter";
+      const res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver });
+      if (res && res.success) {
+        enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
+      }
+      if (!enhanced) {
+        enhanced = `[ROLE & PERSONA]\nAct as an elite AI Specialist.\n\n[OBJECTIVE]\n${text.trim()}\n\n[INSTRUCTIONS]\nProvide a structured, step-by-step answer.`;
+      }
     }
 
-    if (!enhanced) {
-      enhanced = `[ROLE & PERSONA]\nAct as an elite AI Specialist.\n\n[OBJECTIVE]\n${text.trim()}\n\n[INSTRUCTIONS]\nProvide a structured, step-by-step answer.`;
-    }
-
+    if (!enhanced) throw new Error("No output received");
     if (resultBody) resultBody.textContent = enhanced;
     if (cBtn) cBtn.disabled = false;
     if (uBtn) uBtn.disabled = false;
-    showMsg("Enhanced On-Device!");
+    showMsg(currentMode === "device" ? "Enhanced On-Device!" : "Enhanced via Cloud AI!");
 
     // Try to inject into the active chat tab if content script is present
     chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
