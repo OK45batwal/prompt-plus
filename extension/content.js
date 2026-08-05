@@ -137,13 +137,42 @@
 
   function setText(el, text) {
     if (!el) return;
+    try {
+      el.focus();
+    } catch { /* ignore focus error */ }
+
     if (el.tagName === "TEXTAREA" || el.tagName === "INPUT") {
-      el.value = text;
+      try {
+        const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set;
+        if (nativeSetter) {
+          nativeSetter.call(el, text);
+        } else {
+          el.value = text;
+        }
+      } catch {
+        el.value = text;
+      }
       el.dispatchEvent(new Event("input", { bubbles: true }));
       el.dispatchEvent(new Event("change", { bubbles: true }));
     } else if (el.isContentEditable) {
-      el.innerText = text;
+      let inserted = false;
+      try {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        document.execCommand("delete", false, null);
+        inserted = document.execCommand("insertText", false, text);
+      } catch { /* fallback to innerText below */ }
+
+      if (!inserted) {
+        el.innerText = text;
+      }
+
+      el.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: text }));
       el.dispatchEvent(new Event("input", { bubbles: true }));
+      el.dispatchEvent(new Event("change", { bubbles: true }));
     }
   }
 
