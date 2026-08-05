@@ -283,16 +283,8 @@
       openPanel();
     };
 
-    bar.addEventListener("click", (e) => {
-      if (e.target.closest(".pp-fab-brain-badge") || e.target.closest("#pp-fab-btn")) {
-        handleEnhanceClick(e);
-      }
-    });
-
     bar.querySelector(".pp-fab-brain-badge")?.addEventListener("click", handleEnhanceClick);
-    bar.querySelector(".pp-fab-brain-badge")?.addEventListener("mousedown", handleEnhanceClick);
     bar.querySelector("#pp-fab-btn")?.addEventListener("click", handleEnhanceClick);
-    bar.querySelector("#pp-fab-btn")?.addEventListener("mousedown", handleEnhanceClick);
 
     bar.querySelector("#pp-fab-bucket-cap").addEventListener("click", (e) => {
       e.preventDefault();
