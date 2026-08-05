@@ -120,7 +120,7 @@ settingsToggle?.addEventListener("click", () => {
   settingsBody.classList.toggle("open");
 });
 
-setMode("server");
+setMode("device");
 
 // Load settings
 chrome.runtime?.sendMessage?.({ action: "getSettings" }, (res) => {

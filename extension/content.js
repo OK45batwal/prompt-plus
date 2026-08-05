@@ -746,16 +746,21 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
       const tkSave = tsEl ? tsEl.checked : false;
       let res;
       if (currentMode === "device") {
-        res = await sendDeviceEnhance(text, tkSave, "pp-enhanced-preview");
-        if (!res || !res.success) throw new Error(res?.error || "Device AI not available (Chrome 138+ with Gemini Nano required)");
-        currentEnhanced = res.enhanced || "";
-      } else {
-        const modelVal = document.getElementById("pp-model")?.value || "gpt-4o-mini";
+        try {
+          res = await sendDeviceEnhance(text, tkSave, "pp-enhanced-preview");
+          if (res && res.success) {
+            currentEnhanced = res.enhanced || res.data?.enhanced || "";
+          }
+        } catch { /* device AI unavailable, fallback seamlessly to Cloud API */ }
+      }
+
+      if (!currentEnhanced) {
+        const modelVal = document.getElementById("pp-model")?.value || "google/gemini-2.0-flash-exp:free::openrouter";
         const parts = modelVal.split("::");
         const model = parts[0];
-        const provider = parts[1] || "openai";
+        const provider = parts[1] || "openrouter";
         res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver: tkSave });
-        if (!res || !res.success) throw new Error(res?.error || "Failed");
+        if (!res || !res.success) throw new Error(res?.error || "Enhancement failed");
         currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
       }
 
