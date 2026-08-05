@@ -120,10 +120,12 @@ settingsToggle?.addEventListener("click", () => {
   settingsBody.classList.toggle("open");
 });
 
+setMode("server");
+
 // Load settings
 chrome.runtime?.sendMessage?.({ action: "getSettings" }, (res) => {
   const s = res?.settings || {};
-  setMode(s.mode || "server");
+  if (s.mode) setMode(s.mode);
   if (s.model && modelSelect) modelSelect.value = s.model;
   if (s.tokenSaver && tsToggle) { tsToggle.checked = true; tokenSaver = true; }
 });
