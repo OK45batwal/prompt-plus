@@ -117,7 +117,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               Contact
             </Link>
           </div>
-          <p className="text-xs text-muted-foreground">Free forever. Open source (MIT). Your prompts stay yours.</p>
+          <p className="text-xs text-muted-foreground">Prompt+ Architect AI. Your prompts stay yours.</p>
         </div>
       </footer>
     </div>

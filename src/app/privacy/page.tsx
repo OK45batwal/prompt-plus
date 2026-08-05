@@ -7,7 +7,7 @@ const sections = [
     title: "1. Overview",
     body: [
       "This Privacy Policy explains what Prompt+ (\"we\", \"our\", \"us\") collects, why we collect it, how we use it, and the choices and rights you have. By creating an account or using the Prompt+ website, extension, or API, you agree to this policy.",
-      "Prompt+ is built on a privacy-first architecture: we are open source (MIT), we never sell user data, and we offer a fully on-device processing mode that can work without your data ever leaving your browser.",
+      "Prompt+ is built on a privacy-first architecture: we never sell user data, and we offer a fully on-device processing mode that can work without your data ever leaving your browser.",
     ],
   },
   {

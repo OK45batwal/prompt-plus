@@ -71,7 +71,7 @@ const sections = [
     id: "ip",
     title: "8. Intellectual Property",
     body: [
-      "The Prompt+ software is open source and licensed under the MIT License. The Service's trademarks, branding, and visual design are owned by Prompt+ and may not be used without our prior written consent.",
+      "The Prompt+ software, trademarks, branding, and visual design are proprietary property owned by Prompt+ and may not be copied, reproduced, or distributed without our prior written consent.",
       "Nothing in these Terms transfers ownership of any of our intellectual property to you. The Service, its content, and its code remain our property (or that of our licensors).",
     ],
   },
