@@ -1,6 +1,6 @@
 const API_URLS = [
-  "https://prompt-plus-three.vercel.app/api/v1/extension/enhance",
   "http://localhost:3000/api/v1/extension/enhance",
+  "https://prompt-plus-three.vercel.app/api/v1/extension/enhance",
 ];
 const STORAGE_KEY = "pp_settings";
 let cachedWorkingUrl = "";

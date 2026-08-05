@@ -5,7 +5,7 @@
   let currentTarget = null;
   let currentText = "";
   let currentEnhanced = "";
-  let currentMode = "device";
+  let currentMode = "api";
 
   const CONTEXT_LIMITS = { chatgpt: 128000, claude: 200000, gemini: 1000000, deepseek: 128000 };
 
@@ -429,7 +429,7 @@
     settings = null;
     loadSettings((s) => {
       settings = s;
-      currentMode = s.mode || "device";
+      currentMode = s.mode || "api";
       renderPanel(input, text, settings);
       if (text.trim()) {
         doEnhance(input, text);
