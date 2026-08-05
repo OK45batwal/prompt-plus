@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Copy, Check, FileText, Mail, Code, Share2, Book, ShoppingBag, BadgeCheck, Terminal } from "lucide-react";
+import { Search, Copy, Check, FileText, Mail, Code, Share2, Book, ShoppingBag, BadgeCheck, Terminal, GitFork } from "lucide-react";
 import { ExportCodeModal } from "@/components/prompts/export-code-modal";
 
 interface TemplateItem {
@@ -334,6 +334,33 @@ export default function TemplatesPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const [forkingId, setForkingId] = useState<string | null>(null);
+
+  const forkTemplate = async (template: TemplateItem) => {
+    setForkingId(template.id);
+    try {
+      const res = await fetch("/api/v1/prompts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+        body: JSON.stringify({
+          title: template.title,
+          originalText: template.prompt,
+          model: template.model || "gpt-4o-mini",
+          category: template.category,
+        }),
+      });
+      if (res.ok) {
+        alert(`Successfully forked "${template.title}" into your personal Prompt Library!`);
+      } else {
+        alert("Please log in to fork templates into your personal library.");
+      }
+    } catch {
+      alert("Failed to fork template.");
+    } finally {
+      setForkingId(null);
+    }
+  };
+
   const toggleFavorite = (id: string) => {
     setFavorites((prev) => ({ ...prev, [id]: !prev[id] }));
   };
@@ -499,6 +526,16 @@ export default function TemplatesPage() {
                         <Copy className="h-3.5 w-3.5" /> Copy Template
                       </>
                     )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => forkTemplate(template)}
+                    disabled={forkingId === template.id}
+                    className="h-8 px-2.5 rounded-lg border bg-background text-xs font-medium inline-flex items-center justify-center gap-1 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                    title="Fork / Clone to Personal Library"
+                  >
+                    <GitFork className="h-3.5 w-3.5" />
+                    {forkingId === template.id ? "Forking..." : "Fork"}
                   </button>
                   <button
                     type="button"
