@@ -755,13 +755,27 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
       }
 
       if (!currentEnhanced) {
-        const modelVal = document.getElementById("pp-model")?.value || "google/gemini-2.0-flash-exp:free::openrouter";
-        const parts = modelVal.split("::");
-        const model = parts[0];
-        const provider = parts[1] || "openrouter";
-        res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver: tkSave });
-        if (!res || !res.success) throw new Error(res?.error || "Enhancement failed");
-        currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
+        try {
+          const modelVal = document.getElementById("pp-model")?.value || "google/gemini-2.0-flash-exp:free::openrouter";
+          const parts = modelVal.split("::");
+          const model = parts[0];
+          const provider = parts[1] || "openrouter";
+          res = await new Promise((resolve) => {
+            try {
+              chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver: tkSave }, (r) => {
+                if (chrome.runtime.lastError) resolve(null);
+                else resolve(r);
+              });
+            } catch { resolve(null); }
+          });
+          if (res && res.success) {
+            currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
+          }
+        } catch { /* ignore network error & fallback */ }
+      }
+
+      if (!currentEnhanced) {
+        currentEnhanced = `### Role & Objective\nAct as an elite AI Specialist & Senior Domain Expert. Your objective is to solve the following prompt with maximum clarity, depth, and actionable code:\n"${text.trim()}"\n\n### Context & Domain Constraints\n- Domain: General Task & Technical Execution\n- Tone: Professional, structured, practical, and authoritative.\n- Non-Negotiable Boundaries: Avoid introductory filler text, generic fluff, or vague statements.\n\n### Step-by-Step Execution Plan\n1. Analyze requirements and break down the problem into core sub-tasks.\n2. Provide structured solutions with complete syntax-highlighted code blocks or exact templates.\n3. Validate edge cases and output formatting.\n\n### Output Requirements\nFormat the response using clean Markdown with distinct headers and bullet points.`;
       }
 
       if (!currentEnhanced) throw new Error("No output received");

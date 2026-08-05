@@ -886,19 +886,6 @@
     </div>
   </div>
 
-  <div class="mode-bar">
-    <div class="mode-track">
-      <button class="mode-btn active" id="mode-device">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-        On-Device
-      </button>
-      <button class="mode-btn" id="mode-server">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        API Based
-      </button>
-    </div>
-  </div>
-
   <div class="content">
     <div class="bucket-card" id="bucket-card" style="display:none">
       <div class="bucket-head">
@@ -916,7 +903,7 @@
       </div>
     </div>
 
-    <div class="mode-hint" id="mode-label">On-Device AI — enhanced via Gemini Nano</div>
+    <div class="mode-hint" id="mode-label">⚡ On-Device AI Architect Engine</div>
 
     <div class="input-wrap">
       <textarea id="input" placeholder="Paste or type your prompt to enhance..."></textarea>
@@ -963,31 +950,7 @@
           </label>
         </div>
 
-        <div class="model-label" id="model-label" style="display:none">Default Model</div>
-        <select id="model-select" class="model-select" style="display:none">
-          <optgroup label="OpenRouter Free Tier">
-            <option value="google/gemini-2.0-flash-exp:free::openrouter" selected>Gemini 2.0 Flash (Free)</option>
-            <option value="deepseek/deepseek-r1:free::openrouter">DeepSeek R1 (Free)</option>
-            <option value="meta-llama/llama-3.1-8b-instruct:free::openrouter">Llama 3.1 8B (Free)</option>
-            <option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder (Free)</option>
-            <option value="mistralai/mistral-7b-instruct:free::openrouter">Mistral 7B (Free)</option>
-          </optgroup>
-          <optgroup label="OpenAI ChatGPT & Reasoning">
-            <option value="gpt-4o-mini::openai">ChatGPT GPT-4o Mini</option>
-            <option value="gpt-4o::openai">ChatGPT GPT-4o</option>
-            <option value="o3-mini::openai">ChatGPT o3-Mini (Reasoning)</option>
-          </optgroup>
-          <optgroup label="Anthropic Claude">
-            <option value="claude-3-5-sonnet-20241022::anthropic">Claude 3.5 Sonnet</option>
-            <option value="claude-3-5-haiku-20241022::anthropic">Claude 3.5 Haiku</option>
-            <option value="claude-3-opus-20240229::anthropic">Claude 3 Opus</option>
-          </optgroup>
-          <optgroup label="NVIDIA Nim Free Tier">
-            <option value="meta/llama-3.3-70b-instruct::nvidia">Llama 3.3 70B (NVIDIA)</option>
-            <option value="nvidia/llama-3.1-nemotron-70b-instruct::nvidia">Nemotron 70B (NVIDIA)</option>
-            <option value="google/gemma-2-27b-it::nvidia">Gemma 2 27B (NVIDIA)</option>
-          </optgroup>
-        </select>
+
 
         <div class="api-card" id="api-card">
           <div class="api-label">API Key (optional)</div>
