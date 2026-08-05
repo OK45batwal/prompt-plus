@@ -102,5 +102,52 @@ describe("Phase 3 Integration & Developer Experience Tests", () => {
       const json = await res.json();
       expect(json.error).toBe("Unauthorized");
     });
+
+    it("should reject unauthenticated POST /api/v1/prompts/share", async () => {
+      const { auth } = await import("@/lib/auth/config");
+      vi.mocked(auth).mockResolvedValueOnce(null as never);
+
+      const { POST: sharePost } = await import("@/app/api/v1/prompts/share/route");
+      const { NextRequest } = await import("next/server");
+      const req = new NextRequest("http://localhost:3000/api/v1/prompts/share", {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+        body: JSON.stringify({ promptId: "p1" }),
+      });
+      const res = await sharePost(req);
+      expect(res.status).toBe(401);
+      const json = await res.json();
+      expect(json.error).toBe("Unauthorized");
+    });
+
+    it("should reject unauthenticated POST /api/v1/prompts/[id]/versions", async () => {
+      const { auth } = await import("@/lib/auth/config");
+      vi.mocked(auth).mockResolvedValueOnce(null as never);
+
+      const { POST: versionPost } = await import("@/app/api/v1/prompts/[id]/versions/route");
+      const { NextRequest } = await import("next/server");
+      const req = new NextRequest("http://localhost:3000/api/v1/prompts/p1/versions", {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+        body: JSON.stringify({ text: "v2 text" }),
+      });
+      const res = await versionPost(req);
+      expect(res.status).toBe(401);
+      const json = await res.json();
+      expect(json.error).toBe("Unauthorized");
+    });
+
+    it("should reject unauthenticated GET /api/v1/prompts/[id]/versions", async () => {
+      const { auth } = await import("@/lib/auth/config");
+      vi.mocked(auth).mockResolvedValueOnce(null as never);
+
+      const { GET: versionGet } = await import("@/app/api/v1/prompts/[id]/versions/route");
+      const { NextRequest } = await import("next/server");
+      const req = new NextRequest("http://localhost:3000/api/v1/prompts/p1/versions");
+      const res = await versionGet(req);
+      expect(res.status).toBe(401);
+      const json = await res.json();
+      expect(json.error).toBe("Unauthorized");
+    });
   });
 });
