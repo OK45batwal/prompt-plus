@@ -701,7 +701,11 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
       closePanel();
     };
 
-    panelEl.querySelector("#pp-enhance-btn").onclick = () => doEnhance(input, text);
+    panelEl.querySelector("#pp-enhance-btn").onclick = () => {
+      const activeInput = currentTarget || input || getInput();
+      const txt = (activeInput ? getText(activeInput) : "") || currentText;
+      doEnhance(activeInput, txt);
+    };
 
     panelEl.querySelector("#pp-copy-btn").onclick = () => {
       const val = panelEl.querySelector("#pp-enhanced-preview").textContent;
@@ -724,6 +728,17 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
 
   async function doEnhance(input, text) {
     if (enhancing) return;
+
+    const el = input || currentTarget || getInput();
+    const promptText = (text || currentText || (el ? getText(el) : "")).trim();
+
+    if (!promptText) {
+      const preview = document.getElementById("pp-enhanced-preview");
+      if (preview) preview.textContent = "Type a prompt in the chat input field first, then click Enhance!";
+      return;
+    }
+
+    text = promptText;
     enhancing = true;
 
     const fabText = document.getElementById("pp-fab-text");
