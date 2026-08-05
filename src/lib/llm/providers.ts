@@ -37,6 +37,13 @@ const OPENROUTER_FREE_MODELS = [
   "mistralai/mistral-7b-instruct:free",
 ];
 
+interface CacheEntry {
+  response: LLMResponse;
+  expiresAt: number;
+}
+
+const llmResponseCache = new Map<string, CacheEntry>();
+
 export function detectProviderFromKey(apiKey: string, fallbackProvider: LLMOptions["provider"] = "openrouter"): NonNullable<LLMOptions["provider"]> {
   if (!apiKey) return fallbackProvider || "openrouter";
   const k = apiKey.trim();
@@ -126,6 +133,13 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
     }
   }
 
+  // Cache check for instant <5ms responses on repeated prompts
+  const cacheKey = `${provider}:${model}:${userPrompt.slice(0, 300)}:${systemPrompt.slice(0, 100)}`;
+  const cached = llmResponseCache.get(cacheKey);
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.response;
+  }
+
   const url = isOpenRouter
     ? "https://openrouter.ai/api/v1/chat/completions"
     : isAnthropic
@@ -159,28 +173,29 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
         ...(responseFormatJson && !isNvidia && !isOpenRouter ? { response_format: { type: "json_object" } } : {}),
       };
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
-
   let res: Response | null = null;
   let data: Record<string, unknown> = {};
   let lastErrMessage = "";
 
-  // Retry loop for transient network errors
+  // Ultra-fast retry loop: 8 seconds per attempt for rapid failover
   for (let attempt = 1; attempt <= 2; attempt++) {
+    const controller = new AbortController();
+    const attemptTimeout = setTimeout(() => controller.abort(), 8000);
+
     try {
       res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body), signal: controller.signal });
       data = await res.json().catch(() => ({}));
+      clearTimeout(attemptTimeout);
       if (res.ok) break;
       if (res.status < 500 && res.status !== 429 && res.status !== 404 && res.status !== 400) break;
       lastErrMessage = (data as { error?: { message?: string } })?.error?.message || `${provider} API error (${res.status})`;
-      if (attempt < 2) await new Promise((r) => setTimeout(r, 1000 * attempt));
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 400));
     } catch (err: unknown) {
-      lastErrMessage = err instanceof Error && err.name === "AbortError" ? "Request timed out after 30s" : `${provider} connection failed`;
-      if (attempt < 2) await new Promise((r) => setTimeout(r, 1000 * attempt));
+      clearTimeout(attemptTimeout);
+      lastErrMessage = err instanceof Error && err.name === "AbortError" ? "Request timed out after 8s" : `${provider} connection failed`;
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 400));
     }
   }
-  clearTimeout(timeout);
 
   if (!res || !res.ok) {
     if (res?.status === 401) {
@@ -227,11 +242,20 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
     ? parsed.content?.[0]?.text || ""
     : parsed.choices?.[0]?.message?.content || "";
 
-  return {
+  const responseResult: LLMResponse = {
     content: textOutput,
     tokensIn: parsed.usage?.prompt_tokens,
     tokensOut: parsed.usage?.completion_tokens,
     model: parsed.model || model,
     provider,
   };
+
+  if (textOutput) {
+    llmResponseCache.set(cacheKey, {
+      response: responseResult,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+    });
+  }
+
+  return responseResult;
 }

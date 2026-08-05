@@ -87,67 +87,74 @@ export const POST = withAuth(
 
       const latencyMs = Date.now() - startTime;
 
-      if (userApiKeyRow) {
-        await getDb().apiKey.update({
-          where: { id: userApiKeyRow.id },
-          data: { usageCount: { increment: 1 }, lastUsedAt: new Date() },
-        }).catch(() => {});
-      }
+      // Non-blocking background DB sync
+      void (async () => {
+        try {
+          if (userApiKeyRow) {
+            await getDb().apiKey.update({
+              where: { id: userApiKeyRow.id },
+              data: { usageCount: { increment: 1 }, lastUsedAt: new Date() },
+            }).catch(() => {});
+          }
 
-      let activePromptId = promptId;
-      if (!activePromptId) {
-        const title = text.length > 50 ? text.slice(0, 50).trim() + "…" : text.trim() || "Untitled Prompt";
-        const created = await getDb().prompt.create({
-          data: {
-            userId,
-            title,
-            originalText: text,
-            enhancedText: response.content,
-            model: response.model,
-            category: category || "general",
-            score: { total: 85, clarity: 85, specificity: 85, structure: 85, context: 85, length: 85, actionability: 85 },
-          },
-        }).catch(() => null);
-        if (created) activePromptId = created.id;
-      } else {
-        await getDb().prompt.update({
-          where: { id: activePromptId },
-          data: {
-            enhancedText: response.content,
-            model: response.model,
-          },
-        }).catch(() => {});
-      }
+          let activePromptId = promptId;
+          if (!activePromptId) {
+            const title = text.length > 50 ? text.slice(0, 50).trim() + "…" : text.trim() || "Untitled Prompt";
+            const created = await getDb().prompt.create({
+              data: {
+                userId,
+                title,
+                originalText: text,
+                enhancedText: response.content,
+                model: response.model,
+                category: category || "general",
+                score: { total: 85, clarity: 85, specificity: 85, structure: 85, context: 85, length: 85, actionability: 85 },
+              },
+            }).catch(() => null);
+            if (created) activePromptId = created.id;
+          } else {
+            await getDb().prompt.update({
+              where: { id: activePromptId },
+              data: {
+                enhancedText: response.content,
+                model: response.model,
+              },
+            }).catch(() => {});
+          }
 
-      await getDb().usageLog.create({
-        data: {
-          userId,
-          promptId: activePromptId || null,
-          action: "enhance",
-          provider: response.provider,
-          model: response.model,
-          tokensIn: response.tokensIn,
-          tokensOut: response.tokensOut,
-          latencyMs,
-          success: true,
-        },
-      }).catch(() => {});
+          await getDb().usageLog.create({
+            data: {
+              userId,
+              promptId: activePromptId || null,
+              action: "enhance",
+              provider: response.provider,
+              model: response.model,
+              tokensIn: response.tokensIn,
+              tokensOut: response.tokensOut,
+              latencyMs,
+              success: true,
+            },
+          }).catch(() => {});
 
-      if (activePromptId) {
-        const latestVersion = await getDb().version.findFirst({
-          where: { promptId: activePromptId },
-          orderBy: { version: "desc" },
-        });
-        const nextVer = (latestVersion?.version || 0) + 1;
-        await getDb().version.create({
-          data: { promptId: activePromptId, version: nextVer, text: response.content },
-        }).catch(() => {});
-      }
+          if (activePromptId) {
+            const latestVersion = await getDb().version.findFirst({
+              where: { promptId: activePromptId },
+              orderBy: { version: "desc" },
+            });
+            const nextVer = (latestVersion?.version || 0) + 1;
+            await getDb().version.create({
+              data: { promptId: activePromptId, version: nextVer, text: response.content },
+            }).catch(() => {});
+          }
+        } catch {
+          // DB fail-safe
+        }
+      })();
 
       return jsonResponse(
         {
           data: {
-            promptId: activePromptId,
+            promptId: promptId || null,
             enhanced: response.content,
             provider: response.provider,
             model: response.model,

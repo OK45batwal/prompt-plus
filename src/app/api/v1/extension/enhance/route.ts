@@ -106,44 +106,46 @@ export async function POST(request: NextRequest) {
         maxTokens: 1200,
       });
 
-      // Async DB log
-      try {
-        const { getDb } = await import("@/lib/db/prisma");
-        const { auth } = await import("@/lib/auth/config");
-        const session = await auth().catch(() => null);
+      // Non-blocking background DB logging
+      void (async () => {
+        try {
+          const { getDb } = await import("@/lib/db/prisma");
+          const { auth } = await import("@/lib/auth/config");
+          const session = await auth().catch(() => null);
 
-        if (session?.user?.id) {
-          const title = text.length > 50 ? text.slice(0, 50).trim() + "…" : text.trim() || "Extension Prompt";
-          const createdPrompt = await getDb().prompt.create({
-            data: {
-              userId: session.user.id,
-              title,
-              originalText: text,
-              enhancedText: response.content,
-              model: response.model,
-              category: category || "general",
-              score: { total: 85, clarity: 85, specificity: 85, structure: 85, context: 85, length: 85, actionability: 85 },
-            },
-          }).catch(() => null);
-
-          if (createdPrompt) {
-            await getDb().usageLog.create({
+          if (session?.user?.id) {
+            const title = text.length > 50 ? text.slice(0, 50).trim() + "…" : text.trim() || "Extension Prompt";
+            const createdPrompt = await getDb().prompt.create({
               data: {
                 userId: session.user.id,
-                promptId: createdPrompt.id,
-                action: "extension_enhance",
-                provider: response.provider,
+                title,
+                originalText: text,
+                enhancedText: response.content,
                 model: response.model,
-                tokensIn: response.tokensIn,
-                tokensOut: response.tokensOut,
-                success: true,
+                category: category || "general",
+                score: { total: 85, clarity: 85, specificity: 85, structure: 85, context: 85, length: 85, actionability: 85 },
               },
-            }).catch(() => {});
+            }).catch(() => null);
+
+            if (createdPrompt) {
+              await getDb().usageLog.create({
+                data: {
+                  userId: session.user.id,
+                  promptId: createdPrompt.id,
+                  action: "extension_enhance",
+                  provider: response.provider,
+                  model: response.model,
+                  tokensIn: response.tokensIn,
+                  tokensOut: response.tokensOut,
+                  success: true,
+                },
+              }).catch(() => {});
+            }
           }
+        } catch {
+          // DB fail-safe
         }
-      } catch {
-        // DB fail-safe
-      }
+      })();
 
       return NextResponse.json({
         enhanced: response.content,
