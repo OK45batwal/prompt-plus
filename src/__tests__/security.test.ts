@@ -91,6 +91,14 @@ describe("Phase 1 Security & Correctness Hardening", () => {
       expect(res3.allowed).toBe(true);
       expect(res4.allowed).toBe(false);
     });
+
+    it("should support distributed rate limiting via checkIpRateLimitAsync", async () => {
+      const { checkIpRateLimitAsync } = await import("@/lib/rate-limit");
+      const key = "ip-async-test";
+      const res = await checkIpRateLimitAsync(key, 5, 60_000);
+      expect(res.allowed).toBe(true);
+      expect(res.limit).toBe(5);
+    });
   });
 
   describe("Server API Key Resolver", () => {

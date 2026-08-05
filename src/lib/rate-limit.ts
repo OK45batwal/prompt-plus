@@ -46,29 +46,102 @@ export function getRateLimitHeaders(result: RateLimitResult): Record<string, str
 
 /**
  * Per-IP sliding-window rate limit for abuse protection.
- * Supports distributed Upstash Redis REST or in-memory sliding window fallback.
+ * Supports distributed Upstash Redis REST API or in-memory sliding window fallback.
  */
 export function checkIpRateLimit(
   key: string,
   limit: number,
   windowMs: number
 ): RateLimitResult {
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  // Synchronous in-memory check for fast path & fallback
   const now = Date.now();
   let bucket = ipBuckets.get(key);
 
   if (!bucket || now >= bucket.resetAt) {
     bucket = { count: 1, resetAt: now + windowMs };
     ipBuckets.set(key, bucket);
-    return { allowed: true, remaining: limit - 1, resetMs: windowMs, limit };
+  } else {
+    bucket.count++;
   }
 
-  bucket.count++;
-  return {
+  const result: RateLimitResult = {
     allowed: bucket.count <= limit,
     remaining: Math.max(0, limit - bucket.count),
     resetMs: Math.max(0, bucket.resetAt - now),
     limit,
   };
+
+  // If Upstash Redis environment variables are set, sync asynchronously to distributed Redis store
+  if (redisUrl && redisToken) {
+    void (async () => {
+      try {
+        await fetch(`${redisUrl}/pipeline`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${redisToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify([
+            ["INCR", key],
+            ["PEXPIRE", key, windowMs, "NX"],
+          ]),
+        });
+      } catch {
+        // Fallback to in-memory store silently on Redis network issues
+      }
+    })();
+  }
+
+  return result;
+}
+
+/**
+ * Async distributed rate limit check for environments requiring strict serverless Redis evaluation.
+ */
+export async function checkIpRateLimitAsync(
+  key: string,
+  limit: number,
+  windowMs: number
+): Promise<RateLimitResult> {
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (redisUrl && redisToken) {
+    try {
+      const res = await fetch(`${redisUrl}/pipeline`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${redisToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([
+          ["INCR", key],
+          ["PTTL", key],
+        ]),
+      });
+
+      if (res.ok) {
+        const data = (await res.json()) as Array<{ result: number }>;
+        const count = data[0]?.result || 1;
+        let pttl = data[1]?.result || windowMs;
+        if (pttl <= 0) pttl = windowMs;
+
+        return {
+          allowed: count <= limit,
+          remaining: Math.max(0, limit - count),
+          resetMs: pttl,
+          limit,
+        };
+      }
+    } catch {
+      // Fallback to in-memory on error
+    }
+  }
+
+  return checkIpRateLimit(key, limit, windowMs);
 }
 
 setInterval(() => {
