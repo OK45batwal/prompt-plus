@@ -10,6 +10,8 @@ function getLanguageModelAPI() {
   if (typeof self !== "undefined" && self.LanguageModel) return self.LanguageModel;
   if (typeof ai !== "undefined" && ai.languageModel) return ai.languageModel;
   if (typeof self !== "undefined" && self.ai?.languageModel) return self.ai.languageModel;
+  if (typeof ai !== "undefined" && ai.assistant) return ai.assistant;
+  if (typeof self !== "undefined" && self.ai?.assistant) return self.ai.assistant;
   return null;
 }
 

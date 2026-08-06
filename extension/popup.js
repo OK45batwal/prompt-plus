@@ -40,6 +40,8 @@ function getLanguageModelAPI() {
   if (typeof window !== "undefined" && window.LanguageModel) return window.LanguageModel;
   if (typeof ai !== "undefined" && ai.languageModel) return ai.languageModel;
   if (typeof window !== "undefined" && window.ai?.languageModel) return window.ai.languageModel;
+  if (typeof ai !== "undefined" && ai.assistant) return ai.assistant;
+  if (typeof window !== "undefined" && window.ai?.assistant) return window.ai.assistant;
   return null;
 }
 
@@ -47,8 +49,15 @@ async function checkDeviceSupport() {
   try {
     const lm = getLanguageModelAPI();
     if (lm) {
-      const a = await lm.availability();
-      return a === "available" || a === "readily" || a === "downloading" || a === "after-download";
+      if (typeof lm.availability === "function") {
+        const a = await lm.availability();
+        return a === "available" || a === "readily" || a === "downloading" || a === "after-download";
+      }
+      if (typeof lm.capabilities === "function") {
+        const c = await lm.capabilities();
+        return c.available === "readily" || c.available === "after-download" || c.available === "available";
+      }
+      return true;
     }
   } catch { /* ignore */ }
   return false;
