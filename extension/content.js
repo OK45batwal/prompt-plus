@@ -797,31 +797,30 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
           res = await sendDeviceEnhance(text, tkSave, "pp-enhanced-preview");
           if (res && res.success) {
             currentEnhanced = res.enhanced || res.data?.enhanced || "";
-          }
-        } catch { /* device AI unavailable, fallback seamlessly to Cloud API */ }
-      }
-
-      if (!currentEnhanced) {
-        try {
-          const modelVal = document.getElementById("pp-model")?.value || "google/gemini-2.0-flash-exp:free::openrouter";
-          const parts = modelVal.split("::");
-          const model = parts[0];
-          const provider = parts[1] || "openrouter";
-          res = await new Promise((resolve) => {
-            try {
-              chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver: tkSave }, (r) => {
-                if (chrome.runtime.lastError) resolve({ success: false, error: chrome.runtime.lastError.message });
-                else resolve(r);
-              });
-            } catch (e) { resolve({ success: false, error: e.message }); }
-          });
-          if (res && res.success) {
-            currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
           } else if (res && res.error) {
             throw new Error(res.error);
           }
         } catch (err) {
-          if (err.message) throw err;
+          throw new Error(err.message || "On-Device AI (Gemini Nano) not available on this browser");
+        }
+      } else {
+        // API Based AI Mode
+        const modelVal = document.getElementById("pp-model")?.value || "google/gemini-2.0-flash-exp:free::openrouter";
+        const parts = modelVal.split("::");
+        const model = parts[0];
+        const provider = parts[1] || "openrouter";
+        res = await new Promise((resolve) => {
+          try {
+            chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver: tkSave }, (r) => {
+              if (chrome.runtime.lastError) resolve({ success: false, error: chrome.runtime.lastError.message });
+              else resolve(r);
+            });
+          } catch (e) { resolve({ success: false, error: e.message }); }
+        });
+        if (res && res.success) {
+          currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
+        } else if (res && res.error) {
+          throw new Error(res.error);
         }
       }
 

@@ -73,7 +73,7 @@ function setMode(mode) {
   modeServer.classList.toggle("active", mode === "server");
 
   const resultMode = document.getElementById("result-mode");
-  if (resultMode) resultMode.textContent = mode === "device" ? "On-Device" : "Cloud AI";
+  if (resultMode) resultMode.textContent = mode === "device" ? "On-Device AI" : "API Based AI";
 
   const keyText = document.getElementById("key-text");
 
@@ -84,22 +84,23 @@ function setMode(mode) {
     modelLabel.style.display = "none";
     apiCard.style.display = "none";
     if (keyText) keyText.textContent = "On-Device AI";
-    modeLabel.textContent = "⚡ On-Device AI — 100% private, local execution";
-    modeLabel.className = "mode-hint";
     checkDeviceSupport().then((supported) => {
-      if (!supported) {
-        modeLabel.textContent = "⚡ On-Device AI — local Master Architect Engine active";
-        modeLabel.className = "mode-hint";
+      if (supported) {
+        modeLabel.textContent = "⚡ On-Device AI — Chrome Gemini Nano local engine active";
+        modeLabel.className = "mode-hint ok";
+      } else {
+        modeLabel.textContent = "⚡ On-Device AI — Requires Chrome 138+ (chrome://flags → Enable Prompt API)";
+        modeLabel.className = "mode-hint warn";
       }
     });
   } else {
     btnIcon.innerHTML = ICON.zap;
-    btnText.textContent = "Enhance via Cloud AI";
+    btnText.textContent = "Enhance via Cloud AI API";
     modelSelect.style.display = "";
     modelLabel.style.display = "";
     apiCard.style.display = "";
-    if (keyText) keyText.textContent = "Cloud AI";
-    modeLabel.textContent = "☁️ Cloud AI — select model (Gemini, GPT-4o, Claude, DeepSeek)";
+    if (keyText) keyText.textContent = "API Based AI";
+    modeLabel.textContent = "☁️ API Based Mode — select model (Gemini, GPT-4o, Claude, DeepSeek)";
     modeLabel.className = "mode-hint";
   }
   chrome.runtime?.sendMessage?.({ action: "saveSettings", settings: { mode } });
@@ -185,28 +186,40 @@ btn?.addEventListener("click", async () => {
 
     let enhanced = "";
     if (currentMode === "device") {
-      try {
-        enhanced = await deviceEnhance(text, tokenSaver);
-      } catch {
-        // Device AI not enabled locally — auto-route through free server model
-        const res = await new Promise((resolve) => {
-          try {
-            chrome.runtime.sendMessage(
-              { action: "enhancePrompt", text, model: "google/gemini-2.0-flash-exp:free", provider: "openrouter", tokenSaver },
-              (r) => {
-                if (chrome.runtime.lastError) resolve({ success: false, error: chrome.runtime.lastError.message });
-                else resolve(r);
-              }
-            );
-          } catch (e) { resolve({ success: false, error: e.message }); }
-        });
-        if (res && res.success) {
-          enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
-        } else if (res && res.error) {
-          throw new Error(res.error);
+      const supported = await checkDeviceSupport();
+      if (!supported) {
+        if (resultBody) {
+          resultBody.classList.remove("placeholder");
+          resultBody.innerHTML = `
+            <div style="padding: 10px; color: #f4f4f5;">
+              <div style="font-weight: 700; color: #f59e0b; margin-bottom: 6px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                <span>${ICON.device}</span> Chrome Gemini Nano Not Active
+              </div>
+              <div style="font-size: 12px; color: #94a3b8; margin-bottom: 14px; line-height: 1.5;">
+                On-Device AI runs 100% locally in your browser using Chrome Gemini Nano.
+                To enable local execution:
+                <ol style="margin: 6px 0 0 16px; padding: 0;">
+                  <li>Open <code>chrome://flags</code> in your browser</li>
+                  <li>Enable <strong>Prompt API for Gemini Nano</strong></li>
+                  <li>Relaunch Chrome</li>
+                </ol>
+              </div>
+              <button id="err-switch-api-mode" type="button" style="width: 100%; padding: 10px 14px; background: linear-gradient(135deg, #3b82f6, #6366f1); border: none; color: #ffffff; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span>${ICON.zap}</span> Switch to API Based AI Mode
+              </button>
+            </div>
+          `;
+          document.getElementById("err-switch-api-mode")?.addEventListener("click", () => {
+            setMode("server");
+            btn?.click();
+          });
         }
+        showMsg("Chrome Gemini Nano not active locally", true);
+        return;
       }
+      enhanced = await deviceEnhance(text, tokenSaver);
     } else {
+      // API Based AI Mode
       const modelSelectEl = document.getElementById("model-select");
       const modelVal = modelSelectEl?.value || "google/gemini-2.0-flash-exp:free::openrouter";
       const parts = modelVal.split("::");
