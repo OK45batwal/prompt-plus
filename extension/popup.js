@@ -73,29 +73,33 @@ function setMode(mode) {
   modeServer.classList.toggle("active", mode === "server");
 
   const resultMode = document.getElementById("result-mode");
-  if (resultMode) resultMode.textContent = mode === "device" ? "On-Device" : "API Server";
+  if (resultMode) resultMode.textContent = mode === "device" ? "On-Device" : "Cloud AI";
+
+  const keyText = document.getElementById("key-text");
 
   if (mode === "device") {
     btnIcon.innerHTML = ICON.device;
-    btnText.textContent = "Device Enhance";
+    btnText.textContent = "Enhance On-Device";
     modelSelect.style.display = "none";
     modelLabel.style.display = "none";
     apiCard.style.display = "none";
-    modeLabel.textContent = "On-Device AI — enhanced via Gemini Nano";
+    if (keyText) keyText.textContent = "On-Device AI";
+    modeLabel.textContent = "⚡ On-Device AI — 100% private, local execution";
     modeLabel.className = "mode-hint";
     checkDeviceSupport().then((supported) => {
       if (!supported) {
-        modeLabel.textContent = "On-Device AI — needs Chrome 138+ with Gemini Nano (chrome://flags → Enable Prompt API)";
-        modeLabel.className = "mode-hint warn";
+        modeLabel.textContent = "⚡ On-Device AI — local Master Architect Engine active";
+        modeLabel.className = "mode-hint";
       }
     });
   } else {
     btnIcon.innerHTML = ICON.zap;
-    btnText.textContent = "Apply Upgrade";
+    btnText.textContent = "Enhance via Cloud AI";
     modelSelect.style.display = "";
     modelLabel.style.display = "";
     apiCard.style.display = "";
-    modeLabel.textContent = "API mode — enhanced via cloud AI API";
+    if (keyText) keyText.textContent = "Cloud AI";
+    modeLabel.textContent = "☁️ Cloud AI — select model (Gemini, GPT-4o, Claude, DeepSeek)";
     modeLabel.className = "mode-hint";
   }
   chrome.runtime?.sendMessage?.({ action: "saveSettings", settings: { mode } });
@@ -262,8 +266,8 @@ btn?.addEventListener("click", async () => {
   } finally {
     btn.disabled = false;
     btn.innerHTML = currentMode === "device"
-      ? `<span>${ICON.device}</span><span>Device Enhance</span>`
-      : `<span>${ICON.zap}</span><span>Apply Upgrade</span>`;
+      ? `<span id="btn-icon">${ICON.device}</span><span id="btn-text">Enhance On-Device</span>`
+      : `<span id="btn-icon">${ICON.zap}</span><span id="btn-text">Enhance via Cloud AI</span>`;
   }
 });
 

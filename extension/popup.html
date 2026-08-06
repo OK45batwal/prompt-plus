@@ -888,13 +888,13 @@
 
   <div class="mode-bar">
     <div class="mode-track">
-      <button class="mode-btn active" id="mode-device">
+      <button class="mode-btn active" id="mode-device" title="Enhance prompt locally on your device with zero data leaving your browser">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-        On-Device
+        ⚡ On-Device
       </button>
-      <button class="mode-btn" id="mode-server">
+      <button class="mode-btn" id="mode-server" title="Enhance prompt via Cloud AI models (Gemini, GPT-4o, Claude, DeepSeek)">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        API Based
+        ☁️ Cloud AI
       </button>
     </div>
   </div>
@@ -916,7 +916,7 @@
       </div>
     </div>
 
-    <div class="mode-hint" id="mode-label">⚡ On-Device AI Architect Engine</div>
+    <div class="mode-hint" id="mode-label">⚡ On-Device AI — local execution mode</div>
 
     <div class="input-wrap">
       <textarea id="input" placeholder="Paste or type your prompt to enhance..."></textarea>
@@ -927,7 +927,7 @@
       <span id="btn-icon">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>
       </span>
-      <span id="btn-text">Enhance Prompt</span>
+      <span id="btn-text">Enhance On-Device</span>
     </button>
 
     <div class="msg" id="msg"></div>
