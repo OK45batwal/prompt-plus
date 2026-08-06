@@ -797,14 +797,12 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
           res = await sendDeviceEnhance(text, tkSave, "pp-enhanced-preview");
           if (res && res.success) {
             currentEnhanced = res.enhanced || res.data?.enhanced || "";
-          } else if (res && res.error) {
-            throw new Error(res.error);
           }
-        } catch (err) {
-          throw new Error(err.message || "On-Device AI (Gemini Nano) not available on this browser");
-        }
-      } else {
-        // API Based AI Mode
+        } catch { /* proceed to server API fallback */ }
+      }
+
+      if (!currentEnhanced) {
+        // API Mode or On-Device Fallback
         const modelVal = document.getElementById("pp-model")?.value || "google/gemini-2.0-flash-exp:free::openrouter";
         const parts = modelVal.split("::");
         const model = parts[0];

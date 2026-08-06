@@ -1,7 +1,6 @@
 const API_URLS = [
-  "http://localhost:3000/api/v1/extension/enhance",
-  "https://promptplus.vercel.app/api/v1/extension/enhance",
   "https://prompt-plus-three.vercel.app/api/v1/extension/enhance",
+  "http://localhost:3000/api/v1/extension/enhance",
 ];
 const STORAGE_KEY = "pp_settings";
 let cachedWorkingUrl = "";
@@ -14,8 +13,6 @@ function getLanguageModelAPI() {
   return null;
 }
 
-
-
 chrome.runtime.onInstalled.addListener((details) => {
   chrome.contextMenus.create({
     id: "enhance-selection",
@@ -24,7 +21,7 @@ chrome.runtime.onInstalled.addListener((details) => {
   });
 
   if (details.reason === "install") {
-    chrome.tabs.create({ url: "https://promptplus.vercel.app/extension" });
+    chrome.tabs.create({ url: "https://prompt-plus-three.vercel.app/extension" });
   }
 });
 
@@ -56,17 +53,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 provider: request.provider || (apiKey ? "openai" : "openrouter"),
                 level: request.level || "deep",
               }),
-              signal: AbortSignal.timeout(20000),
+              signal: AbortSignal.timeout(25000),
             });
             const resData = await res.json().catch(() => ({}));
             if (!res.ok) {
-              const msg = resData.error || "Enhancement failed";
+              lastErr = resData.error || `HTTP ${res.status}`;
               if (res.status === 429) {
                 const retryAfter = res.headers.get("Retry-After");
                 sendResponse({ success: false, error: `Too many requests. Try again ${retryAfter ? `in ${retryAfter}s` : "in a few minutes"}.` });
                 return;
               }
-              if (res.status >= 500) { lastErr = msg; continue; }
+              continue;
             } else {
               cachedWorkingUrl = url;
               sendResponse({ success: true, data: resData });
