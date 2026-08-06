@@ -8,6 +8,7 @@ import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 import { buildArchitectMetaPrompt } from "@/lib/llm/meta-prompt";
 import { calculateDynamicPromptScore } from "@/lib/scoring";
+import { synthesizeAlgorithmicPrompt } from "@/lib/llm/algorithmic-enhancers";
 
 export const POST = withAuth(
   async (request: NextRequest, { userId, requestId }) => {
@@ -178,16 +179,16 @@ export const POST = withAuth(
         },
       }).catch(() => {});
 
-      // Bulletproof structured heuristic fallback
-      const fallbackEnhancedText = `[ROLE & PERSONA]\nAct as an expert ${category || "General"} AI Architect.\n\n[OBJECTIVE]\n${text.trim()}\n\n[KEY REQUIREMENTS & CONSTRAINTS]\n- Tone: ${tone || "Professional, practical, and clear"}\n- Format: Comprehensive, structured, zero filler text.\n- Instructions: Provide actionable step-by-step guidance.`;
+      // Dynamic algorithmic meta-prompt synthesis
+      const fallbackEnhancedText = synthesizeAlgorithmicPrompt(text, level);
 
       return jsonResponse(
         {
           data: {
-            promptId: promptId || "fallback",
+            promptId: promptId || "algorithmic",
             enhanced: fallbackEnhancedText,
             provider: "prompt-architect-engine",
-            model: "heuristic-v1",
+            model: "algorithmic-v2",
           },
         },
         { requestId }

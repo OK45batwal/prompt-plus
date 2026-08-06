@@ -6,6 +6,7 @@ import { buildArchitectMetaPrompt } from "@/lib/llm/meta-prompt";
 import { resolveServerApiKey } from "@/lib/llm/server-api-key";
 import { checkIpRateLimit, extractClientIp } from "@/lib/rate-limit";
 import { calculateDynamicPromptScore } from "@/lib/scoring";
+import { synthesizeAlgorithmicPrompt } from "@/lib/llm/algorithmic-enhancers";
 
 const extensionEnhanceSchema = z.object({
   text: z.string().min(1).max(10000),
@@ -170,15 +171,15 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  console.error("All model candidates failed, returning Architect Heuristic Fallback:", lastError);
+  console.log("[Extension Backend] Serving dynamic Algorithmic Meta-Prompt Synthesis:", lastError);
 
-  const fallbackText = `[ROLE & PERSONA]\nAct as an expert ${category || "General"} AI Specialist.\n\n[OBJECTIVE]\n${text.trim()}\n\n[KEY REQUIREMENTS & CONSTRAINTS]\n- Tone: ${tone || "Professional, practical, and clear"}\n- Format: Comprehensive, structured, zero filler text.\n- Instructions: Provide actionable step-by-step guidance.`;
+  const enhancedText = synthesizeAlgorithmicPrompt(text, level);
 
   return NextResponse.json(
     {
-      enhanced: fallbackText,
-      model: "prompt-architect-heuristic",
-      provider: "openrouter",
+      enhanced: enhancedText,
+      model: "prompt-architect-algorithmic",
+      provider: "local",
     },
     { headers: corsHeaders }
   );
