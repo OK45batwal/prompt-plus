@@ -229,7 +229,19 @@ btn?.addEventListener("click", async () => {
   const uBtn = document.getElementById("use-btn");
   try {
     const text = input?.value?.trim();
-    if (!text) { showMsg("Enter a prompt first", true); return; }
+    if (!text) {
+      if (input) {
+        input.focus();
+        input.style.borderColor = "#ef4444";
+        input.style.boxShadow = "0 0 12px rgba(239, 68, 68, 0.4)";
+        setTimeout(() => {
+          input.style.borderColor = "";
+          input.style.boxShadow = "";
+        }, 2500);
+      }
+      showMsg("⚠️ Type or paste your prompt in the box above first!", true);
+      return;
+    }
 
     btn.disabled = true;
     btn.innerHTML = `<span>${ICON.spinner}</span><span>Enhancing…</span>`;
