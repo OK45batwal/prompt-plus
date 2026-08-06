@@ -24,6 +24,16 @@ const FALLBACK_FREE_MODELS = [
   "meta-llama/llama-3.1-8b-instruct:free",
 ];
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Title, HTTP-Referer",
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200, headers: corsHeaders });
+}
+
 export async function POST(request: NextRequest) {
   const ip = extractClientIp(request);
 
@@ -31,7 +41,7 @@ export async function POST(request: NextRequest) {
   if (!rateCheck.allowed) {
     return NextResponse.json(
       { error: "Too many requests from this address. Try again in a few minutes." },
-      { status: 429, headers: { "Retry-After": String(Math.ceil(rateCheck.resetMs / 1000)) } }
+      { status: 429, headers: { ...corsHeaders, "Retry-After": String(Math.ceil(rateCheck.resetMs / 1000)) } }
     );
   }
 
@@ -39,14 +49,14 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400, headers: corsHeaders });
   }
 
   const parseResult = extensionEnhanceSchema.safeParse(body);
   if (!parseResult.success) {
     return NextResponse.json(
       { error: "Validation failed", details: parseResult.error.flatten() },
-      { status: 400 }
+      { status: 400, headers: corsHeaders }
     );
   }
 
@@ -146,11 +156,14 @@ export async function POST(request: NextRequest) {
         }
       })();
 
-      return NextResponse.json({
-        enhanced: response.content,
-        model: response.model,
-        provider: response.provider,
-      });
+      return NextResponse.json(
+        {
+          enhanced: response.content,
+          model: response.model,
+          provider: response.provider,
+        },
+        { headers: corsHeaders }
+      );
     } catch (err) {
       lastError = err;
       console.warn(`[Extension Backend] Candidate ${candidate.model} failed, trying next candidate...`);
@@ -161,9 +174,12 @@ export async function POST(request: NextRequest) {
 
   const fallbackText = `[ROLE & PERSONA]\nAct as an expert ${category || "General"} AI Specialist.\n\n[OBJECTIVE]\n${text.trim()}\n\n[KEY REQUIREMENTS & CONSTRAINTS]\n- Tone: ${tone || "Professional, practical, and clear"}\n- Format: Comprehensive, structured, zero filler text.\n- Instructions: Provide actionable step-by-step guidance.`;
 
-  return NextResponse.json({
-    enhanced: fallbackText,
-    model: "prompt-architect-heuristic",
-    provider: "openrouter",
-  });
+  return NextResponse.json(
+    {
+      enhanced: fallbackText,
+      model: "prompt-architect-heuristic",
+      provider: "openrouter",
+    },
+    { headers: corsHeaders }
+  );
 }

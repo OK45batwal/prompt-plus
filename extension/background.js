@@ -1,9 +1,18 @@
 const API_URLS = [
   "http://localhost:3000/api/v1/extension/enhance",
+  "https://promptplus.vercel.app/api/v1/extension/enhance",
   "https://prompt-plus-three.vercel.app/api/v1/extension/enhance",
 ];
 const STORAGE_KEY = "pp_settings";
 let cachedWorkingUrl = "";
+
+function getLanguageModelAPI() {
+  if (typeof LanguageModel !== "undefined") return LanguageModel;
+  if (typeof self !== "undefined" && self.LanguageModel) return self.LanguageModel;
+  if (typeof ai !== "undefined" && ai.languageModel) return ai.languageModel;
+  if (typeof self !== "undefined" && self.ai?.languageModel) return self.ai.languageModel;
+  return null;
+}
 
 chrome.runtime.onInstalled.addListener((details) => {
   chrome.contextMenus.create({
@@ -13,70 +22,78 @@ chrome.runtime.onInstalled.addListener((details) => {
   });
 
   if (details.reason === "install") {
-    chrome.tabs.create({ url: "https://prompt-plus-three.vercel.app/extension" });
+    chrome.tabs.create({ url: "https://promptplus.vercel.app/extension" });
   }
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "enhancePrompt") {
     (async () => {
-      const data = await chrome.storage.local.get(STORAGE_KEY).catch(() => ({}));
-      const saved = data[STORAGE_KEY] || {};
-      let apiKey = request.apiKey || "";
-      if (!apiKey && saved.apiKeyEnc) {
-        apiKey = await decryptData(saved.apiKeyEnc);
-      } else if (!apiKey && saved.apiKey) {
-        apiKey = saved.apiKey;
-      }
+      try {
+        const data = await chrome.storage.local.get(STORAGE_KEY).catch(() => ({}));
+        const saved = data[STORAGE_KEY] || {};
+        let apiKey = request.apiKey || "";
+        if (!apiKey && saved.apiKeyEnc) {
+          apiKey = await decryptData(saved.apiKeyEnc).catch(() => "");
+        } else if (!apiKey && saved.apiKey) {
+          apiKey = saved.apiKey;
+        }
 
-      const urls = cachedWorkingUrl ? [cachedWorkingUrl, ...API_URLS.filter((u) => u !== cachedWorkingUrl)] : API_URLS;
-      let lastErr = "";
+        const urls = cachedWorkingUrl ? [cachedWorkingUrl, ...API_URLS.filter((u) => u !== cachedWorkingUrl)] : API_URLS;
+        let lastErr = "";
 
-      for (const url of urls) {
-        try {
-          const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              text: request.text,
-              apiKey: apiKey || undefined,
-              model: request.model || (apiKey ? "gpt-4o-mini" : "google/gemini-2.0-flash-exp:free"),
-              provider: request.provider || (apiKey ? "openai" : "openrouter"),
-              level: request.level || "deep",
-            }),
-            signal: AbortSignal.timeout(20000),
-          });
-          const data = await res.json();
-          if (!res.ok) {
-            const msg = data.error || "Enhancement failed";
-            if (res.status === 429) {
-              const retryAfter = res.headers.get("Retry-After");
-              sendResponse({ success: false, error: `Too many requests. Try again ${retryAfter ? `in ${retryAfter}s` : "in a few minutes"}.` });
+        for (const url of urls) {
+          try {
+            const res = await fetch(url, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                text: request.text,
+                apiKey: apiKey || undefined,
+                model: request.model || (apiKey ? "gpt-4o-mini" : "google/gemini-2.0-flash-exp:free"),
+                provider: request.provider || (apiKey ? "openai" : "openrouter"),
+                level: request.level || "deep",
+              }),
+              signal: AbortSignal.timeout(20000),
+            });
+            const resData = await res.json().catch(() => ({}));
+            if (!res.ok) {
+              const msg = resData.error || "Enhancement failed";
+              if (res.status === 429) {
+                const retryAfter = res.headers.get("Retry-After");
+                sendResponse({ success: false, error: `Too many requests. Try again ${retryAfter ? `in ${retryAfter}s` : "in a few minutes"}.` });
+                return;
+              }
+              if (res.status >= 500) { lastErr = msg; continue; }
+            } else {
+              cachedWorkingUrl = url;
+              sendResponse({ success: true, data: resData });
               return;
             }
-            if (res.status >= 500) { lastErr = msg; continue; }
-          } else {
-            cachedWorkingUrl = url;
-            sendResponse({ success: true, data });
-            return;
+          } catch (err) {
+            lastErr = err.message || "Connection failed";
+            continue;
           }
-        } catch (err) {
-          lastErr = err.message || "Connection failed";
-          continue;
         }
-      }
 
-      // Offline Architect Prompt Fallback Engine
-      const fallbackText = `[ROLE & PERSONA]\nAct as an expert AI Specialist.\n\n[OBJECTIVE]\n${request.text.trim()}\n\n[KEY REQUIREMENTS & CONSTRAINTS]\n- Tone: Professional, practical, and clear.\n- Format: Comprehensive, structured, zero filler text.\n- Instructions: Provide actionable step-by-step guidance.`;
-      sendResponse({
-        success: true,
-        data: {
-          enhanced: fallbackText,
-          model: "prompt-architect-offline",
-          provider: "local",
-          note: lastErr ? `Network fallback (${lastErr})` : "Offline fallback",
-        },
-      });
+        // Master Architect Prompt Fallback Engine
+        const fallbackText = `[ROLE & PERSONA]\nAct as an expert AI Specialist & Senior Domain Expert.\n\n[OBJECTIVE]\n${request.text.trim()}\n\n[KEY REQUIREMENTS & CONSTRAINTS]\n- Tone: Professional, practical, and clear.\n- Format: Comprehensive, structured, zero filler text.\n- Instructions: Provide actionable step-by-step guidance.`;
+        sendResponse({
+          success: true,
+          data: {
+            enhanced: fallbackText,
+            model: "prompt-architect-offline",
+            provider: "local",
+            note: lastErr ? `Network fallback (${lastErr})` : "Offline fallback",
+          },
+        });
+      } catch {
+        const fallbackText = `[ROLE & PERSONA]\nAct as an expert AI Specialist.\n\n[OBJECTIVE]\n${request.text.trim()}\n\n[INSTRUCTIONS]\nProvide structured guidance.`;
+        sendResponse({
+          success: true,
+          data: { enhanced: fallbackText, model: "prompt-architect-fallback", provider: "local" },
+        });
+      }
     })();
     return true;
   }
@@ -92,14 +109,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     })();
     return true;
   }
-
-function getLanguageModelAPI() {
-  if (typeof LanguageModel !== "undefined") return LanguageModel;
-  if (typeof self !== "undefined" && self.LanguageModel) return self.LanguageModel;
-  if (typeof ai !== "undefined" && ai.languageModel) return ai.languageModel;
-  if (typeof self !== "undefined" && self.ai?.languageModel) return self.ai.languageModel;
-  return null;
-}
 
   if (request.action === "checkDeviceAI") {
     (async () => {

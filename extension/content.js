@@ -769,6 +769,7 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
 
     text = promptText;
     enhancing = true;
+    currentEnhanced = "";
 
     const fabText = document.getElementById("pp-fab-text");
     const fabTextOrig = fabText?.textContent || "";

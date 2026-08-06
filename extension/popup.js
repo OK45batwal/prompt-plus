@@ -196,7 +196,14 @@ btn?.addEventListener("click", async () => {
       const parts = modelVal.split("::");
       const model = parts[0];
       const provider = parts[1] || "openrouter";
-      const res = await chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver });
+      const res = await new Promise((resolve) => {
+        try {
+          chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver }, (r) => {
+            if (chrome.runtime.lastError) resolve(null);
+            else resolve(r);
+          });
+        } catch { resolve(null); }
+      });
       if (res && res.success) {
         enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
       }
