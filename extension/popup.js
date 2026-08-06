@@ -1,7 +1,5 @@
 const input = document.getElementById("input");
 const btn = document.getElementById("enhance-btn");
-const btnIcon = document.getElementById("btn-icon");
-const btnText = document.getElementById("btn-text");
 const msg = document.getElementById("msg");
 const keyInput = document.getElementById("key-input");
 const keyText = document.getElementById("key-text");
@@ -15,6 +13,19 @@ const resultCard = document.getElementById("result-card");
 const resultBody = document.getElementById("result-body");
 const copyBtn = document.getElementById("copy-btn");
 const useBtn = document.getElementById("use-btn");
+
+function updateEnhanceButton(loading = false) {
+  if (!btn) return;
+  if (loading) {
+    btn.disabled = true;
+    btn.innerHTML = `<span>${ICON.spinner}</span><span>Enhancing…</span>`;
+  } else {
+    btn.disabled = false;
+    const label = currentMode === "device" ? "Enhance On-Device" : "Enhance via Cloud AI";
+    const iconSvg = currentMode === "device" ? ICON.device : ICON.zap;
+    btn.innerHTML = `<span id="btn-icon">${iconSvg}</span><span id="btn-text">${label}</span>`;
+  }
+}
 
 const ICON = {
   device: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
@@ -86,9 +97,8 @@ function setMode(mode) {
 
   const keyText = document.getElementById("key-text");
 
+  updateEnhanceButton(false);
   if (mode === "device") {
-    btnIcon.innerHTML = ICON.device;
-    btnText.textContent = "Enhance On-Device";
     modelSelect.style.display = "none";
     modelLabel.style.display = "none";
     apiCard.style.display = "none";
@@ -103,8 +113,6 @@ function setMode(mode) {
       }
     });
   } else {
-    btnIcon.innerHTML = ICON.zap;
-    btnText.textContent = "Enhance via Cloud AI API";
     modelSelect.style.display = "";
     modelLabel.style.display = "";
     apiCard.style.display = "";
@@ -243,8 +251,7 @@ btn?.addEventListener("click", async () => {
       return;
     }
 
-    btn.disabled = true;
-    btn.innerHTML = `<span>${ICON.spinner}</span><span>Enhancing…</span>`;
+    updateEnhanceButton(true);
     if (resultCard) resultCard.style.display = "block";
     if (resultBody) {
       resultBody.classList.remove("placeholder");
@@ -368,10 +375,7 @@ btn?.addEventListener("click", async () => {
       }
     }
   } finally {
-    btn.disabled = false;
-    btn.innerHTML = currentMode === "device"
-      ? `<span id="btn-icon">${ICON.device}</span><span id="btn-text">Enhance On-Device</span>`
-      : `<span id="btn-icon">${ICON.zap}</span><span id="btn-text">Enhance via Cloud AI</span>`;
+    updateEnhanceButton(false);
   }
 });
 
