@@ -513,6 +513,35 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
     }
   }
 
+  function compileMasterArchitectPrompt(rawText, tokenSaver = false) {
+    const clean = (rawText || "").trim();
+    if (!clean) return "";
+
+    const lower = clean.toLowerCase();
+    let role = "Senior Domain Expert & AI Architect";
+    let domain = "General Execution & Technical Solution Design";
+
+    if (lower.includes("code") || lower.includes("python") || lower.includes("js") || lower.includes("react") || lower.includes("bug") || lower.includes("api") || lower.includes("function") || lower.includes("fix") || lower.includes("sql") || lower.includes("db")) {
+      role = "Principal Software Architect & Lead Engineer";
+      domain = "Software Architecture & Production Engineering";
+    } else if (lower.includes("write") || lower.includes("blog") || lower.includes("article") || lower.includes("email") || lower.includes("post") || lower.includes("copy") || lower.includes("essay")) {
+      role = "Elite Copywriter & Technical Content Director";
+      domain = "Strategic Content Creation & Professional Writing";
+    } else if (lower.includes("market") || lower.includes("seo") || lower.includes("ad") || lower.includes("sales") || lower.includes("growth") || lower.includes("campaign")) {
+      role = "Chief Marketing Officer & Growth Strategist";
+      domain = "Digital Growth & Brand Positioning";
+    } else if (lower.includes("data") || lower.includes("analyze") || lower.includes("report") || lower.includes("chart") || lower.includes("metric")) {
+      role = "Staff Data Scientist & Business Intelligence Lead";
+      domain = "Data Analytics & Strategic Insights";
+    }
+
+    const tokenClause = tokenSaver
+      ? "\n- Conciseness: Apply ~40% token optimization while retaining 100% structural fidelity."
+      : "";
+
+    return `### Role & Persona\nAct as an elite ${role} with deep technical domain expertise in ${domain}. Your goal is to solve the request below with maximum clarity, accuracy, and depth.\n\n### Core Objective\n${clean}\n\n### Context & Execution Constraints\n- **Tone & Style**: Professional, practical, authoritative, and direct. Zero introductory or conversational filler text.\n- **Accuracy**: Deliver concrete, tested solutions, templates, or step-by-step guidance.\n- **Structure**: Organize output into clear, logical headers, bullet points, and syntax-highlighted code blocks.${tokenClause}\n\n### Step-by-Step Execution Plan\n1. **Requirements Analysis**: Deconstruct the request into core technical components and objectives.\n2. **Strategy & Planning**: Formulate the optimal, edge-case resilient solution strategy.\n3. **Execution & Deliverables**: Deliver complete, production-grade results with zero omitted placeholders.\n4. **Validation & Best Practices**: Review against industry standards, performance efficiency, and security best practices.\n\n### Output Formatting\nProvide clean Markdown formatting with clear section headers, bold key takeaways, and copy-paste ready code blocks.`;
+  }
+
   function sendDeviceEnhance(text, tokenSaver, targetId) {
     return new Promise((resolve) => {
       const handler = (msg) => {
@@ -820,7 +849,7 @@ Return ONLY the final enhanced prompt framework ready for immediate execution by
       }
 
       if (!currentEnhanced) {
-        currentEnhanced = `### Role & Objective\nAct as an elite AI Specialist & Senior Domain Expert. Your objective is to solve the following prompt with maximum clarity, depth, and actionable code:\n"${text.trim()}"\n\n### Context & Domain Constraints\n- Domain: General Task & Technical Execution\n- Tone: Professional, structured, practical, and authoritative.\n- Non-Negotiable Boundaries: Avoid introductory filler text, generic fluff, or vague statements.\n\n### Step-by-Step Execution Plan\n1. Analyze requirements and break down the problem into core sub-tasks.\n2. Provide structured solutions with complete syntax-highlighted code blocks or exact templates.\n3. Validate edge cases and output formatting.\n\n### Output Requirements\nFormat the response using clean Markdown with distinct headers and bullet points.`;
+        currentEnhanced = compileMasterArchitectPrompt(text, tkSave);
       }
 
       if (!currentEnhanced) throw new Error("No output received");

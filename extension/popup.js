@@ -188,7 +188,7 @@ btn?.addEventListener("click", async () => {
       try {
         enhanced = await deviceEnhance(text, tokenSaver);
       } catch {
-        enhanced = `[ROLE & PERSONA]\nAct as an elite AI Specialist & Senior Domain Expert.\n\n[OBJECTIVE]\n${text.trim()}\n\n[KEY REQUIREMENTS & CONSTRAINTS]\n- Tone: Professional, practical, authoritative, and clear.\n- Format: Comprehensive, structured, zero filler text.\n- Instructions: Provide actionable step-by-step guidance with code blocks, bullet points, and exact templates.`;
+        enhanced = compileMasterArchitectPrompt(text, tokenSaver);
       }
     } else {
       const modelSelectEl = document.getElementById("model-select");
@@ -208,11 +208,14 @@ btn?.addEventListener("click", async () => {
         enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
       }
       if (!enhanced) {
-        enhanced = `[ROLE & PERSONA]\nAct as an elite AI Specialist.\n\n[OBJECTIVE]\n${text.trim()}\n\n[INSTRUCTIONS]\nProvide a structured, step-by-step answer.`;
+        enhanced = compileMasterArchitectPrompt(text, tokenSaver);
       }
     }
 
-    if (!enhanced) throw new Error("No output received");
+    if (!enhanced) {
+      enhanced = compileMasterArchitectPrompt(text, tokenSaver);
+    }
+
     if (resultBody) resultBody.textContent = enhanced;
     if (cBtn) cBtn.disabled = false;
     if (uBtn) uBtn.disabled = false;
@@ -304,6 +307,54 @@ document.addEventListener("click", (e) => {
     });
   }
 });
+
+// ---- Master Architect Prompt Compiler ----
+function compileMasterArchitectPrompt(rawText, tokenSaver = false) {
+  const clean = (rawText || "").trim();
+  if (!clean) return "";
+
+  const lower = clean.toLowerCase();
+  let role = "Senior Domain Expert & AI Architect";
+  let domain = "General Execution & Technical Solution Design";
+
+  if (lower.includes("code") || lower.includes("python") || lower.includes("js") || lower.includes("react") || lower.includes("bug") || lower.includes("api") || lower.includes("function") || lower.includes("fix") || lower.includes("sql") || lower.includes("db")) {
+    role = "Principal Software Architect & Lead Engineer";
+    domain = "Software Architecture & Production Engineering";
+  } else if (lower.includes("write") || lower.includes("blog") || lower.includes("article") || lower.includes("email") || lower.includes("post") || lower.includes("copy") || lower.includes("essay")) {
+    role = "Elite Copywriter & Technical Content Director";
+    domain = "Strategic Content Creation & Professional Writing";
+  } else if (lower.includes("market") || lower.includes("seo") || lower.includes("ad") || lower.includes("sales") || lower.includes("growth") || lower.includes("campaign")) {
+    role = "Chief Marketing Officer & Growth Strategist";
+    domain = "Digital Growth & Brand Positioning";
+  } else if (lower.includes("data") || lower.includes("analyze") || lower.includes("report") || lower.includes("chart") || lower.includes("metric")) {
+    role = "Staff Data Scientist & Business Intelligence Lead";
+    domain = "Data Analytics & Strategic Insights";
+  }
+
+  const tokenClause = tokenSaver
+    ? "\n- Conciseness: Apply ~40% token optimization while retaining 100% structural fidelity."
+    : "";
+
+  return `### Role & Persona
+Act as an elite ${role} with deep technical domain expertise in ${domain}. Your goal is to solve the request below with maximum clarity, accuracy, and depth.
+
+### Core Objective
+${clean}
+
+### Context & Execution Constraints
+- **Tone & Style**: Professional, practical, authoritative, and direct. Zero introductory or conversational filler text.
+- **Accuracy**: Deliver concrete, tested solutions, templates, or step-by-step guidance.
+- **Structure**: Organize output into clear, logical headers, bullet points, and syntax-highlighted code blocks.${tokenClause}
+
+### Step-by-Step Execution Plan
+1. **Requirements Analysis**: Deconstruct the request into core technical components and objectives.
+2. **Strategy & Planning**: Formulate the optimal, edge-case resilient solution strategy.
+3. **Execution & Deliverables**: Deliver complete, production-grade results with zero omitted placeholders.
+4. **Validation & Best Practices**: Review against industry standards, performance efficiency, and security best practices.
+
+### Output Formatting
+Provide clean Markdown formatting with clear section headers, bold key takeaways, and copy-paste ready code blocks.`;
+}
 
 // ---- On-device enhancement (runs directly in popup window context) ----
 async function deviceEnhance(text, tokenSaver) {
