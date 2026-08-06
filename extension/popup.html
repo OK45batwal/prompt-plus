@@ -918,8 +918,17 @@
 
     <div class="mode-hint" id="mode-label">⚡ On-Device AI — local execution mode</div>
 
+    <!-- Tone Presets -->
+    <div style="display: flex; gap: 4px; overflow-x: auto; margin-bottom: 8px; padding-bottom: 2px;">
+      <button class="preset-pill active" data-preset="auto" style="padding: 4px 8px; font-size: 10px; font-weight: 600; border-radius: 6px; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; cursor: pointer; white-space: nowrap;">⚡ Auto</button>
+      <button class="preset-pill" data-preset="coder" style="padding: 4px 8px; font-size: 10px; font-weight: 600; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: #a1a1aa; cursor: pointer; white-space: nowrap;">💻 Coder</button>
+      <button class="preset-pill" data-preset="copywriter" style="padding: 4px 8px; font-size: 10px; font-weight: 600; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: #a1a1aa; cursor: pointer; white-space: nowrap;">✍️ Copywriter</button>
+      <button class="preset-pill" data-preset="executive" style="padding: 4px 8px; font-size: 10px; font-weight: 600; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: #a1a1aa; cursor: pointer; white-space: nowrap;">🎯 Executive</button>
+      <button class="preset-pill" data-preset="researcher" style="padding: 4px 8px; font-size: 10px; font-weight: 600; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: #a1a1aa; cursor: pointer; white-space: nowrap;">🔬 Researcher</button>
+    </div>
+
     <div class="input-wrap">
-      <textarea id="input" placeholder="Paste or type your prompt to enhance..."></textarea>
+      <textarea id="input" placeholder="Paste or type your prompt... (Press Cmd+Enter to Enhance)"></textarea>
       <span class="char-count" id="char-count">0 characters</span>
     </div>
 
@@ -934,7 +943,10 @@
 
     <div class="result-card" id="result-card" style="display:none">
       <div class="result-head">
-        <span>Enhanced Prompt</span>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span>Enhanced Prompt</span>
+          <div id="quality-score-badge" class="result-mode" style="background: rgba(52,211,153,0.15); border-color: rgba(52,211,153,0.4); color: #34d399; font-weight: 700; display: none;">Score: 95/100</div>
+        </div>
         <div class="result-actions">
           <div class="result-mode" id="result-mode">On-Device</div>
           <button id="copy-btn" disabled>Copy</button>

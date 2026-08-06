@@ -115,10 +115,45 @@ function setMode(mode) {
   chrome.runtime?.sendMessage?.({ action: "saveSettings", settings: { mode } });
 }
 
+let selectedPreset = "auto";
+document.querySelectorAll(".preset-pill").forEach((pill) => {
+  pill.addEventListener("click", () => {
+    document.querySelectorAll(".preset-pill").forEach((p) => {
+      p.classList.remove("active");
+      p.style.background = "rgba(255,255,255,0.04)";
+      p.style.borderColor = "rgba(255,255,255,0.1)";
+      p.style.color = "#a1a1aa";
+    });
+    pill.classList.add("active");
+    pill.style.background = "rgba(99,102,241,0.2)";
+    pill.style.borderColor = "rgba(99,102,241,0.4)";
+    pill.style.color = "#a5b4fc";
+    selectedPreset = pill.dataset.preset || "auto";
+  });
+});
+
 input?.addEventListener("input", () => {
   const len = input.value.length;
   if (charCount) charCount.textContent = `${len} character${len === 1 ? "" : "s"}`;
 });
+
+input?.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+    e.preventDefault();
+    btn?.click();
+  }
+});
+
+function calculateScore(text) {
+  if (!text) return 0;
+  let score = 70;
+  if (text.includes("Role & Persona") || text.includes("### Role")) score += 10;
+  if (text.includes("Core Objective") || text.includes("### Objective")) score += 5;
+  if (text.includes("Step-by-Step") || text.includes("Execution Plan")) score += 5;
+  if (text.includes("Output Format") || text.includes("Requirements")) score += 5;
+  if (text.length > 250) score += 4;
+  return Math.min(score, 98);
+}
 
 // Mode toggle
 modeDevice?.addEventListener("click", () => setMode("device"));
@@ -229,7 +264,7 @@ btn?.addEventListener("click", async () => {
       const provider = parts[1] || "openrouter";
       const res = await new Promise((resolve) => {
         try {
-          chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver }, (r) => {
+          chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver, level: selectedPreset }, (r) => {
             if (chrome.runtime.lastError) resolve({ success: false, error: chrome.runtime.lastError.message });
             else resolve(r);
           });
@@ -245,6 +280,12 @@ btn?.addEventListener("click", async () => {
     if (!enhanced) throw new Error("Could not enhance prompt. Please check your internet connection.");
 
     if (resultBody) resultBody.textContent = enhanced;
+    const scoreBadge = document.getElementById("quality-score-badge");
+    if (scoreBadge) {
+      const qScore = calculateScore(enhanced);
+      scoreBadge.textContent = `Score: ${qScore}/100`;
+      scoreBadge.style.display = "inline-flex";
+    }
     if (cBtn) cBtn.disabled = false;
     if (uBtn) uBtn.disabled = false;
     showMsg(currentMode === "device" ? "Enhanced On-Device!" : "Enhanced via Cloud AI!");
