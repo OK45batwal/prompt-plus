@@ -117,22 +117,37 @@
   }
 
   function getInput() {
-    let el = document.querySelector("#prompt-textarea, textarea[data-id='root']");
+    // 1. Check focused element if it's an input
+    const active = document.activeElement;
+    if (active && (active.tagName === "TEXTAREA" || active.isContentEditable || active.tagName === "INPUT")) {
+      return active;
+    }
+    // 2. Specific chatbot selector queries
+    let el = document.querySelector("#prompt-textarea, textarea[data-id='root'], [contenteditable='true']#prompt-textarea");
     if (el) return el;
-    el = document.querySelector("div[contenteditable='true'].ProseMirror, textarea");
+    el = document.querySelector("div[contenteditable='true'].ProseMirror, textarea[aria-label*='Write'], div[contenteditable='true'][aria-label*='Write']");
     if (el && location.hostname.includes("claude")) return el;
-    el = document.querySelector("div[contenteditable='true'], textarea");
+    el = document.querySelector("div[contenteditable='true'][aria-label*='Prompt'], div[contenteditable='true'], textarea");
     if (el && location.hostname.includes("gemini")) return el;
-    el = document.querySelector("#chat-input, .ds-textarea, textarea[placeholder*='Ask'], textarea[placeholder*='prompt']");
-    if (el) return el;
+    el = document.querySelector("#chat-input, .ds-textarea, textarea[placeholder*='Ask'], textarea[placeholder*='prompt'], div[contenteditable='true']");
+    if (el && location.hostname.includes("deepseek")) return el;
+    el = document.querySelector("textarea[placeholder*='Grok'], div[contenteditable='true']");
+    if (el && (location.hostname.includes("grok") || location.hostname.includes("x.ai"))) return el;
+    el = document.querySelector("textarea[placeholder*='Ask'], textarea[placeholder*='Search'], textarea");
+    if (el && location.hostname.includes("perplexity")) return el;
+    // 3. Fallbacks
     el = document.querySelector("div[contenteditable='true']");
     if (el) return el;
-    return document.querySelector("textarea");
+    el = document.querySelector("textarea");
+    if (el) return el;
+    return document.querySelector("input[type='text']");
   }
 
   function getText(el) {
     if (!el) return "";
-    return el.tagName === "TEXTAREA" || el.tagName === "INPUT" ? el.value : el.innerText || el.textContent || "";
+    if (el.tagName === "TEXTAREA" || el.tagName === "INPUT") return el.value || "";
+    if (el.isContentEditable) return el.innerText || el.textContent || "";
+    return el.value || el.innerText || el.textContent || "";
   }
 
   function setText(el, text) {

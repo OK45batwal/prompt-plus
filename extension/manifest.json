@@ -58,7 +58,10 @@
         "https://grok.com/*",
         "https://x.ai/*",
         "https://www.perplexity.ai/*",
-        "https://copilot.microsoft.com/*"
+        "https://copilot.microsoft.com/*",
+        "https://poe.com/*",
+        "https://v0.dev/*",
+        "https://chat.mistral.ai/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
