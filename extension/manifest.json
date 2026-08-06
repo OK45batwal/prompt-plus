@@ -18,7 +18,8 @@
   "permissions": [
     "storage",
     "activeTab",
-    "contextMenus"
+    "contextMenus",
+    "cookies"
   ],
   "commands": {
     "enhance-prompt": {

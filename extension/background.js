@@ -15,6 +15,21 @@ function getLanguageModelAPI() {
   return null;
 }
 
+async function checkWebAuth() {
+  try {
+    const res = await fetch("https://prompt-plus-three.vercel.app/api/v1/auth/extension-sync", {
+      method: "GET",
+      credentials: "include",
+    });
+    const data = await res.json().catch(() => ({}));
+    if (data && data.authenticated && data.user) {
+      await chrome.storage.local.set({ pp_user_session: { authenticated: true, user: data.user, syncedAt: Date.now() } });
+      return { authenticated: true, user: data.user };
+    }
+  } catch { /* ignore */ }
+  return { authenticated: false };
+}
+
 chrome.runtime.onInstalled.addListener((details) => {
   chrome.contextMenus.create({
     id: "enhance-selection",
@@ -99,6 +114,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       } catch (e) {
         sendResponse({ success: false, error: e.message || "Device AI error" });
       }
+    })();
+    return true;
+  }
+
+  if (request.action === "syncAuth") {
+    (async () => {
+      const authState = await checkWebAuth();
+      sendResponse(authState);
     })();
     return true;
   }

@@ -171,12 +171,25 @@ settingsToggle?.addEventListener("click", () => {
 
 setMode("device");
 
-// Load settings
+// Load settings & Auto-Sync Login Session
 chrome.runtime?.sendMessage?.({ action: "getSettings" }, (res) => {
   const s = res?.settings || {};
   if (s.mode) setMode(s.mode);
   if (s.model && modelSelect) modelSelect.value = s.model;
   if (s.tokenSaver && tsToggle) { tsToggle.checked = true; tokenSaver = true; }
+});
+
+// Auto-login session sync with web app
+chrome.runtime?.sendMessage?.({ action: "syncAuth" }, (res) => {
+  if (res && res.authenticated && res.user) {
+    const keyText = document.getElementById("key-text");
+    if (keyText) {
+      const email = res.user.email || "";
+      const display = email.length > 16 ? email.slice(0, 14) + "…" : email;
+      keyText.textContent = `🟢 ${display}`;
+      keyText.title = `Logged in as ${email} (Synced with Web Dashboard)`;
+    }
+  }
 });
 
 // Save model selection
