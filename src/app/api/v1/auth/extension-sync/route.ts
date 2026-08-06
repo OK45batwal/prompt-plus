@@ -1,15 +1,32 @@
+// @public-route
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
 import { getDb } from "@/lib/db/prisma";
 
-export async function GET(request: NextRequest) {
-  const origin = request.headers.get("origin") || "*";
-  const corsHeaders = {
-    "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Credentials": "true",
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  if (origin.startsWith("chrome-extension://") || origin.startsWith("moz-extension://")) return true;
+  if (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) return true;
+  if (origin === "https://prompt-plus-three.vercel.app" || origin.endsWith(".vercel.app")) return true;
+  return false;
+}
+
+function getCorsHeaders(request: NextRequest) {
+  const reqOrigin = request.headers.get("origin");
+  const allowed = isAllowedOrigin(reqOrigin);
+  const targetOrigin = allowed && reqOrigin ? reqOrigin : "https://prompt-plus-three.vercel.app";
+
+  return {
+    "Access-Control-Allow-Origin": targetOrigin,
+    ...(allowed ? { "Access-Control-Allow-Credentials": "true" } : {}),
     "Access-Control-Allow-Methods": "GET, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Vary": "Origin",
   };
+}
+
+export async function GET(request: NextRequest) {
+  const corsHeaders = getCorsHeaders(request);
 
   try {
     const session = await auth().catch(() => null);
@@ -44,14 +61,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function OPTIONS(request: NextRequest) {
-  const origin = request.headers.get("origin") || "*";
   return new NextResponse(null, {
     status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": origin,
-      "Access-Control-Allow-Credentials": "true",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    },
+    headers: getCorsHeaders(request),
   });
 }

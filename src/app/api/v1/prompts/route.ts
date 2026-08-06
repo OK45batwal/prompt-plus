@@ -1,34 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth/config";
+import { NextRequest } from "next/server";
 import { getDb } from "@/lib/db/prisma";
 import { paginationSchema } from "@/lib/validations/common";
 import { createPromptSchema } from "@/lib/validations/prompts";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 
-export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export const GET = withAuth(
+  async (request: NextRequest, { userId, requestId }) => {
+    const { searchParams } = new URL(request.url);
+    const queryResult = paginationSchema.safeParse({
+      page: searchParams.get("page"),
+      pageSize: searchParams.get("pageSize"),
+      search: searchParams.get("search"),
+    });
 
-  const { searchParams } = new URL(request.url);
-  const queryResult = paginationSchema.safeParse({
-    page: searchParams.get("page"),
-    pageSize: searchParams.get("pageSize"),
-    search: searchParams.get("search"),
-  });
+    if (!queryResult.success) {
+      return jsonResponse(
+        { error: "Invalid pagination query parameters", details: queryResult.error.flatten() },
+        { status: 400, requestId }
+      );
+    }
 
-  if (!queryResult.success) {
-    return NextResponse.json(
-      { error: "Invalid pagination query parameters", details: queryResult.error.flatten() },
-      { status: 400 }
-    );
-  }
-
-  const { page, pageSize, search } = queryResult.data;
-  const userId = session.user.id;
-  const offset = (page - 1) * pageSize;
+    const { page, pageSize, search } = queryResult.data;
+    const offset = (page - 1) * pageSize;
 
   const where = {
     userId,
@@ -53,8 +47,9 @@ export async function GET(request: NextRequest) {
     getDb().prompt.count({ where }),
   ]);
 
-  return NextResponse.json({ data: prompts, total, page, pageSize, hasMore: offset + pageSize < total });
-}
+    return jsonResponse({ data: prompts, total, page, pageSize, hasMore: offset + pageSize < total }, { requestId });
+  }
+);
 
 export const POST = withAuth(
   async (req, context) => {

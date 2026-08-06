@@ -1,15 +1,15 @@
-import { NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
-import { auth } from "@/lib/auth/config";
+import { withAuth } from "@/lib/api/with-auth";
+import { jsonResponse } from "@/lib/api/response-headers";
 import { getDb } from "@/lib/db/prisma";
+import { Prisma } from "@prisma/client";
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.email || session.user.email !== ADMIN_EMAIL) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+export const GET = withAuth(
+  async (_req, { session, requestId }) => {
+    if (!session?.user?.email || session.user.email !== ADMIN_EMAIL) {
+      return jsonResponse({ error: "Forbidden" }, { status: 403, requestId });
+    }
 
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -70,38 +70,42 @@ export async function GET() {
       }, 0) / scoreStats.length)
     : 0;
 
-  return NextResponse.json({
-    data: {
-      users: {
-        total: totalUsers,
-        verified: verifiedUsers,
-        unverified: unverifiedUsers,
-        deleted: deletedUsers,
-        signups7d: userSignups7d,
+    return jsonResponse(
+      {
+        data: {
+          users: {
+            total: totalUsers,
+            verified: verifiedUsers,
+            unverified: unverifiedUsers,
+            deleted: deletedUsers,
+            signups7d: userSignups7d,
+          },
+          prompts: {
+            total: totalPrompts,
+            enhanced: enhancedPrompts,
+            avgScore,
+          },
+          usage: {
+            daily: dailyUsage,
+            weekly: weeklyUsage,
+            monthly: monthlyUsage,
+            tokensIn: totalTokensIn._sum.tokensIn || 0,
+            tokensOut: totalTokensOut._sum.tokensOut || 0,
+            byAction: usageByAction,
+            byProvider: usageByProvider,
+          },
+          apiKeys: {
+            total: totalApiKeys,
+            byProvider: apiKeysByProvider,
+          },
+          content: {
+            collections: totalCollections,
+            templates: totalTemplates,
+          },
+          recentLogs,
+        },
       },
-      prompts: {
-        total: totalPrompts,
-        enhanced: enhancedPrompts,
-        avgScore,
-      },
-      usage: {
-        daily: dailyUsage,
-        weekly: weeklyUsage,
-        monthly: monthlyUsage,
-        tokensIn: totalTokensIn._sum.tokensIn || 0,
-        tokensOut: totalTokensOut._sum.tokensOut || 0,
-        byAction: usageByAction,
-        byProvider: usageByProvider,
-      },
-      apiKeys: {
-        total: totalApiKeys,
-        byProvider: apiKeysByProvider,
-      },
-      content: {
-        collections: totalCollections,
-        templates: totalTemplates,
-      },
-      recentLogs,
-    },
-  });
-}
+      { requestId }
+    );
+  }
+);

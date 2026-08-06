@@ -22,7 +22,7 @@ function getRouteFiles(dir) {
   return results;
 }
 
-const mutatingMethods = ["POST", "PUT", "PATCH", "DELETE"];
+const allMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 const routeFiles = getRouteFiles(apiDir);
 let violations = [];
 
@@ -30,8 +30,8 @@ routeFiles.forEach((filePath) => {
   const content = fs.readFileSync(filePath, "utf-8");
   const relPath = path.relative(path.resolve(__dirname, ".."), filePath);
 
-  mutatingMethods.forEach((method) => {
-    // Check for naked exports like: export async function POST(
+  allMethods.forEach((method) => {
+    // Check for unwrapped exports like: export async function GET(
     const regex = new RegExp(`export\\s+async\\s+function\\s+${method}\\b`, "g");
     if (regex.test(content)) {
       // Check if file contains @public-route annotation

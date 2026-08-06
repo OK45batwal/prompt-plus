@@ -3,19 +3,34 @@ const API_URLS = [
   "http://localhost:3000/api/v1/extension/enhance",
 ];
 const STORAGE_KEY = "pp_settings";
-const ENC_KEY_STRING = "PromptPlusExtensionEncryptionKey2026";
 let cachedWorkingUrl = "";
 
 async function getCryptoKey() {
-  const enc = new TextEncoder();
-  const raw = enc.encode(ENC_KEY_STRING);
-  return await crypto.subtle.importKey(
-    "raw",
-    raw.slice(0, 16),
-    { name: "AES-GCM" },
-    false,
-    ["encrypt", "decrypt"]
-  );
+  return new Promise((resolve) => {
+    chrome.storage.local.get("pp_install_key", async (data) => {
+      try {
+        let rawB64 = data?.pp_install_key;
+        if (!rawB64) {
+          const randomBytes = crypto.getRandomValues(new Uint8Array(32));
+          rawB64 = btoa(String.fromCharCode(...randomBytes));
+          chrome.storage.local.set({ pp_install_key: rawB64 });
+        }
+        const rawBuf = new Uint8Array(atob(rawB64).split("").map((c) => c.charCodeAt(0)));
+        const importedKey = await crypto.subtle.importKey(
+          "raw",
+          rawBuf,
+          { name: "AES-GCM" },
+          false,
+          ["encrypt", "decrypt"]
+        );
+        resolve(importedKey);
+      } catch {
+        // Fallback key generation if import fails
+        const fallback = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+        resolve(fallback);
+      }
+    });
+  });
 }
 
 async function encryptData(text) {

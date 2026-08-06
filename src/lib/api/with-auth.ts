@@ -40,18 +40,37 @@ export function withAuth<T extends z.ZodTypeAny = z.ZodTypeAny>(
 
     if (!userId) {
       const authHeader = req.headers.get("authorization") || req.headers.get("x-promptplus-api-key");
-      if (authHeader && (authHeader.startsWith("Bearer pp_live_") || authHeader.startsWith("pp_live_"))) {
-        try {
-          const { getDb } = await import("@/lib/db/prisma");
-          const userKey = await getDb().apiKey.findFirst({
-            where: { isActive: true },
-          });
-          if (userKey) {
-            userId = userKey.userId;
-            session = { user: { id: userKey.userId, email: "developer@promptplus.app" }, expires: new Date(Date.now() + 86400000).toISOString() } as Session;
+      if (authHeader) {
+        const submittedKey = authHeader.replace(/^Bearer\s+/i, "").trim();
+        if (submittedKey.startsWith("pp_live_")) {
+          try {
+            const { getDb } = await import("@/lib/db/prisma");
+            const { decrypt } = await import("@/lib/crypto");
+            const activeKeys = await getDb().apiKey.findMany({
+              where: { isActive: true },
+            });
+            for (const keyRow of activeKeys) {
+              try {
+                const decryptedStoredKey = decrypt(keyRow.apiKeyEnc);
+                if (decryptedStoredKey === submittedKey) {
+                  userId = keyRow.userId;
+                  const userObj = await getDb().user.findUnique({
+                    where: { id: userId },
+                    select: { email: true },
+                  });
+                  session = {
+                    user: { id: userId, email: userObj?.email || "developer@promptplus.app" },
+                    expires: new Date(Date.now() + 86400000).toISOString(),
+                  } as Session;
+                  break;
+                }
+              } catch {
+                // Ignore decrypt error for unmatching key row
+              }
+            }
+          } catch {
+            // ignore DB error
           }
-        } catch {
-          // ignore DB error
         }
       }
     }

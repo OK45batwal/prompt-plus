@@ -9,6 +9,7 @@ import { jsonResponse } from "@/lib/api/response-headers";
 import { buildArchitectMetaPrompt } from "@/lib/llm/meta-prompt";
 import { calculateDynamicPromptScore } from "@/lib/scoring";
 import { synthesizeAlgorithmicPrompt } from "@/lib/llm/algorithmic-enhancers";
+import { enhancementCache } from "@/lib/llm/cache";
 
 export const POST = withAuth(
   async (request: NextRequest, { userId, requestId }) => {
@@ -74,6 +75,23 @@ export const POST = withAuth(
       apiKey = "";
     }
 
+    const cacheKey = `web:${text}:${model || "default"}:${category || ""}:${tone || ""}:${length || ""}:${level || ""}`;
+    const cached = enhancementCache.get(cacheKey);
+    if (cached) {
+      const scoreData = calculateDynamicPromptScore(cached.enhancedText);
+      return jsonResponse({
+        data: {
+          enhanced: cached.enhancedText,
+          score: scoreData,
+          model: cached.model,
+          tokensIn: cached.tokensIn || 0,
+          tokensOut: cached.tokensOut || 0,
+          latencyMs: 12,
+          provider: "cache",
+        },
+      }, { requestId });
+    }
+
     const { metaPrompt, systemInstruction } = buildArchitectMetaPrompt(text, category, tone, length, level);
 
     try {
@@ -85,6 +103,13 @@ export const POST = withAuth(
         userPrompt: metaPrompt,
         temperature: 0.7,
         maxTokens: 1200,
+      });
+
+      enhancementCache.set(cacheKey, {
+        enhancedText: response.content,
+        model: response.model,
+        tokensIn: response.tokensIn,
+        tokensOut: response.tokensOut,
       });
 
       const latencyMs = Date.now() - startTime;

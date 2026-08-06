@@ -4,9 +4,10 @@ import { z } from "zod";
 import { callLLM } from "@/lib/llm/providers";
 import { buildArchitectMetaPrompt } from "@/lib/llm/meta-prompt";
 import { resolveServerApiKey } from "@/lib/llm/server-api-key";
-import { checkIpRateLimit, extractClientIp } from "@/lib/rate-limit";
+import { checkIpRateLimitAsync, extractClientIp } from "@/lib/rate-limit";
 import { calculateDynamicPromptScore } from "@/lib/scoring";
 import { synthesizeAlgorithmicPrompt } from "@/lib/llm/algorithmic-enhancers";
+import { enhancementCache } from "@/lib/llm/cache";
 
 const extensionEnhanceSchema = z.object({
   text: z.string().min(1).max(10000),
@@ -38,7 +39,7 @@ export async function OPTIONS() {
 export async function POST(request: NextRequest) {
   const ip = extractClientIp(request);
 
-  const rateCheck = checkIpRateLimit(`ext:${ip}`, 120, 60 * 60 * 1000);
+  const rateCheck = await checkIpRateLimitAsync(`ext:${ip}`, 120, 60 * 60 * 1000);
   if (!rateCheck.allowed) {
     return NextResponse.json(
       { error: "Too many requests from this address. Try again in a few minutes." },
@@ -91,6 +92,25 @@ export async function POST(request: NextRequest) {
   }
 
   const reqModel = model || (effectiveKey ? "gpt-4o-mini" : "google/gemini-2.0-flash-exp:free");
+  const cacheKey = `ext:${text}:${reqModel}:${category || ""}:${tone || ""}:${length || ""}:${level || ""}`;
+  const cached = enhancementCache.get(cacheKey);
+  if (cached) {
+    return NextResponse.json(
+      {
+        success: true,
+        cached: true,
+        data: {
+          enhanced: cached.enhancedText,
+          model: cached.model,
+          tokensIn: cached.tokensIn || 0,
+          tokensOut: cached.tokensOut || 0,
+          provider: "cache",
+        },
+      },
+      { headers: corsHeaders }
+    );
+  }
+
   const { metaPrompt, systemInstruction } = buildArchitectMetaPrompt(text, category, tone, length, level);
 
   const modelCandidates = [
@@ -114,6 +134,13 @@ export async function POST(request: NextRequest) {
         userPrompt: metaPrompt,
         temperature: 0.7,
         maxTokens: 1200,
+      });
+
+      enhancementCache.set(cacheKey, {
+        enhancedText: response.content,
+        model: response.model,
+        tokensIn: response.tokensIn,
+        tokensOut: response.tokensOut,
       });
 
       // Non-blocking background DB logging

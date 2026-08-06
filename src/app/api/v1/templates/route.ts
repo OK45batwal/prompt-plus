@@ -1,3 +1,4 @@
+// @public-route
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db/prisma";
 import { getTemplatesQuerySchema, createTemplateSchema } from "@/lib/validations/templates";
