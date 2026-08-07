@@ -11,11 +11,9 @@ export const DELETE = withAuth(
       return jsonResponse({ error: "Too many attempts. Try again later." }, { status: 429, rateLimit: rl, requestId });
     }
 
-    await getDb().$transaction([
-      getDb().usageLog.deleteMany({ where: { userId } }),
-      getDb().analytics.deleteMany({ where: { userId } }),
-      getDb().user.delete({ where: { id: userId } }),
-    ]);
+    await getDb().usageLog.deleteMany({ where: { userId } });
+    await getDb().analytics.deleteMany({ where: { userId } });
+    await getDb().user.delete({ where: { id: userId } });
 
     return jsonResponse({ message: "Account deleted. All associated data has been permanently removed." }, { requestId });
   }
