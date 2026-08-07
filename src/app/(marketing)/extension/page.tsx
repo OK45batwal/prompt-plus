@@ -16,7 +16,7 @@ export default function ExtensionPage() {
         <div className="text-center mb-14">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-xs font-medium text-primary mb-6">
             <Zap className="h-3.5 w-3.5" />
-            Browser Extension
+            Browser Extension v1.1.0 • 🟢 100% Secure & AES Encrypted
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">
             Enhance Prompts Directly in Your Chat
