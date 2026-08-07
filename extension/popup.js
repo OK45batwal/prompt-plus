@@ -345,17 +345,17 @@ btn?.addEventListener("click", async () => {
         resultBody.innerHTML = `
           <div style="padding: 6px 0; color: #f4f4f5;">
             <div style="font-weight: 600; color: #d97706; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; font-size: 12px;">
-              <span>${ICON.key}</span> No API Key Configured
+              <span>${ICON.key}</span> Free Model Active
             </div>
             <div style="font-size: 11px; color: #a3a3ad; margin-bottom: 12px; line-height: 1.5;">
-              Cloud AI requires an API key. You can switch to free <strong>On-Device AI</strong> (no key needed) or add an API key.
+              Prompt+ works 100% free with server models out of the box. Add your own key below for full custom model access (GPT-4o / Claude 3.5).
             </div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
               <button id="err-switch-device" type="button" style="padding: 8px 12px; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.5); color: #a5b4fc; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 6px;">
                 <span>${ICON.device}</span> Switch to On-Device AI (Free & Offline)
               </button>
               <button id="err-open-key-input" type="button" style="padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e4e4e7; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 6px;">
-                <span>${ICON.gear}</span> Add API Key in Settings below
+                <span>${ICON.gear}</span> Add Custom API Key in Settings below
               </button>
             </div>
           </div>

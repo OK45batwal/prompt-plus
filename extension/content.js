@@ -324,7 +324,19 @@
       const el = getInput() || input;
       currentTarget = el;
       currentText = el ? getText(el) : "";
+      if (!currentText.trim()) {
+        showToast("⚠️ Type your prompt idea in the chat box first!");
+        try { el?.focus(); } catch { /* ignore */ }
+        return;
+      }
+      // Immediately open panel and trigger dynamic prompt enhancement
       openPanel();
+      setTimeout(() => {
+        const panelInput = document.getElementById("pp-panel-input");
+        const panelEnhanceBtn = document.getElementById("pp-panel-enhance-btn");
+        if (panelInput) panelInput.value = currentText;
+        if (panelEnhanceBtn) panelEnhanceBtn.click();
+      }, 100);
     };
 
     bar.querySelector(".pp-fab-brain-badge")?.addEventListener("click", handleEnhanceClick);
