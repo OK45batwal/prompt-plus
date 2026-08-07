@@ -45,7 +45,7 @@
     "https://www.perplexity.ai/*",
     "https://copilot.microsoft.com/*",
     "http://localhost:3000/*",
-    "https://*.vercel.app/*"
+    "https://prompt-plus-three.vercel.app/*"
   ],
   "content_scripts": [
     {
