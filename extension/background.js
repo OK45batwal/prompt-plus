@@ -1,151 +1,166 @@
 const API_URLS = [
-  "https://prompt-plus-three.vercel.app/api/v1/extension/enhance",
-  "http://localhost:3000/api/v1/extension/enhance",
+  "https://prompt-plus-three.vercel.app",
+  "http://localhost:3000"
 ];
-const STORAGE_KEY = "pp_settings";
-let cachedWorkingUrl = "";
 
-async function getCryptoKey() {
-  return new Promise((resolve) => {
-    chrome.storage.local.get("pp_install_key", async (data) => {
-      try {
-        let rawB64 = data?.pp_install_key;
-        if (!rawB64) {
-          const randomBytes = crypto.getRandomValues(new Uint8Array(32));
-          rawB64 = btoa(String.fromCharCode(...randomBytes));
-          chrome.storage.local.set({ pp_install_key: rawB64 });
-        }
-        const rawBuf = new Uint8Array(atob(rawB64).split("").map((c) => c.charCodeAt(0)));
-        const importedKey = await crypto.subtle.importKey(
-          "raw",
-          rawBuf,
-          { name: "AES-GCM" },
-          false,
-          ["encrypt", "decrypt"]
-        );
-        resolve(importedKey);
-      } catch {
-        // Fallback key generation if import fails
-        const fallback = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
-        resolve(fallback);
-      }
-    });
-  });
+const STORAGE_KEY = "pp_settings";
+
+// ---------- Web Crypto Per-Installation AES-256 Key Management ----------
+async function getOrCreateInstallationKey() {
+  const data = await new Promise((resolve) => chrome.storage.local.get("pp_install_key", resolve));
+  if (data?.pp_install_key) {
+    try {
+      const raw = new Uint8Array(data.pp_install_key);
+      return await crypto.subtle.importKey("raw", raw, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+    } catch {
+      // Fallback to fresh key if corrupted
+    }
+  }
+
+  const newKey = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+  const exported = await crypto.subtle.exportKey("raw", newKey);
+  await new Promise((resolve) => chrome.storage.local.set({ pp_install_key: Array.from(new Uint8Array(exported)) }, resolve));
+  return newKey;
 }
 
 async function encryptData(text) {
   if (!text) return "";
   try {
-    const key = await getCryptoKey();
+    const key = await getOrCreateInstallationKey();
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const enc = new TextEncoder().encode(text);
-    const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, enc);
+    const encoded = new TextEncoder().encode(text);
+    const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded);
     const combined = new Uint8Array(iv.length + ciphertext.byteLength);
     combined.set(iv, 0);
     combined.set(new Uint8Array(ciphertext), iv.length);
     return btoa(String.fromCharCode(...combined));
-  } catch {
-    return text;
+  } catch (e) {
+    console.error("[Prompt+ Crypto] Encryption failed:", e);
+    return "";
   }
 }
 
-async function decryptData(b64) {
-  if (!b64) return "";
+async function decryptData(encryptedB64) {
+  if (!encryptedB64) return "";
   try {
-    const key = await getCryptoKey();
-    const str = atob(b64);
-    const combined = new Uint8Array(str.length);
-    for (let i = 0; i < str.length; i++) combined[i] = str.charCodeAt(i);
+    const key = await getOrCreateInstallationKey();
+    const combined = Uint8Array.from(atob(encryptedB64), (c) => c.charCodeAt(0));
     const iv = combined.slice(0, 12);
     const ciphertext = combined.slice(12);
     const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
     return new TextDecoder().decode(decrypted);
-  } catch {
-    return b64;
+  } catch (e) {
+    console.error("[Prompt+ Crypto] Decryption failed:", e);
+    return "";
   }
 }
 
-function getLanguageModelAPI() {
-  if (typeof LanguageModel !== "undefined") return LanguageModel;
-  if (typeof self !== "undefined" && self.LanguageModel) return self.LanguageModel;
-  if (typeof ai !== "undefined" && ai.languageModel) return ai.languageModel;
-  if (typeof self !== "undefined" && self.ai?.languageModel) return self.ai.languageModel;
-  if (typeof ai !== "undefined" && ai.assistant) return ai.assistant;
-  if (typeof self !== "undefined" && self.ai?.assistant) return self.ai.assistant;
-  return null;
-}
+// ---------- Context Menu Setup ----------
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: "pp-enhance-selection",
+    title: "⚡ Enhance with Prompt+ AI Architect",
+    contexts: ["selection"],
+  });
+});
 
-async function checkWebAuth() {
-  try {
-    const res = await fetch("https://prompt-plus-three.vercel.app/api/v1/auth/extension-sync", {
-      method: "GET",
-      credentials: "include",
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === "pp-enhance-selection" && info.selectionText && tab?.id) {
+    chrome.tabs.sendMessage(tab.id, {
+      action: "enhanceSelection",
+      text: info.selectionText,
     });
-    const data = await res.json().catch(() => ({}));
-    if (data && data.authenticated && data.user) {
-      await chrome.storage.local.set({ pp_user_session: { authenticated: true, user: data.user, syncedAt: Date.now() } });
-      return { authenticated: true, user: data.user };
+  }
+});
+
+// ---------- Keyboard Shortcut Commands ----------
+chrome.commands.onCommand.addListener((command) => {
+  if (command === "enhance-prompt") {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs?.[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: "openEnhancePanel" });
+      }
+    });
+  }
+});
+
+// ---------- Web Auth Session Detection ----------
+async function checkWebAuth() {
+  for (const baseUrl of API_URLS) {
+    try {
+      const res = await fetch(`${baseUrl}/api/v1/auth/extension-sync`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data;
+      }
+    } catch {
+      // Try next URL
     }
-  } catch { /* ignore */ }
+  }
   return { authenticated: false };
 }
 
-chrome.runtime.onInstalled.addListener((details) => {
-  chrome.contextMenus.create({
-    id: "enhance-selection",
-    title: 'Enhance with Prompt+',
-    contexts: ["selection"],
-  });
-
-  if (details.reason === "install") {
-    chrome.tabs.create({ url: "https://prompt-plus-three.vercel.app/extension" });
-  }
-});
+// ---------- Message Router Handler ----------
+let cachedWorkingUrl = null;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "enhancePrompt") {
     (async () => {
       try {
-        const data = await chrome.storage.local.get(STORAGE_KEY).catch(() => ({}));
-        const saved = data[STORAGE_KEY] || {};
-        let apiKey = request.apiKey || "";
-        if (!apiKey && saved.apiKeyEnc) {
-          apiKey = await decryptData(saved.apiKeyEnc).catch(() => "");
-        } else if (!apiKey && saved.apiKey) {
-          apiKey = saved.apiKey;
+        const data = await new Promise((resolve) => chrome.storage.local.get(STORAGE_KEY, resolve));
+        const settings = data?.[STORAGE_KEY] || {};
+        let apiKey = "";
+
+        if (settings.apiKeyEnc) {
+          apiKey = await decryptData(settings.apiKeyEnc);
+        } else if (settings.apiKey) {
+          apiKey = settings.apiKey;
         }
 
-        const urls = cachedWorkingUrl ? [cachedWorkingUrl, ...API_URLS.filter((u) => u !== cachedWorkingUrl)] : API_URLS;
+        const payload = {
+          text: request.text || "",
+          apiKey: apiKey || request.apiKey || undefined,
+          provider: request.provider || settings.provider || undefined,
+          model: request.model || settings.model || undefined,
+          tokenSaver: request.tokenSaver || settings.tokenSaver || false,
+          level: request.level || "deep",
+        };
+
+        const targetUrls = cachedWorkingUrl ? [cachedWorkingUrl, ...API_URLS.filter((u) => u !== cachedWorkingUrl)] : API_URLS;
         let lastErr = "";
 
-        for (const url of urls) {
+        for (const baseUrl of targetUrls) {
+          const url = `${baseUrl}/api/v1/extension/enhance`;
           try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 12000);
             const res = await fetch(url, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                text: request.text,
-                apiKey: apiKey || undefined,
-                model: request.model || (apiKey ? "gpt-4o-mini" : "google/gemini-2.0-flash-exp:free"),
-                provider: request.provider || (apiKey ? "openai" : "openrouter"),
-                level: request.level || "deep",
-              }),
-              signal: AbortSignal.timeout(25000),
+              body: JSON.stringify(payload),
+              signal: controller.signal,
             });
+            clearTimeout(timeout);
+
             const resData = await res.json().catch(() => ({}));
+
             if (!res.ok) {
-              lastErr = resData.error || `HTTP ${res.status}`;
               if (res.status === 429) {
                 const retryAfter = res.headers.get("Retry-After");
-                sendResponse({ success: false, error: `Too many requests. Try again ${retryAfter ? `in ${retryAfter}s` : "in a few minutes"}.` });
+                sendResponse({ success: false, error: `Too many requests. Retry in ${retryAfter || 5}s.` });
                 return;
               }
+              lastErr = resData.error || `Server error (${res.status})`;
               continue;
-            } else {
-              cachedWorkingUrl = url;
-              sendResponse({ success: true, data: resData });
-              return;
             }
+
+            cachedWorkingUrl = baseUrl;
+            sendResponse({ success: true, data: resData });
+            return;
           } catch (err) {
             lastErr = err.message || "Connection failed";
             continue;
@@ -154,25 +169,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         sendResponse({
           success: false,
-          error: lastErr || "Could not connect to Prompt+ AI API. Please check your internet connection.",
+          error: lastErr || "Could not connect to Prompt+ server.",
         });
       } catch (err) {
-        sendResponse({
-          success: false,
-          error: err.message || "Enhancement failed. Please try again.",
-        });
-      }
-    })();
-    return true;
-  }
-
-  if (request.action === "enhanceDevice") {
-    (async () => {
-      try {
-        const result = await enhanceWithDevice(request, sender);
-        sendResponse(result);
-      } catch (e) {
-        sendResponse({ success: false, error: e.message || "Device AI error" });
+        sendResponse({ success: false, error: err.message || "Enhancement failed." });
       }
     })();
     return true;
@@ -186,30 +186,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
-  if (request.action === "checkDeviceAI") {
-    (async () => {
-      try {
-        const lm = getLanguageModelAPI();
-        let supported = !!lm;
-        if (supported) {
-          const availability = await lm.availability();
-          supported = availability === "available" || availability === "readily" || availability === "downloading" || availability === "after-download";
-        }
-        sendResponse({ supported });
-      } catch {
-        sendResponse({ supported: false });
-      }
-    })();
-    return true;
-  }
-
   if (request.action === "saveApiKey") {
     (async () => {
       const encryptedKey = await encryptData(request.apiKey);
       chrome.storage.local.get(STORAGE_KEY, (data) => {
         const cur = data[STORAGE_KEY] || {};
         cur.apiKeyEnc = encryptedKey;
-        cur.apiKey = ""; // Blank out unencrypted legacy key
+        cur.apiKey = "";
         chrome.storage.local.set({ [STORAGE_KEY]: cur }, () => sendResponse({ success: true }));
       });
     })();
@@ -248,100 +231,3 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 });
-
-// Context menu click handler
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === "enhance-selection" && info.selectionText && tab?.id) {
-    chrome.tabs.sendMessage(tab.id, { action: "openEnhancePanel", text: info.selectionText });
-  }
-});
-
-// Keyboard command handler
-chrome.commands.onCommand.addListener((command) => {
-  if (command === "enhance-prompt") {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]?.id) {
-        chrome.tabs.sendMessage(tabs[0].id, { action: "toggleEnhancePanel" });
-      }
-    });
-  }
-});
-
-// Device AI enhancement via Chrome Prompt API (Gemini Nano, Chrome 138+)
-async function enhanceWithDevice(req, sender) {
-  const text = req.text;
-  const lm = getLanguageModelAPI();
-  if (!lm) {
-    throw new Error("Device AI not supported. Chrome 138+ with Gemini Nano required.");
-  }
-  const availability = await lm.availability();
-  if (availability === "unavailable" || availability === "no") {
-    throw new Error("Gemini Nano not available on this device. Needs Chrome 138+, 22GB+ free storage, macOS 13+/Win 10+/Linux.");
-  }
-  const session = await lm.create({
-    temperature: 0.1, topK: 1, outputLanguage: "en",
-    monitor(m) {
-      m.addEventListener("downloadprogress", (e) => {
-        if (e.loaded < 1) {
-          try {
-            chrome.tabs.sendMessage(sender?.tab?.id, {
-              action: "deviceProgress", pct: Math.round(e.loaded * 100),
-            });
-          } catch { /* tab gone */ }
-        }
-      });
-    },
-  });
-  try {
-    const cat = req.category || "General Task";
-    const tone = req.tone || "Professional & Clear";
-    const length = req.length || "Comprehensive & Structured";
-
-    const systemInstruction = `You are the Prompt+ Architect Engine — an advanced AI meta-prompt compiler.
-Your task is to transform raw, simple, or incomplete user prompts into production-grade, highly structured AI instructions.
-Return ONLY the final enhanced prompt framework ready for immediate execution by AI models. Do NOT add introductory or conversational meta-text.`;
-
-    const tokenSaverClause = req.tokenSaver
-      ? "\nTighten the output to ~40% fewer tokens while keeping every section complete and lossless."
-      : "";
-
-    const metaPrompt = `[ORIGINAL USER PROMPT]:
-"${text.trim()}"
-
-[TARGET DOMAIN]: ${cat}
-[PREFERRED TONE]: ${tone}
-[TARGET OUTPUT LENGTH]: ${length}
-
-[META-PROMPT INSTRUCTIONS]:
-Rewrite the prompt above into a master AI prompt framework with the following explicit sections:
-1. ### Role & Objective — Define an elite persona tailored to ${cat}.
-2. ### Context & Domain Constraints — Establish target domain, background context, and non-negotiable boundaries.
-3. ### Step-by-Step Instructions — Break down execution into clear, sequential steps.
-4. ### Output Format & Constraints — Specify ${length}, ${tone}, and formatting guidelines (Markdown, code blocks, bullet points).
-5. ### Input Variables — Highlight placeholders like {{user_input}} or specific parameters if required.${tokenSaverClause}`;
-
-    let full = "";
-    try {
-      const stream = await session.promptStreaming(`${systemInstruction}\n\n${metaPrompt}`);
-      for await (const chunk of stream) {
-        if (!chunk) continue;
-        full = chunk;
-        try {
-          chrome.tabs.sendMessage(sender?.tab?.id, { action: "deviceChunk", text: full });
-        } catch { /* tab gone */ }
-      }
-    } catch (e) {
-      console.error("[Prompt+] stream error, falling back to prompt():", e);
-    }
-
-    if (!full.trim()) {
-      full = await session.prompt(`${systemInstruction}\n\n${metaPrompt}`);
-      try {
-        chrome.tabs.sendMessage(sender?.tab?.id, { action: "deviceChunk", text: full });
-      } catch { /* tab gone */ }
-    }
-    return { success: true, enhanced: full.trim() };
-  } finally {
-    session.destroy();
-  }
-}

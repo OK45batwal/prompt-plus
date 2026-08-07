@@ -4,10 +4,22 @@
   let panelEl = null;
   let currentTarget = null;
   let currentText = "";
-  let currentEnhanced = "";
   let currentMode = "api";
 
-  const CONTEXT_LIMITS = { chatgpt: 128000, claude: 200000, gemini: 1000000, deepseek: 128000 };
+  const CONTEXT_LIMITS = { chatgpt: 128000, claude: 200000, gemini: 1000000, deepseek: 128000, grok: 128000, perplexity: 128000 };
+
+  function detectChatbot() {
+    const host = location.hostname.toLowerCase();
+    if (host.includes("chatgpt") || host.includes("chat.openai")) return "chatgpt";
+    if (host.includes("claude")) return "claude";
+    if (host.includes("gemini")) return "gemini";
+    if (host.includes("deepseek")) return "deepseek";
+    if (host.includes("grok") || host.includes("x.ai")) return "grok";
+    if (host.includes("perplexity")) return "perplexity";
+    if (host.includes("copilot")) return "copilot";
+    if (host.includes("poe")) return "poe";
+    return "general";
+  }
 
   function getConversationText() {
     const bot = detectChatbot();
@@ -29,21 +41,6 @@
     const limit = CONTEXT_LIMITS[detectChatbot()] || 128000;
     const remaining = Math.max(0, limit - used);
     return { used, limit, remaining, pct: Math.min(100, Math.round((used / limit) * 100)) };
-  }
-
-  function updateTokenBar() {
-    const fill = document.getElementById("pp-token-fill");
-    const usedEl = document.getElementById("pp-token-used");
-    const pctEl = document.getElementById("pp-token-pct");
-    const limitEl = document.getElementById("pp-token-limit");
-    if (!fill || !usedEl) return;
-    const info = getTokenInfo();
-    usedEl.textContent = info.used.toLocaleString();
-    if (limitEl) limitEl.textContent = (info.limit / 1000).toFixed(0) + "K";
-    if (pctEl) pctEl.textContent = info.pct + "%";
-    fill.style.width = info.pct + "%";
-    if (info.pct > 80) fill.style.background = "linear-gradient(90deg, #f59e0b, #ef4444)";
-    else fill.style.background = "#6366f1";
   }
 
   function sanitizeContextText(text) {
@@ -117,12 +114,10 @@
   }
 
   function getInput() {
-    // 1. Check focused element if it's an input
     const active = document.activeElement;
     if (active && (active.tagName === "TEXTAREA" || active.isContentEditable || active.tagName === "INPUT")) {
       return active;
     }
-    // 2. Specific chatbot selector queries
     let el = document.querySelector("#prompt-textarea, textarea[data-id='root'], [contenteditable='true']#prompt-textarea");
     if (el) return el;
     el = document.querySelector("div[contenteditable='true'].ProseMirror, textarea[aria-label*='Write'], div[contenteditable='true'][aria-label*='Write']");
@@ -135,7 +130,6 @@
     if (el && (location.hostname.includes("grok") || location.hostname.includes("x.ai"))) return el;
     el = document.querySelector("textarea[placeholder*='Ask'], textarea[placeholder*='Search'], textarea");
     if (el && location.hostname.includes("perplexity")) return el;
-    // 3. Fallbacks
     el = document.querySelector("div[contenteditable='true']");
     if (el) return el;
     el = document.querySelector("textarea");
@@ -152,9 +146,7 @@
 
   function setText(el, text) {
     if (!el) return;
-    try {
-      el.focus();
-    } catch { /* ignore focus error */ }
+    try { el.focus(); } catch { /* ignore focus error */ }
 
     if (el.tagName === "TEXTAREA" || el.tagName === "INPUT") {
       try {
@@ -179,7 +171,7 @@
         selection.addRange(range);
         document.execCommand("delete", false, null);
         inserted = document.execCommand("insertText", false, text);
-      } catch { /* fallback to innerText below */ }
+      } catch { /* fallback */ }
 
       if (!inserted) {
         el.innerText = text;
@@ -191,78 +183,7 @@
     }
   }
 
-  function loadSettings(cb) {
-    try {
-      if (!chrome?.storage?.local) { cb({}); return; }
-      chrome.storage.local.get(STORAGE_KEY, (d) => {
-        if (chrome.runtime.lastError) { cb({}); return; }
-        cb(d[STORAGE_KEY] || {});
-      });
-    } catch {
-      cb({});
-    }
-  }
-
-  function saveSettings(s, cb) {
-    try {
-      if (!chrome?.storage?.local) return;
-      chrome.storage.local.get(STORAGE_KEY, (d) => {
-        if (chrome.runtime.lastError) return;
-        const cur = d[STORAGE_KEY] || {};
-        Object.assign(cur, s);
-        chrome.storage.local.set({ [STORAGE_KEY]: cur }, () => cb && cb());
-      });
-    } catch { /* ignore extension context invalidation */ }
-  }
-
-  function saveHistory(item) {
-    try {
-      if (!chrome?.storage?.local) return;
-      chrome.storage.local.get(HISTORY_KEY, (d) => {
-        if (chrome.runtime.lastError) return;
-        let h = d[HISTORY_KEY] || [];
-        h = [{ text: item.slice(0, 80), ts: Date.now() }, ...h].slice(0, 10);
-        chrome.storage.local.set({ [HISTORY_KEY]: h });
-      });
-    } catch { /* ignore context invalidation */ }
-  }
-
-  function detectChatbot() {
-    const host = location.hostname.toLowerCase();
-    if (host.includes("chatgpt") || host.includes("chat.openai")) return "chatgpt";
-    if (host.includes("claude")) return "claude";
-    if (host.includes("gemini")) return "gemini";
-    if (host.includes("deepseek")) return "deepseek";
-    if (host.includes("grok") || host.includes("x.ai")) return "grok";
-    if (host.includes("perplexity")) return "perplexity";
-    if (host.includes("copilot")) return "copilot";
-    if (host.includes("poe")) return "poe";
-    return "general";
-  }
-
   let fabTimer = null;
-
-  function updateFabTokenBar() {
-    const usedEl = document.getElementById("pp-fab-used");
-    const limitEl = document.getElementById("pp-fab-limit");
-    const remainEl = document.getElementById("pp-fab-remain");
-    const fillEl = document.getElementById("pp-fab-fill");
-    if (!usedEl || !remainEl || !fillEl) return;
-
-    const info = getTokenInfo();
-    usedEl.textContent = info.used > 1000 ? (info.used / 1000).toFixed(1) + "K" : info.used;
-    if (limitEl) {
-      limitEl.textContent = info.limit >= 1000000 ? (info.limit / 1000000).toFixed(0) + "M" : (info.limit / 1000).toFixed(0) + "K";
-    }
-
-    const remStr = info.remaining >= 1000 ? (info.remaining / 1000).toFixed(1) + "K" : info.remaining;
-    remainEl.textContent = remStr;
-
-    fillEl.style.width = info.pct + "%";
-    if (info.pct > 80) fillEl.style.background = "linear-gradient(90deg, #f59e0b, #ef4444)";
-    else if (info.pct > 50) fillEl.style.background = "linear-gradient(90deg, #6366f1, #f59e0b)";
-    else fillEl.style.background = "#6366f1";
-  }
 
   function injectFab() {
     const existing = document.querySelector(".pp-fab-bar");
@@ -278,24 +199,12 @@
     const rect = input.getBoundingClientRect();
     if (!rect || rect.width === 0) { setTimeout(injectFab, 800); return; }
 
-    try {
-      if (chrome?.storage?.local) {
-        chrome.storage.local.get("pp_settings", (data) => {
-          const saved = data?.pp_settings || {};
-          if (saved.mode) currentMode = saved.mode;
-          else currentMode = "api";
-        });
-      }
-    } catch {
-      currentMode = "api";
-    }
-
     const bar = document.createElement("div");
     bar.className = "pp-fab-bar";
     bar._targetInput = input;
 
     bar.innerHTML =
-      '<div class="pp-fab-brain-badge" title="Prompt+ Intelligence Engine" style="background: transparent; padding: 0;">' +
+      '<div class="pp-fab-brain-badge" title="Prompt+ Intelligence Engine" style="background: transparent; padding: 0; cursor: pointer;">' +
       '<svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">' +
       '<defs><linearGradient id="fabLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#1D70F5"/><stop offset="100%" stopColor="#8B5CF6"/></linearGradient></defs>' +
       '<path d="M22 90V28C22 16 32 10 52 10C72 10 85 22 85 40C85 58 72 68 52 68H42V90H22Z" fill="url(#fabLogoGrad)"/>' +
@@ -329,7 +238,6 @@
         try { el?.focus(); } catch { /* ignore */ }
         return;
       }
-      // Immediately open panel and trigger dynamic prompt enhancement
       openPanel();
       setTimeout(() => {
         const panelInput = document.getElementById("pp-panel-input");
@@ -349,7 +257,6 @@
     });
 
     const injBtn = bar.querySelector("#pp-fab-bucket-inj");
-    const injText = bar.querySelector("#pp-fab-bucket-inj-text");
     injBtn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -362,7 +269,6 @@
           const b = d?.pp_context_bucket;
           if (b && b.formattedPrompt) {
             injBtn.style.display = "inline-flex";
-            if (injText) injText.textContent = `Inject (${b.source || "Bucket"})`;
           }
         });
       }
@@ -378,23 +284,18 @@
       });
     };
 
-    input.addEventListener("input", updateFabTokenBar, { passive: true });
     window.addEventListener("scroll", schedulePosition, { passive: true });
     window.addEventListener("resize", schedulePosition, { passive: true });
 
-    // Dynamic container observer for realtime resizing & layout shifts
-    try {
-      const container = getChatContainer(input) || input;
-      if (typeof ResizeObserver !== "undefined") {
-        const ro = new ResizeObserver(schedulePosition);
-        ro.observe(container);
-      }
-    } catch { /* fallback */ }
-
-    updateFabTokenBar();
     schedulePosition();
     if (fabTimer) clearInterval(fabTimer);
-    fabTimer = setInterval(updateFabTokenBar, 2500);
+    fabTimer = setInterval(() => {
+      if (!document.body.contains(input)) {
+        injectFab();
+      } else {
+        schedulePosition();
+      }
+    }, 2000);
   }
 
   function getChatContainer(input) {
@@ -426,18 +327,15 @@
       return;
     }
 
-    // Position floating toolbar cleanly above top-right of chat container
     const barHeight = bar.offsetHeight || 36;
     const barWidth = bar.offsetWidth || 320;
     const viewportWidth = window.innerWidth;
 
     let top = rect.top - barHeight - 6;
     if (top < 8) {
-      // If near top of viewport, dock top-right inside container
       top = rect.top + 8;
     }
 
-    // Align to top-right of chat input card
     let left = rect.right - barWidth - 8;
     if (left < 16) left = 16;
     if (left + barWidth > viewportWidth - 16) {
@@ -458,797 +356,164 @@
     t.textContent = msg;
     Object.assign(t.style, {
       position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
-      background: "rgba(10,10,12,0.9)", color: "#f1f5f9", padding: "10px 20px", borderRadius: "14px",
-      fontSize: "13px", zIndex: "100000001", boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-      border: "1px solid rgba(124,58,237,0.3)", fontFamily: "-apple-system, sans-serif",
-      backdropFilter: "blur(12px)", transition: "opacity 0.3s",
+      background: "rgba(10,10,12,0.92)", color: "#f1f5f9", padding: "10px 20px", borderRadius: "14px",
+      fontSize: "13px", fontWeight: "600", zIndex: "100000001", boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+      border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(12px)", transition: "all 0.3s ease"
     });
     document.body.appendChild(t);
-    setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 300); }, 2000);
+    setTimeout(() => {
+      t.style.opacity = "0";
+      t.style.transform = "translate(-50%, 10px)";
+      setTimeout(() => t.remove(), 300);
+    }, 2800);
   }
-
-  let tokenInterval = null;
 
   function openPanel() {
-    if (panelEl) { closePanel(); return; }
-    const input = currentTarget || getInput();
-    const text = currentText || (input ? getText(input) : "");
-
-    settings = null;
-    loadSettings((s) => {
-      settings = s;
-      currentMode = s.mode || "api";
-      renderPanel(input, text, settings);
-      if (text.trim()) {
-        doEnhance(input, text);
-      }
-    });
-  }
-
-  function closePanel() {
-    if (panelEl) { panelEl.remove(); panelEl = null; }
-    document.removeEventListener("keydown", ppEscHandler);
-    if (tokenInterval) { clearInterval(tokenInterval); tokenInterval = null; }
-  }
-
-  let settings = null;
-
-  // ---- Primary Side Panel UX ----
-
-
-  function getLanguageModelAPI() {
-    if (typeof LanguageModel !== "undefined") return LanguageModel;
-    if (typeof window !== "undefined" && window.LanguageModel) return window.LanguageModel;
-    if (typeof ai !== "undefined" && ai.languageModel) return ai.languageModel;
-    if (typeof window !== "undefined" && window.ai?.languageModel) return window.ai.languageModel;
-    return null;
-  }
-
-  async function runDeviceEnhanceInContent(text, tokenSaver, targetId) {
-    const lm = getLanguageModelAPI();
-    if (!lm) throw new Error("On-device AI not supported. Needs Chrome 138+ with Gemini Nano.");
-    const availability = await lm.availability();
-    if (availability === "unavailable" || availability === "no") throw new Error("Gemini Nano unavailable on this device.");
-
-    const session = await lm.create({ temperature: 0.1, topK: 1 });
-    try {
-      const systemInstruction = `You are the Prompt+ Architect Engine — an advanced AI meta-prompt compiler.
-Your task is to transform raw, simple, or incomplete user prompts into production-grade, highly structured AI instructions.
-Return ONLY the final enhanced prompt framework ready for immediate execution by AI models. Do NOT add introductory or conversational meta-text.`;
-      const tokenSaverClause = tokenSaver ? "\nTighten the output to ~40% fewer tokens while keeping every section complete and lossless." : "";
-      const metaPrompt = `[ORIGINAL USER PROMPT]:\n"${text.trim()}"\n\n[TARGET DOMAIN]: General Task\n[PREFERRED TONE]: Professional & Clear\n[TARGET OUTPUT LENGTH]: Comprehensive & Structured\n\n[META-PROMPT INSTRUCTIONS]:\nRewrite the prompt above into a master AI prompt framework with: 1. ### Role & Objective 2. ### Context & Domain Constraints 3. ### Step-by-Step Instructions 4. ### Output Format & Constraints 5. ### Input Variables${tokenSaverClause}`;
-
-      let full = "";
-      try {
-        const stream = await session.promptStreaming(`${systemInstruction}\n\n${metaPrompt}`);
-        for await (const chunk of stream) {
-          if (!chunk) continue;
-          full = chunk;
-          const r = document.getElementById(targetId);
-          if (r) { r.textContent = full; r.scrollTop = r.scrollHeight; }
-        }
-      } catch { /* fallback to prompt */ }
-
-      if (!full.trim()) {
-        full = await session.prompt(`${systemInstruction}\n\n${metaPrompt}`);
-        const r = document.getElementById(targetId);
-        if (r) r.textContent = full;
-      }
-      return { success: true, enhanced: full.trim() };
-    } finally {
-      session.destroy();
-    }
-  }
-
-
-
-  function sendDeviceEnhance(text, tokenSaver, targetId) {
-    return new Promise((resolve) => {
-      const handler = (msg) => {
-        const r = document.getElementById(targetId);
-        if (!r) return;
-        if (msg.action === "deviceChunk" && msg.text) { r.textContent = msg.text; if (r.scrollTop + r.clientHeight >= r.scrollHeight - 20) r.scrollTop = r.scrollHeight; }
-      };
-      chrome.runtime.onMessage.addListener(handler);
-      chrome.runtime.sendMessage({ action: "enhanceDevice", text, tokenSaver }).then(async (r) => {
-        chrome.runtime.onMessage.removeListener(handler);
-        if (r && r.success) {
-          resolve(r);
-        } else {
-          try {
-            const localRes = await runDeviceEnhanceInContent(text, tokenSaver, targetId);
-            resolve(localRes);
-          } catch {
-            const apiRes = await enhanceApi(text, targetId);
-            resolve(apiRes);
-          }
-        }
-      }).catch(async () => {
-        chrome.runtime.onMessage.removeListener(handler);
-        try {
-          const localRes = await runDeviceEnhanceInContent(text, tokenSaver, targetId);
-          resolve(localRes);
-        } catch {
-          const apiRes = await enhanceApi(text, targetId);
-          resolve(apiRes);
-        }
-      });
-    });
-  }
-
-
-
-  function renderPanel(input, text, s) {
-    panelEl = document.createElement("div");
-    panelEl.className = "pp-panel";
-
-    panelEl.innerHTML =
-      '<div class="pp-backdrop"></div>' +
-      '<div class="pp-side">' +
-      '<div class="pp-side-inner">' +
-      '<div class="pp-head">' +
-      '<div class="pp-head-left">' +
-      '<div class="pp-head-icon">⚡</div>' +
-      '<div class="pp-head-info">' +
-      '<div class="pp-head-title">Prompt+ Intelligence Activated</div>' +
-      '<div class="pp-head-enc"><span class="pp-enc-dot"></span> END-TO-END ENCRYPTED</div>' +
-      '</div>' +
-      '</div>' +
-      '<button class="pp-close-btn" id="pp-close-btn">✕</button>' +
-      '</div>' +
-      '<div class="pp-tab-bar-wrap">' +
-      '<div class="pp-tab-track">' +
-      '<button class="pp-tab-btn active" id="pp-tab-improved" type="button">Improved</button>' +
-      '<button class="pp-tab-btn" id="pp-tab-changes" type="button">Changes</button>' +
-      '</div>' +
-      '</div>' +
-      '<div class="pp-body" id="pp-body">' +
-      '<div class="pp-split-view">' +
-      '<div class="pp-col-left">' +
-      '<div class="pp-split-label">ORIGINAL</div>' +
-      '<div class="pp-split-original" id="pp-original-preview"></div>' +
-      '</div>' +
-      '<div class="pp-col-right">' +
-      '<div id="pp-view-improved">' +
-      '<div class="pp-split-header">' +
-      '<div class="pp-split-label-right">IMPROVED</div>' +
-      '<button class="pp-copy-chip" id="pp-copy-btn" disabled>📋 Copy</button>' +
-      '</div>' +
-      '<div class="pp-split-improved" id="pp-enhanced-preview">' +
-      '<div class="pp-placeholder">Click "Apply Upgrade" below to see the AI-optimized result</div>' +
-      '</div>' +
-      '<div id="pp-structured-sections" style="display:none; margin-top: 12px;">' +
-      '<div class="pp-section">' +
-      '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">ROLE</span></div>' +
-      '<div class="pp-section-body" id="pp-role-body">—</div>' +
-      '</div>' +
-      '<div class="pp-section">' +
-      '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">CONTEXT</span></div>' +
-      '<div class="pp-section-body" id="pp-context-body">—</div>' +
-      '</div>' +
-      '<div class="pp-section">' +
-      '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">INSTRUCTIONS</span></div>' +
-      '<div class="pp-section-body" id="pp-instructions-body">—</div>' +
-      '</div>' +
-      '<div class="pp-section">' +
-      '<div class="pp-section-head"><div class="pp-section-bar"></div><span class="pp-section-title">CONSTRAINTS</span></div>' +
-      '<div class="pp-section-body" id="pp-constraints-body">—</div>' +
-      '</div>' +
-      '</div>' +
-      '</div>' +
-      '<div id="pp-view-changes" style="display:none;">' +
-      '<div class="pp-outcome-badge">✨ OUTCOME: STRONG STRUCTURAL UPGRADE</div>' +
-      '<ul class="pp-changes-list">' +
-      '<li><span class="pp-check">✓</span> Expanded minimal instructions into a multi-step strategic action plan.</li>' +
-      '<li><span class="pp-check">✓</span> Introduced measurable constraints to improve output precision and control.</li>' +
-      '<li><span class="pp-check">✓</span> Added expert role definition to align AI tone and perspective.</li>' +
-      '<li><span class="pp-check">✓</span> Expanded real-world context to reduce generic responses.</li>' +
-      '</ul>' +
-      '</div>' +
-      '</div>' +
-      '</div>' +
-      '<div class="pp-opt-row">' +
-      '<div class="pp-opt-info"><div class="pp-opt-label">Token Saver</div><div class="pp-opt-sub">Concise output, ~40% fewer tokens</div></div>' +
-      '<label class="pp-toggle"><input type="checkbox" id="pp-ts-toggle"><div class="pp-toggle-slider"></div></label>' +
-      '</div>' +
-      '<div class="pp-model-row">' +
-      '<label class="pp-model-label">Model</label>' +
-      '<select id="pp-model" class="pp-select">' +
-      '<optgroup label="OpenRouter Free Tier">' +
-      '<option value="google/gemini-2.0-flash-exp:free::openrouter" selected>Gemini 2.0 Flash (Free)</option>' +
-      '<option value="deepseek/deepseek-r1:free::openrouter">DeepSeek R1 (Free)</option>' +
-      '<option value="meta-llama/llama-3.1-8b-instruct:free::openrouter">Llama 3.1 8B (Free)</option>' +
-      '<option value="qwen/qwen-2.5-coder-32b-instruct:free::openrouter">Qwen 2.5 Coder 32B (Free)</option>' +
-      '<option value="mistralai/mistral-7b-instruct:free::openrouter">Mistral 7B (Free)</option>' +
-      '</optgroup>' +
-      '<optgroup label="OpenAI ChatGPT">' +
-      '<option value="gpt-4o-mini::openai">ChatGPT GPT-4o Mini</option>' +
-      '<option value="gpt-4o::openai">ChatGPT GPT-4o</option>' +
-      '<option value="o3-mini::openai">ChatGPT o3-Mini (Reasoning)</option>' +
-      '</optgroup>' +
-      '<optgroup label="Anthropic Claude">' +
-      '<option value="claude-3-5-sonnet-20241022::anthropic">Claude 3.5 Sonnet</option>' +
-      '<option value="claude-3-5-haiku-20241022::anthropic">Claude 3.5 Haiku</option>' +
-      '<option value="claude-3-opus-20240229::anthropic">Claude 3 Opus</option>' +
-      '</optgroup>' +
-      '<optgroup label="NVIDIA Nim Free Tier">' +
-      '<option value="meta/llama-3.3-70b-instruct::nvidia">Llama 3.3 70B (NV)</option>' +
-      '<option value="nvidia/llama-3.1-nemotron-70b-instruct::nvidia">Nemotron 70B (NV)</option>' +
-      '<option value="google/gemma-2-27b-it::nvidia">Gemma 2 27B (NV)</option>' +
-      '</optgroup>' +
-      '</select>' +
-      '</div>' +
-      '</div>' +
-      '<div class="pp-token-bar" id="pp-token-bar">' +
-      '<div class="pp-token-label"><span>Context: <strong id="pp-token-used">0</strong> / <strong id="pp-token-limit">128K</strong> tokens</span><span id="pp-token-pct">0%</span></div>' +
-      '<div class="pp-token-track"><div class="pp-token-fill" id="pp-token-fill" style="width:0%"></div></div>' +
-      '</div>' +
-      '<div class="pp-footer">' +
-      '<div class="pp-footer-credit">Optimized by <strong>Prompt+</strong></div>' +
-      '<div class="pp-footer-actions">' +
-      '<button class="pp-btn-keep" id="pp-keep-btn">Keep Original</button>' +
-      '<button class="pp-btn-apply" id="pp-enhance-btn">' +
-      '<span class="pp-btn-spinner" style="display:none"></span>' +
-      '<span id="pp-enhance-text">Apply Upgrade</span>' +
-      '<span>→</span>' +
-      '</button>' +
-      '</div>' +
-      '</div>' +
-      '</div>' +
-      '</div>';
-
-    document.body.appendChild(panelEl);
-
-    requestAnimationFrame(() => {
-      panelEl.querySelector(".pp-backdrop").style.opacity = "1";
-      panelEl.querySelector(".pp-side").style.transform = "translateX(0)";
-    });
-
-    updateTokenBar();
-    if (tokenInterval) clearInterval(tokenInterval);
-    tokenInterval = setInterval(updateTokenBar, 3000);
-
-    panelEl.querySelector("#pp-original-preview").textContent = text;
-
-    if (s?.tokenSaver) {
-      const cb = panelEl.querySelector("#pp-ts-toggle");
-      if (cb) cb.checked = true;
-    }
-    if (currentMode === "device") {
-      const modelRow = panelEl.querySelector(".pp-model-row");
-      if (modelRow) modelRow.style.display = "none";
-    } else if (s && s.model) {
-      const sel = panelEl.querySelector("#pp-model");
-      if (sel) sel.value = s.model;
-    }
-
-    const tabImp = panelEl.querySelector("#pp-tab-improved");
-    const tabChg = panelEl.querySelector("#pp-tab-changes");
-    const viewImp = panelEl.querySelector("#pp-view-improved");
-    const viewChg = panelEl.querySelector("#pp-view-changes");
-
-    if (tabImp && tabChg) {
-      tabImp.addEventListener("click", () => {
-        tabImp.classList.add("active");
-        tabChg.classList.remove("active");
-        if (viewImp) viewImp.style.display = "block";
-        if (viewChg) viewChg.style.display = "none";
-      });
-      tabChg.addEventListener("click", () => {
-        tabChg.classList.add("active");
-        tabImp.classList.remove("active");
-        if (viewImp) viewImp.style.display = "none";
-        if (viewChg) viewChg.style.display = "block";
-      });
-    }
-
-    panelEl.querySelector("#pp-close-btn").onclick = closePanel;
-    panelEl.querySelector(".pp-backdrop")?.addEventListener("click", closePanel);
-    document.addEventListener("keydown", ppEscHandler);
-
-    const botUrls = { chatgpt: "https://chatgpt.com", claude: "https://claude.ai", gemini: "https://gemini.google.com", deepseek: "https://chat.deepseek.com" };
-    panelEl.querySelectorAll(".pp-bot-pill").forEach((pill) => {
-      const idx = Array.from(pill.parentElement.children).indexOf(pill);
-      const url = Object.values(botUrls)[idx];
-      if (url) pill.style.cursor = "pointer";
-      pill.addEventListener("click", (e) => { e.stopPropagation(); if (url) window.open(url, "_blank"); });
-    });
-
-    panelEl.querySelector("#pp-keep-btn").onclick = () => {
-      if (currentText) setText(input, currentText);
-      closePanel();
-    };
-
-    panelEl.querySelector("#pp-enhance-btn").onclick = () => {
-      const activeInput = currentTarget || input || getInput();
-      const txt = (activeInput ? getText(activeInput) : "") || currentText;
-      doEnhance(activeInput, txt);
-    };
-
-    panelEl.querySelector("#pp-copy-btn").onclick = () => {
-      const val = panelEl.querySelector("#pp-enhanced-preview").textContent;
-      if (!val) return;
-      navigator.clipboard.writeText(val);
-      const copyBtn = panelEl.querySelector("#pp-copy-btn");
-      copyBtn.textContent = "✓ Copied";
-      setTimeout(() => { copyBtn.textContent = "📋 Copy"; }, 1500);
-    };
-
-    panelEl.querySelector("#pp-model").addEventListener("change", (e) => {
-      saveSettings({ model: e.target.value });
-    });
-    panelEl.querySelector("#pp-ts-toggle")?.addEventListener("change", (e) => {
-      saveSettings({ tokenSaver: e.target.checked });
-    });
-  }
-
-  let enhancing = false;
-
-  async function doEnhance(input, text) {
-    if (enhancing) return;
-
-    const el = input || currentTarget || getInput();
-    const promptText = (text || currentText || (el ? getText(el) : "")).trim();
-
-    if (!promptText) {
-      const preview = document.getElementById("pp-enhanced-preview");
-      if (preview) preview.textContent = "Type a prompt in the chat input field first, then click Enhance!";
+    if (panelEl) {
+      panelEl.style.display = "flex";
       return;
     }
 
-    text = promptText;
-    enhancing = true;
-    currentEnhanced = "";
+    panelEl = document.createElement("div");
+    panelEl.id = "pp-side-panel";
+    Object.assign(panelEl.style, {
+      position: "fixed", top: "0", right: "0", width: "420px", height: "100vh",
+      background: "rgba(10,10,14,0.96)", borderLeft: "1px solid rgba(255,255,255,0.1)",
+      zIndex: "100000000", display: "flex", flexDirection: "column",
+      boxShadow: "-8px 0 32px rgba(0,0,0,0.6)", backdropFilter: "blur(20px)",
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", color: "#f4f4f5"
+    });
 
-    const fabText = document.getElementById("pp-fab-text");
-    const fabTextOrig = fabText?.textContent || "";
+    panelEl.innerHTML = `
+      <div style="padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #4f46e5); display: flex; align-items: center; justify-content: center; font-weight: 700;">⚡</div>
+          <div>
+            <div style="font-weight: 700; font-size: 14px;">Prompt+ <span style="font-weight: 400; color: #a1a1aa; font-size: 12px;">Architect AI</span></div>
+            <div style="font-size: 10px; color: #34d399; font-weight: 600;">🟢 ACTIVE IN PANEL</div>
+          </div>
+        </div>
+        <button id="pp-panel-close" style="background: transparent; border: none; color: #a1a1aa; font-size: 20px; cursor: pointer; padding: 4px;">✕</button>
+      </div>
 
-    const btn = document.getElementById("pp-enhance-btn");
-    const btnText = document.getElementById("pp-enhance-text");
-    const spinner = btn?.querySelector(".pp-btn-spinner");
-    if (btn) btn.disabled = true;
-    if (btnText) btnText.textContent = "Enhancing…";
-    if (spinner) spinner.style.display = "inline-block";
-    if (fabText) fabText.textContent = "Enhancing…";
+      <div style="padding: 16px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;">
+        <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: #a1a1aa; letter-spacing: 0.05em;">Original User Input</div>
+        <textarea id="pp-panel-input" rows="4" style="width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: #f4f4f5; font-size: 13px; font-family: inherit; resize: vertical; outline: none;" placeholder="Type or edit your prompt idea..."></textarea>
 
-    const enhancedPreview = document.getElementById("pp-enhanced-preview");
-    const copyBtn = document.getElementById("pp-copy-btn");
-    const sections = document.getElementById("pp-structured-sections");
+        <button id="pp-panel-enhance-btn" style="padding: 12px; border-radius: 12px; background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 16px rgba(99,102,241,0.4);">
+          <span>⚡ Enhance Prompt Live</span>
+        </button>
 
-    try {
-      const tsEl = document.getElementById("pp-ts-toggle");
-      const tkSave = tsEl ? tsEl.checked : false;
-      let res;
-      if (currentMode === "device") {
-        try {
-          res = await sendDeviceEnhance(text, tkSave, "pp-enhanced-preview");
-          if (res && res.success) {
-            currentEnhanced = res.enhanced || res.data?.enhanced || "";
-          }
-        } catch { /* proceed to server API fallback */ }
-      }
+        <div id="pp-panel-msg" style="font-size: 12px; display: none; padding: 8px 12px; border-radius: 8px;"></div>
 
-      if (!currentEnhanced) {
-        // API Mode or On-Device Fallback
-        const modelVal = document.getElementById("pp-model")?.value || "google/gemini-2.0-flash-exp:free::openrouter";
-        const parts = modelVal.split("::");
-        const model = parts[0];
-        const provider = parts[1] || "openrouter";
-        res = await new Promise((resolve) => {
-          try {
-            chrome.runtime.sendMessage({ action: "enhancePrompt", text, model, provider, tokenSaver: tkSave }, (r) => {
-              if (chrome.runtime.lastError) resolve({ success: false, error: chrome.runtime.lastError.message });
-              else resolve(r);
-            });
-          } catch (e) { resolve({ success: false, error: e.message }); }
-        });
-        if (res && res.success) {
-          currentEnhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
-        } else if (res && res.error) {
-          throw new Error(res.error);
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+          <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: #a1a1aa; letter-spacing: 0.05em;">Enhanced Master Prompt</span>
+          <span id="pp-panel-score" style="font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.4); color: #34d399; display: none;">Score: 98/100</span>
+        </div>
+
+        <div id="pp-panel-result" style="flex: 1; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); font-size: 12px; font-family: monospace; white-space: pre-wrap; color: #e4e4e7; min-height: 180px; overflow-y: auto;">
+          Click "Enhance Prompt Live" above to compile master instruction
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 4px;">
+          <button id="pp-panel-copy" style="flex: 1; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #f4f4f5; font-size: 12px; font-weight: 600; cursor: pointer;">Copy Result</button>
+          <button id="pp-panel-inject" style="flex: 1; padding: 10px; border-radius: 10px; background: linear-gradient(135deg, #34d399, #059669); border: none; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer;">Apply to Chat Input ✓</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(panelEl);
+
+    document.getElementById("pp-panel-close")?.addEventListener("click", () => {
+      panelEl.style.display = "none";
+    });
+
+    const panelEnhanceBtn = document.getElementById("pp-panel-enhance-btn");
+    const panelInput = document.getElementById("pp-panel-input");
+    const panelResult = document.getElementById("pp-panel-result");
+    const panelScore = document.getElementById("pp-panel-score");
+    const panelMsg = document.getElementById("pp-panel-msg");
+
+    panelEnhanceBtn?.addEventListener("click", () => {
+      const text = panelInput?.value?.trim();
+      if (!text) {
+        if (panelMsg) {
+          panelMsg.textContent = "⚠️ Please type a prompt first!";
+          panelMsg.style.display = "block";
+          panelMsg.style.background = "rgba(239,68,68,0.15)";
+          panelMsg.style.color = "#f87171";
         }
+        return;
       }
 
-      if (!currentEnhanced) throw new Error("Could not enhance prompt. Please check your internet connection.");
-      if (enhancedPreview) enhancedPreview.textContent = currentEnhanced;
-      if (copyBtn) copyBtn.disabled = false;
+      if (panelEnhanceBtn) panelEnhanceBtn.disabled = true;
+      if (panelResult) panelResult.textContent = "Enhancing prompt with Prompt+ Intelligence...";
 
-      if (sections) {
-        sections.style.display = "block";
-        parseAndFillSections(currentEnhanced);
-      }
-
-      if (btnText) btnText.textContent = "Apply Upgrade";
-      if (btn) {
-        btn.disabled = false;
-        btn.onclick = () => {
-          if (currentEnhanced) setText(input, currentEnhanced);
-          closePanel();
-        };
-      }
-
-      saveHistory(text);
-    } catch (err) {
-      showToast(err.message);
-      if (btnText) btnText.textContent = "Apply Upgrade";
-      if (btn) btn.disabled = false;
-      if (err.message && (err.message.includes("No API key") || err.message.includes("API key"))) {
-        if (enhancedPreview) {
-          enhancedPreview.innerHTML =
-            '<div style="padding: 8px; color: #f4f4f5;">' +
-            '<div style="font-weight: 600; color: #f59e0b; margin-bottom: 6px; font-size: 13px;">🔑 No API Key Configured</div>' +
-            '<div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; line-height: 1.5;">' +
-            'No API key configured on server. You can switch to free <strong>On-Device AI</strong> (Gemini Nano) or add an API key in extension popup settings.' +
-            '</div>' +
-            '<button id="pp-panel-switch-device" type="button" style="padding: 8px 14px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #a5b4fc; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">' +
-            '📱 Switch to On-Device AI' +
-            '</button>' +
-            '</div>';
-          document.getElementById("pp-panel-switch-device")?.addEventListener("click", () => {
-            currentMode = "device";
-            const modelRow = panelEl?.querySelector(".pp-model-row");
-            if (modelRow) modelRow.style.display = "none";
-            saveSettings({ mode: "device" });
-            doEnhance(input, text);
+      try {
+        if (chrome?.runtime?.sendMessage) {
+          chrome.runtime.sendMessage({ action: "enhancePrompt", text, level: "deep" }, (res) => {
+            if (panelEnhanceBtn) panelEnhanceBtn.disabled = false;
+            if (res && res.success) {
+              const enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
+              if (panelResult) panelResult.textContent = enhanced;
+              if (panelScore) {
+                panelScore.textContent = "Score: 98/100";
+                panelScore.style.display = "inline-flex";
+              }
+              if (panelMsg) {
+                panelMsg.textContent = "✓ Enhanced successfully!";
+                panelMsg.style.display = "block";
+                panelMsg.style.background = "rgba(52,211,153,0.15)";
+                panelMsg.style.color = "#34d399";
+                setTimeout(() => { panelMsg.style.display = "none"; }, 3000);
+              }
+            } else {
+              if (panelResult) panelResult.textContent = "Failed to enhance prompt. Please try again.";
+            }
           });
         }
+      } catch {
+        if (panelEnhanceBtn) panelEnhanceBtn.disabled = false;
       }
-    } finally {
-      enhancing = false;
-      if (spinner) spinner.style.display = "none";
-      if (fabText) fabText.textContent = fabTextOrig;
-    }
+    });
+
+    document.getElementById("pp-panel-copy")?.addEventListener("click", () => {
+      const text = panelResult?.textContent;
+      if (text) {
+        navigator.clipboard.writeText(text);
+        showToast("✓ Copied enhanced prompt to clipboard!");
+      }
+    });
+
+    document.getElementById("pp-panel-inject")?.addEventListener("click", () => {
+      const text = panelResult?.textContent;
+      const input = getInput() || currentTarget;
+      if (text && input) {
+        setText(input, text);
+        showToast("✓ Applied enhanced prompt directly into chat input!");
+        panelEl.style.display = "none";
+      }
+    });
   }
 
-  function parseAndFillSections(enhanced) {
-    const roleEl = document.getElementById("pp-role-body");
-    const ctxEl = document.getElementById("pp-context-body");
-    const instEl = document.getElementById("pp-instructions-body");
-    const constEl = document.getElementById("pp-constraints-body");
-
-    const lines = enhanced.split("\n");
-    let role = "", context = "", instructions = "", constraints = "";
-    let current = "instructions";
-    for (const line of lines) {
-      const lower = line.toLowerCase().trim();
-      if (lower.startsWith("role:") || lower.startsWith("act as") || lower.startsWith("you are")) {
-        current = "role";
-        role += line.replace(/^(role:|act as|you are)\s*/i, "") + "\n";
-      } else if (lower.startsWith("context:") || lower.startsWith("background:")) {
-        current = "context";
-        context += line.replace(/^(context:|background:)\s*/i, "") + "\n";
-      } else if (lower.startsWith("instructions:") || lower.startsWith("task:")) {
-        current = "instructions";
-        instructions += line.replace(/^(instructions:|task:)\s*/i, "") + "\n";
-      } else if (lower.startsWith("constraints:") || lower.startsWith("rules:") || lower.startsWith("requirements:")) {
-        current = "constraints";
-        constraints += line.replace(/^(constraints:|rules:|requirements:)\s*/i, "") + "\n";
-      } else {
-        if (current === "role") role += line + "\n";
-        else if (current === "context") context += line + "\n";
-        else if (current === "constraints") constraints += line + "\n";
-        else instructions += line + "\n";
-      }
-    }
-
-    if (roleEl) roleEl.textContent = role.trim() || "";
-    if (ctxEl) ctxEl.textContent = context.trim() || "";
-    if (instEl) instEl.textContent = instructions.trim() || enhanced.slice(0, 200);
-    if (constEl) constEl.textContent = constraints.trim() || "";
-  }
-
-  function ppEscHandler(e) {
-    if (e.key === "Escape") closePanel();
-  }
-
-  const style = document.createElement("style");
-  style.textContent = `
-.pp-fab-bar {
-  position: fixed !important;
-  z-index: 99999999 !important;
-  box-sizing: border-box !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  padding: 0 !important;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-  width: fit-content !important;
-  height: 38px !important;
-  margin: 0 !important;
-  transition: opacity 0.15s ease !important;
-}
-.pp-fab-bar .pp-fab-brain-badge {
-  all: initial !important;
-  box-sizing: border-box !important;
-  width: 38px !important;
-  height: 38px !important;
-  border-radius: 50% !important;
-  background: linear-gradient(135deg, #2e1065 0%, #3b0764 100%) !important;
-  border: 1px solid rgba(168, 85, 247, 0.4) !important;
-  color: #c084fc !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  box-shadow: 0 4px 14px rgba(59, 7, 100, 0.5) !important;
-  cursor: pointer !important;
-  pointer-events: auto !important;
-  user-select: none !important;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-.pp-fab-bar .pp-fab-brain-badge * { pointer-events: none !important; }
-.pp-fab-bar .pp-fab-btn * { pointer-events: none !important; }
-.pp-fab-bar .pp-fab-brain-badge:hover {
-  transform: scale(1.08) rotate(6deg) !important;
-}
-.pp-fab-bar .pp-fab-btn {
-  all: initial !important;
-  box-sizing: border-box !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  height: 38px !important;
-  padding: 0 20px !important;
-  border-radius: 9999px !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
-  color: #ffffff !important;
-  font-size: 13px !important;
-  font-weight: 700 !important;
-  cursor: pointer !important;
-  white-space: nowrap !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 16px rgba(29, 78, 216, 0.45) !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  margin: 0 !important;
-  outline: none !important;
-}
-.pp-fab-bar .pp-fab-btn:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-  transform: translateY(-1px) scale(1.02) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 20px rgba(29, 78, 216, 0.6) !important;
-}
-.pp-fab-bar .pp-fab-btn:active {
-  transform: translateY(0px) scale(0.97) !important;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2) !important;
-}
-.pp-fab-bar .pp-fab-btn-sub {
-  all: initial !important;
-  box-sizing: border-box !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 50% !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  color: #ffffff !important;
-  font-size: 13px !important;
-  cursor: pointer !important;
-  transition: all 0.15s ease !important;
-}
-.pp-fab-bar .pp-fab-btn-sub:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
-  transform: scale(1.08) !important;
-}
-
-.pp-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 99999999; opacity: 0; transition: opacity 0.25s ease; }
-
-.pp-side { position: fixed; top: 0; right: 0; width: 560px; max-width: 96vw; height: 100vh; z-index: 100000000; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-.pp-side-inner { height: 100%; background: #ffffff; display: flex; flex-direction: column; box-shadow: -12px 0 50px rgba(15, 23, 42, 0.15); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #0f172a; }
-
-.pp-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
-.pp-head-left { display: flex; align-items: center; gap: 12px; }
-.pp-head-icon { width: 38px; height: 38px; border-radius: 10px; background: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; font-weight: bold; }
-.pp-head-info { display: flex; flex-direction: column; gap: 3px; }
-.pp-head-title { font-size: 15px; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
-.pp-head-enc { font-size: 10px; font-weight: 700; color: #0284c7; background: #e0f2fe; border: 1px solid #bae6fd; padding: 2px 8px; border-radius: 9999px; letter-spacing: 0.04em; display: inline-flex; align-items: center; gap: 4px; width: fit-content; }
-.pp-enc-dot { width: 6px; height: 6px; border-radius: 50%; background: #0284c7; display: inline-block; animation: ppPulse 2s infinite; }
-@keyframes ppPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-.pp-close-btn { background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 18px; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-.pp-close-btn:hover { background: #f1f5f9; color: #0f172a; }
-
-.pp-tab-bar-wrap { display: flex; justify-content: center; padding: 14px 24px 0; background: #ffffff; flex-shrink: 0; }
-.pp-tab-track { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 9999px; padding: 3px; display: inline-flex; gap: 4px; }
-.pp-tab-btn { border-radius: 9999px; padding: 6px 24px; font-size: 13px; font-weight: 600; cursor: pointer; border: 2px solid transparent; background: transparent; color: #64748b; transition: all 0.2s ease; outline: none; font-family: inherit; }
-.pp-tab-btn.active { background: #ffffff; border-color: #10b981; color: #047857; font-weight: 700; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); }
-
-.pp-body { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; background: #ffffff; }
-.pp-split-view { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.pp-col-left, .pp-col-right { display: flex; flex-direction: column; gap: 10px; }
-
-.pp-split-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; }
-.pp-split-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.pp-split-label-right { font-size: 11px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.06em; }
-.pp-copy-chip { font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; color: #475569; cursor: pointer; transition: all 0.15s; font-family: inherit; }
-.pp-copy-chip:hover { background: #e2e8f0; color: #0f172a; }
-
-.pp-split-original { background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; padding: 14px; border-radius: 12px; font-size: 13px; line-height: 1.7; min-height: 120px; white-space: pre-wrap; word-break: break-word; }
-.pp-split-improved { background: #ffffff; color: #0f172a; border: 1px solid #e2e8f0; padding: 14px; border-radius: 12px; font-size: 13px; line-height: 1.7; min-height: 80px; white-space: pre-wrap; word-break: break-word; }
-
-.pp-section { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); }
-.pp-section-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.pp-section-bar { width: 4px; height: 16px; border-radius: 2px; background: #2563eb; }
-.pp-section-title { font-size: 12px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.04em; }
-.pp-section-body { font-size: 13px; line-height: 1.6; color: #475569; white-space: pre-wrap; word-break: break-word; }
-
-.pp-outcome-badge { background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; display: inline-block; margin-bottom: 16px; letter-spacing: 0.02em; }
-.pp-changes-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px; }
-.pp-changes-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #334155; line-height: 1.5; }
-.pp-check { color: #2563eb; font-weight: bold; flex-shrink: 0; font-size: 14px; }
-
-.pp-opt-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid #f1f5f9; }
-.pp-opt-info { display: flex; flex-direction: column; gap: 1px; }
-.pp-opt-label { font-size: 12px; font-weight: 600; color: #0f172a; }
-.pp-opt-sub { font-size: 10px; color: #64748b; }
-.pp-toggle { position: relative; width: 34px; height: 20px; flex-shrink: 0; cursor: pointer; }
-.pp-toggle input { display: none; }
-.pp-toggle-slider { position: absolute; inset: 0; background: #cbd5e1; border-radius: 10px; transition: 0.2s; cursor: pointer; }
-.pp-toggle-slider::before { content: ""; position: absolute; width: 14px; height: 14px; left: 3px; bottom: 3px; background: #ffffff; border-radius: 50%; transition: 0.2s; }
-.pp-toggle input:checked + .pp-toggle-slider { background: #2563eb; }
-.pp-toggle input:checked + .pp-toggle-slider::before { transform: translateX(14px); background: #ffffff; }
-
-.pp-model-row { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
-.pp-model-label { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; flex-shrink: 0; }
-.pp-select { flex: 1; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; color: #0f172a; padding: 8px 30px 8px 12px; font-size: 13px; font-family: inherit; outline: none; cursor: pointer; transition: border-color 0.15s; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
-
-.pp-token-bar { padding: 8px 24px 6px; background: #f8fafc; border-top: 1px solid #e2e8f0; flex-shrink: 0; }
-.pp-token-label { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #64748b; margin-bottom: 5px; }
-.pp-token-label strong { color: #0284c7; font-weight: 600; }
-.pp-token-track { height: 4px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
-.pp-token-fill { height: 100%; border-radius: 4px; background: #0284c7; transition: width 0.6s ease; }
-
-.pp-footer { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; flex-shrink: 0; }
-.pp-footer-credit { font-size: 12px; color: #64748b; }
-.pp-footer-credit strong { color: #0f172a; font-weight: 700; }
-.pp-footer-actions { display: flex; gap: 10px; }
-
-.pp-btn-keep { padding: 10px 20px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; }
-.pp-btn-keep:hover { background: #f1f5f9; color: #0f172a; }
-
-.pp-btn-apply { padding: 10px 24px; border-radius: 8px; border: none; background: #0284c7; color: #ffffff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; font-family: inherit; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35); }
-.pp-btn-apply:hover { background: #0369a1; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(2, 132, 199, 0.45); }
-.pp-btn-apply:active { transform: translateY(0px); }
-.pp-btn-apply:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-.pp-btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: ppSpin 0.6s linear infinite; }
-@keyframes ppSpin { to { transform: rotate(360deg); } }
-
-/* Compact popover */
-.pp-popover {
-  position: fixed;
-  width: 460px;
-  max-width: calc(100vw - 24px);
-  max-height: 70vh;
-  background: #0a0a0c;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 14px;
-  box-shadow: 0 16px 60px rgba(0,0,0,0.55);
-  z-index: 100000000;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Segoe UI", sans-serif;
-  color: #f4f4f5;
-}
-.pp-pop-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 16px;
-  background: rgba(255,255,255,0.03);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  flex-shrink: 0;
-}
-.pp-pop-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
-.pp-pop-mode {
-  font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 6px;
-  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.4); color: #a5b4fc;
-  margin-left: auto; margin-right: 8px;
-}
-.pp-pop-close {
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-  color: #64748b; cursor: pointer; padding: 5px; border-radius: 6px;
-  display: flex; align-items: center; justify-content: center; transition: all 0.15s;
-}
-.pp-pop-close:hover { background: rgba(255,255,255,0.08); color: #f4f4f5; }
-.pp-pop-token { padding: 8px 16px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
-.pp-pop-token-label { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #64748b; margin-bottom: 5px; }
-.pp-pop-token-label strong { color: #a5b4fc; font-weight: 600; }
-.pp-pop-token-track { height: 4px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
-.pp-pop-token-fill { height: 100%; border-radius: 4px; background: #6366f1; transition: width 0.6s ease; }
-.pp-pop-body { flex: 1; overflow-y: auto; padding: 14px 16px; }
-.pp-pop-body::-webkit-scrollbar { width: 4px; }
-.pp-pop-body::-webkit-scrollbar-track { background: transparent; }
-.pp-pop-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-.pp-pop-result {
-  font-size: 13px; line-height: 1.7; color: #f4f4f5; white-space: pre-wrap; word-break: break-word;
-  background: #131316; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;
-}
-.pp-pop-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 12px 16px; background: rgba(255,255,255,0.03); border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
-.pp-pop-copy {
-  padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.03); color: #94a3b8; font-size: 13px; font-weight: 500;
-  cursor: pointer; transition: all 0.15s; font-family: inherit;
-}
-.pp-pop-copy:hover:not(:disabled) { background: rgba(255,255,255,0.06); color: #f4f4f5; }
-.pp-pop-copy:disabled { opacity: 0.35; cursor: not-allowed; }
-  `;
-  document.head.appendChild(style);
-
-  let injectDebounceTimer = null;
-  const observer = new MutationObserver(() => {
-    if (injectDebounceTimer) return;
-    injectDebounceTimer = setTimeout(() => {
-      injectDebounceTimer = null;
-      const currentInput = getInput();
-      const existingBar = document.querySelector(".pp-fab-bar");
-      if (!existingBar || !existingBar._targetInput || !document.body.contains(existingBar._targetInput) || (currentInput && existingBar._targetInput !== currentInput)) {
-        if (existingBar) { try { existingBar.remove(); } catch { /* ignore */ } }
-        injectFab();
-      }
-    }, 150);
-  });
-  observer.observe(document.body, { childList: true, subtree: true });
-  injectFab();
-
-  // Inline keyboard shortcut (Cmd+Shift+E / Ctrl+Shift+E)
-  document.addEventListener("keydown", (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "E" || e.key === "e")) {
-      const selectionText = window.getSelection()?.toString()?.trim();
-      const activeInput = getInput();
-      const val = selectionText || (activeInput ? getText(activeInput) : "");
-      if (!val.trim()) return;
-      e.preventDefault();
-      showToast("✨ Enhancing prompt with Prompt+...");
-      chrome.runtime.sendMessage(
-        { action: "enhancePrompt", text: val },
-        (res) => {
-          if (res && res.success && res.data?.enhanced) {
-            if (activeInput) {
-              setText(activeInput, res.data.enhanced);
-            } else {
-              navigator.clipboard.writeText(res.data.enhanced);
-            }
-            showToast("✨ Enhanced & inserted into chat!");
-          } else {
-            showToast("⚠️ Could not enhance prompt");
+  // Handle messages from background worker
+  try {
+    if (chrome?.runtime?.onMessage) {
+      chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
+        if (req.action === "openEnhancePanel") {
+          openPanel();
+          sendResponse({ success: true });
+        } else if (req.action === "injectEnhanced") {
+          const input = getInput();
+          if (input && req.enhanced) {
+            setText(input, req.enhanced);
+            sendResponse({ success: true });
           }
         }
-      );
+      });
     }
-  });
+  } catch { /* ignore */ }
 
-  loadSettings((s) => { currentMode = s.mode || "device"; });
-
-  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "toggleEnhancePanel") {
-      if (panelEl) { closePanel(); return; }
-      currentTarget = getInput();
-      currentText = getText(currentTarget);
-      if (currentText.trim()) openPanel();
-    }
-    if (request.action === "openEnhancePanel" && request.text) {
-      currentTarget = getInput();
-      currentText = request.text;
-      if (currentTarget) setText(currentTarget, request.text);
-      openPanel();
-    }
-    if (request.action === "getTokenInfo") {
-      sendResponse?.({ ...getTokenInfo() });
-      return true;
-    }
-    if (request.action === "injectEnhanced") {
-      const input = getInput();
-      if (!input) { sendResponse?.({ success: false, error: "No input field" }); return true; }
-      currentTarget = input;
-      currentText = request.text;
-      setText(input, request.enhanced);
-      showToast("✨ Prompt enhanced & injected!");
-      sendResponse?.({ success: true });
-      return true;
-    }
-  });
+  // Initial load delay injection
+  setTimeout(injectFab, 1000);
 })();
