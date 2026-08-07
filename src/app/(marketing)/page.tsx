@@ -124,67 +124,75 @@ export default function LandingPage() {
       </div>
 
       {/* Hero Section */}
-      <section className="pt-36 pb-16 sm:pt-44 sm:pb-24 px-4 sm:px-6">
-        <div className="max-w-5xl mx-auto text-center" data-reveal>
-          <div className="inline-flex items-center gap-2 rounded-full border bg-card/60 px-4 py-1.5 text-xs sm:text-sm font-medium text-muted-foreground mb-8 backdrop-blur-md animate-bounce-in">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            <span className="text-foreground font-semibold">Prompt+ v2.0</span>
-            <span aria-hidden="true" className="h-1 w-1 rounded-full bg-muted-foreground/60" />
-            <span>Free AI prompt studio</span>
+      <section className="pt-24 pb-12 sm:pt-28 sm:pb-20 px-4 sm:px-6 min-h-[100dvh] flex flex-col justify-center">
+        <div className="max-w-7xl mx-auto w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            {/* Left Column: Left-aligned messaging stack */}
+            <div className="lg:col-span-5 text-left" data-reveal>
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-xs font-semibold text-primary mb-6">
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Prompt+ v1.1.0 • 🟢 100% Free & Open</span>
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-[-0.03em] leading-[1.08] text-balance">
+                Craft Flawless AI Prompts.{" "}
+                <span className="bg-gradient-to-r from-primary via-primary/80 to-indigo-400 bg-clip-text text-transparent">
+                  Get Superior Outputs.
+                </span>
+              </h1>
+
+              <p className="mt-5 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-xl">
+                Transform rough text into precise instructions for ChatGPT, Claude, Gemini, and DeepSeek — 100% free with local AES privacy.
+              </p>
+
+              {/* Deduplicated Single-Intent CTAs */}
+              <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <a
+                  href="/api/v1/extension/download"
+                  download="prompt-plus-extension-v1.1.0.zip"
+                  className="group h-12 inline-flex items-center justify-center gap-2.5 rounded-full bg-primary text-primary-foreground px-6 text-sm font-semibold hover:bg-primary/90 transition-all duration-200 shadow-md active:scale-[0.98]"
+                >
+                  <Puzzle className="h-4 w-4" />
+                  <span>Install Free Extension v1.1.0</span>
+                  <ArrowUpRight className="h-4 w-4 opacity-70 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </a>
+                <Link
+                  href="/dashboard/new"
+                  className="group h-12 inline-flex items-center justify-center gap-2.5 rounded-full border bg-card/60 px-5 text-sm font-semibold hover:bg-accent transition-all active:scale-[0.98]"
+                >
+                  <span>Open Sandbox</span>
+                  <ArrowRight className="h-4 w-4 opacity-60 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </div>
+
+              <div className="mt-6 flex items-center gap-4 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                  <span>No API key required</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                  <span>Chrome, Edge & Brave</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Live Interactive Sandbox Widget */}
+            <div className="lg:col-span-7 w-full">
+              <PromptDemo />
+            </div>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-[-0.03em] leading-[1.05] max-w-4xl mx-auto text-balance">
-            Craft flawless AI prompts.
-            <span className="bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent">
-              {" "}
-              Get better outputs.
-            </span>
-          </h1>
-
-          <p className="mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">
-            Prompt+ analyzes, scores, and refines your raw text into precise instructions for ChatGPT, Claude, Gemini, and on-device models. No prompt-engineering degree required.
-          </p>
-
-          <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/signup"
-              className="group h-12 w-full sm:w-auto inline-flex items-center justify-between gap-3 rounded-full bg-foreground text-background pl-6 pr-2 text-sm font-semibold hover:bg-foreground/90 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.98]"
-            >
-              <span>Start building free</span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background/15 transition-transform group-hover:translate-x-0.5">
-                <ArrowRight className="h-4 w-4" />
-              </span>
-            </Link>
-            <a
-              href="/api/v1/extension/download"
-              download="prompt-plus-extension.zip"
-              className="group h-12 w-full sm:w-auto inline-flex items-center justify-between gap-3 rounded-full border bg-card/70 px-5 text-sm font-semibold transition-all active:scale-[0.98] hover:border-primary/50"
-            >
-              <Puzzle className="h-4 w-4 text-primary" />
-              <span>Download extension</span>
-              <ArrowUpRight className="h-4 w-4 opacity-50 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </a>
-            <Link
-              href="/dashboard/new"
-              className="group h-12 w-full sm:w-auto inline-flex items-center justify-between gap-3 rounded-full border px-5 text-sm font-semibold transition-all active:scale-[0.98] hover:bg-accent"
-            >
-              <span>Open sandbox</span>
-              <ArrowUpRight className="h-4 w-4 opacity-50 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Link>
-          </div>
-
-          <PromptDemo />
-
-          <div className="mt-14 sm:mt-20 pt-8 border-t">
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-[0.2em] mb-5">
-              Optimized for leading AI models
+          {/* Logo Strip directly under Hero */}
+          <div className="mt-16 pt-8 border-t border-border/40">
+            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.2em] text-center mb-5">
+              Optimized for Leading AI Models & Chatbots
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-medium">
               {modelBadges.map((m) => (
                 <div
                   key={m.name}
-                  data-reveal
-                  className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border bg-card/50 text-foreground/80 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full border bg-card/40 text-foreground/80 hover:border-primary/40 hover:bg-primary/5 transition-all"
                 >
                   <m.icon className="h-3.5 w-3.5 text-primary" />
                   <span>{m.name}</span>

@@ -201,11 +201,11 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden bg-background">
+    <div className="min-h-[100dvh] flex flex-col relative overflow-hidden bg-background">
       {/* Background Ambient Mesh Glow Orbs */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute top-10 left-1/3 w-[450px] h-[450px] rounded-full bg-blue-500/15 dark:bg-blue-500/20 blur-[130px] animate-pulse" style={{ animationDuration: "7s" }} />
-        <div className="absolute top-28 right-1/3 w-[400px] h-[400px] rounded-full bg-violet-500/15 dark:bg-violet-500/20 blur-[140px] animate-pulse" style={{ animationDuration: "9s" }} />
+        <div className="absolute top-10 left-1/3 w-[450px] h-[450px] rounded-full bg-primary/10 blur-[130px] animate-pulse" style={{ animationDuration: "7s" }} />
+        <div className="absolute top-28 right-1/3 w-[400px] h-[400px] rounded-full bg-indigo-500/10 blur-[140px] animate-pulse" style={{ animationDuration: "9s" }} />
       </div>
 
       {/* Header */}
@@ -222,23 +222,56 @@ export default function LoginPage() {
         </Link>
       </header>
 
-      {/* Main Container */}
-      <main className="flex-1 flex items-center justify-center p-4 sm:p-6 my-auto">
-        <div className="w-full max-w-md animate-scale-in">
-          {/* Glass Card Container */}
-          <div className="p-6 sm:p-8 rounded-2xl border border-border/60 bg-card/80 backdrop-blur-xl shadow-xl hover:border-primary/30 transition-all">
-            <Suspense fallback={<div className="text-center py-8 text-sm text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />Loading login form...</div>}>
-              <LoginForm />
-            </Suspense>
+      {/* Main Container - 50/50 Desktop Split */}
+      <main className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-12 my-auto">
+        <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          {/* Left Panel: Desktop Brand & Extension SSO Status Panel */}
+          <div className="hidden lg:flex flex-col justify-between p-8 rounded-2xl border border-border/60 bg-card/40 backdrop-blur-xl h-full min-h-[460px]">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs font-semibold text-emerald-400 mb-6">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span>🟢 Extension Auto-Sync Ready</span>
+              </div>
+              <h2 className="text-3xl font-extrabold tracking-tight mb-3">
+                Seamless AI Meta-Prompt Compilation
+              </h2>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                Log in to sync your saved prompts, custom model API keys, and workspace collections seamlessly across web and browser extension.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl border border-border/50 bg-background/50 space-y-2.5 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Extension Auto-Login</span>
+                <span className="text-emerald-400 font-semibold">Active</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">API Vault Encryption</span>
+                <span className="text-primary font-semibold">AES-256 GCM</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">On-Device Execution</span>
+                <span className="text-indigo-400 font-semibold">Chrome Gemini Nano</span>
+              </div>
+            </div>
           </div>
 
-          {/* Footer Terms Link */}
-          <p className="text-center text-xs text-muted-foreground mt-6">
-            By logging in, you agree to Prompt+{" "}
-            <Link href="/terms" className="hover:text-foreground underline">Terms of Service</Link>
-            {" "}and{" "}
-            <Link href="/privacy" className="hover:text-foreground underline">Privacy Policy</Link>
-          </p>
+          {/* Right Panel: Clean Form Container */}
+          <div className="w-full max-w-md mx-auto">
+            <div className="p-6 sm:p-8 rounded-2xl border border-border/60 bg-card/80 backdrop-blur-xl shadow-xl hover:border-primary/30 transition-all">
+              <Suspense fallback={<div className="text-center py-8 text-sm text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />Loading login form...</div>}>
+                <LoginForm />
+              </Suspense>
+            </div>
+
+            {/* Footer Terms Link */}
+            <p className="text-center text-xs text-muted-foreground mt-6">
+              By logging in, you agree to Prompt+{" "}
+              <Link href="/terms" className="hover:text-foreground underline">Terms of Service</Link>
+              {" "}and{" "}
+              <Link href="/privacy" className="hover:text-foreground underline">Privacy Policy</Link>
+            </p>
+          </div>
         </div>
       </main>
     </div>
