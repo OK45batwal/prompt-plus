@@ -25,9 +25,22 @@ try {
   execSync(`cd "${extDir}" && zip -r "${zipPath}" manifest.json background.js content.js popup.html popup.js icons/ README.md`, {
     stdio: "inherit",
   });
+
+  const publicDir = path.join(rootDir, "public");
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+  }
+
+  // Copy to public for direct web download endpoints
+  const publicZipPath = path.join(publicDir, "prompt-plus-extension.zip");
+  const publicVerZipPath = path.join(publicDir, zipName);
+  fs.copyFileSync(zipPath, publicZipPath);
+  fs.copyFileSync(zipPath, publicVerZipPath);
+
   console.log(`\n✅ Extension packaged successfully!`);
-  console.log(`📍 Output Archive: ${zipPath}`);
-  console.log(`🚀 Ready to upload to Chrome Web Store, Edge Add-ons, and Firefox AMO.\n`);
+  console.log(`📍 Output Archive (Dist): ${zipPath}`);
+  console.log(`📍 Output Archive (Public Web): ${publicZipPath}`);
+  console.log(`🚀 Ready for direct web download & store uploads.\n`);
 } catch (err) {
   console.error("❌ Failed to create zip archive:", err.message);
   process.exit(1);
