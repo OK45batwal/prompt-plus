@@ -157,6 +157,129 @@ export default function DashboardPage() {
           ))}
         </div>
       </div>
+
+      {/* Service Command Center Showcase */}
+      <div className="pt-4 border-t border-border/60">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-bold text-base tracking-tight">Prompt+ Service Hub</h3>
+            <p className="text-xs text-muted-foreground">All core services included free in your account</p>
+          </div>
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+            6 Active Services
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="p-5 rounded-2xl border bg-card/80 backdrop-blur-md flex flex-col justify-between hover:border-primary/40 transition-all">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="p-2 rounded-xl bg-primary/10 text-primary">
+                  <Sparkles className="h-5 w-5" />
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">Live</span>
+              </div>
+              <h4 className="font-bold text-sm mt-3">⚡ Dynamic Prompt Compiler</h4>
+              <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                Transform raw prompt ideas into production-grade, domain-tailored master instructions with tone intelligence.
+              </p>
+            </div>
+            <Link href="/dashboard/new" className="mt-4 text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+              Launch Compiler →
+            </Link>
+          </div>
+
+          <div className="p-5 rounded-2xl border bg-card/80 backdrop-blur-md flex flex-col justify-between hover:border-primary/40 transition-all">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="p-2 rounded-xl bg-blue-500/10 text-blue-500">
+                  <GitCompare className="h-5 w-5" />
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full">Multi-Model</span>
+              </div>
+              <h4 className="font-bold text-sm mt-3">🔬 Side-by-Side Model Lab</h4>
+              <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                Test prompts simultaneously across GPT-4o, Claude 3.5 Sonnet, Gemini 2.0 Flash, and DeepSeek R1.
+              </p>
+            </div>
+            <Link href="/dashboard/compare" className="mt-4 text-xs font-semibold text-blue-500 hover:underline flex items-center gap-1">
+              Open Model Lab →
+            </Link>
+          </div>
+
+          <div className="p-5 rounded-2xl border bg-card/80 backdrop-blur-md flex flex-col justify-between hover:border-primary/40 transition-all">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
+                  <TrendingUp className="h-5 w-5" />
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full">Calculator</span>
+              </div>
+              <h4 className="font-bold text-sm mt-3">🧮 Token Cost Estimator</h4>
+              <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                Calculate input/output token counts and exact USD costs across OpenAI, Anthropic, and Google APIs.
+              </p>
+            </div>
+            <Link href="/prompt-cost-calculator" className="mt-4 text-xs font-semibold text-amber-500 hover:underline flex items-center gap-1">
+              Calculate Tokens →
+            </Link>
+          </div>
+
+          <div className="p-5 rounded-2xl border bg-card/80 backdrop-blur-md flex flex-col justify-between hover:border-primary/40 transition-all">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
+                  <Folder className="h-5 w-5" />
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-purple-500 bg-purple-500/10 px-2 py-0.5 rounded-full">Vault</span>
+              </div>
+              <h4 className="font-bold text-sm mt-3">📁 Prompt Vault & History</h4>
+              <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                Save prompts, organize with custom tags, track complete version history, and generate shareable links.
+              </p>
+            </div>
+            <Link href="/dashboard/library" className="mt-4 text-xs font-semibold text-purple-500 hover:underline flex items-center gap-1">
+              Access Vault →
+            </Link>
+          </div>
+
+          <div className="p-5 rounded-2xl border bg-card/80 backdrop-blur-md flex flex-col justify-between hover:border-primary/40 transition-all">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
+                  <Zap className="h-5 w-5" />
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">Sync</span>
+              </div>
+              <h4 className="font-bold text-sm mt-3">📦 Context Bucket Handoff</h4>
+              <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                Capture multi-turn chat turns from ChatGPT and carry context to Claude or DeepSeek in 1 click.
+              </p>
+            </div>
+            <Link href="/dashboard/settings" className="mt-4 text-xs font-semibold text-emerald-500 hover:underline flex items-center gap-1">
+              Manage Sync →
+            </Link>
+          </div>
+
+          <div className="p-5 rounded-2xl border bg-card/80 backdrop-blur-md flex flex-col justify-between hover:border-primary/40 transition-all">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500">
+                  <LayoutTemplate className="h-5 w-5" />
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-full">v1.1.0</span>
+              </div>
+              <h4 className="font-bold text-sm mt-3">🧩 Browser Extension Hub</h4>
+              <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                Install the v1.1.0 Chrome & Edge extension for in-page prompt enhancement on ChatGPT, Claude & Gemini.
+              </p>
+            </div>
+            <Link href="/extension" className="mt-4 text-xs font-semibold text-indigo-500 hover:underline flex items-center gap-1">
+              Download Extension →
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
