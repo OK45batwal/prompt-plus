@@ -5,116 +5,87 @@ export function synthesizeAlgorithmicPrompt(userInput: string, level: EnhanceLev
   const text = (userInput || "").trim();
   if (!text) return "";
 
-  // 1. Task Classification & Domain Intelligence
-  let role = "Senior Domain Expert & AI Architect";
+  // 1. Dynamic Subject & Intent Extraction
+  const cleanInput = text.replace(/^(please|can you|help me|i want to|i need to|how to|write|create|build|fix)\s+/i, "");
+  const subjectTopic = cleanInput.length > 0 ? cleanInput : text;
+
+  // 2. Domain & Persona Intelligence Mapping
+  let role = "Senior Domain Expert & Systems Architect";
   let domain = "Technical Execution & Problem Solving";
-  let steps: string[] = [];
-  let formatSpecs: string[] = [];
+  let domainFocus = "production standards, error resilience, and optimal design patterns";
 
   if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|script|refactor|error|fix|css|html|git|docker|aws|backend|frontend)\b/i.test(text)) {
-    role = "Principal Software Architect & Lead Full-Stack Engineer";
-    domain = "Production Software Engineering & Systems Design";
-    steps = [
-      "Deconstruct technical requirements and identify implicit edge cases.",
-      "Formulate a clean, modular architecture following SOLID and DRY principles.",
-      "Provide complete, production-ready code with strict typing, comprehensive inline documentation, and robust error handling.",
-      "Include clear instructions for running, testing, and validating the implementation."
-    ];
-    formatSpecs = [
-      "Use clean Markdown syntax with language-specific fenced code blocks (e.g., ```python, ```typescript).",
-      "Avoid pseudo-code or truncated placeholders unless explicitly requested.",
-      "Provide exact setup and execution commands."
-    ];
+    role = "Principal Software Architect & Lead Engineer";
+    domain = "Production Software Engineering & Architecture";
+    domainFocus = "strict typing, modular separation of concerns, comprehensive error handling, and performance optimization";
   } else if (/\b(write|blog|article|email|post|essay|copy|letter|content|draft|story|headline|tweet|linkedin|newsletter)\b/i.test(text)) {
-    role = "Elite Copywriter & Technical Content Director";
+    role = "Elite Copywriter & Technical Editorial Director";
     domain = "Strategic Editorial & High-Conversion Copywriting";
-    steps = [
-      "Identify target audience demographic, intent, and primary value proposition.",
-      "Outline core narrative arc using persuasive copywriting frameworks (e.g., AIDA or PAS).",
-      "Draft compelling, highly readable content with dynamic pacing and strong hook headings.",
-      "Refine tone, eliminate fluff, and insert clear call-to-action (CTA) statements."
-    ];
-    formatSpecs = [
-      "Format using clean typography with scannable headers, bold emphasis, and structured bullet lists.",
-      "Ensure an engaging, professional tone matching the target audience."
-    ];
+    domainFocus = "narrative pacing, persuasive hooks, target audience engagement, and high-impact scannable formatting";
   } else if (/\b(market|seo|ad|sales|growth|strategy|plan|campaign|brand|funnel|customer|lead|pitch|product|launch)\b/i.test(text)) {
-    role = "Chief Marketing Officer & Growth Strategy Lead";
+    role = "Chief Marketing Officer & Growth Strategy Director";
     domain = "Growth Marketing, Funnel Optimization & Market Positioning";
-    steps = [
-      "Conduct target market segment analysis and competitor positioning assessment.",
-      "Define key performance indicators (KPIs) and measurable conversion goals.",
-      "Develop actionable multi-channel campaign tactics and audience messaging.",
-      "Provide execution timelines, budget allocation guidelines, and risk mitigations."
-    ];
-    formatSpecs = [
-      "Present as an executive strategy document with executive summary, data tables, and bulleted action items."
-    ];
+    domainFocus = "conversion rate optimization, data-backed positioning, acquisition channels, and measurable KPIs";
   } else if (/\b(data|analyze|analysis|report|chart|graph|dataset|metric|insights|forecast|statistics|excel|csv|analytics)\b/i.test(text)) {
     role = "Staff Data Scientist & Enterprise Analytics Architect";
-    domain = "Quantitative Analysis & Business Intelligence";
-    steps = [
-      "Define analytical scope, target metrics, and data validation standards.",
-      "Outline step-by-step statistical methods and analytical methodology.",
-      "Synthesize core findings into actionable strategic business recommendations.",
-      "Provide data visualization schemas or query scripts for reproducibility."
-    ];
-    formatSpecs = [
-      "Format using clear data tables, structured metrics breakdowns, and executive key takeaways."
-    ];
-  } else {
-    role = "Senior AI Specialist & Master Prompt Architect";
-    domain = "Comprehensive Technical & Operational Execution";
-    steps = [
-      "Analyze the core objective and decompose it into logical execution phases.",
-      "Identify critical constraints, background context, and quality criteria.",
-      "Execute thorough, step-by-step resolution with actionable recommendations.",
-      "Review output against accuracy, completeness, and clarity standards."
-    ];
-    formatSpecs = [
-      "Use clear Markdown hierarchy with explicit headers, concise summaries, and bullet points."
-    ];
+    domain = "Quantitative Analytics & Business Intelligence";
+    domainFocus = "statistical rigor, data validation, reproducible metrics, and actionable executive insights";
   }
 
-  // 2. Synthesize Level-Conditioned Meta-Prompt Framework
+  // 3. Dynamic Execution Steps Tailored to User Subject
+  const customSteps = [
+    `Deconstruct the core request regarding "${subjectTopic}", identifying all underlying goals, assumptions, and implicit requirements.`,
+    `Formulate an exhaustive implementation strategy tailored specifically to "${subjectTopic}", adhering to ${domainFocus}.`,
+    `Execute the complete solution for "${subjectTopic}" with zero placeholders, missing sections, or truncated code/content.`,
+    `Validate the output against real-world production standards, edge cases, and quality criteria.`
+  ];
+
+  const customSpecs = [
+    `Deliver fully realized, end-to-end results for "${subjectTopic}" without using filler or conversational disclaimers.`,
+    `Organize the final response using clear Markdown headers, bold key takeaways, and scannable bullet points.`,
+    `Include complete, copy-paste ready implementations, code snippets, or structured templates where applicable.`
+  ];
+
   if (level === "quick") {
     return `### Role & Persona
 Act as an elite ${role} specializing in ${domain}.
 
-### Objective
+### Core Request & Intent
 "${text}"
 
-### Constraints & Output Rules
-- Provide a direct, highly structured response with zero conversational introductory fluff.
-- Deliver actionable results organized under logical headers and bullet points.`;
+### Strict Directives & Output Rules
+- Solve the core request regarding "${subjectTopic}" directly and comprehensively.
+- Focus on ${domainFocus}.
+- Do NOT include conversational introductory fluff (e.g., "Sure, here is..."). Provide immediate actionable output.`;
   }
 
-  const stepsFormatted = steps.map((s, i) => `${i + 1}. **Phase ${i + 1}**: ${s}`).join("\n");
-  const formatFormatted = formatSpecs.map(f => `- ${f}`).join("\n");
+  const stepsFormatted = customSteps.map((s, i) => `${i + 1}. **Phase ${i + 1} (${s.slice(0, 35)}...)**: ${s}`).join("\n");
+  const formatFormatted = customSpecs.map(f => `- ${f}`).join("\n");
 
   const expertCoT = level === "expert"
     ? `\n\n### Reasoning & Self-Correction Protocol
-Before generating the final answer, apply chain-of-thought planning:
-1. Deconstruct the user's core intent and potential edge cases.
-2. Outline key components before writing the full solution.
-3. Verify that zero required details or code implementation steps are left out.`
+Before finalizing the output for "${subjectTopic}", execute a step-by-step chain-of-thought analysis:
+1. Identify all potential edge cases, potential pitfalls, and implicit constraints related to "${subjectTopic}".
+2. Draft a complete structural outline ensuring no critical details or execution phases are missed.
+3. Review and refine the output to ensure maximum clarity, accuracy, and depth.`
     : "";
 
   return `### Role & Persona
-Act as an elite ${role}. You possess authoritative expertise in ${domain}. Your goal is to solve the prompt below with maximum technical depth, precision, and production quality.
+Act as an elite ${role}. You possess authoritative expertise in ${domain}. Your objective is to address and resolve the prompt below with maximum technical depth, custom accuracy, and production quality.
 
 ### Core Objective
 "${text}"
 
-### Non-Negotiable Directives & Constraints
-- **Tone & Style**: Professional, authoritative, actionable, and hype-free. Zero filler or conversational introductory text (do NOT say "Sure, here is your answer").
-- **Accuracy**: Provide fully realized, production-grade solutions. Omit placeholder comments or incomplete stubs.
-- **Completeness**: Address all direct and implicit requirements in the objective.
+### Non-Negotiable Directives
+- **Domain Focus**: Apply ${domainFocus} specifically to "${subjectTopic}".
+- **Tone & Style**: Authoritative, professional, precise, and hype-free. Eliminate conversational introductory text.
+- **Completeness**: Provide a fully expanded, comprehensive solution for "${subjectTopic}". Omit placeholder comments, incomplete stubs, or vague summaries.
 
-### Step-by-Step Execution Plan
+### Detailed Execution Methodology
 ${stepsFormatted}${expertCoT}
 
-### Output Format Requirements
+### Output Formatting & Quality Requirements
 ${formatFormatted}
-- Ensure clean Markdown structure with clear section headers, bold key concepts, and copy-paste ready blocks.`;
+- Ensure clean Markdown structure with explicit headers, bold key terms, and ready-to-use production assets for "${subjectTopic}".`;
 }
+
