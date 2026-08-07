@@ -144,9 +144,12 @@ export async function checkIpRateLimitAsync(
   return checkIpRateLimit(key, limit, windowMs);
 }
 
-setInterval(() => {
+const cleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [key, bucket] of ipBuckets) {
     if (now >= bucket.resetAt) ipBuckets.delete(key);
   }
-}, 60000).unref();
+}, 60000);
+if (typeof cleanupInterval === "object" && typeof (cleanupInterval as { unref?: () => void }).unref === "function") {
+  (cleanupInterval as { unref: () => void }).unref();
+}

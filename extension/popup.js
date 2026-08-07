@@ -318,6 +318,8 @@ btn?.addEventListener("click", async () => {
       scoreBadge.textContent = `Score: ${qScore}/100`;
       scoreBadge.style.display = "inline-flex";
     }
+    if (copyBtn) copyBtn.disabled = false;
+    if (useBtn) useBtn.disabled = false;
     if (cBtn) cBtn.disabled = false;
     if (uBtn) uBtn.disabled = false;
     showMsg(currentMode === "device" ? "Enhanced On-Device!" : "Enhanced via Cloud AI!");
