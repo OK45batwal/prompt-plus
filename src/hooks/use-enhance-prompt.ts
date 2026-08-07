@@ -38,7 +38,10 @@ export function useEnhancePrompt() {
     try {
       const res = await fetch("/api/v1/prompts/enhance-ai", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
         body: JSON.stringify(options),
       });
 
