@@ -104,7 +104,13 @@ function DeleteAccountSection() {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch("/api/auth/delete-account", { method: "DELETE" });
+      const res = await fetch("/api/auth/delete-account", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+      });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Failed");

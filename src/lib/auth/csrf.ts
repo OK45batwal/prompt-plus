@@ -23,11 +23,12 @@ export function validateCsrf(req: NextRequest | Request): { valid: boolean; reas
     return { valid: true };
   }
 
-  // Rule 2: Custom anti-CSRF header or standard application/json content type
+  // Rule 2: Custom anti-CSRF header, sec-fetch-mode, or standard application/json content type
   const customHeader =
     headers.get("x-requested-with") ||
     headers.get("x-csrf-token") ||
-    headers.get("x-promptplus-client");
+    headers.get("x-promptplus-client") ||
+    headers.get("sec-fetch-mode");
   const contentType = headers.get("content-type");
 
   if (!customHeader && (!contentType || (!contentType.includes("application/json") && !contentType.includes("application/x-www-form-urlencoded")))) {
