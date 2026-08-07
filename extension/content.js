@@ -6,6 +6,92 @@
   let currentText = "";
   let currentMode = "api";
 
+  function ensureStylesInjected() {
+    if (document.getElementById("pp-styles")) return;
+    const style = document.createElement("style");
+    style.id = "pp-styles";
+    style.textContent = `
+      .pp-fab-bar {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        padding: 4px 8px !important;
+        border-radius: 9999px !important;
+        background: rgba(12, 12, 16, 0.92) !important;
+        border: 1px solid rgba(99, 102, 241, 0.45) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 14px rgba(99, 102, 241, 0.3) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif !important;
+        z-index: 99999999 !important;
+        user-select: none !important;
+        line-height: 1 !important;
+      }
+
+      .pp-fab-brain-badge {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 24px !important;
+        height: 24px !important;
+        border-radius: 50% !important;
+        background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 2px 8px rgba(99, 102, 241, 0.4) !important;
+        cursor: pointer !important;
+        transition: transform 0.2s ease !important;
+      }
+      .pp-fab-brain-badge:hover {
+        transform: scale(1.1) !important;
+      }
+
+      .pp-fab-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        padding: 5px 12px !important;
+        border-radius: 9999px !important;
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+        border: none !important;
+        color: #ffffff !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        cursor: pointer !important;
+        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), 0 2px 8px rgba(99, 102, 241, 0.35) !important;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        white-space: nowrap !important;
+        margin: 0 !important;
+      }
+      .pp-fab-btn:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(99, 102, 241, 0.5) !important;
+      }
+
+      .pp-fab-btn-sub {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 26px !important;
+        height: 26px !important;
+        border-radius: 50% !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        color: #f4f4f5 !important;
+        font-size: 12px !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .pp-fab-btn-sub:hover {
+        background: rgba(255, 255, 255, 0.18) !important;
+        border-color: rgba(255, 255, 255, 0.25) !important;
+      }
+    `;
+    (document.head || document.documentElement).appendChild(style);
+  }
+
+  ensureStylesInjected();
+
   const CONTEXT_LIMITS = { chatgpt: 128000, claude: 200000, gemini: 1000000, deepseek: 128000, grok: 128000, perplexity: 128000 };
 
   function detectChatbot() {
