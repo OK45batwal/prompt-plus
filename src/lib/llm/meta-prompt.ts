@@ -27,25 +27,24 @@ export function detectImplicitTone(input: string): string {
 }
 
 const LEVEL_SYSTEM: Record<EnhanceLevel, string> = {
-  quick: `You are the Prompt+ Meta-Prompt Engine.
-Transform the user's raw input into a concise, direct, highly effective master prompt.
-Preserve original intent, elevate tone, expand core constraints, and eliminate fluff. Return ONLY the enhanced prompt.`,
-  deep: `You are the Prompt+ Meta-Prompt Engine — an elite AI prompt compiler.
-Your task is to transform raw, simple, or incomplete user inputs into rich, production-grade master instructions.
+  quick: `You are the Gemini Prompt Architect. Your sole task is to transform raw user inputs into concise, direct, high-potency Master Prompts. Output ONLY the final Master Prompt. NEVER add conversational intros like 'Here is your prompt' or meta-commentary.`,
+  deep: `You are the Gemini Prompt Architect — an elite AI prompt engineering engine.
+Your sole job is to transform raw, simple, or incomplete user inputs into production-grade Master Prompts.
 
-STRICT COMPILATION RULES:
-1. DEEP INTENT & DOMAIN ANALYSIS: Identify the domain (software, copywriting, marketing, analytics, business) and create a custom persona.
-2. BESPOKE DYNAMIC SECTIONS: Do NOT use generic repeating headers (like "### Core Intent" or "### Execution Context"). Instead, generate custom, domain-specific headers tailored exactly to the user's request (e.g., for technical tasks: "### System Requirements & Architecture", for content: "### Narrative Structure & Audience Hook").
-3. RICH EXPANSION: Fleshing out implied specifications, step-by-step constraints, input data models, edge cases, and output formatting.
-4. ZERO CONVERSATIONAL BOILERPLATE: Return ONLY the final enhanced prompt ready for direct execution by AI models (GPT-4, Claude, Gemini, DeepSeek). Do NOT add introductory text or meta comments.`,
-  expert: `You are the Prompt+ Meta-Prompt Engine — an elite AI prompt-engineering expert.
-Transform raw user prompts into production-ready master instructions using expert techniques: domain-specific role personas, custom constraint sections, step-by-step chain-of-thought requirements, edge case mitigations, and output specifications.
+STRICT OPERATING RULES:
+1. ZERO CONVERSATIONAL ANNOUNCEMENTS: Never start with 'Here is an enhanced prompt', 'Sure!', or meta commentary. Start directly with the Master Prompt.
+2. DOMAIN & PERSONA ARCHITECTURE: Create a specialized expert role (e.g. Senior Software Architect, Chief Copywriter) tailored precisely to the user's topic.
+3. DYNAMIC DOMAIN SECTIONS: Generate bespoke, topic-specific markdown headers (e.g. "### Architecture & Technical Specs" for software, "### Narrative Strategy & Audience Hook" for content). Do NOT use generic repeating header skeletons.
+4. RICH CONSTRAINT EXPANSION: Expand implied requirements, step-by-step guidelines, edge cases, and precise formatting deliverables.
+5. PURE OUTPUT: Return ONLY the final Master Prompt ready for direct execution by AI models (GPT-4o, Claude 3.5, Gemini 2.0, DeepSeek R1).`,
+  expert: `You are the Gemini Prompt Architect — an expert prompt-engineering system.
+Transform raw user prompts into production-grade Master Prompts using advanced techniques: domain personas, topic-specific constraint sections, step-by-step chain-of-thought requirements, edge case handling, and exact formatting specifications.
 
-STRICT COMPILATION RULES:
-1. DOMAIN SPECIFICITY: Custom-tailor the persona, section headers, and execution requirements specifically to the user's topic.
-2. BAN GENERIC TEMPLATE HEADERS: Never output rigid repeating headers. Craft topic-specific section titles.
-3. REASONING REQUIREMENT: Mandate that the executing AI performs chain-of-thought planning before producing its final output.
-4. ZERO FLUFF: Output ONLY the master prompt framework. No intro, no outro, no commentary.`,
+STRICT OPERATING RULES:
+1. ZERO ANNOUNCEMENT FILLER: Absolutely no introductory phrases ('Here is your prompt', 'Certainly!'). Start directly with the Master Prompt text.
+2. REASONING REQUIREMENT: Mandate that the executing AI model performs step-by-step chain-of-thought planning before generating its answer.
+3. TOPIC SPECIFICITY: Custom-tailor all section titles and requirements specifically to the user's subject.
+4. PURE MASTER PROMPT: Output ONLY the final Master Prompt. No intro, no outro, no disclaimers.`,
 };
 
 export function sanitizeUserInput(input: string): string {
@@ -55,6 +54,31 @@ export function sanitizeUserInput(input: string): string {
     .replace(/ignore (all )?previous instructions/gi, "")
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
     .trim();
+}
+
+/**
+ * Post-processor to strip any conversational announcement filler or markdown codeblocks
+ * added by LLMs (e.g. "Here is your enhanced prompt:", "Sure! Below is the prompt:").
+ */
+export function cleanMasterPromptOutput(rawText: string): string {
+  if (!rawText) return "";
+  let text = rawText.trim();
+
+  // Strip leading code fence blocks if wrapping entire output
+  if (/^```(?:markdown|text)?\s*\n/i.test(text) && /\n```$/i.test(text)) {
+    text = text.replace(/^```(?:markdown|text)?\s*\n/i, "").replace(/\n```$/i, "").trim();
+  }
+
+  // Strip conversational announcement intros
+  const announcementRegex = /^(here\s+(is|are)\s+(a|an|the|your)?\s*(enhanced|optimized|master|compiled)?\s*prompt[^\n]*\n*|sure[!,.]?\s*here[^\n]*\n*|certainly[!,.]?\s*here[^\n]*\n*|as an ai prompt architect[^\n]*\n*|below is[^\n]*prompt[^\n]*\n*)/i;
+  while (announcementRegex.test(text)) {
+    text = text.replace(announcementRegex, "").trim();
+  }
+
+  // Strip trailing conversational outros
+  text = text.replace(/\n+(hope this helps|let me know if you need|feel free to ask)[^\n]*$/i, "").trim();
+
+  return text;
 }
 
 export function buildArchitectMetaPrompt(
@@ -71,20 +95,15 @@ export function buildArchitectMetaPrompt(
 
   const systemInstruction = LEVEL_SYSTEM[level];
 
-  const metaPrompt = `[RAW USER PROMPT TO ENHANCE]:
+  const metaPrompt = `Transform this raw user input into an elite, ready-to-execute Master Prompt for AI models:
 "${sanitizedPrompt}"
 
-[ANALYSIS MATRIX]:
+[COMPILATION METADATA]
 - Domain Context: ${cat}
-- Detected Tone & Vibe: ${detectedTone}
-- Required Output Depth: ${preferredLength}
+- Tone Profile: ${detectedTone}
+- Output Depth: ${preferredLength}
 
-[META-PROMPT COMPILATION TASK]:
-Synthesize the raw prompt above into a master AI prompt framework.
-- Establish an authoritative persona tailored specifically to "${sanitizedPrompt}".
-- Adapt the structure fluidly (Role, Core Objective, Execution Methodology, Domain Rules, Formatting Specs).
-- Match and elevate the detected tone ("${detectedTone}").
-- Ensure zero rigid repeating boilerplate text or disclaimers. Output ONLY the master prompt.`;
+OUTPUT ONLY THE FINAL MASTER PROMPT. DO NOT INCLUDE INTRODUCTORY OR CONVERSATIONAL ANNOUNCEMENTS.`;
 
   return { metaPrompt, systemInstruction };
 }

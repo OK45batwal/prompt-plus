@@ -6,7 +6,7 @@ import { decrypt } from "@/lib/crypto";
 import { resolveServerApiKey } from "@/lib/llm/server-api-key";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
-import { buildArchitectMetaPrompt } from "@/lib/llm/meta-prompt";
+import { buildArchitectMetaPrompt, cleanMasterPromptOutput } from "@/lib/llm/meta-prompt";
 import { calculateDynamicPromptScore } from "@/lib/scoring";
 import { synthesizeAlgorithmicPrompt } from "@/lib/llm/algorithmic-enhancers";
 import { enhancementCache } from "@/lib/llm/cache";
@@ -78,10 +78,11 @@ export const POST = withAuth(
     const cacheKey = `web:${text}:${model || "default"}:${category || ""}:${tone || ""}:${length || ""}:${level || ""}`;
     const cached = enhancementCache.get(cacheKey);
     if (cached) {
-      const scoreData = calculateDynamicPromptScore(cached.enhancedText);
+      const cleanCachedText = cleanMasterPromptOutput(cached.enhancedText);
+      const scoreData = calculateDynamicPromptScore(cleanCachedText);
       return jsonResponse({
         data: {
-          enhanced: cached.enhancedText,
+          enhanced: cleanCachedText,
           score: scoreData,
           model: cached.model,
           tokensIn: cached.tokensIn || 0,
@@ -105,8 +106,10 @@ export const POST = withAuth(
         maxTokens: 1200,
       });
 
+      const cleanedOutput = cleanMasterPromptOutput(response.content);
+
       enhancementCache.set(cacheKey, {
-        enhancedText: response.content,
+        enhancedText: cleanedOutput,
         model: response.model,
         tokensIn: response.tokensIn,
         tokensOut: response.tokensOut,
@@ -132,10 +135,10 @@ export const POST = withAuth(
                 userId,
                 title,
                 originalText: text,
-                enhancedText: response.content,
+                enhancedText: cleanedOutput,
                 model: response.model,
                 category: category || "general",
-                score: JSON.parse(JSON.stringify(calculateDynamicPromptScore(response.content))),
+                score: JSON.parse(JSON.stringify(calculateDynamicPromptScore(cleanedOutput))),
               },
             }).catch(() => null);
             if (created) activePromptId = created.id;
@@ -143,7 +146,7 @@ export const POST = withAuth(
             await getDb().prompt.update({
               where: { id: activePromptId },
               data: {
-                enhancedText: response.content,
+                enhancedText: cleanedOutput,
                 model: response.model,
               },
             }).catch(() => {});
@@ -170,7 +173,7 @@ export const POST = withAuth(
             });
             const nextVer = (latestVersion?.version || 0) + 1;
             await getDb().version.create({
-              data: { promptId: activePromptId, version: nextVer, text: response.content },
+              data: { promptId: activePromptId, version: nextVer, text: cleanedOutput },
             }).catch(() => {});
           }
         } catch {
@@ -182,7 +185,7 @@ export const POST = withAuth(
         {
           data: {
             promptId: promptId || null,
-            enhanced: response.content,
+            enhanced: cleanedOutput,
             provider: response.provider,
             model: response.model,
           },

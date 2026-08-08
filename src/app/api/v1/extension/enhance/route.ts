@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { callLLM } from "@/lib/llm/providers";
-import { buildArchitectMetaPrompt } from "@/lib/llm/meta-prompt";
+import { buildArchitectMetaPrompt, cleanMasterPromptOutput } from "@/lib/llm/meta-prompt";
 import { resolveServerApiKey } from "@/lib/llm/server-api-key";
 import { checkIpRateLimitAsync, extractClientIp } from "@/lib/rate-limit";
 import { calculateDynamicPromptScore } from "@/lib/scoring";
@@ -95,12 +95,13 @@ export async function POST(request: NextRequest) {
   const cacheKey = `ext:${text}:${reqModel}:${category || ""}:${tone || ""}:${length || ""}:${level || ""}`;
   const cached = enhancementCache.get(cacheKey);
   if (cached) {
+    const cleanCachedText = cleanMasterPromptOutput(cached.enhancedText);
     return NextResponse.json(
       {
         success: true,
         cached: true,
         data: {
-          enhanced: cached.enhancedText,
+          enhanced: cleanCachedText,
           model: cached.model,
           tokensIn: cached.tokensIn || 0,
           tokensOut: cached.tokensOut || 0,
@@ -136,8 +137,10 @@ export async function POST(request: NextRequest) {
         maxTokens: 1200,
       });
 
+      const cleanedOutput = cleanMasterPromptOutput(response.content);
+
       enhancementCache.set(cacheKey, {
-        enhancedText: response.content,
+        enhancedText: cleanedOutput,
         model: response.model,
         tokensIn: response.tokensIn,
         tokensOut: response.tokensOut,
