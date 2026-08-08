@@ -539,6 +539,24 @@ Your objective is to execute the following request with production-grade precisi
 - Present final response with clear Markdown headers, bulleted lists, and structured blocks ready for immediate real-world application.`;
   }
 
+  async function enhanceWithDeviceInExtension(text) {
+    if (!text) return null;
+    try {
+      const w = window;
+      const lm = w.LanguageModel || w.ai?.languageModel;
+      if (!lm) return null;
+      const avail = await lm.availability();
+      if (avail !== "available" && avail !== "readily") return null;
+      const session = await lm.create({ temperature: 0.1, topK: 1 });
+      const promptText = `You are a Senior Prompt Architect. Transform the following prompt into an advanced, structured master prompt with Role, Specifications, and Execution steps:\n\n"${text}"`;
+      const res = await session.prompt(promptText);
+      session.destroy();
+      return res ? res.trim() : null;
+    } catch {
+      return null;
+    }
+  }
+
   function openPanel() {
     if (panelEl) {
       panelEl.style.display = "flex";
@@ -620,7 +638,7 @@ Your objective is to execute the following request with production-grade precisi
       if (panelEnhanceBtn) panelEnhanceBtn.disabled = true;
       if (panelResult) panelResult.textContent = "Enhancing prompt with Prompt+ Intelligence...";
 
-      const finishEnhancement = (enhanced, isLocal = false) => {
+      const finishEnhancement = (enhanced, sourceLabel = "Cloud AI") => {
         if (panelEnhanceBtn) panelEnhanceBtn.disabled = false;
         if (panelResult) panelResult.textContent = enhanced;
         if (panelScore) {
@@ -628,36 +646,46 @@ Your objective is to execute the following request with production-grade precisi
           panelScore.style.display = "inline-flex";
         }
         if (panelMsg) {
-          panelMsg.textContent = isLocal ? "⚡ Enhanced via Prompt+ Engine!" : "✓ Enhanced via Cloud AI!";
+          panelMsg.textContent = `⚡ Enhanced via ${sourceLabel}!`;
           panelMsg.style.display = "block";
           panelMsg.style.background = "rgba(52,211,153,0.15)";
           panelMsg.style.color = "#34d399";
-          setTimeout(() => { panelMsg.style.display = "none"; }, 3000);
+          setTimeout(() => { panelMsg.style.display = "none"; }, 3500);
         }
       };
 
-      try {
-        if (chrome?.runtime?.sendMessage) {
-          chrome.runtime.sendMessage({ action: "enhancePrompt", text, level: "deep" }, (res) => {
-            let enhanced = "";
-            if (res && res.success) {
-              enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
-            }
-            if (enhanced) {
-              finishEnhancement(enhanced, false);
-            } else {
-              const localText = synthesizeLocalPrompt(text);
-              finishEnhancement(localText, true);
-            }
-          });
-        } else {
-          const localText = synthesizeLocalPrompt(text);
-          finishEnhancement(localText, true);
+      (async () => {
+        // 1. Try On-Device Gemini Nano (if browser supports it)
+        const deviceText = await enhanceWithDeviceInExtension(text);
+        if (deviceText) {
+          finishEnhancement(deviceText, "On-Device Gemini Nano");
+          return;
         }
-      } catch {
-        const localText = synthesizeLocalPrompt(text);
-        finishEnhancement(localText, true);
-      }
+
+        // 2. Fallback to Free Non-API-Key Cloud Engine
+        try {
+          if (chrome?.runtime?.sendMessage) {
+            chrome.runtime.sendMessage({ action: "enhancePrompt", text, level: "deep" }, (res) => {
+              let enhanced = "";
+              if (res && res.success) {
+                enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
+              }
+              if (enhanced) {
+                finishEnhancement(enhanced, "Free Cloud AI Engine");
+              } else {
+                const localText = synthesizeLocalPrompt(text);
+                finishEnhancement(localText, "Prompt+ Local Engine");
+              }
+            });
+          } else {
+            const localText = synthesizeLocalPrompt(text);
+            finishEnhancement(localText, "Prompt+ Local Engine");
+          }
+        } catch {
+          const localText = synthesizeLocalPrompt(text);
+          finishEnhancement(localText, "Prompt+ Local Engine");
+        }
+      })();
     });
 
     document.getElementById("pp-panel-copy")?.addEventListener("click", () => {

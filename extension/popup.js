@@ -166,6 +166,24 @@ Your objective is to execute the following request with production-grade precisi
 - Present final response with clear Markdown headers, bulleted lists, and structured blocks ready for immediate real-world application.`;
   }
 
+  async function enhanceWithDeviceInExtension(text) {
+    if (!text) return null;
+    try {
+      const w = window;
+      const lm = w.LanguageModel || w.ai?.languageModel;
+      if (!lm) return null;
+      const avail = await lm.availability();
+      if (avail !== "available" && avail !== "readily") return null;
+      const session = await lm.create({ temperature: 0.1, topK: 1 });
+      const promptText = `You are a Senior Prompt Architect. Transform the following prompt into an advanced, structured master prompt with Role, Specifications, and Execution steps:\n\n"${text}"`;
+      const res = await session.prompt(promptText);
+      session.destroy();
+      return res ? res.trim() : null;
+    } catch {
+      return null;
+    }
+  }
+
   // 5. Enhance Action
   if (enhanceBtn) {
     enhanceBtn.addEventListener("click", async () => {
@@ -182,30 +200,45 @@ Your objective is to execute the following request with production-grade precisi
       if (resultBody) resultBody.textContent = "Enhancing prompt with Prompt+ Intelligence...";
 
       let finalResult = "";
-      try {
-        const res = await new Promise((resolve) => {
-          try {
-            chrome.runtime.sendMessage(
-              { action: "enhancePrompt", text, level: "deep" },
-              (r) => {
-                if (chrome.runtime.lastError) resolve({ success: false, error: chrome.runtime.lastError.message });
-                else resolve(r);
-              }
-            );
-          } catch (e) {
-            resolve({ success: false, error: e.message });
-          }
-        });
+      let sourceLabel = "Cloud AI";
 
-        if (res && res.success) {
-          finalResult = res.data?.data?.enhanced || res.data?.enhanced || "";
-        }
-      } catch {
-        // fallback
+      // 1. Try On-Device Gemini Nano if supported by browser
+      const deviceText = await enhanceWithDeviceInExtension(text);
+      if (deviceText) {
+        finalResult = deviceText;
+        sourceLabel = "On-Device Gemini Nano";
       }
 
+      // 2. Fallback to Free Non-API-Key Cloud Engine
+      if (!finalResult) {
+        try {
+          const res = await new Promise((resolve) => {
+            try {
+              chrome.runtime.sendMessage(
+                { action: "enhancePrompt", text, level: "deep" },
+                (r) => {
+                  if (chrome.runtime.lastError) resolve({ success: false, error: chrome.runtime.lastError.message });
+                  else resolve(r);
+                }
+              );
+            } catch (e) {
+              resolve({ success: false, error: e.message });
+            }
+          });
+
+          if (res && res.success) {
+            finalResult = res.data?.data?.enhanced || res.data?.enhanced || "";
+            sourceLabel = "Free Cloud AI Engine";
+          }
+        } catch {
+          // fallback
+        }
+      }
+
+      // 3. Fallback to Prompt+ Local Engine
       if (!finalResult) {
         finalResult = synthesizeLocalPrompt(text);
+        sourceLabel = "Prompt+ Local Engine";
       }
 
       enhanceBtn.disabled = false;
@@ -219,7 +252,7 @@ Your objective is to execute the following request with production-grade precisi
       }
       if (copyBtn) copyBtn.disabled = false;
       if (useBtn) useBtn.disabled = false;
-      showMsg("✓ Enhanced successfully!");
+      showMsg(`✓ Enhanced via ${sourceLabel}!`);
     });
   }
 
