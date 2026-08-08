@@ -15,17 +15,22 @@
         display: inline-flex !important;
         align-items: center !important;
         gap: 6px !important;
-        padding: 4px 8px !important;
+        padding: 4px 10px !important;
         border-radius: 9999px !important;
-        background: rgba(12, 12, 16, 0.92) !important;
-        border: 1px solid rgba(99, 102, 241, 0.45) !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 14px rgba(99, 102, 241, 0.3) !important;
-        backdrop-filter: blur(16px) !important;
-        -webkit-backdrop-filter: blur(16px) !important;
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif !important;
+        background: rgba(10, 10, 14, 0.94) !important;
+        border: 1px solid rgba(99, 102, 241, 0.4) !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 16px rgba(99, 102, 241, 0.25) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", sans-serif !important;
         z-index: 99999999 !important;
         user-select: none !important;
         line-height: 1 !important;
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease !important;
+      }
+      .pp-fab-bar:hover {
+        border-color: rgba(99, 102, 241, 0.6) !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(99, 102, 241, 0.4) !important;
       }
 
       .pp-fab-brain-badge {
@@ -35,13 +40,11 @@
         width: 24px !important;
         height: 24px !important;
         border-radius: 50% !important;
-        background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
-        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 2px 8px rgba(99, 102, 241, 0.4) !important;
         cursor: pointer !important;
         transition: transform 0.2s ease !important;
       }
       .pp-fab-brain-badge:hover {
-        transform: scale(1.1) !important;
+        transform: scale(1.15) rotate(5deg) !important;
       }
 
       .pp-fab-btn {
@@ -56,35 +59,47 @@
         font-size: 11px !important;
         font-weight: 700 !important;
         cursor: pointer !important;
-        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), 0 2px 8px rgba(99, 102, 241, 0.35) !important;
+        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), 0 2px 8px rgba(99, 102, 241, 0.4) !important;
         transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
         white-space: nowrap !important;
         margin: 0 !important;
       }
       .pp-fab-btn:hover {
-        transform: translateY(-1px) !important;
-        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(99, 102, 241, 0.5) !important;
+        transform: translateY(-1px) scale(1.02) !important;
+        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5), 0 4px 14px rgba(99, 102, 241, 0.6) !important;
       }
 
       .pp-fab-btn-sub {
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        width: 26px !important;
-        height: 26px !important;
-        border-radius: 50% !important;
-        background: rgba(255, 255, 255, 0.08) !important;
+        padding: 5px 10px !important;
+        border-radius: 9999px !important;
+        background: rgba(255, 255, 255, 0.06) !important;
         border: 1px solid rgba(255, 255, 255, 0.12) !important;
         color: #f4f4f5 !important;
-        font-size: 12px !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
         cursor: pointer !important;
         transition: all 0.2s ease !important;
         margin: 0 !important;
-        padding: 0 !important;
+        white-space: nowrap !important;
       }
       .pp-fab-btn-sub:hover {
-        background: rgba(255, 255, 255, 0.18) !important;
+        background: rgba(255, 255, 255, 0.16) !important;
         border-color: rgba(255, 255, 255, 0.25) !important;
+        transform: translateY(-1px) !important;
+      }
+      .pp-fab-btn-sub.resume-pill {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)) !important;
+        border-color: rgba(16, 185, 129, 0.45) !important;
+        color: #34d399 !important;
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.3) !important;
+      }
+      .pp-fab-btn-sub.resume-pill:hover {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(5, 150, 105, 0.35)) !important;
+        border-color: rgba(16, 185, 129, 0.7) !important;
+        box-shadow: 0 0 16px rgba(16, 185, 129, 0.5) !important;
       }
     `;
     (document.head || document.documentElement).appendChild(style);
