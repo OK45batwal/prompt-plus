@@ -355,6 +355,8 @@
           const b = d?.pp_context_bucket;
           if (b && b.formattedPrompt) {
             injBtn.style.display = "inline-flex";
+            injBtn.innerHTML = `<span class="pp-fab-icon">💉</span><span style="font-size:10px;font-weight:700;margin-left:2px;">Resume from ${b.source || "Prior Chat"}</span>`;
+            injBtn.title = `Resume conversation carried over from ${b.source || "prior session"}`;
           }
         });
       }

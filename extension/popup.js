@@ -253,4 +253,18 @@ Your objective is to execute the following request with production-grade precisi
       }
     });
   }
+
+  // 8. Cross-AI Context Bridge Handlers
+  const openTargetAI = (targetUrl) => {
+    try {
+      chrome.tabs?.create({ url: targetUrl });
+    } catch {
+      window.open(targetUrl, "_blank");
+    }
+  };
+
+  document.getElementById("bridge-claude")?.addEventListener("click", () => openTargetAI("https://claude.ai/new"));
+  document.getElementById("bridge-gemini")?.addEventListener("click", () => openTargetAI("https://gemini.google.com/app"));
+  document.getElementById("bridge-chatgpt")?.addEventListener("click", () => openTargetAI("https://chatgpt.com/"));
+  document.getElementById("bridge-deepseek")?.addEventListener("click", () => openTargetAI("https://chat.deepseek.com/"));
 });

@@ -404,6 +404,18 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+              <div className="p-4 rounded-xl border border-indigo-500/30 bg-indigo-500/10 space-y-3 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-indigo-500 flex items-center gap-1.5">
+                    <span>🌉 Cross-AI Context Bridge & Handoff</span>
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-400 font-semibold">Extension Active</span>
+                </div>
+                <p className="text-muted-foreground leading-relaxed">
+                  Carry active chat memory from ChatGPT into Claude 3.5, Gemini 2.0, or DeepSeek without losing context. Use the <strong>📦 Capture Memory</strong> button on the extension floating bar to hand off chats in 1 click.
+                </p>
+              </div>
+
               <hr className="border-t" />
 
               <div>
