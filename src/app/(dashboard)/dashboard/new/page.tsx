@@ -258,17 +258,29 @@ export default function PromptBuilderPage() {
       const [analyzeRes, scoreRes, enhancedScoreRes] = await Promise.all([
         fetch("/api/v1/prompts/analyze", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            "X-PromptPlus-Client": "web-dashboard",
+          },
           body: JSON.stringify({ text: fullPrompt }),
         }),
         fetch("/api/v1/prompts/score", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            "X-PromptPlus-Client": "web-dashboard",
+          },
           body: JSON.stringify({ text: fullPrompt }),
         }),
         fetch("/api/v1/prompts/score", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            "X-PromptPlus-Client": "web-dashboard",
+          },
           body: JSON.stringify({ text: finalEnhancedText }),
         }),
       ]);
@@ -322,7 +334,11 @@ export default function PromptBuilderPage() {
       try {
         const createRes = await fetch("/api/v1/prompts", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            "X-PromptPlus-Client": "web-dashboard",
+          },
           body: JSON.stringify({
             originalText: fullPrompt,
             model: enhanceProvider === "device" ? "gemini-nano" : selectedModelData?.rawModel || selectedModel,
@@ -336,7 +352,11 @@ export default function PromptBuilderPage() {
         if (promptId) {
           await fetch(`/api/v1/prompts/${promptId}`, {
             method: "PATCH",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "X-Requested-With": "XMLHttpRequest",
+              "X-PromptPlus-Client": "web-dashboard",
+            },
             body: JSON.stringify({
               enhancedText: finalEnhancedText,
               score: resultData.scoring,
