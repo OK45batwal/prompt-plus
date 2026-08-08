@@ -204,24 +204,29 @@ export default function PromptBuilderPage() {
       let finalEnhancedText: string | undefined;
       let enhanceProvider = "api";
 
-      if (enhanceMode === "device") {
-        if (!isDeviceAISupported()) {
-          setErrorNotice("Device AI not supported in this browser. Use Chrome 138+ with Gemini Nano, or switch to API mode.");
-          return;
+      if (enhanceMode === "device" && isDeviceAISupported()) {
+        try {
+          finalEnhancedText = await enhanceWithDevice({
+            text: fullPrompt,
+            category: selectedCategory,
+            tone: selectedTone,
+            length: selectedLength,
+            level: enhanceLevel,
+          });
+          enhanceProvider = "device";
+        } catch {
+          // Device AI unavailable — seamless failover to Free Cloud AI
         }
-        finalEnhancedText = await enhanceWithDevice({
-          text: fullPrompt,
-          category: selectedCategory,
-          tone: selectedTone,
-          length: selectedLength,
-          level: enhanceLevel,
-        });
-        enhanceProvider = "device";
-      } else {
-        // Call real AI endpoint
+      }
+
+      if (!finalEnhancedText) {
+        // Fallback to 100% Free Cloud AI (no API key needed)
         const aiRes = await fetch("/api/v1/prompts/enhance-ai", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+          },
           body: JSON.stringify({
             text: fullPrompt,
             model: selectedModelData?.rawModel || selectedModel,
@@ -235,13 +240,13 @@ export default function PromptBuilderPage() {
         });
         const aiData = await aiRes.json();
 
-        if (!aiRes.ok) {
-          const errMsg = aiData.error || "Enhancement failed";
-          setErrorNotice(errMsg);
-          return;
+        if (aiRes.ok && aiData.data?.enhanced) {
+          finalEnhancedText = aiData.data.enhanced;
+        } else {
+          // Failover to client-side algorithmic engine
+          const { synthesizeAlgorithmicPrompt } = await import("@/lib/llm/algorithmic-enhancers");
+          finalEnhancedText = synthesizeAlgorithmicPrompt(fullPrompt, enhanceLevel);
         }
-
-        finalEnhancedText = aiData.data?.enhanced;
       }
 
       if (!finalEnhancedText) {

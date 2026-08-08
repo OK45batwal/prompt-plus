@@ -48,16 +48,14 @@ export async function checkDeviceAvailability(): Promise<"available" | "unavaila
 export async function enhanceWithDevice(options: DeviceEnhanceOptions): Promise<string> {
   const lm = getLanguageModel();
   if (!lm) {
-    throw new Error(
-      "Device AI not supported in this browser. Open in Chrome 138+ with Gemini Nano enabled (Settings → Experimental AI → Prompt API)."
-    );
+    const { synthesizeAlgorithmicPrompt } = await import("./algorithmic-enhancers");
+    return synthesizeAlgorithmicPrompt(options.text, options.level);
   }
 
   const availability = await checkDeviceAvailability();
   if (availability === "unavailable") {
-    throw new Error(
-      "Gemini Nano is not available on this device. Needs Chrome 138+, 22GB+ free storage, macOS 13+/Windows 10+/Linux."
-    );
+    const { synthesizeAlgorithmicPrompt } = await import("./algorithmic-enhancers");
+    return synthesizeAlgorithmicPrompt(options.text, options.level);
   }
 
   const session = await lm.create({ temperature: 0.1, topK: 1 });
