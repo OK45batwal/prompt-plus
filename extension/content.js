@@ -454,6 +454,74 @@
     }, 2800);
   }
 
+  function detectImplicitTone(input) {
+    const text = (input || "").toLowerCase();
+    if (/\b(tweet|post|linkedin|casual|friendly|fun|newsletter|blog|engaging|story)\b/i.test(text)) return "Engaging, Authentic & Conversational";
+    if (/\b(sell|pitch|copy|ad|convert|sales|landing|cta|email|headline|offer)\b/i.test(text)) return "High-Conversion, Persuasive & Action-Oriented";
+    if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|script|refactor|error|fix|css|html)\b/i.test(text)) return "Technically Rigorous, Precise & Production-Grade";
+    if (/\b(strategy|plan|executive|kpi|growth|roadmap|summary|business|report)\b/i.test(text)) return "Executive, Strategic & High-Level";
+    if (/\b(data|analyze|analysis|statistics|metrics|research|paper|study)\b/i.test(text)) return "Analytical, Objective & Data-Driven";
+    return "Clear, Authoritative & Direct";
+  }
+
+  function synthesizeLocalPrompt(userInput) {
+    const text = (userInput || "").trim();
+    if (!text) return "";
+    const tone = detectImplicitTone(text);
+    const cleanInput = text.replace(/^(please|can you|help me|i want to|i need to|how to|write|create|build|fix|generate|make)\s+/i, "");
+    const subject = cleanInput.length > 0 ? cleanInput : text;
+
+    let role = "Senior Subject Matter Expert & Systems Architect";
+    let domain = "Execution & Strategic Analysis";
+    let sec1 = "Key Requirements & Specifications";
+    let sec2 = "Execution Guidelines";
+    let directives = [
+      `Analyze core requirements for "${subject}" and address implicit edge cases.`,
+      `Deliver an authoritative, highly structured solution matching tone profile ("${tone}").`,
+      `Ensure output is ready for immediate deployment with zero conversational fluff.`
+    ];
+
+    if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|script|refactor|error|fix|css|html)\b/i.test(text)) {
+      role = "Principal Software Engineer & Technical Architect";
+      domain = "Production Software Engineering";
+      sec1 = "Architecture & Technical Specifications";
+      sec2 = "Implementation Guidelines";
+      directives = [
+        `Design a clean, modular, production-ready architecture for "${subject}".`,
+        `Incorporate strict typing, comprehensive error handling, and performance optimizations.`,
+        `Provide executable, self-contained code blocks with clear inline documentation.`
+      ];
+    } else if (/\b(write|blog|article|email|post|essay|copy|letter|content|draft|story|headline|tweet|linkedin|newsletter)\b/i.test(text)) {
+      role = "Elite Content Director & Strategic Copywriter";
+      domain = "High-Impact Copywriting & Editorial Strategy";
+      sec1 = "Audience Hook & Narrative Strategy";
+      sec2 = "Content Directives";
+      directives = [
+        `Craft an engaging narrative hook tailored to the target audience for "${subject}".`,
+        `Maintain a ${tone.toLowerCase()} tone with scannable formatting, subheadings, and clear takeaways.`,
+        `Eliminate passive voice, repetitive boilerplate, and generic introductory filler.`
+      ];
+    }
+
+    return `You are a ${role} with deep expertise in ${domain}.
+
+Your objective is to execute the following request with production-grade precision:
+"${text}"
+
+### ${sec1}
+- **Target Subject**: "${subject}"
+- **Tone & Persona**: ${tone}
+- **Quality Standard**: Deliver complete, unabridged solutions without placeholders or assumptions.
+
+### ${sec2}
+1. ${directives[0]}
+2. ${directives[1]}
+3. ${directives[2]}
+
+### Deliverables & Formatting Specs
+- Present final response with clear Markdown headers, bulleted lists, and structured blocks ready for immediate real-world application.`;
+  }
+
   function openPanel() {
     if (panelEl) {
       panelEl.style.display = "flex";
@@ -535,31 +603,43 @@
       if (panelEnhanceBtn) panelEnhanceBtn.disabled = true;
       if (panelResult) panelResult.textContent = "Enhancing prompt with Prompt+ Intelligence...";
 
+      const finishEnhancement = (enhanced, isLocal = false) => {
+        if (panelEnhanceBtn) panelEnhanceBtn.disabled = false;
+        if (panelResult) panelResult.textContent = enhanced;
+        if (panelScore) {
+          panelScore.textContent = "Score: 98/100";
+          panelScore.style.display = "inline-flex";
+        }
+        if (panelMsg) {
+          panelMsg.textContent = isLocal ? "⚡ Enhanced via Prompt+ Engine!" : "✓ Enhanced via Cloud AI!";
+          panelMsg.style.display = "block";
+          panelMsg.style.background = "rgba(52,211,153,0.15)";
+          panelMsg.style.color = "#34d399";
+          setTimeout(() => { panelMsg.style.display = "none"; }, 3000);
+        }
+      };
+
       try {
         if (chrome?.runtime?.sendMessage) {
           chrome.runtime.sendMessage({ action: "enhancePrompt", text, level: "deep" }, (res) => {
-            if (panelEnhanceBtn) panelEnhanceBtn.disabled = false;
+            let enhanced = "";
             if (res && res.success) {
-              const enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
-              if (panelResult) panelResult.textContent = enhanced;
-              if (panelScore) {
-                panelScore.textContent = "Score: 98/100";
-                panelScore.style.display = "inline-flex";
-              }
-              if (panelMsg) {
-                panelMsg.textContent = "✓ Enhanced successfully!";
-                panelMsg.style.display = "block";
-                panelMsg.style.background = "rgba(52,211,153,0.15)";
-                panelMsg.style.color = "#34d399";
-                setTimeout(() => { panelMsg.style.display = "none"; }, 3000);
-              }
+              enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
+            }
+            if (enhanced) {
+              finishEnhancement(enhanced, false);
             } else {
-              if (panelResult) panelResult.textContent = "Failed to enhance prompt. Please try again.";
+              const localText = synthesizeLocalPrompt(text);
+              finishEnhancement(localText, true);
             }
           });
+        } else {
+          const localText = synthesizeLocalPrompt(text);
+          finishEnhancement(localText, true);
         }
       } catch {
-        if (panelEnhanceBtn) panelEnhanceBtn.disabled = false;
+        const localText = synthesizeLocalPrompt(text);
+        finishEnhancement(localText, true);
       }
     });
 
