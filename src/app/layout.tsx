@@ -22,6 +22,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AI Prompt+",
   description: "Transform simple prompts into professional, AI-optimized prompts.",
+  verification: {
+    google: "google37ad5f54b5d08314",
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
