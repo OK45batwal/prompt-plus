@@ -422,13 +422,19 @@ export default function SettingsPage() {
 
           {activeTab === "api-keys" && (
             <div className="space-y-6">
-              <div>
-                <h2 className="font-semibold text-sm mb-1">API Keys</h2>
-                <p className="text-xs text-muted-foreground">Connect your own AI provider keys for unlimited usage</p>
+              <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xs space-y-1">
+                <div className="flex items-center gap-2 font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>🟢 Free Mode Active — No API Key Required</span>
+                </div>
+                <p className="text-muted-foreground leading-relaxed">
+                  Prompt+ works 100% free out-of-the-box using server-managed AI models. You do NOT need to enter any API keys or credit cards to use Prompt+ on the website or extension.
+                </p>
               </div>
 
-              <div className="p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                <p>Your API keys are stored securely with AES-256-GCM encryption and never shared. They are used only for your requests.</p>
+              <div>
+                <h2 className="font-semibold text-sm mb-1">Custom API Keys (Optional Power-User Feature)</h2>
+                <p className="text-xs text-muted-foreground">Optional: Connect your personal OpenAI, Anthropic, or OpenRouter keys for specific paid model overrides.</p>
               </div>
 
               <div className="space-y-4">
