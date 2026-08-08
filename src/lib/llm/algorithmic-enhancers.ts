@@ -7,79 +7,98 @@ export function synthesizeAlgorithmicPrompt(userInput: string, level: EnhanceLev
   const text = (userInput || "").trim();
   if (!text) return "";
 
-  // 1. Dynamic Tone & Intent Intelligence
+  // 1. Dynamic Tone & Subject Intelligence
   const detectedTone = detectImplicitTone(text);
-  const cleanInput = text.replace(/^(please|can you|help me|i want to|i need to|how to|write|create|build|fix)\s+/i, "");
+  const cleanInput = text.replace(/^(please|can you|help me|i want to|i need to|how to|write|create|build|fix|generate|make)\s+/i, "");
   const subjectTopic = cleanInput.length > 0 ? cleanInput : text;
 
-  // 2. Domain & Persona Mapping
+  // 2. Domain Categorization & Dynamic Persona Engineering
   let role = "Senior Subject Matter Expert & Systems Architect";
-  let domain = "Technical Execution & Problem Solving";
-  let focusAreas = ["production standards", "clarity", "edge case handling"];
+  let domain = "Execution & Strategic Analysis";
+  let section1Header = "Key Requirements & Constraints";
+  let section2Header = "Execution & Implementation Guidelines";
+  let directives = [
+    `Analyze the core requirements for "${subjectTopic}" and address implicit edge cases.`,
+    `Deliver an authoritative, highly structured solution matching the requested tone ("${detectedTone}").`,
+    `Ensure output is ready for immediate production deployment with zero conversational fluff.`,
+  ];
 
-  if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|script|refactor|error|fix)\b/i.test(text)) {
+  if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|script|refactor|error|fix|css|html)\b/i.test(text)) {
     role = "Principal Software Engineer & Technical Architect";
     domain = "Production Software Engineering";
-    focusAreas = ["clean modular architecture", "strict typing", "error resilience", "performance optimization"];
-  } else if (/\b(write|blog|article|email|post|essay|copy|letter|content|draft|story|headline|tweet|linkedin)\b/i.test(text)) {
+    section1Header = "Architecture & Technical Specifications";
+    section2Header = "Implementation & Code Guidelines";
+    directives = [
+      `Design a clean, modular, production-ready architecture for "${subjectTopic}".`,
+      `Incorporate strict typing, comprehensive error handling, and performance optimizations.`,
+      `Provide executable, self-contained code blocks with clear inline documentation.`,
+    ];
+  } else if (/\b(write|blog|article|email|post|essay|copy|letter|content|draft|story|headline|tweet|linkedin|newsletter)\b/i.test(text)) {
     role = "Elite Content Director & Strategic Copywriter";
     domain = "High-Impact Copywriting & Editorial Strategy";
-    focusAreas = ["narrative pacing", "target audience hooks", "conversion positioning", "scannable formatting"];
-  } else if (/\b(market|seo|ad|sales|growth|strategy|plan|campaign|brand|funnel|customer|lead|product)\b/i.test(text)) {
+    section1Header = "Audience Hook & Narrative Strategy";
+    section2Header = "Content Directives & Structural Flow";
+    directives = [
+      `Craft an engaging narrative hook tailored to the target audience for "${subjectTopic}".`,
+      `Maintain a ${detectedTone.toLowerCase()} tone with scannable formatting, subheadings, and clear takeaways.`,
+      `Eliminate passive voice, repetitive boilerplate, and generic introductory filler.`,
+    ];
+  } else if (/\b(market|seo|ad|sales|growth|strategy|plan|campaign|brand|funnel|customer|lead|product|business)\b/i.test(text)) {
     role = "Chief Growth Strategist & Marketing Director";
     domain = "Growth Marketing & Product Strategy";
-    focusAreas = ["market positioning", "acquisition channels", "conversion funnels", "measurable KPIs"];
-  } else if (/\b(data|analyze|analysis|report|chart|graph|dataset|metric|insights|statistics|excel)\b/i.test(text)) {
+    section1Header = "Strategic Positioning & Target Objectives";
+    section2Header = "Action Plan & Conversion Framework";
+    directives = [
+      `Define clear market positioning and acquisition channels for "${subjectTopic}".`,
+      `Provide actionable conversion tactics with measurable KPIs and milestones.`,
+      `Structure the output for executive review with high scannability.`,
+    ];
+  } else if (/\b(data|analyze|analysis|report|chart|graph|dataset|metric|insights|statistics|excel|math)\b/i.test(text)) {
     role = "Staff Data Scientist & Analytics Architect";
     domain = "Quantitative Business Intelligence";
-    focusAreas = ["statistical validation", "reproducible methodology", "data visualization schemas", "executive insights"];
+    section1Header = "Data Methodology & Analytical Framework";
+    section2Header = "Insights & Actionable Recommendations";
+    directives = [
+      `Apply rigorous analytical methodology to evaluate data for "${subjectTopic}".`,
+      `Highlight statistically significant trends, anomalies, and key performance metrics.`,
+      `Present findings in clear data tables, structured summaries, and executive recommendations.`,
+    ];
   }
 
-  // 3. Fluid Custom Output Generation
-  const personaText = `Act as a ${role} with deep expertise in ${domain}.`;
-  const toneText = `Tone & Style: Maintain a ${detectedTone.toLowerCase()} tone matching the target audience for "${subjectTopic}".`;
-
+  // 3. Fluid Level Compilation
   if (level === "quick") {
-    return `${personaText}
+    return `Act as a ${role} specializing in ${domain}.
 
-${toneText}
+Objective: Deliver a direct, high-impact solution for "${text}".
 
-### Core Request
-"${text}"
-
-### Actionable Directives
-- Provide a direct, highly structured solution for "${subjectTopic}".
-- Focus on ${focusAreas.join(", ")}.
-- Omit conversational introductory text and disclaimers.`;
+### Directives
+- **Tone Profile**: ${detectedTone}
+- ${directives[0]}
+- ${directives[1]}
+- Provide a complete, un-truncated response formatted cleanly in Markdown. Omit introductory disclaimers.`;
   }
 
-  const stepsText = [
-    `Analyze the core requirements for "${subjectTopic}" and outline key execution components.`,
-    `Execute a complete, end-to-end solution incorporating ${focusAreas.join(", ")}.`,
-    `Review and refine the output against production standards and edge cases.`
-  ].map((step, idx) => `${idx + 1}. ${step}`).join("\n");
-
-  const expertCoT = level === "expert"
-    ? `\n\n### Reasoning Requirement
-Before generating the final answer, perform a step-by-step chain-of-thought analysis of edge cases and requirements for "${subjectTopic}".`
+  const cotRequirement = level === "expert"
+    ? `\n\n### Reasoning Requirement\nBefore generating the final answer, perform a step-by-step chain-of-thought analysis covering requirements, potential trade-offs, and edge cases for "${subjectTopic}".`
     : "";
 
-  return `${personaText}
+  return `You are a ${role} with deep expertise in ${domain}.
 
-### Core Intent & Goal
+Your objective is to execute the following request with production-grade precision:
 "${text}"
 
-### Execution Context & Directives
+### ${section1Header}
 - **Target Subject**: "${subjectTopic}"
-- **Tone Profile**: ${detectedTone}
-- **Quality Focus**: Ensure ${focusAreas.join(", ")}.
-- **Output Standards**: Deliver complete, un-truncated, production-ready results. Omit placeholders or conversational fluff.
+- **Tone & Persona**: ${detectedTone}
+- **Quality Standard**: Deliver complete, unabridged solutions without placeholders or assumptions.
 
-### Step-by-Step Methodology
-${stepsText}${expertCoT}
+### ${section2Header}
+1. ${directives[0]}
+2. ${directives[1]}
+3. ${directives[2]}${cotRequirement}
 
-### Expected Deliverables & Formatting
-- Present response with clear, logical Markdown headings, bullet points, and code/text blocks ready for immediate deployment.`;
+### Deliverables & Formatting Specs
+- Present the final response with clear Markdown headers, bulleted lists, and structured blocks ready for immediate real-world application.`;
 }
 
 
