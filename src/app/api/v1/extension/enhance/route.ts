@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(
         {
-          enhanced: response.content,
+          enhanced: cleanedOutput,
           model: response.model,
           provider: response.provider,
         },

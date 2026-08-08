@@ -140,7 +140,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             const timeout = setTimeout(() => controller.abort(), 12000);
             const res = await fetch(url, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: {
+                "Content-Type": "application/json",
+                "X-PromptPlus-Client": "chrome-extension",
+                "X-Requested-With": "XMLHttpRequest",
+              },
               body: JSON.stringify(payload),
               signal: controller.signal,
             });

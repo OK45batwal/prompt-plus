@@ -44,6 +44,9 @@ export function validateCsrf(req: NextRequest | Request): { valid: boolean; reas
   const host = headers.get("host") || headers.get("x-forwarded-host");
 
   if (origin && host) {
+    if (origin.startsWith("chrome-extension://")) {
+      return { valid: true };
+    }
     try {
       const originUrl = new URL(origin);
       const expectedHost = host.split(":")[0];
