@@ -418,15 +418,18 @@ export default function PromptBuilderPage() {
           <h2 className="font-semibold text-sm">Prompt Builder</h2>
           <p className="text-xs text-muted-foreground">Transform your ideas into optimized prompts</p>
         </div>
-        <span className="text-xs text-muted-foreground">Free for all users — no daily limit</span>
+        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          100% Free — No API Key Required
+        </span>
       </div>
 
       {/* Enhancement Mode */}
       <div className="p-3 rounded-lg border bg-card">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold">Enhancement Mode</span>
+          <span className="text-xs font-semibold">Enhancement Engine</span>
           <span className="text-[10px] text-muted-foreground">
-            {enhanceMode === "api" ? "⚡ Cloud AI — any model, needs an API key" : "📱 On-device — private, offline, free"}
+            {enhanceMode === "api" ? "🟢 Cloud AI — 100% free out-of-the-box, no key needed" : "⚡ On-device — private, offline, free"}
           </span>
         </div>
         <div className="grid grid-cols-2 gap-2">
