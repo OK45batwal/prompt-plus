@@ -424,6 +424,22 @@ export default function PromptBuilderPage() {
         </span>
       </div>
 
+      {/* Announcement Banner */}
+      <div className="p-3.5 rounded-xl border border-blue-500/30 bg-blue-500/10 text-xs space-y-1">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 font-bold text-blue-600 dark:text-blue-400">
+            <Sparkles className="h-4 w-4 text-blue-500" />
+            <span>✨ Gemini-Class Meta-Prompt Engine — Zero API Keys Required</span>
+          </div>
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-500/20 text-blue-700 dark:text-blue-300">
+            100% Free Out-Of-The-Box
+          </span>
+        </div>
+        <p className="text-muted-foreground leading-relaxed">
+          Powered by serverless <strong>Google Gemini 2.0 Flash & DeepSeek R1</strong> intelligence. Enjoy on-device grade response speed, dynamic domain compiler logic, and deep prompt expansion without setting up API keys.
+        </p>
+      </div>
+
       {/* Enhancement Mode */}
       <div className="p-3 rounded-lg border bg-card">
         <div className="flex items-center justify-between mb-2">
