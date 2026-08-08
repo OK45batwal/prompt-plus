@@ -171,18 +171,20 @@
     };
 
     try {
-      if (chrome?.storage?.local) {
-        chrome.storage.local.set({ pp_context_bucket: bucket }, () => {
-          showToast(`📦 Context captured from ${source}! Ready to carry into other AI chats.`);
-          const injBtn = document.getElementById("pp-fab-bucket-inj");
-          if (injBtn) injBtn.style.display = "inline-flex";
-        });
-      } else {
-        showToast("⚠️ Extension local storage not available on this tab.");
+      if (typeof chrome !== "undefined" && chrome?.storage?.local) {
+        chrome.storage.local.set({ pp_context_bucket: bucket }, () => {});
       }
-    } catch {
-      showToast("⚠️ Could not write to extension storage.");
-    }
+    } catch { /* ignore extension reload */ }
+
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem("pp_context_bucket", JSON.stringify(bucket));
+      }
+    } catch { /* ignore */ }
+
+    showToast(`📦 Context captured from ${source}! Ready to carry into other AI chats.`);
+    const injBtn = document.getElementById("pp-fab-bucket-inj");
+    if (injBtn) injBtn.style.display = "inline-flex";
   }
 
   function injectContextBucket() {
@@ -201,16 +203,28 @@
       showToast(`💉 Injected context from ${bucket.source || "Bucket"} into chat!`);
     };
 
+    let localBucket = null;
     try {
-      if (chrome?.storage?.local) {
-        chrome.storage.local.get("pp_context_bucket", (d) => {
-          applyInject(d?.pp_context_bucket);
-        });
-      } else {
-        showToast("⚠️ Extension storage not available.");
+      if (typeof window !== "undefined" && window.localStorage) {
+        const raw = window.localStorage.getItem("pp_context_bucket");
+        if (raw) localBucket = JSON.parse(raw);
       }
-    } catch {
-      showToast("⚠️ Could not load context bucket");
+    } catch { /* ignore */ }
+
+    try {
+      if (typeof chrome !== "undefined" && chrome?.storage?.local) {
+        chrome.storage.local.get("pp_context_bucket", (d) => {
+          const b = d?.pp_context_bucket || localBucket;
+          applyInject(b);
+        });
+        return;
+      }
+    } catch { /* ignore */ }
+
+    if (localBucket) {
+      applyInject(localBucket);
+    } else {
+      showToast("⚠️ No context saved in bucket.");
     }
   }
 
