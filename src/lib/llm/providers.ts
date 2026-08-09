@@ -191,10 +191,10 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
   let data: Record<string, unknown> = {};
   let lastErrMessage = "";
 
-  // Ultra-fast retry loop: 8 seconds per attempt for rapid failover
+  // Ultra-fast timeout: 2.8 seconds max per attempt for rapid responsiveness
   for (let attempt = 1; attempt <= 2; attempt++) {
     const controller = new AbortController();
-    const attemptTimeout = setTimeout(() => controller.abort(), 8000);
+    const attemptTimeout = setTimeout(() => controller.abort(), 2800);
 
     try {
       res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body), signal: controller.signal });
@@ -203,11 +203,11 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
       if (res.ok) break;
       if (res.status < 500 && res.status !== 429 && res.status !== 404 && res.status !== 400) break;
       lastErrMessage = (data as { error?: { message?: string } })?.error?.message || `${provider} API error (${res.status})`;
-      if (attempt < 2) await new Promise((r) => setTimeout(r, 400));
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 150));
     } catch (err: unknown) {
       clearTimeout(attemptTimeout);
-      lastErrMessage = err instanceof Error && err.name === "AbortError" ? "Request timed out after 8s" : `${provider} connection failed`;
-      if (attempt < 2) await new Promise((r) => setTimeout(r, 400));
+      lastErrMessage = err instanceof Error && err.name === "AbortError" ? "Request timed out after 2.8s" : `${provider} connection failed`;
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 150));
     }
   }
 

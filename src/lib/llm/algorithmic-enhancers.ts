@@ -67,38 +67,45 @@ export function synthesizeAlgorithmicPrompt(userInput: string, level: EnhanceLev
 
   // 3. Fluid Level Compilation
   if (level === "quick") {
-    return `Act as a ${role} specializing in ${domain}.
+    return `### Role & Persona
+Act as a ${role} specializing in ${domain}.
 
-Objective: Deliver a direct, high-impact solution for "${text}".
+### Objective
+Deliver a direct, high-impact solution for:
+"${text}"
 
-### Directives
-- **Tone Profile**: ${detectedTone}
+### Non-Negotiable Directives
+- **Tone & Style**: ${detectedTone}
 - ${directives[0]}
 - ${directives[1]}
-- Provide a complete, un-truncated response formatted cleanly in Markdown. Omit introductory disclaimers.`;
+- Provide a complete, un-truncated response formatted cleanly in Markdown with zero conversational disclaimers.`;
   }
 
   const cotRequirement = level === "expert"
-    ? `\n\n### Reasoning Requirement\nBefore generating the final answer, perform a step-by-step chain-of-thought analysis covering requirements, potential trade-offs, and edge cases for "${subjectTopic}".`
+    ? `\n\n### Step-by-Step Reasoning Requirement
+Before producing the final response, perform a systematic chain-of-thought analysis covering architectural trade-offs, edge case validation, and execution steps for "${subjectTopic}".`
     : "";
 
-  return `You are a ${role} with deep expertise in ${domain}.
+  return `### Role & Persona
+You are a ${role} with deep expertise in ${domain}.
 
+### Core Objective
 Your objective is to execute the following request with production-grade precision:
 "${text}"
 
 ### ${section1Header}
 - **Target Subject**: "${subjectTopic}"
-- **Tone & Persona**: ${detectedTone}
-- **Quality Standard**: Deliver complete, unabridged solutions without placeholders or assumptions.
+- **Tone Profile**: ${detectedTone}
+- **Quality Standard**: Deliver exhaustive, production-grade solutions without placeholders, truncation, or implicit assumptions.
 
 ### ${section2Header}
-1. ${directives[0]}
-2. ${directives[1]}
-3. ${directives[2]}${cotRequirement}
+1. **Primary Focus**: ${directives[0]}
+2. **Execution Standard**: ${directives[1]}
+3. **Delivery Assurance**: ${directives[2]}${cotRequirement}
 
-### Deliverables & Formatting Specs
-- Present the final response with clear Markdown headers, bulleted lists, and structured blocks ready for immediate real-world application.`;
+### Output & Formatting Deliverables
+- Format the output with clear Markdown headings (\`##\`, \`###\`), scannable lists, and production-ready code/text blocks.
+- Omit all conversational announcements (e.g., "Here is your output") and proceed directly to execution.`;
 }
 
 

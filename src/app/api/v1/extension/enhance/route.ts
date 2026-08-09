@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
 
   const modelCandidates = [
     { provider: effectiveProvider, key: effectiveKey, model: reqModel },
-    ...FALLBACK_FREE_MODELS.filter((m) => m !== reqModel).map((m) => ({
+    ...FALLBACK_FREE_MODELS.filter((m) => m !== reqModel).slice(0, 1).map((m) => ({
       provider: "openrouter" as const,
       key: "",
       model: m,
