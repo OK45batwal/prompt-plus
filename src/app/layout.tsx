@@ -62,19 +62,19 @@ export const metadata: Metadata = {
     siteName: "Prompt+ Architect AI",
     images: [
       {
-        url: "/store-screenshot-1280x800.png",
-        width: 1280,
-        height: 800,
-        alt: "Prompt+ Architect AI Interface",
+        url: "/prompt-plus-logo.png",
+        width: 512,
+        height: 512,
+        alt: "Prompt+ Architect AI Logo",
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Prompt+ — Free AI Prompt Architect & Extension",
     description:
       "100% Free AI Prompt Engineering tool & Chrome Extension. On-Device Gemini Nano execution + Cross-AI context bridge.",
-    images: ["/store-screenshot-1280x800.png"],
+    images: ["/prompt-plus-logo.png"],
   },
   robots: {
     index: true,
@@ -93,6 +93,8 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "Prompt+ Architect AI",
+  image: "https://prompt-plus-three.vercel.app/prompt-plus-logo.png",
+  logo: "https://prompt-plus-three.vercel.app/prompt-plus-logo.png",
   operatingSystem: "Web, Chrome, Edge, Brave",
   applicationCategory: "DeveloperApplication",
   offers: {
