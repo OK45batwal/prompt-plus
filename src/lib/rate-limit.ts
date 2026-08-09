@@ -127,7 +127,19 @@ export async function checkIpRateLimitAsync(
         const data = (await res.json()) as Array<{ result: number }>;
         const count = data[0]?.result || 1;
         let pttl = data[1]?.result || windowMs;
-        if (pttl <= 0) pttl = windowMs;
+
+        if (pttl <= 0 || count === 1) {
+          pttl = windowMs;
+          // Set expiry asynchronously so the key never remains blocked indefinitely
+          fetch(`${redisUrl}/pipeline`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${redisToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify([["PEXPIRE", key, windowMs]]),
+          }).catch(() => {});
+        }
 
         return {
           allowed: count <= limit,

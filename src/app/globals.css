@@ -227,11 +227,27 @@ body {
 .animate-drift { animation: drift 26s ease-in-out infinite; }
 .animate-drift-slow { animation: drift 38s ease-in-out infinite; }
 
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+.fade-mask {
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1;
     transform: none;
     filter: none;
+  }
+  .animate-marquee {
+    animation: none !important;
   }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

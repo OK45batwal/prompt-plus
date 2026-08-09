@@ -66,14 +66,14 @@ export function PromptDemo() {
     if (!activeRaw) return;
     setIsEnhancing(true);
     try {
-      const res = await fetch("/api/v1/prompts/enhance-ai", {
+      const res = await fetch("/api/v1/extension/enhance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: activeRaw, level: "deep" }),
       });
       const data = await res.json();
-      if (data?.data?.enhanced) {
-        setCustomEnhanced(data.data.enhanced);
+      if (data?.enhanced || data?.data?.enhanced) {
+        setCustomEnhanced(data.enhanced || data.data.enhanced);
       }
     } catch {
       // Fallback

@@ -3,17 +3,16 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PromptDemo } from "@/components/marketing/prompt-demo";
+import { LogoMarquee } from "@/components/marketing/logo-marquee";
+import { ChatGptLogo, ClaudeLogo, GeminiLogo, DeepSeekLogo } from "@/components/marketing/model-logos";
 import {
   Sparkles,
   ArrowRight,
   BarChart3,
   Layers,
-  Terminal,
-  Cpu,
   Wand2,
   ArrowUpRight,
   Sliders,
-  Bot,
   Puzzle,
   ShieldCheck,
   Lock,
@@ -57,10 +56,10 @@ const features = [
 ];
 
 const modelBadges = [
-  { name: "ChatGPT / GPT-4o", icon: Bot },
-  { name: "Claude 3.5 Sonnet", icon: Cpu },
-  { name: "Gemini 1.5 Pro", icon: Sparkles },
-  { name: "Llama 3 & DeepSeek", icon: Terminal },
+  { name: "ChatGPT / GPT-4o", Logo: ChatGptLogo },
+  { name: "Claude 3.5 Sonnet", Logo: ClaudeLogo },
+  { name: "Gemini 1.5 Pro", Logo: GeminiLogo },
+  { name: "Llama 3 & DeepSeek", Logo: DeepSeekLogo },
 ];
 
 const steps = [
@@ -192,9 +191,9 @@ export default function LandingPage() {
               {modelBadges.map((m) => (
                 <div
                   key={m.name}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full border bg-card/40 text-foreground/80 hover:border-primary/40 hover:bg-primary/5 transition-all"
+                  className="flex items-center gap-2.5 px-4 py-2 rounded-full border bg-card/40 text-foreground/80 hover:border-primary/40 hover:bg-primary/5 transition-all"
                 >
-                  <m.icon className="h-3.5 w-3.5 text-primary" />
+                  <m.Logo className="h-4 w-4 text-primary shrink-0" />
                   <span>{m.name}</span>
                 </div>
               ))}
@@ -202,6 +201,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Infinite Horizontal Logo Marquee */}
+      <LogoMarquee />
 
       {/* Core Features Grid */}
       <section className="py-16 sm:py-28 px-4 sm:px-6 border-t">

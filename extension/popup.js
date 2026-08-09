@@ -1,6 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const STORAGE_KEY = "pp_settings";
-
   const input = document.getElementById("input");
   const charCount = document.getElementById("char-count");
   const enhanceBtn = document.getElementById("enhance-btn");
@@ -17,8 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const sizeToggle = document.getElementById("size-toggle");
   const sizeText = document.getElementById("size-text");
 
-  let currentMode = "api";
-  let selectedPreset = "auto";
   let enhancedResult = "";
 
   // 1. Character Counter

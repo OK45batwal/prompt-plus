@@ -69,29 +69,37 @@ export default function CollectionsPage() {
 
   const deleteCollection = async (id: string) => {
     try {
-      await fetch(`/api/v1/collections/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/v1/collections/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Failed to delete collection");
+      }
       setCollections((prev) => prev.filter((c) => c.id !== id));
       toast("Collection deleted", "success");
-    } catch {
-      toast("Failed to delete collection", "error");
+    } catch (err: unknown) {
+      toast(err instanceof Error ? err.message : "Failed to delete collection", "error");
     }
   };
 
   const createCollection = async () => {
     if (!newName.trim()) return;
     try {
-      await fetch("/api/v1/collections", {
+      const res = await fetch("/api/v1/collections", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName, description: newDescription }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Failed to create collection");
+      }
       setNewName("");
       setNewDescription("");
       setShowNewModal(false);
       await fetchCollections();
       toast("Collection created", "success");
-    } catch {
-      toast("Failed to create collection", "error");
+    } catch (err: unknown) {
+      toast(err instanceof Error ? err.message : "Failed to create collection", "error");
     }
   };
 
@@ -155,10 +163,14 @@ export default function CollectionsPage() {
                         method: "PATCH",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ name: newName.trim() }),
-                      }).then(() => {
+                      }).then(async (res) => {
+                        if (!res.ok) {
+                          const errData = await res.json().catch(() => null);
+                          throw new Error(errData?.error || "Failed to rename");
+                        }
                         setCollections((prev) => prev.map((c) => c.id === collection.id ? { ...c, name: newName.trim() } : c));
                         toast("Collection renamed", "success");
-                      }).catch(() => toast("Failed to rename", "error"));
+                      }).catch((err) => toast(err instanceof Error ? err.message : "Failed to rename", "error"));
                     }
                   }} className="p-1 hover:bg-accent rounded">
                     <Edit className="h-3.5 w-3.5 text-muted-foreground" />

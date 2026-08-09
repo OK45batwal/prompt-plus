@@ -1,10 +1,7 @@
 (function () {
-  const STORAGE_KEY = "pp_settings";
-  const HISTORY_KEY = "pp_history";
   let panelEl = null;
   let currentTarget = null;
   let currentText = "";
-  let currentMode = "api";
 
   function ensureStylesInjected() {
     if (document.getElementById("pp-styles")) return;
@@ -107,8 +104,6 @@
 
   ensureStylesInjected();
 
-  const CONTEXT_LIMITS = { chatgpt: 128000, claude: 200000, gemini: 1000000, deepseek: 128000, grok: 128000, perplexity: 128000 };
-
   function detectChatbot() {
     const host = location.hostname.toLowerCase();
     if (host.includes("chatgpt") || host.includes("chat.openai")) return "chatgpt";
@@ -129,19 +124,6 @@
     const els = document.querySelectorAll(sel);
     if (!els.length) return "";
     return Array.from(els).reduce((s, el) => s + " " + (el.textContent || ""), "");
-  }
-
-  function estimateTokens(text) {
-    return Math.round((text || "").length / 4);
-  }
-
-  function getTokenInfo() {
-    const text = getConversationText();
-    const currentInputText = currentTarget ? getText(currentTarget) : "";
-    const used = estimateTokens(text + " " + currentInputText);
-    const limit = CONTEXT_LIMITS[detectChatbot()] || 128000;
-    const remaining = Math.max(0, limit - used);
-    return { used, limit, remaining, pct: Math.min(100, Math.round((used / limit) * 100)) };
   }
 
   function sanitizeContextText(text) {

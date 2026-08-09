@@ -348,7 +348,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     );
   }
 
-  const { title, name, description, category, model, isOfficial, prompt } = validation.data;
+  const { title, name, description, category, model, prompt } = validation.data;
 
   const template = await getDb().template.create({
     data: {
@@ -356,7 +356,7 @@ export const POST = withAuth(async (request: NextRequest) => {
       description,
       category,
       model: model || null,
-      isOfficial: isOfficial ?? false,
+      isOfficial: false, // Always set to false for API creations
       prompt,
     },
   });

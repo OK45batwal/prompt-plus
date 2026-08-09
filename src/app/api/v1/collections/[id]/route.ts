@@ -53,3 +53,39 @@ export const DELETE = withAuth(async (req: NextRequest, { userId, requestId }) =
     { requestId }
   );
 });
+
+export const PATCH = withAuth(async (req: NextRequest, { userId, requestId }) => {
+  const url = new URL(req.url);
+  const id = url.pathname.split("/").pop();
+
+  if (!id) {
+    return jsonResponse({ error: "Missing collection ID" }, { status: 400, requestId });
+  }
+
+  let body: { name?: string; description?: string; color?: string; icon?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return jsonResponse({ error: "Invalid JSON body" }, { status: 400, requestId });
+  }
+
+  const existing = await getDb().collection.findFirst({
+    where: { id, userId },
+  });
+
+  if (!existing) {
+    return jsonResponse({ error: "Collection not found" }, { status: 404, requestId });
+  }
+
+  const updated = await getDb().collection.update({
+    where: { id },
+    data: {
+      ...(body.name && { name: body.name.trim() }),
+      ...(body.description !== undefined && { description: body.description }),
+      ...(body.color && { color: body.color }),
+      ...(body.icon && { icon: body.icon }),
+    },
+  });
+
+  return jsonResponse({ data: updated, message: "Collection updated" }, { requestId });
+});

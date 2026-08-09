@@ -75,7 +75,7 @@ export const POST = withAuth(
       apiKey = "";
     }
 
-    const cacheKey = `web:${text}:${model || "default"}:${category || ""}:${tone || ""}:${length || ""}:${level || ""}`;
+    const cacheKey = `web:${userId}:${text}:${model || "default"}:${category || ""}:${tone || ""}:${length || ""}:${level || ""}`;
     const cached = enhancementCache.get(cacheKey);
     if (cached) {
       const cleanCachedText = cleanMasterPromptOutput(cached.enhancedText);
@@ -128,7 +128,26 @@ export const POST = withAuth(
           }
 
           let activePromptId = promptId;
-          if (!activePromptId) {
+          let isOwner = false;
+          if (activePromptId) {
+            const existingPrompt = await getDb().prompt.findFirst({
+              where: { id: activePromptId, userId },
+              select: { id: true },
+            }).catch(() => null);
+            if (existingPrompt) {
+              isOwner = true;
+            }
+          }
+
+          if (activePromptId && isOwner) {
+            await getDb().prompt.update({
+              where: { id: activePromptId },
+              data: {
+                enhancedText: cleanedOutput,
+                model: response.model,
+              },
+            }).catch(() => {});
+          } else {
             const title = text.length > 50 ? text.slice(0, 50).trim() + "…" : text.trim() || "Untitled Prompt";
             const created = await getDb().prompt.create({
               data: {
@@ -142,14 +161,6 @@ export const POST = withAuth(
               },
             }).catch(() => null);
             if (created) activePromptId = created.id;
-          } else {
-            await getDb().prompt.update({
-              where: { id: activePromptId },
-              data: {
-                enhancedText: cleanedOutput,
-                model: response.model,
-              },
-            }).catch(() => {});
           }
 
           await getDb().usageLog.create({

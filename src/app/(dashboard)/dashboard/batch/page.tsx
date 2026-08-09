@@ -15,7 +15,9 @@ export default function BatchPage() {
   const [running, setRunning] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 
-  const prompts = input.split(/\n+/).map((p) => p.trim()).filter(Boolean);
+  const rawPrompts = input.split(/\n+/).map((p) => p.trim()).filter(Boolean);
+  const MAX_BATCH_SIZE = 20;
+  const prompts = rawPrompts.slice(0, MAX_BATCH_SIZE);
 
   const handleRun = async () => {
     if (prompts.length === 0) return;

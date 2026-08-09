@@ -147,7 +147,8 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
   }
 
   // Cache check for instant <5ms responses on repeated prompts
-  const cacheKey = `${provider}:${model}:${userPrompt.slice(0, 300)}:${systemPrompt.slice(0, 100)}`;
+  const keyIdentity = apiKey ? apiKey.slice(-8) : "server";
+  const cacheKey = `${keyIdentity}:${provider}:${model}:${userPrompt.slice(0, 300)}:${systemPrompt.slice(0, 100)}`;
   const cached = llmResponseCache.get(cacheKey);
   if (cached && Date.now() < cached.expiresAt) {
     return cached.response;
