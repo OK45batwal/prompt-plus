@@ -41,6 +41,14 @@ export const metadata: Metadata = {
   authors: [{ name: "Prompt+ Team" }],
   creator: "Prompt+ Architect AI",
   publisher: "Prompt+",
+  icons: {
+    icon: [
+      { url: "/store-icon-128x128.png", sizes: "128x128", type: "image/png" },
+      { url: "/favicon.ico" },
+    ],
+    shortcut: "/store-icon-128x128.png",
+    apple: "/store-icon-128x128.png",
+  },
   verification: {
     google: "google37ad5f54b5d08314",
   },
