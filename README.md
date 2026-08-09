@@ -101,11 +101,6 @@
         <img src="./public/screenshots/dashboard-new.png" alt="Prompt builder" width="100%" />
         <p align="center"><sub><strong>AI prompt builder (On-Device / API modes)</strong></sub></p>
       </td>
-      <td width="50%">
-        <img src="./public/screenshots/dashboard-analytics.png" alt="Analytics" width="100%" />
-        <p align="center"><sub><strong>Usage analytics & quality trends</strong></sub></p>
-      </td>
-    </tr>
     <tr>
       <td width="50%">
         <img src="./public/screenshots/dashboard-library.png" alt="Prompt library" width="100%" />
@@ -117,10 +112,6 @@
       </td>
     </tr>
     <tr>
-      <td width="50%">
-        <img src="./public/screenshots/dashboard-templates.png" alt="Templates" width="100%" />
-        <p align="center"><sub><strong>Reusable prompt templates</strong></sub></p>
-      </td>
       <td width="50%">
         <img src="./public/screenshots/dashboard-settings.png" alt="Settings & security" width="100%" />
         <p align="center"><sub><strong>Settings & security controls</strong></sub></p>
