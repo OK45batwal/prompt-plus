@@ -35,7 +35,7 @@ function otpHtml(otp: string, intro: string, subject: string): string {
         <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#ffffff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
           <tr>
             <td align="center" style="padding:40px 32px 0;">
-              <img src="${siteUrl}/logo.png" alt="Prompt+" width="56" height="56" style="border-radius:12px;display:block;">
+              <img src="${siteUrl}/prompt-plus-logo.png" alt="Prompt+" width="56" height="56" style="border-radius:12px;display:block;">
               <h1 style="margin:20px 0 8px;font-size:20px;font-weight:700;color:#111827;line-height:1.3;">${subject}</h1>
               <p style="margin:0 0 24px;font-size:14px;color:#6b7280;line-height:1.5;">${intro}</p>
             </td>
