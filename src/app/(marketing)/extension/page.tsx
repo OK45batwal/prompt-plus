@@ -16,7 +16,7 @@ export default function ExtensionPage() {
         <div className="text-center mb-14">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-xs font-medium text-primary mb-6">
             <Zap className="h-3.5 w-3.5" />
-            Browser Extension v1.1.0 • 🟢 100% Secure & AES Encrypted
+            Browser Extension v1.1.1 • 🟢 100% Secure & AES Encrypted
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">
             Enhance Prompts Directly in Your Chat
@@ -28,11 +28,11 @@ export default function ExtensionPage() {
           <div className="flex justify-center">
             <a
               href="/api/v1/extension/download"
-              download="prompt-plus-extension-v1.1.0.zip"
+              download="prompt-plus-extension-v1.1.1.zip"
               className="h-11 inline-flex items-center justify-center rounded-xl bg-primary text-primary-foreground px-6 text-sm font-semibold hover:bg-primary/90 transition-all shadow-md gap-2"
             >
               <Puzzle className="h-4 w-4" />
-              Download Extension Package v1.1.0 (.zip)
+              Download Extension Package v1.1.1 (.zip)
             </a>
           </div>
         </div>

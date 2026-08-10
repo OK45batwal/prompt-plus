@@ -162,7 +162,7 @@ export default function SignupPage() {
             </div>
 
             <div className="pt-4 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground">
-              <span>Prompt+ Studio v1.1.0</span>
+              <span>Prompt+ Studio v1.1.1</span>
               <span className="text-emerald-400 font-medium">🟢 Production Ready</span>
             </div>
           </div>

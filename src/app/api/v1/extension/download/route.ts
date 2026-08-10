@@ -5,10 +5,23 @@ import path from "path";
 
 export async function GET() {
   const cwd = /* turbopackIgnore: true */ process.cwd();
-  // Check for the freshly packaged zip in public/ or dist/
+  // Resolve current version from the packaged manifest so the download always tracks releases
+  let version = "1.1.0";
+  try {
+    const manifestPath = path.join(cwd, "extension", "manifest.json");
+    if (fs.existsSync(manifestPath)) {
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+      if (manifest.version) version = String(manifest.version);
+    }
+  } catch {
+    // fall back to default version below
+  }
+
+  const versionedName = `prompt-plus-extension-v${version}.zip`;
+  // Prefer the versioned package for the current release, then fall back to the generic copy
   const candidatePaths = [
-    path.join(cwd, "public", "prompt-plus-extension-v1.1.0.zip"),
-    path.join(cwd, "dist", "prompt-plus-extension-v1.1.0.zip"),
+    path.join(cwd, "public", versionedName),
+    path.join(cwd, "dist", versionedName),
     path.join(cwd, "public", "prompt-plus-extension.zip"),
   ];
 
@@ -29,7 +42,7 @@ export async function GET() {
   return new NextResponse(fileBuffer, {
     headers: {
       "Content-Type": "application/zip",
-      "Content-Disposition": 'attachment; filename="prompt-plus-extension-v1.1.0.zip"',
+      "Content-Disposition": `attachment; filename="${versionedName}"`,
       "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
       "Pragma": "no-cache",
       "Expires": "0",

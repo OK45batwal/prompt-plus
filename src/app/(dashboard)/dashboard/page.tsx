@@ -267,11 +267,11 @@ export default function DashboardPage() {
                 <span className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500">
                   <LayoutTemplate className="h-5 w-5" />
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-full">v1.1.0</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-full">v1.1.1</span>
               </div>
               <h4 className="font-bold text-sm mt-3">🧩 Browser Extension Hub</h4>
               <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                Install the v1.1.0 Chrome & Edge extension for in-page prompt enhancement on ChatGPT, Claude & Gemini.
+                Install the v1.1.1 Chrome & Edge extension for in-page prompt enhancement on ChatGPT, Claude & Gemini.
               </p>
             </div>
             <Link href="/extension" className="mt-4 text-xs font-semibold text-indigo-500 hover:underline flex items-center gap-1">

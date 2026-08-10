@@ -139,7 +139,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           {/* Tier 3: Bottom Bar */}
           <div className="pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
             <p>© {new Date().getFullYear()} Prompt+ Architect AI. MIT Open Source. Your prompts stay yours.</p>
-            <p className="font-mono text-[11px]">v1.1.0 • 100% Free & On-Device AI</p>
+            <p className="font-mono text-[11px]">v1.1.1 • 100% Free & On-Device AI</p>
           </div>
         </div>
       </footer>

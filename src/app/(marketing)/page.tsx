@@ -130,7 +130,7 @@ export default function LandingPage() {
             <div className="lg:col-span-5 text-left" data-reveal>
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-xs font-semibold text-primary mb-6">
                 <Sparkles className="h-3.5 w-3.5" />
-                <span>Prompt+ v1.1.0 • 🟢 100% Free & Open</span>
+                <span>Prompt+ v1.1.1 • 🟢 100% Free & Open</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-[-0.03em] leading-[1.08] text-balance">
@@ -148,11 +148,11 @@ export default function LandingPage() {
               <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <a
                   href="/api/v1/extension/download"
-                  download="prompt-plus-extension-v1.1.0.zip"
+                  download="prompt-plus-extension-v1.1.1.zip"
                   className="group h-12 inline-flex items-center justify-center gap-2.5 rounded-full bg-primary text-primary-foreground px-6 text-sm font-semibold hover:bg-primary/90 transition-all duration-200 shadow-md active:scale-[0.98]"
                 >
                   <Puzzle className="h-4 w-4" />
-                  <span>Install Free Extension v1.1.0</span>
+                  <span>Install Free Extension v1.1.1</span>
                   <ArrowUpRight className="h-4 w-4 opacity-70 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </a>
                 <Link

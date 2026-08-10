@@ -184,7 +184,7 @@ The **Manifest V3 extension** drops straight into **ChatGPT**, **Claude AI**, **
 3. Click **Load unpacked** and select the [`/extension`](./extension) folder.
 4. Visit a supported chatbot — `chatgpt.com`, `claude.ai`, `gemini.google.com`, or `deepseek.com`.
 5. For **On-Device** mode: use Chrome 138+ and enable Gemini Nano at `chrome://flags/#prompt-api-for-gemini-nano`.
-6. Release: `npm run build:extension` → `dist/prompt-plus-extension-v1.1.0.zip`.
+6. Release: `npm run build:extension` → `dist/prompt-plus-extension-v1.1.1.zip`.
 
 </details>
 
