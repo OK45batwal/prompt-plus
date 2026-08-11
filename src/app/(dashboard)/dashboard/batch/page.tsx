@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, Sparkles, Copy, Check, ExternalLink } from "lucide-react";
+import { openAIPlatform } from "@/lib/platform-redirect";
 
 interface BatchResult {
   input: string;
@@ -51,14 +52,8 @@ export default function BatchPage() {
     setTimeout(() => setCopiedIdx(null), 1500);
   };
 
-  const openIn = (text: string, target: string) => {
-    const url =
-      target === "claude"
-        ? `https://claude.ai/new?q=${encodeURIComponent(text)}`
-        : target === "gemini"
-        ? `https://gemini.google.com/app?q=${encodeURIComponent(text)}`
-        : `https://chatgpt.com/?q=${encodeURIComponent(text)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+  const openIn = (text: string, target: "chatgpt" | "claude" | "gemini") => {
+    openAIPlatform(target, text);
   };
 
   return (

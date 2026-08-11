@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Sparkles,
   Copy,
@@ -21,6 +21,7 @@ import { estimateTokenCount, calculateCostEstimates } from "@/lib/token-calculat
 import { enhanceWithDevice, checkDeviceAvailability, isDeviceAISupported } from "@/lib/llm/device-ai";
 import type { EnhanceLevel } from "@/lib/llm/meta-prompt";
 import { useToast } from "@/components/ui/toast";
+import { openAIPlatform } from "@/lib/platform-redirect";
 
 type Model =
   | "openrouter-gemini-flash-free"
@@ -392,23 +393,74 @@ export default function PromptBuilderPage() {
     setSelectedCategory("");
   };
 
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
   const handleVoiceInput = () => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) {
-      setErrorNotice("Voice input not supported in this browser. Use Chrome or Edge.");
+    if (isListening) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {
+          // ignore
+        }
+      }
+      setIsListening(false);
       return;
     }
-    const rec = new SR();
-    rec.lang = "en-US";
-    rec.interimResults = false;
-    rec.onstart = () => setIsListening(true);
-    rec.onend = () => setIsListening(false);
-    rec.onerror = () => setIsListening(false);
-    rec.onresult = (e: SpeechRecognitionEvent) => {
-      const transcript = e.results?.[0]?.[0]?.transcript || "";
-      if (transcript) setPrompt((prev) => (prev ? `${prev} ${transcript}` : transcript));
-    };
-    rec.start();
+
+    const SR = typeof window !== "undefined" && (window.SpeechRecognition || window.webkitSpeechRecognition);
+    if (!SR) {
+      setErrorNotice("Voice input is not supported in this browser. Please use Chrome, Edge, or Safari.");
+      toast("Voice input not supported in this browser.", "error");
+      return;
+    }
+
+    try {
+      const rec = new SR();
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.lang = "en-US";
+
+      rec.onstart = () => {
+        setIsListening(true);
+        setErrorNotice(null);
+        toast("Listening for voice input...", "info");
+      };
+
+      rec.onend = () => {
+        setIsListening(false);
+        recognitionRef.current = null;
+      };
+
+      rec.onerror = (e: SpeechRecognitionErrorEvent) => {
+        setIsListening(false);
+        recognitionRef.current = null;
+        if (e.error === "not-allowed" || e.error === "permission-denied") {
+          setErrorNotice("Microphone access denied. Please allow microphone permissions in browser settings.");
+          toast("Microphone access denied.", "error");
+        } else if (e.error === "no-speech") {
+          setErrorNotice("No speech detected. Please speak clearly into your microphone.");
+        } else {
+          setErrorNotice(`Voice input error (${e.error}). Please try again.`);
+        }
+      };
+
+      rec.onresult = (e: SpeechRecognitionEvent) => {
+        const transcript = e.results?.[0]?.[0]?.transcript || "";
+        if (transcript) {
+          setPrompt((prev) => (prev ? `${prev} ${transcript}` : transcript));
+          toast("Voice input captured!", "success");
+        }
+      };
+
+      recognitionRef.current = rec;
+      rec.start();
+    } catch (err: unknown) {
+      setIsListening(false);
+      recognitionRef.current = null;
+      const msg = err instanceof Error ? err.message : "Failed to start speech recognition.";
+      setErrorNotice(msg);
+    }
   };
 
   const handleAddContext = () => {
@@ -425,14 +477,11 @@ export default function PromptBuilderPage() {
 
   const openInTarget = (target: "chatgpt" | "claude" | "gemini") => {
     const text = result?.enhanced.text || prompt;
-    if (!text.trim()) return;
-    const url =
-      target === "chatgpt"
-        ? `https://chatgpt.com/?q=${encodeURIComponent(text)}`
-        : target === "claude"
-        ? `https://claude.ai/new?q=${encodeURIComponent(text)}`
-        : `https://gemini.google.com/app?q=${encodeURIComponent(text)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    if (!text.trim()) {
+      toast("No prompt to open.", "error");
+      return;
+    }
+    openAIPlatform(target, text, (msg, type) => toast(msg, type));
   };
 
   return (

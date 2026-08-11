@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, Play, Copy, Check, ExternalLink } from "lucide-react";
+import { openAIPlatform } from "@/lib/platform-redirect";
 
 type ProviderId = "openai" | "anthropic" | "openrouter" | "nvidia";
 
@@ -64,7 +65,7 @@ export default function ModelLabPage() {
   };
 
   const openIn = (content: string) => {
-    window.open(`https://chatgpt.com/?q=${encodeURIComponent(content)}`, "_blank", "noopener,noreferrer");
+    openAIPlatform("chatgpt", content);
   };
 
   const totalTokensIn = results && results.length > 0 ? results.reduce((sum, r) => sum + (r.tokensIn || 0), 0) : 0;
