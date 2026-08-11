@@ -5,6 +5,7 @@ import { User, Key, Bell, Palette, Save, Eye, EyeOff, Check, ExternalLink, Trash
 import { useTheme } from "next-themes";
 import { useSession, signOut } from "next-auth/react";
 import { useToast } from "@/components/ui/toast";
+import { MODELS, DEFAULT_MODEL_ID, getModelDisplayLabel } from "@/lib/models";
 
 type SettingsTab = "profile" | "api-keys" | "preferences" | "notifications";
 
@@ -163,14 +164,14 @@ export default function SettingsPage() {
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [isSavingKey, setIsSavingKey] = useState<Record<string, boolean>>({});
   const loadPrefs = () => {
-    if (typeof window === "undefined") return { defaultModel: "gpt-4", defaultTone: "" };
+    if (typeof window === "undefined") return { defaultModel: DEFAULT_MODEL_ID, defaultTone: "" };
     try {
       const raw = localStorage.getItem("pp_prefs");
-      if (raw) return { defaultModel: "gpt-4", defaultTone: "", ...JSON.parse(raw) };
+      if (raw) return { defaultModel: DEFAULT_MODEL_ID, defaultTone: "", ...JSON.parse(raw) };
     } catch {
       // ignore
     }
-    return { defaultModel: "gpt-4", defaultTone: "" };
+    return { defaultModel: DEFAULT_MODEL_ID, defaultTone: "" };
   };
   const initialPrefs = loadPrefs();
   const [defaultModel, setDefaultModel] = useState(initialPrefs.defaultModel);
@@ -309,14 +310,6 @@ export default function SettingsPage() {
     { id: "api-keys", label: "API Keys", icon: Key },
     { id: "preferences", label: "Preferences", icon: Palette },
     { id: "notifications", label: "Notifications", icon: Bell },
-  ];
-
-  const models = [
-    { id: "gpt-4", name: "GPT-4", provider: "OpenAI" },
-    { id: "claude-3", name: "Claude 3", provider: "Anthropic" },
-    { id: "gemini-pro", name: "Gemini Pro", provider: "Google" },
-    { id: "grok", name: "Grok", provider: "xAI" },
-    { id: "deepseek", name: "DeepSeek", provider: "DeepSeek" },
   ];
 
   return (
@@ -520,8 +513,8 @@ export default function SettingsPage() {
                     onChange={(e) => setDefaultModel(e.target.value)}
                     className="h-9 w-full rounded-lg border bg-background px-3 text-sm outline-none focus:border-ring"
                   >
-                    {models.map((m) => (
-                      <option key={m.id} value={m.id}>{m.name} ({m.provider})</option>
+                    {MODELS.map((m) => (
+                      <option key={m.id} value={m.id}>{getModelDisplayLabel(m)}</option>
                     ))}
                   </select>
                 </div>

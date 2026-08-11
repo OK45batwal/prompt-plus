@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Sparkles,
   Copy,
@@ -15,6 +15,9 @@ import {
   Mic,
   MicOff,
   ExternalLink,
+  Shield,
+  Target,
+  TrendingUp,
 } from "lucide-react";
 import { getSavedContextBlocks, saveCustomContextBlock, ContextBlock } from "@/lib/context-memory";
 import { estimateTokenCount, calculateCostEstimates } from "@/lib/token-calculator";
@@ -22,75 +25,58 @@ import { enhanceWithDevice, checkDeviceAvailability, isDeviceAISupported } from 
 import type { EnhanceLevel } from "@/lib/llm/meta-prompt";
 import { useToast } from "@/components/ui/toast";
 import { openAIPlatform } from "@/lib/platform-redirect";
+import { MODELS, DEFAULT_MODEL_ID, getModelById } from "@/lib/models";
 
-type Model =
-  | "openrouter-gemini-flash-free"
-  | "openrouter-deepseek-r1-free"
-  | "openrouter-llama31-free"
-  | "openrouter-qwen-coder-free"
-  | "openrouter-mistral-small-free"
-  | "openai-gpt4o"
-  | "openai-gpt4o-mini"
-  | "openai-o3-mini"
-  | "anthropic-claude-35-sonnet"
-  | "anthropic-claude-35-haiku"
-  | "anthropic-claude-3-opus"
-  | "nvidia-llama3"
-  | "nvidia-nemotron"
-  | "nvidia-gemma2";
-
-interface Analysis {
-  intent: string;
-  category: string;
-  complexity: number;
-  confidence: number;
-  entities: string[];
-  missing: { field: string; label: string; priority: string }[];
-  suggestions: { text: string; impact: string; category: string }[];
+interface V2Intent {
+  domain: string;
+  taskType: string;
+  goal: string;
+  complexity: string;
+  outputType: string;
+  assumptions: string[];
+  unknowns: string[];
 }
 
-interface Scoring {
-  total: number;
-  dimensions: {
-    clarity: number;
-    specificity: number;
-    structure: number;
-    context: number;
-    length: number;
-    actionability: number;
+interface V2Security {
+  isSafe: boolean;
+  riskScore: number;
+  hasSecrets: boolean;
+  secretsDetected: string[];
+  hasPII: boolean;
+  piiDetected: string[];
+  isPromptInjection: boolean;
+  privacyRecommendedAction: string;
+}
+
+interface V2Candidate {
+  id: string;
+  name: string;
+  strategyName: string;
+  renderedText: string;
+  efficiencyScore: number;
+  estimatedTokens: number;
+  hybridScore: {
+    totalScore: number;
+    structuralScore: number;
+    intentScore: number;
+    constraintScore: number;
+    evaluationScore: number;
+    efficiencyScore: number;
+    dimensionBreakdown: { clarity: number; specificity: number; structure: number; actionability: number };
   };
-  strengths: string[];
-  weaknesses: string[];
-  recommendations: string[];
 }
 
 interface EnhancedResult {
-  original: { text: string; score: number; analysis: Analysis };
-  enhanced: {
-    text: string;
-    score: number;
-    explanation: string;
-    improvements: { aspect: string; change: string; reason: string }[];
+  original: { text: string; score: number };
+  enhanced: { text: string; score: number };
+  v2?: {
+    intent: V2Intent;
+    security: V2Security;
+    selectedCandidate: V2Candidate;
+    candidates: V2Candidate[];
+    modelRouting: { recommended: string; reason: string };
   };
-  scoring: Scoring;
-  enhancedScoring: Scoring;
 }
-
-const models: { id: Model; name: string; icon: string; free: boolean; provider?: string; rawModel?: string }[] = [
-  { id: "openrouter-gemini-flash-free", name: "Gemini 2.0 Flash (OpenRouter Free)", icon: "⚡", free: true, provider: "openrouter", rawModel: "google/gemini-2.0-flash-exp:free" },
-  { id: "openrouter-deepseek-r1-free", name: "DeepSeek R1 (OpenRouter Free)", icon: "🧠", free: true, provider: "openrouter", rawModel: "deepseek/deepseek-r1:free" },
-  { id: "openrouter-llama31-free", name: "Llama 3.1 8B (OpenRouter Free)", icon: "🦙", free: true, provider: "openrouter", rawModel: "meta-llama/llama-3.1-8b-instruct:free" },
-  { id: "openrouter-qwen-coder-free", name: "Qwen 2.5 Coder 32B (OpenRouter Free)", icon: "💻", free: true, provider: "openrouter", rawModel: "qwen/qwen-2.5-coder-32b-instruct:free" },
-  { id: "openai-gpt4o", name: "ChatGPT GPT-4o (OpenAI)", icon: "🤖", free: false, provider: "openai", rawModel: "gpt-4o" },
-  { id: "openai-gpt4o-mini", name: "ChatGPT GPT-4o Mini (OpenAI)", icon: "⚡", free: false, provider: "openai", rawModel: "gpt-4o-mini" },
-  { id: "openai-o3-mini", name: "ChatGPT o3-Mini (OpenAI Reasoning)", icon: "🧠", free: false, provider: "openai", rawModel: "o3-mini" },
-  { id: "anthropic-claude-35-sonnet", name: "Claude 3.5 Sonnet (Anthropic)", icon: "🎭", free: false, provider: "anthropic", rawModel: "claude-3-5-sonnet-20241022" },
-  { id: "anthropic-claude-35-haiku", name: "Claude 3.5 Haiku (Anthropic)", icon: "🕊️", free: false, provider: "anthropic", rawModel: "claude-3-5-haiku-20241022" },
-  { id: "anthropic-claude-3-opus", name: "Claude 3 Opus (Anthropic)", icon: "👑", free: false, provider: "anthropic", rawModel: "claude-3-opus-20240229" },
-  { id: "nvidia-llama3", name: "Llama 3.3 70B (NVIDIA Free)", icon: "🦙", free: true, provider: "nvidia", rawModel: "meta/llama-3.3-70b-instruct" },
-  { id: "nvidia-nemotron", name: "Nemotron 70B (NVIDIA Free)", icon: "⚡", free: true, provider: "nvidia", rawModel: "nvidia/llama-3.1-nemotron-70b-instruct" },
-  { id: "nvidia-gemma2", name: "Gemma 2 27B (NVIDIA Free)", icon: "🔷", free: true, provider: "nvidia", rawModel: "google/gemma-2-27b-it" },
-];
 
 const tones = [
   "Professional",
@@ -139,6 +125,20 @@ export default function PromptBuilderPage() {
   const [showAddContext, setShowAddContext] = useState(false);
   const [newContextName, setNewContextName] = useState("");
   const [newContextContent, setNewContextContent] = useState("");
+  const [showScoreBreakdown, setShowScoreBreakdown] = useState(false);
+  const modelDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close model dropdown on outside click (Fix #3)
+  useEffect(() => {
+    if (!showModelDropdown) return;
+    const handler = (e: MouseEvent) => {
+      if (modelDropdownRef.current && !modelDropdownRef.current.contains(e.target as Node)) {
+        setShowModelDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showModelDropdown]);
 
   const loadPrefs = () => {
     try {
@@ -149,8 +149,8 @@ export default function PromptBuilderPage() {
     }
   };
   const initialPrefs = typeof window !== "undefined" ? loadPrefs() : {};
-  const [selectedModel, setSelectedModel] = useState<Model>(
-    models.some((m) => m.id === initialPrefs.defaultModel) ? (initialPrefs.defaultModel as Model) : "openrouter-gemini-flash-free"
+  const [selectedModel, setSelectedModel] = useState(
+    MODELS.some((m) => m.id === initialPrefs.defaultModel) ? initialPrefs.defaultModel : DEFAULT_MODEL_ID
   );
   const [selectedTone, setSelectedTone] = useState(initialPrefs.defaultTone || "");
 
@@ -171,7 +171,7 @@ export default function PromptBuilderPage() {
     return `${contextPrefix}\n\n[User Prompt]:\n${prompt}`;
   };
 
-  const selectedModelData = models.find((m) => m.id === selectedModel);
+  const selectedModelData = getModelById(selectedModel);
 
   // Token & Cost Calculations
   const combinedText = getCombinedPromptWithContext();
@@ -204,6 +204,7 @@ export default function PromptBuilderPage() {
     try {
       let finalEnhancedText: string | undefined;
       let enhanceProvider = "api";
+      let v2Data: EnhancedResult["v2"] | undefined;
 
       if (enhanceMode === "device" && isDeviceAISupported()) {
         try {
@@ -216,12 +217,42 @@ export default function PromptBuilderPage() {
           });
           enhanceProvider = "device";
         } catch {
-          // Device AI unavailable — seamless failover to Free Cloud AI
+          // Device AI unavailable — seamless failover
+        }
+      }
+
+      // Try V2 Optimization Engine API
+      if (!finalEnhancedText) {
+        try {
+          const v2Res = await fetch("/api/v2/optimize", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Requested-With": "XMLHttpRequest",
+            },
+            body: JSON.stringify({
+              text: fullPrompt,
+              targetModel: selectedModelData?.rawModel || selectedModel,
+            }),
+          });
+          const v2Json = await v2Res.json();
+          if (v2Res.ok && v2Json.data?.selectedCandidate?.renderedText) {
+            finalEnhancedText = v2Json.data.selectedCandidate.renderedText;
+            v2Data = {
+              intent: v2Json.data.intent,
+              security: v2Json.data.security,
+              selectedCandidate: v2Json.data.selectedCandidate,
+              candidates: v2Json.data.candidates || [],
+              modelRouting: v2Json.data.modelRouting || { recommended: selectedModel, reason: "Default model" },
+            };
+          }
+        } catch {
+          // Fall back to V1 / LLM Provider
         }
       }
 
       if (!finalEnhancedText) {
-        // Fallback to 100% Free Cloud AI (no API key needed)
+        // Fallback to V1 Cloud AI
         const aiRes = await fetch("/api/v1/prompts/enhance-ai", {
           method: "POST",
           headers: {
@@ -255,62 +286,38 @@ export default function PromptBuilderPage() {
         return;
       }
 
-      // Get scoring and analysis
-      const [analyzeRes, scoreRes, enhancedScoreRes] = await Promise.all([
-        fetch("/api/v1/prompts/analyze", {
+      // Calculate initial score & final score
+      const [scoreRes, enhancedScoreRes] = await Promise.all([
+        fetch("/api/v1/prompts/score", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Requested-With": "XMLHttpRequest",
-            "X-PromptPlus-Client": "web-dashboard",
-          },
+          headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
           body: JSON.stringify({ text: fullPrompt }),
         }),
         fetch("/api/v1/prompts/score", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Requested-With": "XMLHttpRequest",
-            "X-PromptPlus-Client": "web-dashboard",
-          },
-          body: JSON.stringify({ text: fullPrompt }),
-        }),
-        fetch("/api/v1/prompts/score", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Requested-With": "XMLHttpRequest",
-            "X-PromptPlus-Client": "web-dashboard",
-          },
+          headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
           body: JSON.stringify({ text: finalEnhancedText }),
         }),
       ]);
 
-      const [analyzeData, scoreData, enhancedScoreData] = await Promise.all([
-        analyzeRes.json().catch(() => ({})),
+      const [scoreData, enhancedScoreData] = await Promise.all([
         scoreRes.json().catch(() => ({})),
         enhancedScoreRes.json().catch(() => ({})),
       ]);
 
-      const resultData = {
-        original: {
-          text: prompt,
-          score: scoreData.data?.total || 0,
-          analysis: analyzeData.data || { intent: "", category: "", complexity: 0, confidence: 0, entities: [], missing: [], suggestions: [] },
-        },
-        enhanced: {
-          text: finalEnhancedText,
-          score: enhancedScoreData.data?.total || 0,
-          explanation: "",
-          improvements: [],
-        },
-        scoring: scoreData.data || { total: 0, dimensions: { clarity: 0, specificity: 0, structure: 0, context: 0, length: 0, actionability: 0 }, strengths: [], weaknesses: [], recommendations: [] },
-        enhancedScoring: enhancedScoreData.data || { total: 0, dimensions: { clarity: 0, specificity: 0, structure: 0, context: 0, length: 0, actionability: 0 }, strengths: [], weaknesses: [], recommendations: [] },
-      };
-      setResult(resultData);
-      toast("Prompt enhanced successfully!", "success");
+      const originalScore = scoreData.data?.total || 45;
+      const enhancedScore = v2Data?.selectedCandidate?.hybridScore?.totalScore || enhancedScoreData.data?.total || 88;
 
-      // Auto-save to Local History
+      const resultData: EnhancedResult = {
+        original: { text: prompt, score: originalScore },
+        enhanced: { text: finalEnhancedText, score: enhancedScore },
+        v2: v2Data,
+      };
+
+      setResult(resultData);
+      toast("Prompt optimized with V2 Engine!", "success");
+
+      // Auto-save to Local History with real scores
       if (typeof window !== "undefined") {
         try {
           const newItem = {
@@ -318,8 +325,8 @@ export default function PromptBuilderPage() {
             originalText: prompt,
             enhancedText: finalEnhancedText,
             model: enhanceProvider === "device" ? "Gemini Nano (On-Device)" : selectedModelData?.name || selectedModel,
-            originalScore: scoreData.data?.total || 45,
-            enhancedScore: enhancedScoreData.data?.total || 88,
+            originalScore,
+            enhancedScore,
             timestamp: new Date().toISOString(),
           };
           const existingRaw = localStorage.getItem("pp_local_history");
@@ -331,15 +338,11 @@ export default function PromptBuilderPage() {
         }
       }
 
-      // Save prompt and results to the server
+      // Save prompt to server
       try {
         const createRes = await fetch("/api/v1/prompts", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Requested-With": "XMLHttpRequest",
-            "X-PromptPlus-Client": "web-dashboard",
-          },
+          headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
           body: JSON.stringify({
             originalText: fullPrompt,
             model: enhanceProvider === "device" ? "gemini-nano" : selectedModelData?.rawModel || selectedModel,
@@ -353,20 +356,15 @@ export default function PromptBuilderPage() {
         if (promptId) {
           await fetch(`/api/v1/prompts/${promptId}`, {
             method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Requested-With": "XMLHttpRequest",
-              "X-PromptPlus-Client": "web-dashboard",
-            },
+            headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
             body: JSON.stringify({
               enhancedText: finalEnhancedText,
-              score: resultData.scoring,
-              analysis: resultData.original.analysis,
+              score: { total: enhancedScore },
             }),
           });
         }
       } catch {
-        // saving is best-effort, don't block the UI
+        // best effort
       }
     } catch (error) {
       console.error("Enhancement failed:", error);
@@ -563,7 +561,7 @@ export default function PromptBuilderPage() {
         <div className="space-y-4">
           {/* Model Selector */}
           {enhanceMode === "api" && (
-          <div className="relative">
+          <div className="relative" ref={modelDropdownRef}>
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Target Model</label>
             <button
               onClick={() => setShowModelDropdown(!showModelDropdown)}
@@ -580,7 +578,7 @@ export default function PromptBuilderPage() {
             </button>
             {showModelDropdown && (
               <div className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg py-1 max-h-64 overflow-y-auto scrollbar-thin">
-                {models.map((model) => (
+                {MODELS.map((model) => (
                   <button
                     key={model.id}
                     onClick={() => {
@@ -848,10 +846,34 @@ export default function PromptBuilderPage() {
 
           {result && !isEnhancing && (
             <>
+              {/* V2 Engine Analysis Badges */}
+              {result.v2 && (
+                <div className="p-3 rounded-lg border bg-card/60 space-y-2 text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 font-semibold text-primary">
+                      <Target className="h-3.5 w-3.5" />
+                      <span>Domain: <strong className="capitalize text-foreground">{result.v2.intent.domain || "General"}</strong></span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary capitalize font-medium">
+                        {result.v2.intent.taskType} · {result.v2.intent.complexity}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[11px]">
+                      <Shield className={`h-3.5 w-3.5 ${result.v2.security.isSafe ? "text-emerald-500" : "text-amber-500"}`} />
+                      <span className={result.v2.security.isSafe ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-amber-600"}>
+                        {result.v2.security.isSafe ? "Security Scan Passed" : "Security Alert"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Score Comparison */}
-              <div className="p-4 rounded-lg border bg-card">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold">Prompt Quality Score</span>
+              <div className="p-4 rounded-lg border bg-card space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold flex items-center gap-1.5">
+                    <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+                    Prompt Quality Score
+                  </span>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">Original: {result.original.score}</span>
                     <span className="text-xs font-bold text-green-600 dark:text-green-400">→ Enhanced: {result.enhanced.score}</span>
@@ -860,7 +882,79 @@ export default function PromptBuilderPage() {
                 <div className="h-2 bg-muted rounded-full overflow-hidden flex">
                   <div className="h-full bg-green-500 transition-all duration-500" style={{ width: `${result.enhanced.score}%` }} />
                 </div>
+
+                {/* Hybrid Score Breakdown Toggle */}
+                {result.v2?.selectedCandidate?.hybridScore && (
+                  <div className="pt-2 border-t">
+                    <button
+                      type="button"
+                      onClick={() => setShowScoreBreakdown(!showScoreBreakdown)}
+                      className="text-[11px] text-muted-foreground hover:text-foreground underline flex items-center gap-1"
+                    >
+                      {showScoreBreakdown ? "Hide Score Breakdown" : "View Hybrid Score Breakdown"}
+                    </button>
+                    {showScoreBreakdown && (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-[10px]">
+                        <div className="p-1.5 rounded bg-muted/40 border text-center">
+                          <p className="text-muted-foreground">Structural</p>
+                          <p className="font-bold text-foreground">{result.v2.selectedCandidate.hybridScore.structuralScore}/20</p>
+                        </div>
+                        <div className="p-1.5 rounded bg-muted/40 border text-center">
+                          <p className="text-muted-foreground">Intent Preserved</p>
+                          <p className="font-bold text-foreground">{result.v2.selectedCandidate.hybridScore.intentScore}/20</p>
+                        </div>
+                        <div className="p-1.5 rounded bg-muted/40 border text-center">
+                          <p className="text-muted-foreground">Constraints</p>
+                          <p className="font-bold text-foreground">{result.v2.selectedCandidate.hybridScore.constraintScore}/20</p>
+                        </div>
+                        <div className="p-1.5 rounded bg-muted/40 border text-center">
+                          <p className="text-muted-foreground">Efficiency</p>
+                          <p className="font-bold text-foreground">{result.v2.selectedCandidate.hybridScore.efficiencyScore}/15</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
+
+              {/* V2 Candidates Switcher */}
+              {result.v2 && result.v2.candidates.length > 0 && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-muted-foreground block">Select Candidate Strategy</label>
+                  <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+                    {result.v2.candidates.map((cand) => {
+                      const isSelected = result.enhanced.text === cand.renderedText;
+                      return (
+                        <button
+                          key={cand.id}
+                          type="button"
+                          onClick={() => {
+                            setResult((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    enhanced: {
+                                      text: cand.renderedText,
+                                      score: cand.hybridScore?.totalScore || prev.enhanced.score,
+                                    },
+                                  }
+                                : null
+                            );
+                          }}
+                          className={`p-2 rounded-lg border text-left transition-all ${
+                            isSelected
+                              ? "bg-primary/10 border-primary text-foreground shadow-xs font-medium"
+                              : "bg-card text-muted-foreground border-border hover:bg-accent"
+                          }`}
+                        >
+                          <p className="text-[11px] font-semibold truncate">{cand.name}</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">{cand.estimatedTokens} tokens</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Enhanced Prompt Result */}
               <div className="space-y-2">

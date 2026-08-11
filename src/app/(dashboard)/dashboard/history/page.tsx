@@ -6,6 +6,8 @@ import { Search, Clock, RotateCcw, ChevronDown, Check, Sparkles, Loader2 } from 
 import { useToast } from "@/components/ui/toast";
 import Link from "next/link";
 
+import { calculateDynamicPromptScore } from "@/lib/scoring";
+
 interface HistoryItem {
   id: string;
   originalText: string;
@@ -29,15 +31,19 @@ export default function HistoryPage() {
       const raw = localStorage.getItem("pp_local_history");
       if (raw) {
         const parsed = JSON.parse(raw);
-        localItems = (parsed || []).map((x: { id?: string; originalText: string; enhancedText: string; model?: string; originalScore?: number; enhancedScore?: number; timestamp: string }) => ({
-          id: x.id || `local_${Math.random()}`,
-          originalText: x.originalText || "",
-          enhancedText: x.enhancedText || "",
-          model: x.model || "AI Prompt+",
-          originalScore: x.originalScore || 45,
-          enhancedScore: x.enhancedScore || 88,
-          timestamp: new Date(x.timestamp).toLocaleDateString(),
-        }));
+        localItems = (parsed || []).map((x: { id?: string; originalText: string; enhancedText: string; model?: string; originalScore?: number; enhancedScore?: number; timestamp: string }) => {
+          const orig = x.originalText || "";
+          const enh = x.enhancedText || "";
+          return {
+            id: x.id || `local_${Math.random()}`,
+            originalText: orig,
+            enhancedText: enh,
+            model: x.model || "AI Prompt+",
+            originalScore: typeof x.originalScore === "number" && x.originalScore > 0 ? x.originalScore : calculateDynamicPromptScore(orig).total,
+            enhancedScore: typeof x.enhancedScore === "number" && x.enhancedScore > 0 ? x.enhancedScore : calculateDynamicPromptScore(enh).total,
+            timestamp: new Date(x.timestamp).toLocaleDateString(),
+          };
+        });
       }
     } catch {
       // ignore
@@ -46,15 +52,23 @@ export default function HistoryPage() {
     fetch("/api/v1/prompts?pageSize=50")
       .then((r) => r.json())
       .then((json) => {
-        const serverItems = (json.data || []).map((p: { id: string; originalText: string; enhancedText: string | null; model: string; score: unknown; createdAt: string }) => ({
-          id: p.id,
-          originalText: p.originalText,
-          enhancedText: p.enhancedText || "",
-          model: p.model,
-          originalScore: 45,
-          enhancedScore: (typeof p.score === "object" && p.score && "total" in (p.score as Record<string, unknown>)) ? Number((p.score as Record<string, unknown>).total) || 85 : 85,
-          timestamp: new Date(p.createdAt).toLocaleDateString(),
-        }));
+        const serverItems = (json.data || []).map((p: { id: string; originalText: string; enhancedText: string | null; model: string; score: unknown; createdAt: string }) => {
+          const orig = p.originalText || "";
+          const enh = p.enhancedText || "";
+          const serverScore = (typeof p.score === "object" && p.score && "total" in (p.score as Record<string, unknown>))
+            ? Number((p.score as Record<string, unknown>).total)
+            : 0;
+
+          return {
+            id: p.id,
+            originalText: orig,
+            enhancedText: enh,
+            model: p.model,
+            originalScore: calculateDynamicPromptScore(orig).total,
+            enhancedScore: serverScore > 0 ? serverScore : calculateDynamicPromptScore(enh).total,
+            timestamp: new Date(p.createdAt).toLocaleDateString(),
+          };
+        });
 
         // Merge server and local items, deduplicating by originalText
         const textSet = new Set(serverItems.map((s: HistoryItem) => s.originalText.trim()));
