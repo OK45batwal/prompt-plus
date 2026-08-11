@@ -22,7 +22,7 @@ console.log(`📦 Packaging Prompt+ Extension v${manifest.version}...`);
 
 try {
   // Zip extension files using zip command
-  execSync(`cd "${extDir}" && zip -r "${zipPath}" manifest.json background.js content.js popup.html popup.js icons/ README.md`, {
+  execSync(`cd "${extDir}" && zip -r "${zipPath}" manifest.json background.js content.js popup.html popup.js icons/ adapters/ README.md`, {
     stdio: "inherit",
   });
 

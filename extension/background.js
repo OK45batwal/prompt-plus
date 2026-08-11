@@ -134,7 +134,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         let lastErr = "";
 
         for (const baseUrl of targetUrls) {
-          const url = `${baseUrl}/api/v1/extension/enhance`;
+          const url = `${baseUrl}/api/v2/extension/optimize`;
           try {
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 12000);
