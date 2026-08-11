@@ -1,4 +1,4 @@
-import { TaskType, QuestionCandidate, IntentExtractionResult } from "./types";
+import { QuestionCandidate, IntentExtractionResult } from "./types";
 
 export interface ContextGap {
   id: string;
@@ -96,9 +96,6 @@ export function generateAdaptiveQuestions(gaps: ContextGap[], maxQuestions = 3):
     const uncertaintyReduction = gap.uncertainty * 0.9;
     const taskImpact = gap.impact;
     const estimatedUserEffort = options ? 1 : 2; // Low effort for multi-choice
-
-    const value = Math.round(((uncertaintyReduction * taskImpact) / estimatedUserEffort) * 100) / 100;
-
     candidates.push({
       id: `q_${gap.id}`,
       field: gap.field,

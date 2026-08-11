@@ -1,4 +1,4 @@
-import { PromptIR, PromptCandidate, TaskType, StrategyId } from "./types";
+import { PromptIR, PromptCandidate, TaskType } from "./types";
 import { renderPromptIRToString, removeRedundantInstructions, addConstraint } from "./prompt-ir";
 import { StrategyRegistry, selectStrategiesForTask } from "./strategy-engine";
 
@@ -41,7 +41,7 @@ export function generateCandidates(baseIR: PromptIR, taskType: TaskType, complex
   const candidates: PromptCandidate[] = [];
 
   // Remove redundancies first
-  const { ir: cleanedIR, tokensSaved } = removeRedundantInstructions(baseIR);
+  const { ir: cleanedIR } = removeRedundantInstructions(baseIR);
 
   // Candidate A: Concise
   const conciseIR: PromptIR = {

@@ -1,4 +1,4 @@
-import { PromptIR, PromptCandidate, EvaluationCase, EvaluationResult, FailureType } from "./types";
+import { PromptCandidate, EvaluationResult } from "./types";
 import { validatePromptIR } from "./validation-engine";
 import { calculateIntentPreservationScore, extractIntent } from "./intent-engine";
 import { callLLM } from "../llm/providers";

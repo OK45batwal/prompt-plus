@@ -4,10 +4,7 @@ import {
   Instruction,
   Example,
   OutputContract,
-  ContextBlock,
   ReasoningConfig,
-  VerbosityConfig,
-  PromptMetadata,
 } from "./types";
 
 export function createEmptyPromptIR(objective = ""): PromptIR {

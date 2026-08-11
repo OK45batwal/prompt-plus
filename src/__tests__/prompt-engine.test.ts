@@ -5,7 +5,6 @@ import {
   parseTextToPromptIR,
   addConstraint,
   removeRedundantInstructions,
-  setOutputContract,
 } from "../lib/prompt-engine/prompt-ir";
 import { classifyTaskType, extractIntent, calculateIntentPreservationScore } from "../lib/prompt-engine/intent-engine";
 import { detectContextGaps, generateAdaptiveQuestions } from "../lib/prompt-engine/gap-engine";
@@ -41,7 +40,7 @@ describe("Prompt+ 2.0 Engine Suite", () => {
     });
 
     it("detects and removes redundant instructions", () => {
-      let ir = createEmptyPromptIR("Test prompt");
+      const ir = createEmptyPromptIR("Test prompt");
       ir.instructions = [
         { text: "Keep output short" },
         { text: "Keep output short" },
