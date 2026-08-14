@@ -1,7 +1,7 @@
-# Chrome Web Store - CWS Resubmission Package & Permission Justifications (v1.1.2)
+# Chrome Web Store - CWS Resubmission Package & Permission Justifications (v1.1.3)
 
-> **CWS Violation Resolution (Yellow Argon / Keyword Spam):**  
-> All third-party brand names ("ChatGPT", "Claude", "Gemini", "DeepSeek", "Grok", "Perplexity") have been completely removed from extension metadata, store descriptions, and permission justification texts.
+> **CWS Violation Resolution (Purple Potassium / Minimal Permissions Policy):**  
+> Unused `cookies` permission has been completely removed from `manifest.json`. The extension strictly requests only the 3 minimum necessary permissions (`storage`, `activeTab`, `contextMenus`), all of which are actively used by the extension code.
 
 ---
 
@@ -30,30 +30,30 @@ Prompt+ Architect AI has the single purpose of optimizing, structuring, and enha
 
 ---
 
-## 2. API Permission Justifications
+## 2. API Permission Justifications (Narrowest Scope Audit)
 
 ### Permission: `storage`
+* **Why is it needed?**
+  * Required to locally save user preferences, selected prompt engine mode (On-Device vs Cloud API), theme settings, and saved API keys in Chrome's storage.
 * **Console Text:**
 ```text
 The storage permission is required to save user preferences locally, including the selected prompt enhancement engine (On-Device vs API mode), user-defined model parameters, and saved custom API keys. No personal data is transmitted.
 ```
 
 ### Permission: `activeTab`
+* **Why is it needed?**
+  * Allows the extension to interact with the currently active web tab when the user clicks the extension action icon or triggers context menu commands.
 * **Console Text:**
 ```text
 The activeTab permission allows the extension to detect active prompt input fields on the user's active tab when triggered via context menu or keyboard shortcuts, enabling the inline insertion of enhanced prompt text.
 ```
 
 ### Permission: `contextMenus`
+* **Why is it needed?**
+  * Adds the "Enhance Prompt with Prompt+" right-click context menu item so users can highlight text or right-click any prompt input box to enhance it instantly.
 * **Console Text:**
 ```text
 The contextMenus permission is used to create a right-click context menu entry ("Enhance Prompt with Prompt+"), allowing users to quickly send selected text to the enhancement engine directly from any page.
-```
-
-### Permission: `cookies`
-* **Console Text:**
-```text
-The cookies permission is exclusively used to read the authentication session token from our web application domain (https://prompt-plus-three.vercel.app) to verify the user's logged-in status and account tier.
 ```
 
 ---
@@ -61,7 +61,7 @@ The cookies permission is exclusively used to read the authentication session to
 ## 3. Host Permissions Justification
 
 **Field:** Justification for Host Permissions  
-**Console Text (100% Brand-Keyword-Free):**
+**Console Text:**
 ```text
 Host permissions are strictly limited to web-based AI assistant interfaces and our backend domain (prompt-plus-three.vercel.app):
 
@@ -86,6 +86,6 @@ All extension code is completely self-contained within the extension bundle (Man
 
 * **Data Collected:** 
   * *User Activity / Website Content:* Only the prompt text typed or selected by the user when they explicitly click "Enhance".
-  * *Authentication Info:* Session tokens used to verify subscription state.
+  * *Authentication Info:* Session tokens used to verify account status.
 * **Data Use:** Strictly used to perform the core prompt enhancement functionality requested by the user.
 * **Data Sharing:** Data is never sold, traded, or shared with third parties. Prompt text is processed in-memory and sent directly to the designated AI enhancement API.
