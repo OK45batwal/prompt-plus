@@ -1,31 +1,31 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import {
   Sparkles,
   Copy,
   RotateCcw,
-  ChevronDown,
   Check,
   Loader2,
   Brain,
   Zap,
   Calculator,
-  PlusCircle,
   Mic,
   MicOff,
   ExternalLink,
   Shield,
   Target,
-  TrendingUp,
 } from "lucide-react";
-import { getSavedContextBlocks, saveCustomContextBlock, ContextBlock } from "@/lib/context-memory";
+import { getSavedContextBlocks, ContextBlock } from "@/lib/context-memory";
 import { estimateTokenCount, calculateCostEstimates } from "@/lib/token-calculator";
 import { enhanceWithDevice, checkDeviceAvailability, isDeviceAISupported } from "@/lib/llm/device-ai";
 import type { EnhanceLevel } from "@/lib/llm/meta-prompt";
 import { useToast } from "@/components/ui/toast";
 import { openAIPlatform } from "@/lib/platform-redirect";
 import { MODELS, DEFAULT_MODEL_ID, getModelById } from "@/lib/models";
+import { ModelSelector } from "@/components/studio/model-selector";
+import { ContextMemoryPanel } from "@/components/studio/context-memory-panel";
+import { ScoreBreakdown } from "@/components/studio/score-breakdown";
 
 interface V2Intent {
   domain: string;
@@ -116,29 +116,11 @@ export default function PromptBuilderPage() {
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [result, setResult] = useState<EnhancedResult | null>(null);
   const [copied, setCopied] = useState(false);
-  const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [showCostBreakdown, setShowCostBreakdown] = useState(false);
   const [enhanceMode, setEnhanceMode] = useState<"api" | "device">("api");
   const [deviceState, setDeviceState] = useState<"unknown" | "available" | "unavailable" | "downloading">("unknown");
   const [enhanceLevel, setEnhanceLevel] = useState<EnhanceLevel>("deep");
   const [isListening, setIsListening] = useState(false);
-  const [showAddContext, setShowAddContext] = useState(false);
-  const [newContextName, setNewContextName] = useState("");
-  const [newContextContent, setNewContextContent] = useState("");
-  const [showScoreBreakdown, setShowScoreBreakdown] = useState(false);
-  const modelDropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close model dropdown on outside click (Fix #3)
-  useEffect(() => {
-    if (!showModelDropdown) return;
-    const handler = (e: MouseEvent) => {
-      if (modelDropdownRef.current && !modelDropdownRef.current.contains(e.target as Node)) {
-        setShowModelDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [showModelDropdown]);
 
   const loadPrefs = () => {
     try {
@@ -383,6 +365,13 @@ export default function PromptBuilderPage() {
     }
   };
 
+  const handleRefine = () => {
+    if (result?.enhanced?.text) {
+      setPrompt(result.enhanced.text);
+      toast("Loaded enhanced prompt into editor for further refinement!", "info");
+    }
+  };
+
   const handleReset = () => {
     setPrompt("");
     setResult(null);
@@ -459,18 +448,6 @@ export default function PromptBuilderPage() {
       const msg = err instanceof Error ? err.message : "Failed to start speech recognition.";
       setErrorNotice(msg);
     }
-  };
-
-  const handleAddContext = () => {
-    const name = newContextName.trim();
-    const content = newContextContent.trim();
-    if (!name || !content) return;
-    const block = saveCustomContextBlock({ name, description: "Custom saved context", category: "custom", content });
-    setAvailableBlocks((prev) => [...prev, block]);
-    setSelectedBlockIds((prev) => [...prev, block.id]);
-    setNewContextName("");
-    setNewContextContent("");
-    setShowAddContext(false);
   };
 
   const openInTarget = (target: "chatgpt" | "claude" | "gemini") => {
@@ -559,45 +536,15 @@ export default function PromptBuilderPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column: Input & Context Engine */}
         <div className="space-y-4">
-          {/* Model Selector */}
-          {enhanceMode === "api" && (
-          <div className="relative" ref={modelDropdownRef}>
-            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Target Model</label>
-            <button
-              onClick={() => setShowModelDropdown(!showModelDropdown)}
-              className="w-full h-10 flex items-center justify-between px-3 rounded-lg border bg-background text-sm hover:bg-accent transition-colors"
-            >
-              <span className="flex items-center gap-2">
-                <span>{selectedModelData?.icon}</span>
-                <span>{selectedModelData?.name}</span>
-                {selectedModelData?.free && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">FREE</span>
-                )}
-              </span>
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            </button>
-            {showModelDropdown && (
-              <div className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg py-1 max-h-64 overflow-y-auto scrollbar-thin">
-                {MODELS.map((model) => (
-                  <button
-                    key={model.id}
-                    onClick={() => {
-                      setSelectedModel(model.id);
-                      setShowModelDropdown(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors text-left"
-                  >
-                    <span className="shrink-0">{model.icon}</span>
-                    <span className="truncate">{model.name}</span>
-                    {model.free && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 ml-auto shrink-0">FREE</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          )}
+          {/* Modular Model Selector */}
+          <ModelSelector
+            selectedModel={selectedModel}
+            onSelectModel={setSelectedModel}
+            enhanceMode={enhanceMode}
+            onSetEnhanceMode={setEnhanceMode}
+            deviceState={deviceState}
+            onSetDeviceState={setDeviceState}
+          />
 
           {/* Enhancement Level Selector */}
           <div className="p-3 rounded-lg border bg-card">
@@ -615,10 +562,11 @@ export default function PromptBuilderPage() {
                   key={l.id}
                   type="button"
                   onClick={() => setEnhanceLevel(l.id)}
-                  className={`h-8 rounded-lg border text-xs font-medium transition-colors ${enhanceLevel === l.id
+                  className={`h-8 rounded-lg border text-xs font-medium transition-colors ${
+                    enhanceLevel === l.id
                       ? "bg-primary text-primary-foreground border-primary"
                       : "bg-background text-muted-foreground border-border hover:bg-accent"
-                    }`}
+                  }`}
                 >
                   {l.label}
                 </button>
@@ -626,76 +574,20 @@ export default function PromptBuilderPage() {
             </div>
           </div>
 
-          {/* Context Memory & System Rules Engine Selector */}
-          <div className="p-3 rounded-lg border bg-accent/30 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold flex items-center gap-1.5">
-                <Brain className="h-3.5 w-3.5 text-blue-500" /> Context Memory & System Rules
-              </span>
-              <span className="text-[10px] text-muted-foreground">
-                {selectedBlockIds.length} active block{selectedBlockIds.length !== 1 && "s"}
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {availableBlocks.map((block) => {
-                const isActive = selectedBlockIds.includes(block.id);
-                return (
-                  <button
-                    key={block.id}
-                    type="button"
-                    onClick={() => toggleContextBlock(block.id)}
-                    className={`text-[11px] px-2.5 py-1 rounded-full border transition-all flex items-center gap-1 ${isActive
-                        ? "bg-primary text-primary-foreground border-primary font-medium shadow-xs"
-                        : "bg-background text-muted-foreground border-border hover:bg-accent"
-                      }`}
-                  >
-                    {isActive ? <Check className="h-3 w-3" /> : <PlusCircle className="h-3 w-3 opacity-60" />}
-                    {block.name}
-                  </button>
-                );
-              })}
-              <button
-                type="button"
-                onClick={() => setShowAddContext(!showAddContext)}
-                className="text-[11px] px-2.5 py-1 rounded-full border border-dashed text-primary hover:bg-accent"
-              >
-                + Save Context
-              </button>
-            </div>
-            {showAddContext && (
-              <div className="space-y-2 pt-2 border-t">
-                <input
-                  value={newContextName}
-                  onChange={(e) => setNewContextName(e.target.value)}
-                  placeholder="Context name (e.g. My SaaS brand voice)"
-                  className="w-full h-8 px-2 rounded-lg border bg-background text-xs outline-none focus:border-ring"
-                />
-                <textarea
-                  value={newContextContent}
-                  onChange={(e) => setNewContextContent(e.target.value)}
-                  placeholder="Context to auto-include in every enhancement (audience, brand, guidelines...)"
-                  className="w-full h-16 p-2 rounded-lg border bg-background text-xs outline-none focus:border-ring resize-none"
-                />
-                <div className="flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddContext(false)}
-                    className="text-[11px] text-muted-foreground hover:text-foreground"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleAddContext}
-                    disabled={!newContextName.trim() || !newContextContent.trim()}
-                    className="text-[11px] px-2.5 py-1 rounded-lg bg-primary text-primary-foreground font-medium disabled:opacity-50"
-                  >
-                    Save & Activate
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Modular Context Memory Panel */}
+          <ContextMemoryPanel
+            availableBlocks={availableBlocks}
+            selectedBlockIds={selectedBlockIds}
+            onToggleBlock={toggleContextBlock}
+            onAddBlock={(block) => {
+              setAvailableBlocks((prev) => [...prev, block]);
+              setSelectedBlockIds((prev) => [...prev, block.id]);
+            }}
+            onDeleteBlock={(id) => {
+              setAvailableBlocks((prev) => prev.filter((b) => b.id !== id));
+              setSelectedBlockIds((prev) => prev.filter((bId) => bId !== id));
+            }}
+          />
 
           {/* Prompt Input */}
           <div>
@@ -867,55 +759,12 @@ export default function PromptBuilderPage() {
                 </div>
               )}
 
-              {/* Score Comparison */}
-              <div className="p-4 rounded-lg border bg-card space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold flex items-center gap-1.5">
-                    <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-                    Prompt Quality Score
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">Original: {result.original.score}</span>
-                    <span className="text-xs font-bold text-green-600 dark:text-green-400">→ Enhanced: {result.enhanced.score}</span>
-                  </div>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden flex">
-                  <div className="h-full bg-green-500 transition-all duration-500" style={{ width: `${result.enhanced.score}%` }} />
-                </div>
-
-                {/* Hybrid Score Breakdown Toggle */}
-                {result.v2?.selectedCandidate?.hybridScore && (
-                  <div className="pt-2 border-t">
-                    <button
-                      type="button"
-                      onClick={() => setShowScoreBreakdown(!showScoreBreakdown)}
-                      className="text-[11px] text-muted-foreground hover:text-foreground underline flex items-center gap-1"
-                    >
-                      {showScoreBreakdown ? "Hide Score Breakdown" : "View Hybrid Score Breakdown"}
-                    </button>
-                    {showScoreBreakdown && (
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-[10px]">
-                        <div className="p-1.5 rounded bg-muted/40 border text-center">
-                          <p className="text-muted-foreground">Structural</p>
-                          <p className="font-bold text-foreground">{result.v2.selectedCandidate.hybridScore.structuralScore}/20</p>
-                        </div>
-                        <div className="p-1.5 rounded bg-muted/40 border text-center">
-                          <p className="text-muted-foreground">Intent Preserved</p>
-                          <p className="font-bold text-foreground">{result.v2.selectedCandidate.hybridScore.intentScore}/20</p>
-                        </div>
-                        <div className="p-1.5 rounded bg-muted/40 border text-center">
-                          <p className="text-muted-foreground">Constraints</p>
-                          <p className="font-bold text-foreground">{result.v2.selectedCandidate.hybridScore.constraintScore}/20</p>
-                        </div>
-                        <div className="p-1.5 rounded bg-muted/40 border text-center">
-                          <p className="text-muted-foreground">Efficiency</p>
-                          <p className="font-bold text-foreground">{result.v2.selectedCandidate.hybridScore.efficiencyScore}/15</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              {/* Score Comparison with Dimension Breakdown */}
+              <ScoreBreakdown
+                originalScore={result.original.score}
+                enhancedScore={result.enhanced.score}
+                v2HybridScore={result.v2?.selectedCandidate?.hybridScore}
+              />
 
               {/* V2 Candidates Switcher */}
               {result.v2 && result.v2.candidates.length > 0 && (
@@ -961,6 +810,14 @@ export default function PromptBuilderPage() {
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-semibold">Optimized Prompt</label>
                   <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleRefine}
+                      className="text-xs font-semibold text-primary hover:bg-primary/10 px-2 py-0.5 rounded flex items-center gap-1 border border-primary/30"
+                      title="Load this prompt back into input for further refinement"
+                    >
+                      <RotateCcw className="h-3 w-3" /> Refine
+                    </button>
                     <div className="flex items-center gap-1">
                       {(["chatgpt", "claude", "gemini"] as const).map((t) => (
                         <button

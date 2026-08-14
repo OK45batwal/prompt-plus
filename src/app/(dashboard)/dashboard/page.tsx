@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sparkles, Book, History, Folder, LayoutTemplate, GitCompare, ArrowRight, Zap, TrendingUp, Loader2 } from "lucide-react";
+import { OnboardingTour } from "@/components/dashboard/onboarding-tour";
 
 const quickActions = [
   {
@@ -77,6 +78,9 @@ export default function DashboardPage() {
           Create Prompt
         </Link>
       </div>
+
+      {/* Interactive First-Use Onboarding Tour */}
+      <OnboardingTour />
 
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
