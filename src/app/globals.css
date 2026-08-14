@@ -50,22 +50,22 @@
 }
 
 .dark {
-  --bg: #0a0a0c;
+  --bg: #09090b;
   --fg: #f4f4f5;
-  --card: #131316;
+  --card: #121215;
   --card-fg: #f4f4f5;
-  --popover: #131316;
+  --popover: #121215;
   --popover-fg: #f4f4f5;
-  --muted: #1c1c20;
+  --muted: #1a1a1e;
   --muted-fg: #9a9aa1;
-  --border: #26262b;
-  --input: #26262b;
+  --border: #1e1e24;
+  --input: #1e1e24;
   --ring: #6366f1;
-  --accent: #1c1c20;
+  --accent: #1a1a1e;
   --accent-fg: #f4f4f5;
   --primary: #6366f1;
   --primary-fg: #ffffff;
-  --secondary: #1c1c20;
+  --secondary: #1a1a1e;
   --secondary-fg: #f4f4f5;
   --destructive: #f87171;
   --destructive-fg: #ffffff;
@@ -82,8 +82,8 @@ body {
 }
 
 ::selection {
-  background: var(--accent);
-  color: var(--accent-fg);
+  background: rgba(99, 102, 241, 0.25);
+  color: var(--fg);
 }
 
 .pb-safe {

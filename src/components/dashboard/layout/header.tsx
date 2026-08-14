@@ -55,7 +55,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="h-14 border-b bg-background/80 backdrop-blur-md flex items-center px-4 gap-3 shrink-0 sticky top-0 z-40">
+    <header className="h-14 border bg-card/70 backdrop-blur-xl rounded-2xl mx-3 sm:mx-6 mt-3 px-4 flex items-center gap-3 shrink-0 sticky top-3 z-40 shadow-xs border-foreground/10">
       {/* Mobile Menu */}
       <Button
         variant="ghost"

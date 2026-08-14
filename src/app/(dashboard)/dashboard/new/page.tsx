@@ -589,66 +589,68 @@ export default function PromptBuilderPage() {
             }}
           />
 
-          {/* Prompt Input */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-medium text-muted-foreground block">Your Prompt</label>
-              <button
-                type="button"
-                onClick={handleVoiceInput}
-                className={`text-[11px] flex items-center gap-1 px-2 py-0.5 rounded-full border transition-colors ${
-                  isListening
-                    ? "bg-red-500/10 border-red-500/40 text-red-500"
-                    : "text-muted-foreground border-border hover:text-foreground hover:bg-accent"
-                }`}
-              >
-                {isListening ? <MicOff className="h-3 w-3" /> : <Mic className="h-3 w-3" />}
-                {isListening ? "Listening…" : "Voice input"}
-              </button>
-            </div>
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Enter your prompt here... Context Memory blocks above will be automatically included."
-              className="w-full h-40 p-3 rounded-lg border bg-background text-sm resize-none outline-none focus:border-ring focus:ring-1 focus:ring-ring placeholder:text-muted-foreground font-sans"
-            />
-
-            {/* Real-Time Token & Cost Estimation Counter */}
-            <div className="mt-2 p-2.5 rounded-lg border bg-card text-xs space-y-2">
-              <div className="flex flex-wrap items-center justify-between text-muted-foreground gap-1">
-                  <div className="flex flex-wrap items-center gap-3">
-                  <span className="flex items-center gap-1 font-medium text-foreground">
-                    <Zap className="h-3.5 w-3.5 text-amber-500" /> ~{estimatedTokens} Tokens
-                  </span>
-                  <span>{prompt.split(/\s+/).filter(Boolean).length} words</span>
-                  <span>{prompt.length} chars</span>
-                </div>
+          {/* Prompt Input Double-Bezel Container */}
+          <div className="p-2 rounded-2xl bg-card border border-foreground/10 shadow-xs space-y-2">
+            <div className="p-3 rounded-xl bg-background border border-foreground/5 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-muted-foreground block">Your Prompt</label>
                 <button
                   type="button"
-                  onClick={() => setShowCostBreakdown(!showCostBreakdown)}
-                  className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                  onClick={handleVoiceInput}
+                  className={`text-[11px] flex items-center gap-1 px-2.5 py-1 rounded-full border transition-colors ${
+                    isListening
+                      ? "bg-red-500/10 border-red-500/40 text-red-500 font-medium"
+                      : "text-muted-foreground border-border hover:text-foreground hover:bg-accent"
+                  }`}
                 >
-                  <Calculator className="h-3 w-3" /> Cost Breakdown
+                  {isListening ? <MicOff className="h-3 w-3" /> : <Mic className="h-3 w-3" />}
+                  {isListening ? "Listening…" : "Voice input"}
                 </button>
               </div>
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Enter your prompt here... Context Memory blocks above will be automatically included."
+                className="w-full h-40 p-3 rounded-lg border-0 bg-transparent text-sm resize-none outline-none placeholder:text-muted-foreground font-sans"
+              />
 
-              {/* Side-by-Side Model Cost Comparison Table */}
-              {showCostBreakdown && (
-                <div className="pt-2 border-t space-y-1.5 text-[11px]">
-                  <div className="font-semibold text-muted-foreground">Pre-Execution Estimated Cost:</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {costEstimates.map((c) => (
-                      <div key={c.modelId} className="flex justify-between items-center p-1.5 rounded bg-accent/40 border">
-                        <span className="font-medium truncate mr-1">{c.modelName}</span>
-                        <span className="font-mono text-green-600 dark:text-green-400">{c.formattedCost}</span>
-                      </div>
-                    ))}
+              {/* Real-Time Token & Cost Estimation Counter */}
+              <div className="pt-2 border-t text-xs space-y-2">
+                <div className="flex flex-wrap items-center justify-between text-muted-foreground gap-1">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="flex items-center gap-1 font-medium text-foreground">
+                      <Zap className="h-3.5 w-3.5 text-amber-500" /> ~{estimatedTokens} Tokens
+                    </span>
+                    <span>{prompt.split(/\s+/).filter(Boolean).length} words</span>
+                    <span>{prompt.length} chars</span>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowCostBreakdown(!showCostBreakdown)}
+                    className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                  >
+                    <Calculator className="h-3 w-3" /> Cost Breakdown
+                  </button>
                 </div>
-              )}
+
+                {/* Side-by-Side Model Cost Comparison Table */}
+                {showCostBreakdown && (
+                  <div className="pt-2 border-t space-y-1.5 text-[11px]">
+                    <div className="font-semibold text-muted-foreground">Pre-Execution Estimated Cost:</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {costEstimates.map((c) => (
+                        <div key={c.modelId} className="flex justify-between items-center p-1.5 rounded bg-accent/40 border">
+                          <span className="font-medium truncate mr-1">{c.modelName}</span>
+                          <span className="font-mono text-green-600 dark:text-green-400">{c.formattedCost}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="flex items-center justify-end mt-1">
+            <div className="flex items-center justify-end px-1 pb-1">
               <button onClick={handleReset} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
                 <RotateCcw className="h-3 w-3" /> Reset
               </button>
@@ -698,21 +700,22 @@ export default function PromptBuilderPage() {
             </div>
           </div>
 
-          {/* Enhance Button */}
+          {/* Tactile Pill Enhance CTA Button */}
           <button
             onClick={handleEnhance}
             disabled={!prompt.trim() || isEnhancing}
-            className="w-full h-11 rounded-lg bg-foreground text-background font-medium text-sm flex items-center justify-center gap-2 hover:bg-foreground/90 transition-colors disabled:opacity-50"
+            className="w-full h-12 rounded-full bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-between px-6 shadow-md hover:bg-primary/90 transition-all active:scale-[0.98] disabled:opacity-50 group"
           >
-            {isEnhancing ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" /> {enhanceMode === "device" ? "Enhancing on Device..." : "Enhancing with Context..."}
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4" /> {enhanceMode === "device" ? "Enhance On-Device" : "Enhance Prompt"}
-              </>
-            )}
+            <span>
+              {isEnhancing
+                ? enhanceMode === "device"
+                  ? "Enhancing on Device..."
+                  : "Optimizing with Prompt+ 2.0..."
+                : "Enhance Prompt"}
+            </span>
+            <span className="w-8 h-8 rounded-full bg-white/20 dark:bg-black/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+              {isEnhancing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            </span>
           </button>
         </div>
 
