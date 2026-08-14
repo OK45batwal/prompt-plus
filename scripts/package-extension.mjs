@@ -18,6 +18,22 @@ const manifest = JSON.parse(fs.readFileSync(path.join(extDir, "manifest.json"), 
 const zipName = `prompt-plus-extension-v${manifest.version}.zip`;
 const zipPath = path.join(distDir, zipName);
 
+// Clean up old versioned zip files in dist and public
+const cleanOldZips = (dir) => {
+  if (fs.existsSync(dir)) {
+    const files = fs.readdirSync(dir);
+    for (const file of files) {
+      if (/^prompt-plus-extension-v.*\.zip$/.test(file) && file !== zipName) {
+        fs.unlinkSync(path.join(dir, file));
+        console.log(`🧹 Removed old zip: ${file}`);
+      }
+    }
+  }
+};
+
+cleanOldZips(distDir);
+cleanOldZips(path.join(rootDir, "public"));
+
 console.log(`📦 Packaging Prompt+ Extension v${manifest.version}...`);
 
 try {
