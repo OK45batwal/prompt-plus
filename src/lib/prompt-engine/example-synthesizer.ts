@@ -47,7 +47,7 @@ export function paginateUsers(
 \`\`\``,
       explanation: "Includes explicit TypeScript interfaces, parameter defaults, boundary checks (throwing on invalid page numbers), and complete pagination metadata.",
     });
-  } else if (taskType === "data" || lowerObj.includes("json") || lowerObj.includes("schema") || lowerObj.includes("data") || lowerObj.includes("format")) {
+  } else if (taskType === "data_analysis" || lowerObj.includes("json") || lowerObj.includes("schema") || lowerObj.includes("data") || lowerObj.includes("format")) {
     examples.push({
       input: "Extract key metrics from customer review data into a clean JSON structure.",
       output: `\`\`\`json
