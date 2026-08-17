@@ -1,5 +1,5 @@
 import { PromptIR, PromptCandidate, TaskType } from "./types";
-import { renderPromptIRToString, removeRedundantInstructions, addConstraint } from "./prompt-ir";
+import { renderPromptIRToString, renderPromptIRToXMLString, removeRedundantInstructions, addConstraint } from "./prompt-ir";
 import { StrategyRegistry, selectStrategiesForTask } from "./strategy-engine";
 import { synthesizeFewShotExamples } from "./example-synthesizer";
 
@@ -111,11 +111,11 @@ export function generateCandidates(baseIR: PromptIR, taskType: TaskType, complex
   if (modelStrategy) {
     modelSpecificIR = modelStrategy.apply(modelSpecificIR);
   }
-  const modelSpecificText = renderPromptIRToString(modelSpecificIR);
+  const modelSpecificText = renderPromptIRToXMLString(modelSpecificIR);
   candidates.push({
     id: "candidate_model_specific",
     name: "Model-Tuned (GPT-5 / Claude 3.5)",
-    strategyName: "Reasoning & Capability Tuned",
+    strategyName: "Anthropic XML & Reasoning Tuned",
     ir: modelSpecificIR,
     renderedText: modelSpecificText,
     efficiencyScore: 80,

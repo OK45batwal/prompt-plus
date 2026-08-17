@@ -124,6 +124,100 @@ export function renderPromptIRToString(ir: PromptIR): string {
   return parts.join("\n\n");
 }
 
+export function renderPromptIRToXMLString(ir: PromptIR): string {
+  const parts: string[] = [];
+
+  // Role / Persona
+  if (ir.role && ir.role.trim()) {
+    parts.push(`<role>\n${ir.role.trim()}\n</role>`);
+  }
+
+  // Objective
+  if (ir.objective && ir.objective.trim()) {
+    parts.push(`<objective>\n${ir.objective.trim()}\n</objective>`);
+  }
+
+  // Audience & Tone
+  if (ir.audience || ir.tone) {
+    let metaStr = "<target_audience_and_tone>\n";
+    if (ir.audience) metaStr += `  <audience>${ir.audience.trim()}</audience>\n`;
+    if (ir.tone) metaStr += `  <tone>${ir.tone.trim()}</tone>\n`;
+    metaStr += "</target_audience_and_tone>";
+    parts.push(metaStr);
+  }
+
+  // Background Context
+  if (ir.context && ir.context.length > 0) {
+    const ctxStr = `<background_context>\n` +
+      ir.context.map((c, i) => `  <item index="${i + 1}" type="${c.type}">\n${c.content.trim()}\n  </item>`).join("\n") +
+      `\n</background_context>`;
+    parts.push(ctxStr);
+  }
+
+  // Inputs
+  if (ir.inputs && ir.inputs.length > 0) {
+    const inputStr = `<required_inputs>\n` +
+      ir.inputs.map((inp) => `  <variable name="${inp.name}" type="${inp.type}">${inp.description || "Required input"}</variable>`).join("\n") +
+      `\n</required_inputs>`;
+    parts.push(inputStr);
+  }
+
+  // Step-by-Step Instructions
+  if (ir.instructions && ir.instructions.length > 0) {
+    const stepStr = `<instructions>\n` +
+      ir.instructions.map((ins, i) => `  <step index="${i + 1}">${ins.text.trim()}</step>`).join("\n") +
+      `\n</instructions>`;
+    parts.push(stepStr);
+  }
+
+  // Constraints
+  if (ir.constraints && ir.constraints.length > 0) {
+    const constraintStr = `<constraints>\n` +
+      ir.constraints.map((c) => `  <rule priority="${c.priority}">${c.text.trim()}</rule>`).join("\n") +
+      `\n</constraints>`;
+    parts.push(constraintStr);
+  }
+
+  // Examples
+  if (ir.examples && ir.examples.length > 0) {
+    const exStr = `<examples>\n` +
+      ir.examples.map((ex, i) =>
+        `  <example index="${i + 1}">\n    <input>\n${ex.input}\n    </input>\n    <output>\n${ex.output}\n    </output>${ex.explanation ? `\n    <explanation>${ex.explanation}</explanation>` : ""}\n  </example>`
+      ).join("\n") +
+      `\n</examples>`;
+    parts.push(exStr);
+  }
+
+  // Output Contract
+  if (ir.output) {
+    let outStr = `<output_contract>\n  <format>${ir.output.format.toUpperCase()}</format>`;
+    if (ir.output.sections && ir.output.sections.length > 0) {
+      outStr += `\n  <required_sections>\n` + ir.output.sections.map((s) => `    <section>${s}</section>`).join("\n") + `\n  </required_sections>`;
+    }
+    if (ir.output.styleNotes && ir.output.styleNotes.length > 0) {
+      outStr += `\n  <guidelines>\n` + ir.output.styleNotes.map((n) => `    <rule>${n}</rule>`).join("\n") + `\n  </guidelines>`;
+    }
+    if (ir.output.schema) {
+      const schemaStr = typeof ir.output.schema === "string" ? ir.output.schema : JSON.stringify(ir.output.schema, null, 2);
+      outStr += `\n  <json_schema>\n${schemaStr}\n  </json_schema>`;
+    }
+    outStr += `\n</output_contract>`;
+    parts.push(outStr);
+  }
+
+  // Reasoning Requirements
+  if (ir.reasoningConfig?.mandateStepByStep || ir.reasoningConfig?.effort) {
+    let reasonStr = `<reasoning_requirement>\n  Before returning the final output, perform a step-by-step reasoning analysis inside a <thought> block.`;
+    if (ir.reasoningConfig.effort) {
+      reasonStr += ` Set effort level to: ${ir.reasoningConfig.effort}.`;
+    }
+    reasonStr += `\n</reasoning_requirement>`;
+    parts.push(reasonStr);
+  }
+
+  return parts.join("\n\n");
+}
+
 export function parseTextToPromptIR(rawText: string): PromptIR {
   const ir = createEmptyPromptIR(rawText);
   if (!rawText || !rawText.trim()) return ir;
