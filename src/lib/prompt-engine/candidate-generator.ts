@@ -1,6 +1,7 @@
 import { PromptIR, PromptCandidate, TaskType } from "./types";
 import { renderPromptIRToString, removeRedundantInstructions, addConstraint } from "./prompt-ir";
 import { StrategyRegistry, selectStrategiesForTask } from "./strategy-engine";
+import { synthesizeFewShotExamples } from "./example-synthesizer";
 
 export interface ContradictionConflict {
   constraintA: string;
@@ -43,6 +44,9 @@ export function generateCandidates(baseIR: PromptIR, taskType: TaskType, complex
   // Remove redundancies first
   const { ir: cleanedIR } = removeRedundantInstructions(baseIR);
 
+  // Generate synthetic few-shot examples if none present
+  const synthesizedExamples = cleanedIR.examples.length === 0 ? synthesizeFewShotExamples(taskType, cleanedIR.objective) : [];
+
   // Candidate A: Concise
   const conciseIR: PromptIR = {
     ...cleanedIR,
@@ -62,7 +66,10 @@ export function generateCandidates(baseIR: PromptIR, taskType: TaskType, complex
   });
 
   // Candidate B: Structured (Standard Production Grade)
-  let structuredIR = { ...cleanedIR };
+  let structuredIR = {
+    ...cleanedIR,
+    examples: [...cleanedIR.examples, ...synthesizedExamples],
+  };
   const targetStrategies = selectStrategiesForTask(taskType, complexity);
   for (const stId of targetStrategies) {
     const strategy = StrategyRegistry[stId];
