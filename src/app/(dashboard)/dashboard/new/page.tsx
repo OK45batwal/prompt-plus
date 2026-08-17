@@ -7,7 +7,6 @@ import {
   RotateCcw,
   Check,
   Loader2,
-  Brain,
   Zap,
   Calculator,
   Mic,
@@ -19,7 +18,7 @@ import {
 } from "lucide-react";
 import { getSavedContextBlocks, ContextBlock } from "@/lib/context-memory";
 import { estimateTokenCount, calculateCostEstimates } from "@/lib/token-calculator";
-import { enhanceWithDevice, checkDeviceAvailability, isDeviceAISupported } from "@/lib/llm/device-ai";
+import { enhanceWithDevice, isDeviceAISupported } from "@/lib/llm/device-ai";
 import type { EnhanceLevel } from "@/lib/llm/meta-prompt";
 import { useToast } from "@/components/ui/toast";
 import { openAIPlatform } from "@/lib/platform-redirect";
@@ -474,59 +473,6 @@ export default function PromptBuilderPage() {
           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
           100% Free — No API Key Required
         </span>
-      </div>
-
-      {/* Enhancement Mode */}
-      <div className="p-3 rounded-lg border bg-card">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold">Enhancement Engine</span>
-          <span className="text-[10px] text-muted-foreground">
-            {enhanceMode === "api" ? "🟢 Cloud AI — 100% free out-of-the-box, no key needed" : "⚡ On-device — private, offline, free"}
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setEnhanceMode("api")}
-            className={`h-9 rounded-lg border text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${enhanceMode === "api"
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-background text-muted-foreground border-border hover:bg-accent"
-              }`}
-          >
-            <Zap className="h-3.5 w-3.5" /> API Based
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setEnhanceMode("device");
-              if (isDeviceAISupported()) {
-                checkDeviceAvailability().then(setDeviceState).catch(() => setDeviceState("unavailable"));
-              } else {
-                setDeviceState("unavailable");
-              }
-            }}
-            className={`h-9 rounded-lg border text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${enhanceMode === "device"
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-background text-muted-foreground border-border hover:bg-accent"
-              }`}
-          >
-            <Brain className="h-3.5 w-3.5" /> On-Device (Gemini Nano)
-          </button>
-        </div>
-        {enhanceMode === "device" && deviceState === "unavailable" && (
-          <div className="mt-2.5 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-700 dark:text-amber-300 flex items-center justify-between gap-2">
-            <span>
-              On-Device Gemini Nano requires Chrome 138+ with Prompt API enabled (chrome://flags → Enable Prompt API).
-            </span>
-            <button
-              type="button"
-              onClick={() => setEnhanceMode("api")}
-              className="px-2.5 py-1 rounded-md bg-primary text-primary-foreground text-[10px] font-semibold shrink-0 hover:opacity-90 transition-opacity flex items-center gap-1"
-            >
-              <Zap className="h-3 w-3" /> Switch to API Mode
-            </button>
-          </div>
-        )}
       </div>
 
       {errorNotice && (
