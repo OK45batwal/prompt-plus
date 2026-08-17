@@ -15,8 +15,8 @@
     <a href="https://prompt-plus-three.vercel.app/">
       <img src="https://img.shields.io/badge/Production-Live-6366f1?style=for-the-badge&logo=vercel&logoColor=white&labelColor=0a0a0c" alt="Live app" />
     </a>
-    <a href="#browser-extension">
-      <img src="https://img.shields.io/badge/Extension-v2.1.0-a78bfa?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=0a0a0c" alt="Extension" />
+    <a href="https://chromewebstore.google.com/detail/gdfaohfmmjjmpiggdcankjjihpljoccn">
+      <img src="https://img.shields.io/badge/Chrome_Web_Store-Live_v1.2.0-10b981?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=0a0a0c" alt="Chrome Web Store" />
     </a>
     <a href="https://github.com/OK45batwal/Prompt-plus">
       <img src="https://img.shields.io/github/stars/OK45batwal/Prompt-plus?style=for-the-badge&logo=github&logoColor=white&labelColor=0a0a0c&color=eab308" alt="Stars" />
@@ -158,7 +158,9 @@ flowchart LR
 
 ## Browser Extension
 
-The **Manifest V3 extension** drops straight into **ChatGPT**, **Claude AI**, **Gemini**, and **DeepSeek**. It adds a sparkle FAB, a structured side panel, and a quick-enhance popup in the same single-accent, dark, premium design as the web app.
+The **Manifest V3 extension (v1.2.0)** is live on the **Chrome Web Store**! It drops straight into **ChatGPT**, **Claude AI**, **Gemini**, **DeepSeek**, and **Grok**.
+
+👉 **[Install from Official Chrome Web Store](https://chromewebstore.google.com/detail/gdfaohfmmjjmpiggdcankjjihpljoccn)**
 
 ```
 ┌──────────────────────────────────────────────────┐
@@ -176,15 +178,21 @@ The **Manifest V3 extension** drops straight into **ChatGPT**, **Claude AI**, **
 └──────────────────────────────────────────────────┘
 ```
 
-<details>
-<summary><strong>📥 Install the extension</strong></summary>
+### ⌨️ Extension Keyboard Shortcuts
 
-1. Open `chrome://extensions` (or Brave / Edge equivalents).
-2. Toggle **Developer mode** on (top-right).
+| Shortcut | OS | Action |
+| :--- | :--- | :--- |
+| **`Cmd + Shift + P`** | macOS | Open / toggle Prompt+ floating architect panel on active chat input |
+| **`Ctrl + Shift + P`** | Windows / Linux | Open / toggle Prompt+ floating architect panel on active chat input |
+
+<details>
+<summary><strong>📥 Manual & Local Developer Installation</strong></summary>
+
+1. Official Listing: [Chrome Web Store — Prompt+ Architect AI](https://chromewebstore.google.com/detail/gdfaohfmmjjmpiggdcankjjihpljoccn).
+2. For manual developer testing: Open `chrome://extensions` $\rightarrow$ Enable **Developer mode**.
 3. Click **Load unpacked** and select the [`/extension`](./extension) folder.
-4. Visit a supported chatbot — `chatgpt.com`, `claude.ai`, `gemini.google.com`, or `deepseek.com`.
-5. For **On-Device** mode: use Chrome 138+ and enable Gemini Nano at `chrome://flags/#prompt-api-for-gemini-nano`.
-6. Release: `npm run build:extension` → `dist/prompt-plus-extension-v1.1.1.zip`.
+4. Visit any supported web chatbot: `chatgpt.com`, `claude.ai`, `gemini.google.com`, or `deepseek.com`.
+5. Package build script: `npm run build:extension` $\rightarrow$ produces `dist/prompt-plus-extension-v1.2.0.zip`.
 
 </details>
 
