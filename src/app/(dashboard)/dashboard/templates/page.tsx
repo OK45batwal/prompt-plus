@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Copy, Check, FileText, Mail, Code, Share2, Book, ShoppingBag, BadgeCheck, Terminal, GitFork } from "lucide-react";
+import { Search, Copy, Check, FileText, Mail, Code, Share2, Book, ShoppingBag, BadgeCheck, Terminal, GitFork, Sparkles } from "lucide-react";
 import { ExportCodeModal } from "@/components/prompts/export-code-modal";
 
 interface TemplateItem {
@@ -291,6 +291,24 @@ export default function TemplatesPage() {
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
   const [exportItem, setExportItem] = useState<{ title: string; text: string } | null>(null);
 
+  // Interactive Variable Filler State
+  const [fillTemplate, setFillTemplate] = useState<TemplateItem | null>(null);
+  const [variableValues, setVariableValues] = useState<Record<string, string>>({});
+
+  const extractVariables = (promptText: string): string[] => {
+    const matches = promptText.match(/\{\{([a-zA-Z0-9_]+)\}\}/g) || [];
+    return Array.from(new Set(matches.map((m) => m.replace(/\{\{|\}\}/g, ""))));
+  };
+
+  const getFilledPrompt = (promptText: string, values: Record<string, string>): string => {
+    let result = promptText;
+    Object.entries(values).forEach(([k, v]) => {
+      const regex = new RegExp(`\\{\\{${k}\\}\\}`, "g");
+      result = result.replace(regex, v || `[${k}]`);
+    });
+    return result;
+  };
+
   useEffect(() => {
     let isMounted = true;
     async function load() {
@@ -514,18 +532,24 @@ export default function TemplatesPage() {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => copyTemplate(template)}
-                    className="flex-1 h-8 rounded-lg bg-foreground text-background text-xs font-medium inline-flex items-center justify-center gap-1.5 hover:bg-foreground/90 transition-colors"
+                    onClick={() => {
+                      const vars = extractVariables(template.prompt);
+                      const initialVals: Record<string, string> = {};
+                      vars.forEach((v) => (initialVals[v] = ""));
+                      setVariableValues(initialVals);
+                      setFillTemplate(template);
+                    }}
+                    className="flex-1 h-8 rounded-lg bg-primary text-primary-foreground text-xs font-semibold inline-flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors shadow-xs"
                   >
-                    {copiedId === template.id ? (
-                      <>
-                        <Check className="h-3.5 w-3.5" /> Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3.5 w-3.5" /> Copy Template
-                      </>
-                    )}
+                    <Sparkles className="h-3.5 w-3.5" /> Fill Variables
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => copyTemplate(template)}
+                    className="h-8 px-2.5 rounded-lg border bg-background text-xs font-medium inline-flex items-center justify-center gap-1 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                    title="Copy raw template text"
+                  >
+                    {copiedId === template.id ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                   </button>
                   <button
                     type="button"
@@ -535,7 +559,6 @@ export default function TemplatesPage() {
                     title="Fork / Clone to Personal Library"
                   >
                     <GitFork className="h-3.5 w-3.5" />
-                    {forkingId === template.id ? "Forking..." : "Fork"}
                   </button>
                   <button
                     type="button"
@@ -551,6 +574,80 @@ export default function TemplatesPage() {
           </div>
         )}
       </div>
+
+      {/* Interactive Variable Filler Modal */}
+      {fillTemplate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-card border rounded-2xl max-w-xl w-full p-5 space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div>
+                <h3 className="font-bold text-sm flex items-center gap-1.5">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  Customize Template Variables
+                </h3>
+                <p className="text-xs text-muted-foreground">{fillTemplate.title}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFillTemplate(null)}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Dynamic Variable Input Fields */}
+            <div className="space-y-3">
+              <label className="text-xs font-semibold text-muted-foreground block">Fill Template Variables</label>
+              {extractVariables(fillTemplate.prompt).map((varName) => (
+                <div key={varName} className="space-y-1">
+                  <label className="text-xs font-medium text-foreground capitalize">
+                    {varName.replace(/_/g, " ")}
+                  </label>
+                  <input
+                    type="text"
+                    value={variableValues[varName] || ""}
+                    onChange={(e) => setVariableValues((prev) => ({ ...prev, [varName]: e.target.value }))}
+                    placeholder={`Enter ${varName.replace(/_/g, " ")}...`}
+                    className="w-full h-9 px-3 rounded-lg border bg-background text-xs outline-none focus:border-ring"
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Live Prompt Preview */}
+            <div className="space-y-1 pt-2">
+              <label className="text-xs font-semibold text-muted-foreground block">Live Custom Prompt Preview</label>
+              <div className="p-3 rounded-lg border bg-accent/30 text-xs font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
+                {getFilledPrompt(fillTemplate.prompt, variableValues)}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex justify-end gap-2 pt-2 border-t">
+              <button
+                type="button"
+                onClick={() => setFillTemplate(null)}
+                className="px-3 py-1.5 rounded-lg border text-xs text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const finalPrompt = getFilledPrompt(fillTemplate.prompt, variableValues);
+                  navigator.clipboard.writeText(finalPrompt);
+                  alert("Custom filled prompt copied to clipboard!");
+                  setFillTemplate(null);
+                }}
+                className="px-4 py-1.5 rounded-lg bg-foreground text-background text-xs font-semibold hover:bg-foreground/90 transition-colors"
+              >
+                Copy Custom Prompt
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {exportItem && (
         <ExportCodeModal

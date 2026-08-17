@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
+import { checkIpRateLimit, extractClientIp, getRateLimitHeaders } from "@/lib/rate-limit";
 import {
   extractIntent,
   parseTextToPromptIR,
@@ -23,6 +24,15 @@ const optimizeSchema = z.object({
 
 export const POST = withAuth(
   async (request: NextRequest, { requestId }) => {
+    const clientIp = extractClientIp(request);
+    const rateCheck = checkIpRateLimit(`rate_v2_optimize_${clientIp}`, 60, 60000);
+    if (!rateCheck.allowed) {
+      return jsonResponse(
+        { error: "Rate limit exceeded. Please wait before retrying." },
+        { status: 429, requestId, headers: getRateLimitHeaders(rateCheck) }
+      );
+    }
+
     let body: unknown;
     try {
       body = await request.json();

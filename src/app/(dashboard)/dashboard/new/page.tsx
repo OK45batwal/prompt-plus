@@ -15,6 +15,7 @@ import {
   ExternalLink,
   Shield,
   Target,
+  Code,
 } from "lucide-react";
 import { getSavedContextBlocks, ContextBlock } from "@/lib/context-memory";
 import { estimateTokenCount, calculateCostEstimates } from "@/lib/token-calculator";
@@ -26,6 +27,7 @@ import { MODELS, DEFAULT_MODEL_ID, getModelById } from "@/lib/models";
 import { ModelSelector } from "@/components/studio/model-selector";
 import { ContextMemoryPanel } from "@/components/studio/context-memory-panel";
 import { ScoreBreakdown } from "@/components/studio/score-breakdown";
+import { ExportCodeModal } from "@/components/prompts/export-code-modal";
 
 interface V2Intent {
   domain: string;
@@ -116,6 +118,7 @@ export default function PromptBuilderPage() {
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [result, setResult] = useState<EnhancedResult | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [showCostBreakdown, setShowCostBreakdown] = useState(false);
   const [enhanceMode, setEnhanceMode] = useState<"api" | "device">("api");
   const [deviceState, setDeviceState] = useState<"unknown" | "available" | "unavailable" | "downloading">("unknown");
@@ -835,6 +838,14 @@ export default function PromptBuilderPage() {
                         </button>
                       ))}
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowExportModal(true)}
+                      className="text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent px-2 py-0.5 rounded flex items-center gap-1 border"
+                      title="Export optimized prompt to Python, Node.js, cURL, or LangChain code"
+                    >
+                      <Code className="h-3 w-3" /> Export Code
+                    </button>
                     <button onClick={handleCopy} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
                       {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
                       {copied ? "Copied" : "Copy"}
@@ -849,6 +860,15 @@ export default function PromptBuilderPage() {
           )}
         </div>
       </div>
+
+      {result && (
+        <ExportCodeModal
+          isOpen={showExportModal}
+          onClose={() => setShowExportModal(false)}
+          title="Optimized Prompt"
+          promptText={result.enhanced.text}
+        />
+      )}
     </div>
   );
 }

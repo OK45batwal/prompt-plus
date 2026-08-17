@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { ExternalLink, Puzzle, Zap, Sparkles, Copy, Layers } from "lucide-react";
+import { ExternalLink, Puzzle, Sparkles, Copy, Layers, CheckCircle2, ShieldCheck } from "lucide-react";
+
+const CHROME_STORE_URL = "https://chromewebstore.google.com/detail/gdfaohfmmjjmpiggdcankjjihpljoccn";
 
 const steps = [
-  { icon: Puzzle, title: "Install", desc: "Chrome Web Store review in progress — for now, load the unpacked extension from the extension/ folder via Developer Mode." },
-  { icon: Sparkles, title: "Open a Chat", desc: "Visit ChatGPT, Claude, Gemini, or DeepSeek. A floating Prompt+ button appears near the input." },
-  { icon: Copy, title: "Enhance", desc: "Click the button — a compact preview pops up right at your input. Review, then use it with one click." },
-  { icon: Layers, title: "Configure", desc: "Pick On-Device or API mode. API mode works instantly with a free server model — add your own key for full model access." },
+  { icon: Puzzle, title: "1. Install in 1-Click", desc: "Add Prompt+ Architect AI to Google Chrome directly from the official Chrome Web Store." },
+  { icon: Sparkles, title: "2. Open Web AI Chat", desc: "Visit ChatGPT, Claude, Gemini, DeepSeek, or Grok. A non-intrusive floating action bar appears." },
+  { icon: Copy, title: "3. Optimize & Launch", desc: "Click Enhance — select from 4 V2 strategy candidates right at your prompt box." },
+  { icon: Layers, title: "4. On-Device or Cloud", desc: "Use free server-managed cloud AI or offline local Gemini Nano for total privacy." },
 ];
 
 export default function ExtensionPage() {
@@ -14,25 +16,33 @@ export default function ExtensionPage() {
       <div className="max-w-3xl mx-auto">
         {/* Hero */}
         <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-xs font-medium text-primary mb-6">
-            <Zap className="h-3.5 w-3.5" />
-            Browser Extension v1.1.1 • 🟢 100% Secure & AES Encrypted
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 mb-6">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            Chrome Web Store Official Release v1.2.0 • 🟢 Verified & Safe
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">
-            Enhance Prompts Directly in Your Chat
+            Enhance AI Prompts Directly Inside Your Chat
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto mb-6">
-            Use Prompt+ inside ChatGPT, Claude, Gemini, and DeepSeek — without leaving the page.
-            One click on the floating button enhances your prompt, right at the input.
+            Transform raw text into structured, high-performing AI instructions directly inside ChatGPT, Claude, Gemini, DeepSeek, and Grok without leaving the page.
           </p>
-          <div className="flex justify-center">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
-              href="/api/v1/extension/download"
-              download="prompt-plus-extension-v1.1.1.zip"
-              className="h-11 inline-flex items-center justify-center rounded-xl bg-primary text-primary-foreground px-6 text-sm font-semibold hover:bg-primary/90 transition-all shadow-md gap-2"
+              href={CHROME_STORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-12 inline-flex items-center justify-center rounded-xl bg-primary text-primary-foreground px-6 text-sm font-semibold hover:bg-primary/90 transition-all shadow-md gap-2.5 group active:scale-98"
             >
               <Puzzle className="h-4 w-4" />
-              Download Extension Package v1.1.1 (.zip)
+              Add to Chrome — It&apos;s Free
+              <ExternalLink className="h-4 w-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+            </a>
+            <a
+              href="/prompt-plus-extension.zip"
+              download="prompt-plus-extension.zip"
+              className="h-12 inline-flex items-center justify-center rounded-xl border bg-card px-5 text-sm font-medium hover:bg-accent transition-colors gap-2 text-muted-foreground"
+            >
+              Direct Zip Download (.zip)
             </a>
           </div>
         </div>
@@ -50,65 +60,56 @@ export default function ExtensionPage() {
           ))}
         </div>
 
-        {/* Install instructions */}
-        <div className="p-6 rounded-xl border bg-card mb-14">
-          <h2 className="text-base font-bold mb-3">Manual Install (Developer Mode)</h2>
-          <p className="text-xs text-muted-foreground mb-4">
-            The extension is currently in Chrome Web Store review. Until it&apos;s listed, install it manually:
-          </p>
-          <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
-            <li>Open <code className="text-primary text-xs font-mono bg-primary/10 px-1.5 py-0.5 rounded">chrome://extensions</code></li>
-            <li>Enable <strong>Developer mode</strong> (toggle in top-right)</li>
-            <li>Click <strong>Load unpacked</strong></li>
-            <li>Select the <code className="text-primary text-xs font-mono bg-primary/10 px-1.5 py-0.5 rounded">extension/</code> folder from the repo</li>
-          </ol>
+        {/* CWS Live Verified Badge */}
+        <div className="p-6 rounded-2xl border bg-emerald-500/5 border-emerald-500/20 mb-14 flex items-start gap-4">
+          <ShieldCheck className="h-6 w-6 text-emerald-500 shrink-0 mt-1" />
+          <div className="space-y-1 text-xs">
+            <h3 className="font-bold text-sm text-foreground">Official Chrome Web Store Listing Verified</h3>
+            <p className="text-muted-foreground leading-relaxed">
+              Prompt+ Architect AI adheres strictly to Chrome Web Store Manifest V3 guidelines, privacy standards, and narrowest-scope permissions (`storage`, `activeTab`, `contextMenus`). No personal credentials or passwords are ever stored or evaluated.
+            </p>
+          </div>
         </div>
 
         {/* Features */}
         <div className="mb-14">
-          <h2 className="text-base font-bold mb-4">What You Get</h2>
+          <h2 className="text-base font-bold mb-4">Features Included in Extension v1.2.0</h2>
           <div className="space-y-3 text-sm text-muted-foreground">
             {[
-              "Floating action button on ChatGPT, Claude, Gemini, and DeepSeek",
-              "Compact preview popover right at the chat input",
-              "Enhanced result with token-remaining bar",
-              "One-click apply or keep original — no manual copy-paste",
-              "Full side panel for advanced, structured prompt analysis",
-              "Token Saver mode for ~40% fewer tokens",
-              "On-Device mode using Chrome's built-in Gemini Nano — free, private, offline",
-              "API mode with a free server model out of the box, or your own key for full model access",
+              "Floating Action Bar on ChatGPT, Claude, Gemini, DeepSeek, and Grok",
+              "Multi-Candidate Strategy Switcher (Concise, Structured, Comprehensive, Model-Tuned)",
+              "Context Memory Quick-Pill Injector for 1-click brand tone and tech stack injection",
+              "Real-time token counter & context window limit threshold warnings",
+              "1-click Apply or Keep Original — zero copy-pasting required",
+              "On-Device Mode using Chrome's built-in Gemini Nano — 100% free, private, offline",
+              "Server-managed Cloud AI included out-of-the-box — no API keys required",
             ].map((f) => (
               <div key={f} className="flex items-start gap-2.5">
-                <Zap className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                 <span>{f}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* On-Device Requirements */}
-        <div className="p-6 rounded-xl border bg-amber-500/5 border-amber-500/20 mb-14">
-          <h2 className="text-base font-bold mb-2">On-Device AI Requirements</h2>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            On-Device mode uses Chrome&apos;s built-in Gemini Nano and needs <strong>Chrome 138 or later</strong> on
-            macOS 13+ / Windows 10+ / Linux, with ~22GB free storage, and the Prompt API enabled
-            (<code className="text-primary text-xs font-mono bg-primary/10 px-1.5 py-0.5 rounded">chrome://flags/#prompt-api-for-gemini-nano</code>).
-            Not supported? API mode works everywhere — a free server model is included, no key needed.
-          </p>
-        </div>
-
         {/* CTA */}
-        <div className="text-center p-8 rounded-2xl border bg-gradient-to-r from-primary/10 via-card to-primary/5">
-          <p className="text-sm text-muted-foreground mb-4">
-            Get started — the web app works in any browser with no install needed.
-          </p>
+        <div className="text-center p-8 rounded-2xl border bg-gradient-to-r from-primary/10 via-card to-primary/5 space-y-4">
+          <h2 className="text-lg font-bold">Ready to Supercharge Your AI Prompts?</h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/signup"
-              className="h-10 inline-flex items-center justify-center rounded-lg bg-foreground text-background px-5 text-sm font-semibold hover:bg-foreground/90 transition-colors"
+            <a
+              href={CHROME_STORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-11 inline-flex items-center justify-center rounded-xl bg-primary text-primary-foreground px-6 text-sm font-semibold hover:bg-primary/90 transition-all shadow-md gap-2"
             >
-              Try Prompt+ Online
-              <ExternalLink className="h-3.5 w-3.5 ml-2" />
+              Install from Chrome Web Store
+              <ExternalLink className="h-4 w-4" />
+            </a>
+            <Link
+              href="/dashboard/new"
+              className="h-11 inline-flex items-center justify-center rounded-xl border bg-card px-5 text-sm font-semibold hover:bg-accent transition-colors"
+            >
+              Open Web App Studio
             </Link>
           </div>
         </div>

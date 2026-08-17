@@ -24,24 +24,29 @@ export default function BatchPage() {
     if (prompts.length === 0) return;
     setRunning(true);
     setResults(null);
-    const out: BatchResult[] = [];
-    for (let i = 0; i < prompts.length; i++) {
+
+    const promises = prompts.map(async (text) => {
       try {
         const res = await fetch("/api/v1/prompts/enhance-ai", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: prompts[i], level: "deep" }),
+          body: JSON.stringify({ text, level: "deep" }),
         });
         const json = await res.json();
         if (!res.ok) {
-          out.push({ input: prompts[i], output: "", error: json.error || "Failed" });
-        } else {
-          out.push({ input: prompts[i], output: json.data?.enhanced || "" });
+          return { input: text, output: "", error: json.error || "Failed" };
         }
+        return { input: text, output: json.data?.enhanced || "" };
       } catch {
-        out.push({ input: prompts[i], output: "", error: "Network error" });
+        return { input: text, output: "", error: "Network error" };
       }
-    }
+    });
+
+    const settled = await Promise.allSettled(promises);
+    const out: BatchResult[] = settled.map((s, idx) =>
+      s.status === "fulfilled" ? s.value : { input: prompts[idx], output: "", error: "Task failed" }
+    );
+
     setResults(out);
     setRunning(false);
   };
