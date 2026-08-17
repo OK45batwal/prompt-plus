@@ -147,12 +147,13 @@ export default function LandingPage() {
               {/* Deduplicated Single-Intent CTAs */}
               <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <a
-                  href="/api/v1/extension/download"
-                  download="prompt-plus-extension-v1.1.1.zip"
+                  href="https://chromewebstore.google.com/detail/gdfaohfmmjjmpiggdcankjjihpljoccn"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="group h-12 inline-flex items-center justify-center gap-2.5 rounded-full bg-primary text-primary-foreground px-6 text-sm font-semibold hover:bg-primary/90 transition-all duration-200 shadow-md active:scale-[0.98]"
                 >
                   <Puzzle className="h-4 w-4" />
-                  <span>Install Free Extension v1.1.1</span>
+                  <span>Add to Chrome — It&apos;s Free</span>
                   <ArrowUpRight className="h-4 w-4 opacity-70 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </a>
                 <Link

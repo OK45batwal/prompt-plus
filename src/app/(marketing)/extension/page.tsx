@@ -37,13 +37,6 @@ export default function ExtensionPage() {
               Add to Chrome — It&apos;s Free
               <ExternalLink className="h-4 w-4 opacity-70 group-hover:translate-x-0.5 transition-transform" />
             </a>
-            <a
-              href="/prompt-plus-extension.zip"
-              download="prompt-plus-extension.zip"
-              className="h-12 inline-flex items-center justify-center rounded-xl border bg-card px-5 text-sm font-medium hover:bg-accent transition-colors gap-2 text-muted-foreground"
-            >
-              Direct Zip Download (.zip)
-            </a>
           </div>
         </div>
 
