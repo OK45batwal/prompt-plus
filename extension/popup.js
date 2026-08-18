@@ -112,8 +112,30 @@ document.addEventListener("DOMContentLoaded", () => {
     return "Clear, Authoritative & Direct";
   }
 
+  const TYPO_REPLACEMENTS = {
+    imrpove: "improve", improev: "improve", ehance: "enhance", enhace: "enhance",
+    respons: "response", systemm: "system", systeam: "system", scrpaer: "scraper",
+    functon: "function", compnent: "component", reac: "react", typocrift: "typescript",
+    pyton: "python", tailwid: "tailwind", databse: "database", endpoin: "endpoint",
+    secutiy: "security", framwork: "framework", copywritng: "copywriting",
+  };
+
+  function normalizeExtensionTypos(text) {
+    if (!text) return text;
+    return text.replace(/\b[a-zA-Z]+\b/g, (match) => {
+      const lower = match.toLowerCase();
+      const rep = TYPO_REPLACEMENTS[lower];
+      if (rep) {
+        if (match === match.toUpperCase()) return rep.toUpperCase();
+        if (match[0] === match[0].toUpperCase()) return rep.charAt(0).toUpperCase() + rep.slice(1);
+        return rep;
+      }
+      return match;
+    });
+  }
+
   function synthesizeLocalPrompt(userInput) {
-    const text = (userInput || "").trim();
+    const text = normalizeExtensionTypos((userInput || "").trim());
     if (!text) return "";
     const tone = detectImplicitTone(text);
     const cleanInput = text.replace(/^(please|can you|help me|i want to|i need to|how to|write|create|build|fix|generate|make)\s+/i, "");

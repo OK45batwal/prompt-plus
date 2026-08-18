@@ -218,11 +218,14 @@ export function renderPromptIRToXMLString(ir: PromptIR): string {
   return parts.join("\n\n");
 }
 
+import { autocorrectText } from "./autocorrect";
+
 export function parseTextToPromptIR(rawText: string): PromptIR {
   const ir = createEmptyPromptIR(rawText);
   if (!rawText || !rawText.trim()) return ir;
 
-  const text = rawText.trim();
+  const normalized = autocorrectText(rawText).correctedText;
+  const text = normalized.trim();
   ir.objective = text;
 
   // Extract explicit sections if markdown headers are present

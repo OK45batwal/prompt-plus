@@ -10,3 +10,4 @@ export * from "./repair-engine";
 export * from "./model-router";
 export * from "./security-scanner";
 export * from "./cleaner";
+export * from "./autocorrect";

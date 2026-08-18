@@ -11,6 +11,7 @@ import {
   routeToOptimalModel,
   scanPromptSecurity,
   addConstraint,
+  autocorrectText,
 } from "@/lib/prompt-engine";
 import { z } from "zod";
 
@@ -88,10 +89,13 @@ export const POST = withAuth(
       privacyPreference,
     });
 
+    const autoCorrect = autocorrectText(text);
+
     return jsonResponse(
       {
         success: true,
         data: {
+          autoCorrect,
           security,
           intent,
           selectedCandidate,
