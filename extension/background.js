@@ -234,4 +234,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     return true;
   }
+
+  if (request.action === "openInWebStudio") {
+    const targetUrl = (cachedWorkingUrl || API_URLS[0]) + "/dashboard/new";
+    chrome.tabs.create({ url: targetUrl }, () => sendResponse({ success: true }));
+    return true;
+  }
 });

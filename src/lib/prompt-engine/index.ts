@@ -9,3 +9,4 @@ export * from "./evaluation-engine";
 export * from "./repair-engine";
 export * from "./model-router";
 export * from "./security-scanner";
+export * from "./cleaner";

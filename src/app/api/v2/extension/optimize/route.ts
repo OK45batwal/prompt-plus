@@ -6,12 +6,14 @@ import {
   generateCandidates,
   calculateHybridScore,
   scanPromptSecurity,
+  cleanPromptResponse,
 } from "@/lib/prompt-engine";
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
   const requestId = request.headers.get("x-request-id") || crypto.randomUUID();
 
-  let body: { text?: string };
+  let body: { text?: string; zeroFluff?: boolean };
   try {
     body = await request.json();
   } catch {
@@ -31,17 +33,31 @@ export async function POST(request: NextRequest) {
   const selectedCandidate = candidates[1] || candidates[0]; // Production-grade candidate
   const score = calculateHybridScore(text, selectedCandidate);
 
+  // Apply zero-fluff cleaning for fast, high-density responses
+  const cleanedText = cleanPromptResponse(selectedCandidate.renderedText, {
+    zeroFluff: body.zeroFluff !== false,
+  });
+
+  const durationMs = Date.now() - startTime;
+
   return jsonResponse(
     {
       success: true,
       data: {
-        enhanced: selectedCandidate.renderedText,
+        enhanced: cleanedText,
         score: score.totalScore,
         hybridScore: score,
         security,
         intent,
+        latencyMs: durationMs,
       },
     },
-    { requestId }
+    {
+      requestId,
+      headers: {
+        "X-Response-Time-Ms": String(durationMs),
+        "Cache-Control": "private, no-cache",
+      },
+    }
   );
 }
