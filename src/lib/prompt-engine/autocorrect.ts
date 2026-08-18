@@ -98,7 +98,6 @@ const TYPO_MAP: Record<string, string> = {
   // General English
   thier: "their",
   recieve: "receive",
-  recieve: "receive",
   seperate: "separate",
   neccessary: "necessary",
   unneccessary: "unnecessary",
