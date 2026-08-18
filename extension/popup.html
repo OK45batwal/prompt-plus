@@ -423,11 +423,14 @@
 
   <div class="mode-bar">
     <div class="mode-track">
-      <button class="mode-btn active" id="mode-api" type="button">
-        <span>☁️ Cloud AI Engine</span>
+      <button class="mode-btn active" id="mode-api" type="button" title="API Cloud AI — Uses API key if provided, or free fallback">
+        <span>☁️ API Mode</span>
       </button>
-      <button class="mode-btn" id="mode-device" type="button">
-        <span>⚡ On-Device AI</span>
+      <button class="mode-btn" id="mode-algo" type="button" title="No-API Engine — 100% offline, zero key required">
+        <span>⚙️ No-API</span>
+      </button>
+      <button class="mode-btn" id="mode-device" type="button" title="On-Device Gemini Nano">
+        <span>⚡ On-Device</span>
       </button>
     </div>
   </div>

@@ -23,7 +23,7 @@ import type { EnhanceLevel } from "@/lib/llm/meta-prompt";
 import { useToast } from "@/components/ui/toast";
 import { openAIPlatform } from "@/lib/platform-redirect";
 import { MODELS, DEFAULT_MODEL_ID, getModelById } from "@/lib/models";
-import { ModelSelector } from "@/components/studio/model-selector";
+import { ModelSelector, EnhanceEngineMode } from "@/components/studio/model-selector";
 import { ContextMemoryPanel } from "@/components/studio/context-memory-panel";
 import { ScoreBreakdown } from "@/components/studio/score-breakdown";
 import { ExportCodeModal } from "@/components/prompts/export-code-modal";
@@ -119,7 +119,7 @@ export default function PromptBuilderPage() {
   const [copied, setCopied] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showCostBreakdown, setShowCostBreakdown] = useState(false);
-  const [enhanceMode, setEnhanceMode] = useState<"api" | "device">("api");
+  const [enhanceMode, setEnhanceMode] = useState<EnhanceEngineMode>("api");
   const [deviceState, setDeviceState] = useState<"unknown" | "available" | "unavailable" | "downloading">("unknown");
   const [enhanceLevel, setEnhanceLevel] = useState<EnhanceLevel>("deep");
   const [isListening, setIsListening] = useState(false);
@@ -216,6 +216,7 @@ export default function PromptBuilderPage() {
             },
             body: JSON.stringify({
               text: fullPrompt,
+              mode: enhanceMode,
               targetModel: selectedModelData?.rawModel || selectedModel,
             }),
           });

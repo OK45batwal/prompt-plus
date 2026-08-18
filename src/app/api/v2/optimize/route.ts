@@ -16,6 +16,7 @@ import { z } from "zod";
 
 const optimizeSchema = z.object({
   text: z.string().min(1, "Text is required"),
+  mode: z.enum(["api", "algorithmic", "device"]).optional(),
   taskType: z.string().optional(),
   answers: z.record(z.string(), z.string()).optional(),
   targetModel: z.string().optional(),

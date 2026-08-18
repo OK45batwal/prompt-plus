@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Zap, Brain, ChevronDown } from "lucide-react";
+import { Zap, Brain, Sliders, ChevronDown } from "lucide-react";
 import { MODELS, getModelById, ModelDefinition } from "@/lib/models";
 import { isDeviceAISupported, checkDeviceAvailability } from "@/lib/llm/device-ai";
+
+export type EnhanceEngineMode = "api" | "algorithmic" | "device";
 
 interface ModelSelectorProps {
   selectedModel: string;
   onSelectModel: (modelId: string) => void;
-  enhanceMode: "api" | "device";
-  onSetEnhanceMode: (mode: "api" | "device") => void;
+  enhanceMode: EnhanceEngineMode;
+  onSetEnhanceMode: (mode: EnhanceEngineMode) => void;
   deviceState: "unknown" | "available" | "unavailable" | "downloading";
   onSetDeviceState: (state: "unknown" | "available" | "unavailable" | "downloading") => void;
 }
@@ -40,26 +42,49 @@ export function ModelSelector({
 
   return (
     <div className="space-y-3">
-      {/* Engine Mode Switcher */}
+      {/* 3-Tier Engine Mode Switcher */}
       <div className="p-3 rounded-lg border bg-card">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-semibold">Enhancement Engine</span>
           <span className="text-[10px] text-muted-foreground">
-            {enhanceMode === "api" ? "🟢 Cloud AI — 100% free out-of-the-box" : "⚡ On-device — private, offline, free"}
+            {enhanceMode === "api"
+              ? "🟢 API Cloud AI — Key or free fallback"
+              : enhanceMode === "algorithmic"
+              ? "⚡ No-API Engine — 100% offline, zero key required"
+              : "🧠 On-Device — Private, offline Gemini Nano"}
           </span>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+
+        <div className="grid grid-cols-3 gap-1.5">
+          {/* Option 1: API Based */}
           <button
             type="button"
             onClick={() => onSetEnhanceMode("api")}
-            className={`h-9 rounded-lg border text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
+            className={`h-9 px-2 rounded-lg border text-xs font-medium transition-colors flex items-center justify-center gap-1 ${
               enhanceMode === "api"
-                ? "bg-primary text-primary-foreground border-primary"
+                ? "bg-primary text-primary-foreground border-primary font-semibold"
                 : "bg-background text-muted-foreground border-border hover:bg-accent"
             }`}
+            title="Uses your API key if provided, or free server tier"
           >
             <Zap className="h-3.5 w-3.5" /> API Based
           </button>
+
+          {/* Option 2: No-API Algorithmic System */}
+          <button
+            type="button"
+            onClick={() => onSetEnhanceMode("algorithmic")}
+            className={`h-9 px-2 rounded-lg border text-xs font-medium transition-colors flex items-center justify-center gap-1 ${
+              enhanceMode === "algorithmic"
+                ? "bg-primary text-primary-foreground border-primary font-semibold"
+                : "bg-background text-muted-foreground border-border hover:bg-accent"
+            }`}
+            title="100% Offline Rule-Based Compiler — No API key needed"
+          >
+            <Sliders className="h-3.5 w-3.5" /> No-API Engine
+          </button>
+
+          {/* Option 3: On-Device Gemini Nano */}
           <button
             type="button"
             onClick={() => {
@@ -70,15 +95,23 @@ export function ModelSelector({
                 onSetDeviceState("unavailable");
               }
             }}
-            className={`h-9 rounded-lg border text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
+            className={`h-9 px-2 rounded-lg border text-xs font-medium transition-colors flex items-center justify-center gap-1 ${
               enhanceMode === "device"
-                ? "bg-primary text-primary-foreground border-primary"
+                ? "bg-primary text-primary-foreground border-primary font-semibold"
                 : "bg-background text-muted-foreground border-border hover:bg-accent"
             }`}
+            title="Chrome Gemini Nano Offline Local AI"
           >
-            <Brain className="h-3.5 w-3.5" /> On-Device (Gemini Nano)
+            <Brain className="h-3.5 w-3.5" /> On-Device
           </button>
         </div>
+
+        {enhanceMode === "api" && (
+          <div className="mt-2.5 p-2 rounded-md bg-primary/5 border border-primary/10 text-[10px] text-muted-foreground flex items-center justify-between">
+            <span>🔑 Enter API key in Settings for full LLM power, or leave blank to use automatic fallback.</span>
+          </div>
+        )}
+
         {enhanceMode === "device" && deviceState === "unavailable" && (
           <div className="mt-2.5 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-700 dark:text-amber-300 flex items-center justify-between gap-2">
             <span>
@@ -95,7 +128,7 @@ export function ModelSelector({
         )}
       </div>
 
-      {/* Target Model Dropdown */}
+      {/* Target Model Dropdown (for API mode) */}
       {enhanceMode === "api" && (
         <div className="relative" ref={dropdownRef}>
           <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Target Model</label>

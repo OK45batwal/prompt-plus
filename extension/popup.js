@@ -10,11 +10,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const copyBtn = document.getElementById("copy-btn");
   const useBtn = document.getElementById("use-btn");
   const modeApi = document.getElementById("mode-api");
+  const modeAlgo = document.getElementById("mode-algo");
   const modeDevice = document.getElementById("mode-device");
   const modeLabel = document.getElementById("mode-label");
   const sizeToggle = document.getElementById("size-toggle");
   const sizeText = document.getElementById("size-text");
 
+  let currentMode = "api";
   let enhancedResult = "";
 
   // 1. Character Counter
@@ -61,18 +63,24 @@ document.addEventListener("DOMContentLoaded", () => {
   // 4. Mode Switches
   function setMode(mode) {
     currentMode = mode;
+    if (modeApi) modeApi.classList.remove("active");
+    if (modeAlgo) modeAlgo.classList.remove("active");
+    if (modeDevice) modeDevice.classList.remove("active");
+
     if (mode === "api") {
-      modeApi.classList.add("active");
-      modeDevice.classList.remove("active");
-      if (modeLabel) modeLabel.textContent = "⚡ Cloud AI — multi-model dynamic compilation";
+      if (modeApi) modeApi.classList.add("active");
+      if (modeLabel) modeLabel.textContent = "🟢 API Cloud AI — Key or free fallback";
+    } else if (mode === "algo") {
+      if (modeAlgo) modeAlgo.classList.add("active");
+      if (modeLabel) modeLabel.textContent = "⚡ No-API Rule Engine — 100% offline, zero key required";
     } else {
-      modeDevice.classList.add("active");
-      modeApi.classList.remove("active");
-      if (modeLabel) modeLabel.textContent = "⚡ On-Device Gemini Nano — private offline execution";
+      if (modeDevice) modeDevice.classList.add("active");
+      if (modeLabel) modeLabel.textContent = "🧠 On-Device Gemini Nano — private offline execution";
     }
   }
 
   if (modeApi) modeApi.addEventListener("click", () => setMode("api"));
+  if (modeAlgo) modeAlgo.addEventListener("click", () => setMode("algo"));
   if (modeDevice) modeDevice.addEventListener("click", () => setMode("device"));
 
   function showMsg(text, isErr = false) {
@@ -198,43 +206,48 @@ Your objective is to execute the following request with production-grade precisi
       let finalResult = "";
       let sourceLabel = "Cloud AI";
 
-      // 1. Try On-Device Gemini Nano if supported by browser
-      const deviceText = await enhanceWithDeviceInExtension(text);
-      if (deviceText) {
-        finalResult = deviceText;
-        sourceLabel = "On-Device Gemini Nano";
+      // 1. If mode is "algo" (No-API Engine) -> use offline local rule engine
+      if (currentMode === "algo") {
+        finalResult = synthesizeLocalPrompt(text);
+        sourceLabel = "No-API Rule Engine";
       }
 
-      // 2. Fallback to Free Non-API-Key Cloud Engine
+      // 2. If mode is "device" -> try On-Device Gemini Nano
+      if (!finalResult && currentMode === "device") {
+        const deviceText = await enhanceWithDeviceInExtension(text);
+        if (deviceText) {
+          finalResult = deviceText;
+          sourceLabel = "On-Device Gemini Nano";
+        }
+      }
+
+      // 3. API Mode or Fallback -> Call Cloud API (uses key if present, or free tier/algo fallback)
       if (!finalResult) {
         try {
           const res = await new Promise((resolve) => {
             try {
               chrome.runtime.sendMessage(
-                { action: "enhancePrompt", text, level: "deep" },
-                (r) => {
-                  if (chrome.runtime.lastError) resolve({ success: false, error: chrome.runtime.lastError.message });
-                  else resolve(r);
-                }
+                { action: "enhancePrompt", text, mode: currentMode },
+                (r) => resolve(r)
               );
-            } catch (e) {
-              resolve({ success: false, error: e.message });
+            } catch {
+              resolve(null);
             }
           });
 
-          if (res && res.success) {
-            finalResult = res.data?.data?.enhanced || res.data?.enhanced || "";
-            sourceLabel = "Free Cloud AI Engine";
+          if (res?.success && res.data?.enhanced) {
+            finalResult = res.data.enhanced;
+            sourceLabel = "API Cloud AI";
           }
         } catch {
-          // fallback
+          // Cloud failover
         }
       }
 
-      // 3. Fallback to Prompt+ Local Engine
+      // 4. Ultimate Fail-safe: Local Synthesizer (Zero-Failure Guarantee)
       if (!finalResult) {
         finalResult = synthesizeLocalPrompt(text);
-        sourceLabel = "Prompt+ Local Engine";
+        sourceLabel = "No-API Fail-Safe Engine";
       }
 
       enhanceBtn.disabled = false;
