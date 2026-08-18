@@ -1,59 +1,47 @@
-# Prompt+ Roadmap: Next High-Impact Improvements for Website & Extension
+# Prompt+ Platform Roadmap — Web Studio & Extension v1.3.0 Improvements
 
-A prioritized list of strategic enhancements across the **Web Dashboard** and **Chrome Extension**.
-
----
-
-## 🌐 1. Website Improvements (Web App)
-
-### A. Dynamic Prompt A/B Test Arena (`/dashboard/arena`)
-- **Feature:** Side-by-side prompt testing arena where users can execute two candidate prompts simultaneously against target LLMs (e.g. GPT-4o vs. Claude 3.5 Sonnet).
-- **Benefit:** Allows developers to visually compare latency, token costs, and output quality before deploying prompts to production.
-
-### B. Visual Prompt Flow & Chain Builder (`/dashboard/chains`)
-- **Feature:** Node-based visual graph builder (built with React Flow) to chain multiple prompts together (e.g., *Extractor Prompt → Analyzer Prompt → Code Generator Prompt*).
-- **Benefit:** Transforms Prompt+ from a single-prompt optimizer into an agentic workflow studio.
-
-### C. 1-Click Prompt Playground & Sharing Cards
-- **Feature:** Public shareable prompt cards (`/p/[shareId]`) with interactive variable sliders and live copy-to-clipboard buttons.
-- **Benefit:** Viral growth lever for developers sharing prompts on Twitter/X, LinkedIn, and GitHub.
+A curated list of actionable, high-impact improvements for both the **Prompt+ Web Platform** and the **Chrome Extension (v1.3.0)**.
 
 ---
 
-## 🔌 2. Chrome Extension Improvements
+## 🌐 1. Web Application Improvements (`/dashboard`)
 
-### A. Inline Floating Action Button (FAB) inside AI Chat Inputs
-- **Feature:** Subtle hover pill inside ChatGPT (`#prompt-textarea`), Claude, Gemini, and DeepSeek input boxes that triggers 1-click enhancement without opening side panel.
-- **Benefit:** Reduces prompt optimization time down to a single keyboard click (`Cmd+Shift+P`).
+### A. Prompt Studio & Builder (`/dashboard/new`)
+- [ ] **Live Side-by-Side Diff Viewer:** Visual split-screen showing line-by-line diffs between the original prompt idea and the enhanced master prompt.
+- [ ] **Dynamic Variable Filler (`{{variable}}` Auto-Parser):** Detect `{{placeholder}}` variables in generated prompts and render interactive input fields so users can populate parameters before copying.
+- [ ] **1-Click "Send to AI Chat" Action Buttons:** Direct launch buttons on output cards that open `ChatGPT`, `Claude`, `Gemini`, or `DeepSeek` in a new tab with the prompt pre-loaded.
+- [ ] **Target Model Preset Selector:** Quick-select tabs (`GPT-4o`, `Claude 3.5 Sonnet`, `Gemini 2.0 Flash`, `DeepSeek-V3`) that automatically tune output formatting (e.g. Anthropic XML vs. OpenAI Markdown).
 
-### B. Auto-Save Prompt Snippet Library in Extension Popover
-- **Feature:** Quick-access "Favorites" tab in the Chrome extension popover allowing users to insert their top 5 saved prompt templates directly into any active chat tab.
-- **Benefit:** Eliminates copy-pasting from external notes apps.
+### B. Prompt Library & History (`/dashboard/history`)
+- [ ] **Semantic Tag & Category Filters:** Filter saved prompts by domain tag, engine mode, model target, or quality score threshold.
+- [ ] **Version Timeline & Revert Gate:** Visual history tree ($v1 \rightarrow v2 \rightarrow v3$) allowing users to compare versions and restore previous iterations.
+- [ ] **Batch Library Export:** 1-click export of saved prompts to JSON, CSV, or Markdown bundles.
 
-### C. Real-Time Token & Cost Estimation Badge in Extension
-- **Feature:** Live token estimator inside the extension popup showing estimated input/output tokens and cost in USD before sending to ChatGPT/Claude.
-- **Benefit:** Helps developers manage token budgets in real time.
-
----
-
-## ⚡ 3. Prompt Engine & Intelligence Enhancements
-
-### A. Contrastive Few-Shot Example Generator
-- **Feature:** Automatically generate negative examples (*"What NOT to do"*) alongside positive examples to eliminate hallucinated code or formatting errors.
-- **Benefit:** Boosts LLM instruction adherence by +30% for complex coding and data extraction tasks.
-
-### B. Automatic Prompt Compression & Token Saver Mode
-- **Feature:** Optional 30% prompt compression algorithm that removes redundant words while retaining 100% semantic instructions.
-- **Benefit:** Saves API costs and context window memory for ultra-long context prompts.
+### C. Templates Studio (`/dashboard/templates`)
+- [ ] **Custom User Template Creator:** Allow users to save their own high-performing prompts into a personal reusable template collection.
+- [ ] **Interactive Template Playground:** Instant preview drawer with parameter inputs for all 20+ built-in templates.
 
 ---
 
-## 📊 Summary Matrix
+## 🧩 2. Chrome Extension Improvements (`extension/`)
 
-| Feature | Surface | Complexity | User Impact |
+### A. In-Page AI Chat Injector (`content.js`)
+- [ ] **Hovering In-Field Action Pill:** Render a sleek glass floating pill inside `ChatGPT`, `Claude`, `Gemini`, and `DeepSeek` input boxes with 1-click **"⚡ Enhance"** and **"📦 Carry Context"**.
+- [ ] **Smooth Auto-Type Injection:** Automatically populate the target AI chat input box smooth-typing style after prompt enhancement.
+- [ ] **Inline Spotsearch Overlay (`Cmd+Shift+P` / `Ctrl+Shift+P`):** Floating searchable prompt launcher that allows users to search their saved prompt library without leaving ChatGPT or Claude.
+
+### B. Storage & Sync (`background.js`)
+- [ ] **Offline Queue & Re-Sync:** Queue offline prompt enhancements in `chrome.storage.local` and sync with the web dashboard as soon as connectivity resumes.
+- [ ] **Custom Theme Switcher:** Allow extension users to toggle between OLED Dark (`#09090b`), Glassmorphism, and Modern Light themes inside the popover settings.
+
+---
+
+## 📊 Priority Matrix
+
+| Feature | Impact | Effort | Target Scope |
 | :--- | :--- | :--- | :--- |
-| **Inline FAB inside Chat Inputs** | Extension | Low | 🌟🌟🌟🌟🌟 |
-| **Side-by-Side A/B Test Arena** | Website | Medium | 🌟🌟🌟🌟🌟 |
-| **Quick Favorites Snippet Tab** | Extension | Low | 🌟🌟🌟🌟 |
-| **Contrastive Few-Shot Generator** | Engine | Medium | 🌟🌟🌟🌟 |
-| **Visual Prompt Chain Builder** | Website | High | 🌟🌟🌟🌟 |
+| **1-Click "Send to AI Chat" Buttons** | 🌟🌟🌟🌟🌟 High | 🟢 Low | Web + Extension |
+| **Dynamic Variable Filler (`{{variable}}`)** | 🌟🌟🌟🌟🌟 High | 🟡 Medium | Web Studio |
+| **In-Page Hovering Action Pill** | 🌟🌟🌟🌟🌟 High | 🟡 Medium | Chrome Extension |
+| **Side-by-Side Diff Viewer** | 🌟🌟🌟🌟 Medium | 🟢 Low | Web Studio |
+| **Inline Spotsearch Overlay (`Cmd+Shift+P`)** | 🌟🌟🌟🌟 Medium | 🟡 Medium | Chrome Extension |
