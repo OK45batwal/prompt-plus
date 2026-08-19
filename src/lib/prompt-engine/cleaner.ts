@@ -1,9 +1,4 @@
-/**
- * Zero-Fluff Prompt Response Cleaner & Latency Optimizer
- *
- * Strips conversational preamble, empty markdown section headers, redundant filler,
- * and multiple blank lines to deliver crisp, high-density prompt instructions.
- */
+import { cleanMasterPromptOutput } from "@/lib/llm/meta-prompt";
 
 export interface CleanPromptOptions {
   zeroFluff?: boolean;
@@ -13,7 +8,8 @@ export interface CleanPromptOptions {
 export function cleanPromptResponse(rawText: string, options: CleanPromptOptions = {}): string {
   if (!rawText || !rawText.trim()) return "";
 
-  let cleaned = rawText.trim();
+  // Apply master prompt output cleaner first
+  let cleaned = cleanMasterPromptOutput(rawText);
 
   // 1. Remove conversational preamble sentences
   const preambleRegex = /^(?:sure|certainly|here is|here's|below is|of course)[^:\n]*:\s*/i;

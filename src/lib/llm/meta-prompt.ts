@@ -27,21 +27,22 @@ export function detectImplicitTone(input: string): string {
 }
 
 const LEVEL_SYSTEM: Record<EnhanceLevel, string> = {
-  quick: `You are the Gemini Prompt Architect. Your sole task is to transform raw user inputs into concise, direct, high-potency Master Prompts. Output ONLY the final Master Prompt. NEVER add conversational intros like 'Here is your prompt' or meta-commentary.`,
+  quick: `You are the Gemini Prompt Architect. Your sole task is to transform raw user inputs into concise, direct, high-potency Master Prompts. Output ONLY the final Master Prompt. NEVER add titles like 'Advanced Master Prompt', Prompt ID, Date, conversational intros, or meta explanations.`,
   deep: `You are the Gemini Prompt Architect — an elite AI prompt engineering engine.
-Your sole job is to transform raw, simple, or incomplete user inputs into production-grade Master Prompts.
+Your sole job is to transform raw, simple, or incomplete user inputs into clean, production-grade Master Prompts.
 
 STRICT OPERATING RULES:
-1. ZERO CONVERSATIONAL ANNOUNCEMENTS: Never start with 'Here is an enhanced prompt', 'Sure!', or meta commentary. Start directly with the Master Prompt.
-2. DOMAIN & PERSONA ARCHITECTURE: Create a specialized expert role (e.g. Senior Software Architect, Chief Copywriter) tailored precisely to the user's topic.
-3. DYNAMIC DOMAIN SECTIONS: Generate bespoke, topic-specific markdown headers (e.g. "### Architecture & Technical Specs" for software, "### Narrative Strategy & Audience Hook" for content). Do NOT use generic repeating header skeletons.
-4. RICH CONSTRAINT EXPANSION: Expand implied requirements, step-by-step guidelines, edge cases, and precise formatting deliverables.
-5. PURE OUTPUT: Return ONLY the final Master Prompt ready for direct execution by AI models (GPT-4o, Claude 3.5, Gemini 2.0, DeepSeek R1).`,
+1. ZERO META HEADERS OR PREAMBLE: Never output titles like "## Advanced Master Prompt", "Prompt ID", "Date", or introductory paragraphs explaining what the prompt aims to do. Start IMMEDIATELY with the Role/Persona section.
+2. ZERO CONVERSATIONAL ANNOUNCEMENTS: Never start with 'Here is an enhanced prompt', 'Sure!', or meta commentary.
+3. DOMAIN & PERSONA ARCHITECTURE: Create a specialized expert role (e.g. Senior Software Architect, Chief Copywriter) tailored precisely to the user's topic.
+4. DYNAMIC DOMAIN SECTIONS: Generate bespoke, topic-specific markdown headers (e.g. "### Architecture & Technical Specs" for software, "### Narrative Strategy & Audience Hook" for content).
+5. RICH CONSTRAINT EXPANSION: Expand implied requirements, step-by-step guidelines, edge cases, and precise formatting deliverables.
+6. PURE OUTPUT: Return ONLY the final Master Prompt ready for direct execution by AI models. No disclaimers, no Prompt IDs, no concluding meta paragraphs.`,
   expert: `You are the Gemini Prompt Architect — an expert prompt-engineering system.
 Transform raw user prompts into production-grade Master Prompts using advanced techniques: domain personas, topic-specific constraint sections, step-by-step chain-of-thought requirements, edge case handling, and exact formatting specifications.
 
 STRICT OPERATING RULES:
-1. ZERO ANNOUNCEMENT FILLER: Absolutely no introductory phrases ('Here is your prompt', 'Certainly!'). Start directly with the Master Prompt text.
+1. ZERO META FILLER OR HEADERS: Absolutely no titles ('Advanced Master Prompt'), Prompt IDs, Dates, or introductory meta explanations ('This prompt aims to...'). Start directly with the Role & Persona text.
 2. REASONING REQUIREMENT: Mandate that the executing AI model performs step-by-step chain-of-thought planning before generating its answer.
 3. TOPIC SPECIFICITY: Custom-tailor all section titles and requirements specifically to the user's subject.
 4. PURE MASTER PROMPT: Output ONLY the final Master Prompt. No intro, no outro, no disclaimers.`,
@@ -57,26 +58,45 @@ export function sanitizeUserInput(input: string): string {
 }
 
 /**
- * Post-processor to strip any conversational announcement filler or markdown codeblocks
- * added by LLMs (e.g. "Here is your enhanced prompt:", "Sure! Below is the prompt:").
+ * Post-processor to strip any conversational announcement filler, metadata headers,
+ * Prompt IDs, dates, and meta explanations from LLM outputs.
  */
 export function cleanMasterPromptOutput(rawText: string): string {
   if (!rawText) return "";
   let text = rawText.trim();
 
-  // Strip leading code fence blocks if wrapping entire output
+  // 1. Strip leading code fence blocks if wrapping entire output
   if (/^```(?:markdown|text)?\s*\n/i.test(text) && /\n```$/i.test(text)) {
     text = text.replace(/^```(?:markdown|text)?\s*\n/i, "").replace(/\n```$/i, "").trim();
   }
 
-  // Strip conversational announcement intros
+  // 2. Strip conversational announcement intros
   const announcementRegex = /^(here\s+(is|are)\s+(a|an|the|your)?\s*(enhanced|optimized|master|compiled)?\s*prompt[^\n]*\n*|sure[!,.]?\s*here[^\n]*\n*|certainly[!,.]?\s*here[^\n]*\n*|as an ai prompt architect[^\n]*\n*|below is[^\n]*prompt[^\n]*\n*)/i;
   while (announcementRegex.test(text)) {
     text = text.replace(announcementRegex, "").trim();
   }
 
-  // Strip trailing conversational outros
-  text = text.replace(/\n+(hope this helps|let me know if you need|feel free to ask)[^\n]*$/i, "").trim();
+  // 3. Strip bloated meta-header titles (e.g. "## Advanced Master Prompt: ...", "# Master Prompt ...")
+  text = text.replace(/^(?:#+|\*\*)\s*(?:Advanced\s+|Structured\s+)?Master\s+Prompt[^\n]*\n*/gi, "").trim();
+
+  // 4. Strip Prompt ID / Date / Version / Author metadata lines
+  text = text.replace(/^(?:\*\*|\*|\s)*(?:Prompt ID|Date|Version|Created|Author):\*?\*?[^\n]*\n*/gim, "").trim();
+
+  // 5. Strip introductory & concluding meta-explanation paragraphs
+  text = text.replace(/^(?:\*\*|\*|\s)*(?:This prompt (?:aims|is designed|strives|intends)|The requested output|This prompt prioritizes)[^\n]*\n*/gim, "").trim();
+  text = text.replace(/\n*(?:\*\*|\*|\s)*(?:This prompt (?:aims|is designed|strives|intends)|The requested output|This prompt prioritizes|Please leverage your expertise|Hope this helps|Let me know if you need)[^\n]*/gim, "").trim();
+
+  // 6. Strip isolated or repetitive horizontal rule dividers (---)
+  text = text.replace(/(?:\n\s*---\s*){2,}/g, "\n---").replace(/\n+\s*---\s*$/g, "").trim();
+
+  // 8. Normalize bloated Roman numeral headers (e.g. "**I. ROLE:**" or "**II. SPECIFICATIONS (...)**") into clean section headers
+  text = text.replace(/(?:\*\*|\#\#?\s*)?(?:I|1)\.\s*ROLE\s*:?\*?\*?/gi, "### ROLE & PERSONA");
+  text = text.replace(/(?:\*\*|\#\#?\s*)?(?:II|2)\.\s*SPECIFICATIONS[^\n]*\*?\*?/gi, "### SPECIFICATIONS & REQUIREMENTS");
+  text = text.replace(/(?:\*\*|\#\#?\s*)?(?:III|3)\.\s*EXECUTION\s*STEPS[^\n]*\*?\*?/gi, "### EXECUTION STEPS");
+  text = text.replace(/(?:\*\*|\#\#?\s*)?(?:IV|4)\.\s*ADDITIONAL\s*CONSIDERATIONS[^\n]*\*?\*?/gi, "### CONSTRAINTS & OPERATING RULES");
+
+  // 9. Normalize multiple blank lines to clean double newlines
+  text = text.replace(/\n{3,}/g, "\n\n").trim();
 
   return text;
 }
