@@ -19,7 +19,7 @@
       <img src="https://img.shields.io/badge/Chrome_Web_Store-Live_v1.3.2-10b981?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=0a0a0c" alt="Chrome Web Store" />
     </a>
     <a href="https://github.com/OK45batwal/Prompt-plus">
-      <img src="https://img.shields.io/badge/Repository-Private-3b82f6?style=for-the-badge&logo=github&logoColor=white&labelColor=0a0a0c" alt="Private Repo" />
+      <img src="https://img.shields.io/github/stars/OK45batwal/Prompt-plus?style=for-the-badge&logo=github&logoColor=white&labelColor=0a0a0c&color=eab308" alt="Stars" />
     </a>
     <a href="https://github.com/OK45batwal/Prompt-plus/actions">
       <img src="https://img.shields.io/github/actions/workflow/status/OK45batwal/Prompt-plus/ci.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=CI&labelColor=0a0a0c&color=10b981" alt="CI" />
