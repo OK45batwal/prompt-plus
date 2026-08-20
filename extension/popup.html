@@ -30,10 +30,10 @@
       min-width: 360px;
       max-width: 540px;
       height: auto;
-      min-height: 520px;
-      max-height: 640px;
+      min-height: 530px;
+      max-height: 650px;
       font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-      background: radial-gradient(700px 360px at 50% -40px, rgba(99, 102, 241, 0.18), transparent 75%), #09090b;
+      background: radial-gradient(700px 360px at 50% -40px, rgba(99, 102, 241, 0.22), transparent 75%), #09090b;
       color: #f4f4f5;
       letter-spacing: -0.01em;
       overflow-x: hidden;
@@ -177,64 +177,6 @@
       color: #fff;
     }
 
-    /* ---------- Token Remaining & Quota Bar ---------- */
-    .token-quota-card {
-      margin: 12px 14px 0 14px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .token-quota-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 10px;
-      font-weight: 600;
-      color: #a1a1aa;
-    }
-
-    .token-quota-title {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      color: #e4e4e7;
-    }
-
-    .token-remaining-val {
-      color: #10b981;
-      font-weight: 700;
-    }
-
-    .token-bar-track {
-      width: 100%;
-      height: 5px;
-      border-radius: 4px;
-      background: rgba(255, 255, 255, 0.08);
-      overflow: hidden;
-      position: relative;
-    }
-
-    .token-bar-fill {
-      height: 100%;
-      border-radius: 4px;
-      background: linear-gradient(90deg, #6366f1 0%, #10b981 100%);
-      width: 85%;
-      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .token-sub-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 9.5px;
-      color: #71717a;
-    }
-
     /* ---------- Container ---------- */
     .container {
       padding: 12px 14px 16px 14px;
@@ -246,12 +188,11 @@
     /* ---------- Engine Selector ---------- */
     .engine-selector {
       display: grid;
-      grid-cols: 3;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 4px;
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.35);
       padding: 3px;
-      border-radius: 10px;
+      border-radius: 11px;
       border: 1px solid rgba(255, 255, 255, 0.06);
     }
 
@@ -284,7 +225,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 2px 4px;
+      padding: 0 4px;
     }
 
     /* ---------- Level & Context Controls ---------- */
@@ -427,7 +368,7 @@
 
     textarea {
       width: 100%;
-      height: 90px;
+      height: 85px;
       background: transparent;
       border: none;
       color: #f4f4f5;
@@ -452,10 +393,10 @@
       padding-top: 6px;
     }
 
-    /* ---------- Action Buttons ---------- */
+    /* ---------- Action Buttons & Below-Button Token Bar ---------- */
     .enhance-btn {
       width: 100%;
-      height: 40px;
+      height: 42px;
       background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 12px;
@@ -481,6 +422,64 @@
       opacity: 0.6;
       cursor: not-allowed;
       transform: none;
+    }
+
+    /* Below Pop-up Button Token Remaining Progress Bar */
+    .button-token-bar-card {
+      padding: 8px 12px;
+      border-radius: 11px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .button-token-bar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #a1a1aa;
+    }
+
+    .btn-token-needed {
+      font-weight: 600;
+      color: #e4e4e7;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .btn-token-remaining {
+      font-weight: 700;
+      color: #10b981;
+    }
+
+    .button-token-bar-track {
+      width: 100%;
+      height: 4px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .button-token-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #6366f1 0%, #10b981 100%);
+      width: 88%;
+      transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .button-token-bar-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 9px;
+      color: #71717a;
     }
 
     /* ---------- Multi-AI Split Bar ---------- */
@@ -510,7 +509,7 @@
     }
 
     .ai-target-btn {
-      padding: 5px 2px;
+      padding: 6px 2px;
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -678,23 +677,6 @@
     </div>
   </header>
 
-  <!-- Token Remaining & Free Monthly Quota Bar -->
-  <div class="token-quota-card" id="token-quota-card">
-    <div class="token-quota-header">
-      <span class="token-quota-title">
-        <span>⚡ Monthly Quota</span>
-      </span>
-      <span class="token-remaining-val" id="quota-remaining-text">88 / 100 Free Units</span>
-    </div>
-    <div class="token-bar-track">
-      <div class="token-bar-fill" id="quota-bar-fill" style="width: 88%;"></div>
-    </div>
-    <div class="token-sub-meta">
-      <span id="token-load-text">~1,240 / 128K context load</span>
-      <span id="active-engine-badge">Sub-30ms Loop Engine</span>
-    </div>
-  </div>
-
   <main class="container">
     <!-- Engine Selector -->
     <div class="engine-selector">
@@ -765,6 +747,21 @@
     <button type="button" class="enhance-btn" id="enhance-btn">
       <span id="btn-text">⚡ Compile Master Prompt</span>
     </button>
+
+    <!-- Small Bar Below Pop-Up Button Showing Remaining Tokens -->
+    <div class="button-token-bar-card" id="btn-token-bar">
+      <div class="button-token-bar-header">
+        <span class="btn-token-needed" id="btn-token-needed-text">⚡ ~0 Tokens needed</span>
+        <span class="btn-token-remaining" id="btn-token-remaining-text">88 / 100 Free Units Remaining</span>
+      </div>
+      <div class="button-token-bar-track">
+        <div class="button-token-bar-fill" id="btn-token-bar-fill" style="width: 88%;"></div>
+      </div>
+      <div class="button-token-bar-footer">
+        <span>Sub-30ms Loop Engine Active</span>
+        <span id="btn-token-capacity-text">128K Max Context Window</span>
+      </div>
+    </div>
 
     <!-- Message Toast -->
     <div class="msg-toast" id="msg"></div>

@@ -26,15 +26,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const userName = document.getElementById("user-name");
   const syncStatusText = document.getElementById("sync-status-text");
   const syncDot = document.getElementById("sync-dot");
-  const quotaRemainingText = document.getElementById("quota-remaining-text");
-  const quotaBarFill = document.getElementById("quota-bar-fill");
-  const tokenLoadText = document.getElementById("token-load-text");
+  const btnTokenNeededText = document.getElementById("btn-token-needed-text");
+  const btnTokenRemainingText = document.getElementById("btn-token-remaining-text");
+  const btnTokenBarFill = document.getElementById("btn-token-bar-fill");
+  const btnTokenCapacityText = document.getElementById("btn-token-capacity-text");
 
   let currentMode = "api";
   let currentLevel = "deep";
   let enhancedResult = "";
   let isListening = false;
   let recognitionInstance = null;
+  let userQuota = { remaining: 88, monthlyLimit: 100, usagePercentage: 12 };
 
   // 1. Bi-Directional Web Account Sync
   async function syncWithWebPlatform() {
@@ -51,15 +53,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Update Quota Bar
         if (authData.quota) {
+          userQuota = authData.quota;
           const { remaining, monthlyLimit, usagePercentage } = authData.quota;
-          if (quotaRemainingText) {
-            quotaRemainingText.textContent = `${remaining} / ${monthlyLimit} Free Units`;
+          if (btnTokenRemainingText) {
+            btnTokenRemainingText.textContent = `${remaining} / ${monthlyLimit} Free Units`;
           }
-          if (quotaBarFill) {
+          if (btnTokenBarFill) {
             const fillPct = Math.max(8, Math.min(100, 100 - usagePercentage));
-            quotaBarFill.style.width = `${fillPct}%`;
+            btnTokenBarFill.style.width = `${fillPct}%`;
             if (remaining < 15) {
-              quotaBarFill.style.background = "linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)";
+              btnTokenBarFill.style.background = "linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)";
             }
           }
         }
@@ -84,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   syncWithWebPlatform();
 
-  // 2. Character & Token Counter
+  // 2. Character & Token Counter with Below-Button Bar Updates
   if (input) {
     input.addEventListener("input", () => {
       const len = input.value.length;
@@ -92,7 +95,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (charCount) charCount.textContent = `${len} char${len === 1 ? "" : "s"}`;
       if (tokenEstimate) tokenEstimate.textContent = `~${estTokens} Tokens`;
-      if (tokenLoadText) tokenLoadText.textContent = `~${estTokens} / 128K context load`;
+      if (btnTokenNeededText) btnTokenNeededText.textContent = `⚡ ~${estTokens} Tokens needed`;
+      if (btnTokenCapacityText) btnTokenCapacityText.textContent = `${Math.max(1, 128 - Math.ceil(estTokens / 1000))}K Context Free`;
+
+      if (btnTokenBarFill && userQuota) {
+        const dynamicRemaining = Math.max(0, userQuota.remaining - (estTokens > 50 ? 1 : 0));
+        const fillPct = Math.max(8, Math.min(100, Math.round((dynamicRemaining / (userQuota.monthlyLimit || 100)) * 100)));
+        btnTokenBarFill.style.width = `${fillPct}%`;
+      }
     });
   }
 
