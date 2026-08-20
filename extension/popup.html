@@ -4,20 +4,29 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prompt+ Architect AI v2.0</title>
+  <title>Prompt+ Architect AI</title>
   <style>
     :root {
       --bg: #09090b;
-      --card-bg: rgba(18, 18, 23, 0.75);
-      --card-border: rgba(255, 255, 255, 0.09);
+      --surface-1: rgba(18, 18, 23, 0.85);
+      --surface-2: rgba(24, 24, 30, 0.95);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(255, 255, 255, 0.16);
       --primary: #6366f1;
       --primary-hover: #4f46e5;
-      --accent-green: #10b981;
-      --accent-amber: #f59e0b;
-      --accent-red: #ef4444;
+      --primary-glow: rgba(99, 102, 241, 0.35);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.3);
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --text-white: #ffffff;
       --text-main: #f4f4f5;
       --text-muted: #a1a1aa;
       --text-dim: #71717a;
+      --radius-outer: 14px;
+      --radius-inner: 10px;
+      --radius-pill: 9999px;
+      --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     * {
@@ -33,29 +42,30 @@
       background: transparent;
     }
     ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.12);
       border-radius: 4px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.25);
     }
 
     html, body {
       width: 420px;
       height: 580px;
       max-height: 580px;
-      background: radial-gradient(600px 320px at 50% -40px, rgba(99, 102, 241, 0.2), transparent 70%), var(--bg);
+      background: radial-gradient(550px 300px at 50% -30px, rgba(99, 102, 241, 0.2), transparent 70%), var(--bg);
       color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Plus Jakarta Sans", "Inter", sans-serif;
       font-size: 13px;
       line-height: 1.4;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       user-select: none;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* ---------- Header ---------- */
+    /* ---------- Floating Island Header ---------- */
     .header {
       flex-shrink: 0;
       display: flex;
@@ -63,9 +73,9 @@
       justify-content: space-between;
       padding: 12px 16px;
       background: rgba(18, 18, 23, 0.85);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--card-border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
       z-index: 50;
     }
 
@@ -75,10 +85,10 @@
       gap: 10px;
     }
 
-    .header-logo {
-      width: 30px;
-      height: 30px;
-      border-radius: 9px;
+    .header-logo-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
       background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
       display: flex;
       align-items: center;
@@ -86,10 +96,10 @@
       color: #fff;
       font-weight: 800;
       font-size: 14px;
-      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 2px 8px rgba(99, 102, 241, 0.35);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 4px 12px var(--primary-glow);
     }
 
-    .header-info {
+    .header-title-group {
       display: flex;
       flex-direction: column;
       gap: 1px;
@@ -104,21 +114,22 @@
     .header-title {
       font-size: 13px;
       font-weight: 700;
-      color: #ffffff;
-      letter-spacing: -0.01em;
+      color: var(--text-white);
+      letter-spacing: -0.02em;
     }
 
-    .v2-badge {
+    .v2-pill {
       font-size: 9px;
       font-weight: 800;
       padding: 1px 5px;
       border-radius: 5px;
-      background: rgba(99, 102, 241, 0.2);
+      background: rgba(99, 102, 241, 0.18);
       color: #a5b4fc;
       border: 1px solid rgba(99, 102, 241, 0.35);
+      letter-spacing: 0.02em;
     }
 
-    .header-sync-status {
+    .header-sync-row {
       display: flex;
       align-items: center;
       gap: 5px;
@@ -126,12 +137,12 @@
       color: var(--text-muted);
     }
 
-    .sync-dot {
+    .sync-indicator-dot {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: var(--accent-green);
-      box-shadow: 0 0 6px var(--accent-green);
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
       transition: background 0.3s ease;
     }
 
@@ -141,23 +152,24 @@
       gap: 8px;
     }
 
-    .user-profile-btn {
+    .user-pill-btn {
       display: flex;
       align-items: center;
       gap: 6px;
-      padding: 3px 8px 3px 4px;
-      border-radius: 20px;
+      padding: 3px 9px 3px 4px;
+      border-radius: var(--radius-pill);
       background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--border-subtle);
       text-decoration: none;
       color: var(--text-main);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.2s var(--ease-spring);
     }
 
-    .user-profile-btn:hover {
+    .user-pill-btn:hover {
       background: rgba(255, 255, 255, 0.1);
       border-color: rgba(99, 102, 241, 0.4);
+      transform: translateY(-1px);
     }
 
     .user-avatar-img {
@@ -168,7 +180,7 @@
       object-fit: cover;
     }
 
-    .user-name-text {
+    .user-name-label {
       font-size: 11px;
       font-weight: 600;
       max-width: 80px;
@@ -177,8 +189,8 @@
       white-space: nowrap;
     }
 
-    /* ---------- Main Scrollable Content ---------- */
-    .main-content {
+    /* ---------- Main Scroll Area ---------- */
+    .main-viewport {
       flex: 1;
       overflow-y: auto;
       padding: 12px 16px 20px;
@@ -187,123 +199,123 @@
       gap: 12px;
     }
 
-    /* ---------- Segmented Control (Engine) ---------- */
-    .engine-switcher {
+    /* ---------- Engine Segmented Control (Double-Bezel) ---------- */
+    .engine-segmented-box {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 3px;
       background: rgba(0, 0, 0, 0.45);
       padding: 3px;
-      border-radius: 10px;
-      border: 1px solid var(--card-border);
+      border-radius: 11px;
+      border: 1px solid var(--border-subtle);
     }
 
-    .engine-tab {
+    .engine-segmented-tab {
       background: transparent;
       border: none;
       color: var(--text-muted);
       font-size: 11px;
       font-weight: 600;
       padding: 6px 4px;
-      border-radius: 7px;
+      border-radius: 8px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 4px;
-      transition: all 0.15s ease;
+      transition: all 0.15s var(--ease-spring);
     }
 
-    .engine-tab:hover {
-      color: #ffffff;
+    .engine-segmented-tab:hover {
+      color: var(--text-white);
       background: rgba(255, 255, 255, 0.04);
     }
 
-    .engine-tab.active {
+    .engine-segmented-tab.active {
       background: rgba(99, 102, 241, 0.25);
-      color: #ffffff;
-      border: 1px solid rgba(99, 102, 241, 0.45);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      color: var(--text-white);
+      border: 1px solid rgba(99, 102, 241, 0.5);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
-    /* ---------- Optimization Levels & Context ---------- */
-    .level-row {
+    /* ---------- Level & Context Controls ---------- */
+    .controls-strip {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
     }
 
-    .level-pills {
+    .level-pills-group {
       display: flex;
       gap: 4px;
     }
 
-    .level-pill {
+    .level-toggle-pill {
       font-size: 10.5px;
       font-weight: 600;
       padding: 4px 8px;
-      border-radius: 6px;
+      border-radius: 7px;
       background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--border-subtle);
       color: var(--text-muted);
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.15s var(--ease-spring);
     }
 
-    .level-pill:hover {
+    .level-toggle-pill:hover {
       background: rgba(255, 255, 255, 0.08);
-      color: #ffffff;
+      color: var(--text-white);
     }
 
-    .level-pill.active {
+    .level-toggle-pill.active {
       background: rgba(99, 102, 241, 0.2);
       border-color: rgba(99, 102, 241, 0.5);
       color: #c7d2fe;
     }
 
-    .context-tag-btn {
+    .context-drawer-btn {
       font-size: 10.5px;
       font-weight: 600;
       padding: 4px 9px;
-      border-radius: 6px;
+      border-radius: 7px;
       background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--border-subtle);
       color: var(--text-muted);
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 4px;
-      transition: all 0.15s ease;
+      transition: all 0.15s var(--ease-spring);
     }
 
-    .context-tag-btn:hover {
+    .context-drawer-btn:hover {
       background: rgba(255, 255, 255, 0.08);
-      color: #ffffff;
+      color: var(--text-white);
     }
 
-    .context-tag-btn.active {
+    .context-drawer-btn.open {
       background: rgba(16, 185, 129, 0.15);
       border-color: rgba(16, 185, 129, 0.4);
       color: #34d399;
     }
 
     /* Context Memory Pills Container */
-    .context-chips-box {
+    .context-chips-drawer {
       display: none;
       flex-wrap: wrap;
       gap: 5px;
       padding: 8px 10px;
-      border-radius: 10px;
-      background: rgba(18, 18, 23, 0.6);
-      border: 1px solid var(--card-border);
+      border-radius: 11px;
+      background: rgba(18, 18, 23, 0.7);
+      border: 1px solid var(--border-subtle);
     }
 
-    .context-chips-box.open {
+    .context-chips-drawer.open {
       display: flex;
     }
 
-    .context-chip {
+    .context-memory-chip {
       font-size: 10px;
       font-weight: 600;
       padding: 3px 8px;
@@ -312,45 +324,45 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
       color: var(--text-muted);
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.15s var(--ease-spring);
     }
 
-    .context-chip:hover {
+    .context-memory-chip:hover {
       border-color: rgba(99, 102, 241, 0.4);
-      color: #ffffff;
+      color: var(--text-white);
     }
 
-    .context-chip.selected {
+    .context-memory-chip.selected {
       background: rgba(99, 102, 241, 0.2);
       border-color: rgba(99, 102, 241, 0.5);
       color: #c7d2fe;
     }
 
-    /* ---------- Input Card ---------- */
-    .input-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
+    /* ---------- Input Double-Bezel Card ---------- */
+    .input-bezel-card {
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-outer);
       padding: 10px 12px;
       display: flex;
       flex-direction: column;
       gap: 6px;
-      transition: all 0.2s ease;
+      transition: all 0.2s var(--ease-spring);
     }
 
-    .input-card:focus-within {
+    .input-bezel-card:focus-within {
       border-color: rgba(99, 102, 241, 0.5);
       box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
       background: rgba(18, 18, 23, 0.95);
     }
 
-    .input-card-header {
+    .input-bezel-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    .input-label {
+    .input-bezel-label {
       font-size: 10px;
       font-weight: 700;
       text-transform: uppercase;
@@ -358,11 +370,11 @@
       color: var(--text-dim);
     }
 
-    .voice-btn {
+    .voice-action-pill {
       font-size: 10.5px;
       font-weight: 600;
-      padding: 2px 7px;
-      border-radius: 10px;
+      padding: 2px 8px;
+      border-radius: 12px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
       color: var(--text-muted);
@@ -370,24 +382,24 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      transition: all 0.2s ease;
+      transition: all 0.2s var(--ease-spring);
     }
 
-    .voice-btn:hover {
+    .voice-action-pill:hover {
       background: rgba(255, 255, 255, 0.1);
-      color: #ffffff;
+      color: var(--text-white);
     }
 
-    .voice-btn.recording {
+    .voice-action-pill.recording {
       background: rgba(239, 68, 68, 0.2);
       border-color: rgba(239, 68, 68, 0.5);
       color: #ef4444;
-      animation: micPulse 1.2s infinite;
+      animation: pulseMic 1.2s infinite;
     }
 
-    @keyframes micPulse {
+    @keyframes pulseMic {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(0.96); }
+      50% { opacity: 0.65; transform: scale(0.96); }
     }
 
     textarea {
@@ -395,7 +407,7 @@
       height: 76px;
       background: transparent;
       border: none;
-      color: #ffffff;
+      color: var(--text-white);
       font-family: inherit;
       font-size: 12.5px;
       line-height: 1.45;
@@ -407,7 +419,7 @@
       color: #52525b;
     }
 
-    .input-card-footer {
+    .input-bezel-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -417,51 +429,67 @@
       padding-top: 5px;
     }
 
-    /* ---------- Enhance Master Button ---------- */
-    .enhance-btn {
+    /* ---------- Button-in-Button Primary Action ---------- */
+    .master-enhance-btn {
       width: 100%;
-      height: 40px;
+      height: 42px;
       background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 11px;
+      border-radius: var(--radius-inner);
       color: #ffffff;
       font-size: 12.5px;
       font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 6px;
-      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      justify-content: space-between;
+      padding: 0 12px 0 16px;
+      box-shadow: 0 4px 14px var(--primary-glow);
+      transition: all 0.2s var(--ease-spring);
     }
 
-    .enhance-btn:hover {
-      filter: brightness(1.1);
+    .master-enhance-btn:hover {
+      filter: brightness(1.08);
       box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
       transform: translateY(-1px);
     }
 
-    .enhance-btn:active {
-      transform: translateY(0);
+    .master-enhance-btn:active {
+      transform: translateY(0) scale(0.99);
     }
 
-    .enhance-btn:disabled {
+    .master-enhance-btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
     }
 
+    .btn-nested-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: transform 0.2s var(--ease-spring);
+    }
+
+    .master-enhance-btn:hover .btn-nested-icon {
+      transform: rotate(12deg) scale(1.08);
+    }
+
     /* ---------- Real-Time Token Remaining Meter (Below Pop-Up Button) ---------- */
     .token-meter-strip {
-      padding: 8px 12px;
-      border-radius: 10px;
-      background: rgba(18, 18, 23, 0.8);
-      border: 1px solid var(--card-border);
+      padding: 9px 12px;
+      border-radius: var(--radius-inner);
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 6px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     }
 
@@ -482,8 +510,8 @@
 
     .token-remaining-badge {
       font-weight: 700;
-      color: var(--accent-green);
-      padding: 1px 6px;
+      color: var(--emerald);
+      padding: 1px 7px;
       border-radius: 5px;
       background: rgba(16, 185, 129, 0.12);
       border: 1px solid rgba(16, 185, 129, 0.3);
@@ -491,8 +519,8 @@
 
     .token-meter-track {
       width: 100%;
-      height: 4px;
-      border-radius: 9999px;
+      height: 4.5px;
+      border-radius: var(--radius-pill);
       background: rgba(255, 255, 255, 0.08);
       overflow: hidden;
       position: relative;
@@ -500,11 +528,11 @@
 
     .token-meter-fill {
       height: 100%;
-      border-radius: 9999px;
+      border-radius: var(--radius-pill);
       background: linear-gradient(90deg, #6366f1 0%, #10b981 100%);
       width: 88%;
-      transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease;
-      box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+      transition: width 0.4s var(--ease-spring), background 0.3s ease;
+      box-shadow: 0 0 8px var(--emerald-glow);
     }
 
     .token-meter-footer {
@@ -520,10 +548,10 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      padding: 9px 12px;
+      padding: 10px 12px;
       border-radius: 11px;
       background: rgba(18, 18, 23, 0.5);
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--border-subtle);
     }
 
     .multi-ai-title {
@@ -541,7 +569,7 @@
       gap: 5px;
     }
 
-    .ai-btn {
+    .ai-pill-btn {
       padding: 5px 2px;
       border-radius: 7px;
       background: rgba(255, 255, 255, 0.04);
@@ -553,24 +581,24 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.15s ease;
+      transition: all 0.15s var(--ease-spring);
     }
 
-    .ai-btn:hover {
+    .ai-pill-btn:hover {
       background: rgba(255, 255, 255, 0.1);
       border-color: rgba(99, 102, 241, 0.4);
       color: #ffffff;
       transform: translateY(-1px);
     }
 
-    /* ---------- Result Card ---------- */
-    .result-card {
+    /* ---------- Result Double-Bezel Card ---------- */
+    .result-bezel-card {
       display: none;
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: var(--surface-1);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(99, 102, 241, 0.35);
-      border-radius: 12px;
+      border-radius: var(--radius-outer);
       padding: 12px;
       flex-direction: column;
       gap: 8px;
@@ -640,12 +668,12 @@
       align-items: center;
       justify-content: center;
       gap: 4px;
-      transition: all 0.15s ease;
+      transition: all 0.15s var(--ease-spring);
     }
 
     .btn-copy {
       background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--border-subtle);
       color: #ffffff;
     }
 
@@ -691,83 +719,84 @@
   <!-- Header -->
   <header class="header">
     <div class="header-left">
-      <div class="header-logo">✦</div>
-      <div class="header-info">
+      <div class="header-logo-badge">✦</div>
+      <div class="header-title-group">
         <div class="header-title-row">
           <span class="header-title">Prompt+ Architect</span>
-          <span class="v2-badge">v2.0</span>
+          <span class="v2-pill">v2.0</span>
         </div>
-        <div class="header-sync-status">
-          <span class="sync-dot" id="sync-dot"></span>
+        <div class="header-sync-row">
+          <span class="sync-indicator-dot" id="sync-dot"></span>
           <span id="sync-status-text">Cloud Synced</span>
         </div>
       </div>
     </div>
 
     <div class="header-right">
-      <a href="https://prompt-plus-three.vercel.app/dashboard" target="_blank" class="user-profile-btn" id="user-profile-link" title="Open Web Dashboard">
+      <a href="https://prompt-plus-three.vercel.app/dashboard" target="_blank" class="user-pill-btn" id="user-profile-link" title="Open Web Dashboard">
         <img src="https://api.dicebear.com/7.x/bottts/svg?seed=promptplus_arch" class="user-avatar-img" id="user-avatar" alt="Avatar" />
-        <span class="user-name-text" id="user-name">Studio</span>
+        <span class="user-name-label" id="user-name">Studio</span>
       </a>
     </div>
   </header>
 
-  <!-- Main Scrollable Content -->
-  <main class="main-content">
+  <!-- Main Viewport -->
+  <main class="main-viewport">
     <!-- Engine Switcher -->
-    <div class="engine-switcher">
-      <button type="button" class="engine-tab active" id="mode-api" title="Multi-Model Cloud AI">
+    <div class="engine-segmented-box">
+      <button type="button" class="engine-segmented-tab active" id="mode-api" title="Multi-Model Cloud AI">
         <span>🟢 API Cloud</span>
       </button>
-      <button type="button" class="engine-tab" id="mode-algo" title="100% Offline Rule Engine (<30ms)">
+      <button type="button" class="engine-segmented-tab" id="mode-algo" title="100% Offline Rule Engine (<30ms)">
         <span>⚡ No-API</span>
       </button>
-      <button type="button" class="engine-tab" id="mode-device" title="Chrome On-Device Gemini Nano">
+      <button type="button" class="engine-segmented-tab" id="mode-device" title="Chrome On-Device Gemini Nano">
         <span>🧠 On-Device</span>
       </button>
     </div>
 
-    <!-- Optimization Level & Context Tag Button -->
-    <div class="level-row">
-      <div class="level-pills">
-        <button type="button" class="level-pill active" data-level="deep">Deep</button>
-        <button type="button" class="level-pill" data-level="quick">Quick</button>
-        <button type="button" class="level-pill" data-level="expert">Expert</button>
+    <!-- Optimization Level & Context Drawer Toggle -->
+    <div class="controls-strip">
+      <div class="level-pills-group">
+        <button type="button" class="level-toggle-pill active" data-level="deep">Deep</button>
+        <button type="button" class="level-toggle-pill" data-level="quick">Quick</button>
+        <button type="button" class="level-toggle-pill" data-level="expert">Expert</button>
       </div>
 
-      <button type="button" class="context-tag-btn" id="context-chips-toggle">
-        <span>📦 Project Context</span>
+      <button type="button" class="context-drawer-btn" id="context-chips-toggle">
+        <span>📦 Context Memory</span>
         <span id="context-count-badge" style="font-weight:700; color:#10b981;">(1)</span>
       </button>
     </div>
 
     <!-- Expandable Context Chips -->
-    <div class="context-chips-box" id="context-chips-box">
-      <div class="context-chip selected" data-ctx="nextjs">Next.js 16 + Tailwind v4</div>
-      <div class="context-chip" data-ctx="python">Python FastAPI & PostgreSQL</div>
-      <div class="context-chip" data-ctx="exec">Executive Concise Tone</div>
+    <div class="context-chips-drawer" id="context-chips-box">
+      <div class="context-memory-chip selected" data-ctx="nextjs">Next.js 16 + Tailwind v4</div>
+      <div class="context-memory-chip" data-ctx="python">Python FastAPI Architecture</div>
+      <div class="context-memory-chip" data-ctx="exec">Executive Strategic Tone</div>
     </div>
 
-    <!-- Input Card -->
-    <div class="input-card">
-      <div class="input-card-header">
-        <span class="input-label">Raw Prompt Idea</span>
-        <button type="button" class="voice-btn" id="voice-btn">
+    <!-- Input Double-Bezel Card -->
+    <div class="input-bezel-card">
+      <div class="input-bezel-header">
+        <span class="input-bezel-label">Raw Prompt Idea</span>
+        <button type="button" class="voice-action-pill" id="voice-btn">
           <span>🎙️ Voice Input</span>
         </button>
       </div>
 
-      <textarea id="input" placeholder="Type your rough idea, query, or task... (e.g. build an auth middleware for nextjs)"></textarea>
+      <textarea id="input" placeholder="Type your rough task, code idea, or query... (e.g. build auth middleware with rate limiting)"></textarea>
 
-      <div class="input-card-footer">
+      <div class="input-bezel-footer">
         <span id="char-count">0 characters</span>
         <span id="token-estimate">~0 Tokens</span>
       </div>
     </div>
 
-    <!-- Enhance Master Action Button -->
-    <button type="button" class="enhance-btn" id="enhance-btn">
+    <!-- Button-in-Button Master Enhance Action -->
+    <button type="button" class="master-enhance-btn" id="enhance-btn">
       <span id="btn-text">⚡ Compile Master Prompt</span>
+      <span class="btn-nested-icon">↗</span>
     </button>
 
     <!-- Real-Time Token Remaining Meter (Directly Below Pop-Up Button) -->
@@ -794,15 +823,15 @@
         <span>🔀 Multi-AI Split Launch (Side-by-Side)</span>
       </div>
       <div class="multi-ai-grid">
-        <button type="button" class="ai-btn" id="bridge-chatgpt" title="Open in ChatGPT">ChatGPT</button>
-        <button type="button" class="ai-btn" id="bridge-claude" title="Open in Claude 3.5">Claude</button>
-        <button type="button" class="ai-btn" id="bridge-gemini" title="Open in Gemini">Gemini</button>
-        <button type="button" class="ai-btn" id="bridge-deepseek" title="Open in DeepSeek R1">DeepSeek</button>
+        <button type="button" class="ai-pill-btn" id="bridge-chatgpt" title="Open in ChatGPT">ChatGPT</button>
+        <button type="button" class="ai-pill-btn" id="bridge-claude" title="Open in Claude 3.5">Claude</button>
+        <button type="button" class="ai-pill-btn" id="bridge-gemini" title="Open in Gemini">Gemini</button>
+        <button type="button" class="ai-pill-btn" id="bridge-deepseek" title="Open in DeepSeek R1">DeepSeek</button>
       </div>
     </div>
 
     <!-- Result Card -->
-    <div class="result-card" id="result-card">
+    <div class="result-bezel-card" id="result-card">
       <div class="result-header">
         <div class="result-badges">
           <span class="score-badge" id="quality-score-badge">Score: 92/100</span>
