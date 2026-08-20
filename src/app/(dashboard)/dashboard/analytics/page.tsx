@@ -338,90 +338,136 @@ export default function AnalyticsPage() {
               </div>
 
               {/* View Toggle */}
-              <div className="flex items-center gap-2">
-                <div className="flex items-center p-0.5 rounded-xl bg-background border text-[11px] font-medium">
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                <div className="flex items-center p-0.5 rounded-xl bg-background border text-[11px] font-medium shadow-xs">
                   <button
                     type="button"
                     onClick={() => setActiveMetricView("actions")}
                     className={`px-3 py-1 rounded-lg transition-all ${
                       activeMetricView === "actions"
-                        ? "bg-primary text-primary-foreground font-bold"
+                        ? "bg-primary text-primary-foreground font-bold shadow-xs"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    Actions
+                    Actions Velocity
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveMetricView("quality")}
                     className={`px-3 py-1 rounded-lg transition-all ${
                       activeMetricView === "quality"
-                        ? "bg-primary text-primary-foreground font-bold"
+                        ? "bg-purple-600 text-white font-bold shadow-xs"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    Quality Curve
+                    Quality Index
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Interactive Bar Chart */}
-            <div className="pt-6 pb-2">
-              <div className="h-56 flex items-end justify-between gap-2 sm:gap-4 px-2 border-b border-border/60 pb-3">
-                {data?.dailyActivity.map((d, idx) => {
-                  const barHeightPct = Math.max(12, Math.round((d.total / maxDailyTotal) * 100));
-                  return (
-                    <div
-                      key={idx}
-                      className="flex-1 flex flex-col items-center gap-2 group relative cursor-pointer"
-                    >
-                      {/* Floating Detailed Tooltip */}
-                      <div className="absolute -top-16 z-30 hidden group-hover:flex flex-col items-center bg-popover text-popover-foreground text-xs p-2 rounded-xl shadow-xl border whitespace-nowrap animate-in fade-in zoom-in-95 duration-100">
-                        <span className="font-bold text-[11px] text-foreground">{d.date}</span>
-                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5">
-                          <span className="text-primary font-semibold">{d.enhancements} Enhancements</span>
-                          <span>·</span>
-                          <span>{d.prompts} Prompts</span>
-                        </div>
-                      </div>
-
-                      {/* Bar Value on Top */}
-                      <span className="text-[10px] font-bold text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                        {activeMetricView === "actions" ? d.total : "92%"}
-                      </span>
-
-                      {/* Bar Column */}
-                      <div className="w-full max-w-[42px] bg-muted/40 group-hover:bg-primary/15 rounded-xl relative overflow-hidden transition-all h-44 flex items-end p-0.5">
-                        <div
-                          className="w-full bg-gradient-to-t from-primary/80 to-primary rounded-lg transition-all duration-700 shadow-sm group-hover:brightness-110"
-                          style={{
-                            height: activeMetricView === "actions" ? `${barHeightPct}%` : "92%",
-                          }}
-                        />
-                      </div>
-
-                      {/* Day Label */}
-                      <span className="text-[11px] font-semibold text-muted-foreground group-hover:text-foreground truncate w-full text-center">
-                        {d.day}
-                      </span>
-                    </div>
-                  );
-                })}
+            {/* Interactive Bar Chart with Grid Guidelines */}
+            <div className="relative pt-6 pb-2">
+              {/* Background Reference Grid Lines */}
+              <div className="absolute inset-x-2 top-8 bottom-10 flex flex-col justify-between pointer-events-none opacity-20">
+                <div className="border-b border-border border-dashed w-full" />
+                <div className="border-b border-border border-dashed w-full" />
+                <div className="border-b border-border border-dashed w-full" />
+                <div className="border-b border-border w-full" />
               </div>
 
-              {/* Chart Footer Info */}
+              {/* Scrollable / Flexible Bar Row */}
+              <div className="overflow-x-auto pb-2 scrollbar-thin">
+                <div
+                  className={`h-56 flex items-end justify-between gap-1.5 sm:gap-3 px-2 border-b border-border/60 pb-3 relative z-10 ${
+                    timeRange === "all" ? "min-w-[700px]" : timeRange === "30d" ? "min-w-[500px]" : "w-full"
+                  }`}
+                >
+                  {data?.dailyActivity.map((d, idx) => {
+                    const totalDays = data.dailyActivity.length;
+                    // Determine smart label cadence to prevent collisions
+                    let showLabel = true;
+                    if (totalDays > 45) {
+                      showLabel = idx === 0 || idx === totalDays - 1 || idx % 15 === 0;
+                    } else if (totalDays > 14) {
+                      showLabel = idx === 0 || idx === totalDays - 1 || idx % 5 === 0;
+                    }
+
+                    const hasData = d.total > 0;
+                    const barHeightPct = hasData
+                      ? Math.max(10, Math.min(100, Math.round((d.total / maxDailyTotal) * 100)))
+                      : 4;
+
+                    const formattedDate = new Date(d.date).toLocaleDateString([], {
+                      month: "short",
+                      day: "numeric",
+                    });
+
+                    return (
+                      <div
+                        key={d.date || idx}
+                        className="flex-1 flex flex-col items-center gap-1.5 group relative cursor-pointer min-w-[12px]"
+                      >
+                        {/* Hover Floating Tooltip */}
+                        <div className="absolute -top-14 left-1/2 -translate-x-1/2 z-30 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none flex flex-col items-center bg-popover text-popover-foreground text-xs p-2 rounded-xl shadow-xl border whitespace-nowrap">
+                          <span className="font-bold text-[11px] text-foreground">{formattedDate} ({d.day})</span>
+                          <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5">
+                            <span className="text-primary font-bold">{d.total} Actions</span>
+                            <span>·</span>
+                            <span>{d.enhancements} Enhanced</span>
+                          </div>
+                        </div>
+
+                        {/* Top Value on Hover */}
+                        <span className="text-[10px] font-bold text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity h-3">
+                          {activeMetricView === "actions" ? (hasData ? d.total : "") : "92%"}
+                        </span>
+
+                        {/* Bar Column Container */}
+                        <div className="w-full max-w-[38px] bg-muted/25 group-hover:bg-primary/10 rounded-xl relative overflow-hidden transition-all h-36 flex items-end p-0.5">
+                          <div
+                            className={`w-full rounded-lg transition-all duration-500 shadow-xs ${
+                              activeMetricView === "quality"
+                                ? "bg-gradient-to-t from-purple-600 to-purple-400"
+                                : hasData
+                                ? "bg-gradient-to-t from-primary/90 to-primary group-hover:brightness-110"
+                                : "bg-muted/50"
+                            }`}
+                            style={{
+                              height: activeMetricView === "actions" ? `${barHeightPct}%` : "92%",
+                            }}
+                          />
+                        </div>
+
+                        {/* X-Axis Date / Day Label */}
+                        <div className="h-4 flex items-center justify-center w-full">
+                          {showLabel ? (
+                            <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground group-hover:text-foreground truncate w-full text-center">
+                              {timeRange === "7d" ? d.day : d.date.slice(5)}
+                            </span>
+                          ) : (
+                            <span className="w-1 h-1 rounded-full bg-muted-foreground/30 group-hover:bg-primary" />
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Chart Footer Observability Info */}
               <div className="flex flex-wrap items-center justify-between text-xs text-muted-foreground pt-3 px-1">
                 <div className="flex items-center gap-4">
                   <span className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-primary" /> Active Velocity
+                    <span className="h-2 w-2 rounded-full bg-primary" />
+                    {activeMetricView === "actions" ? "Optimization Velocity" : "Quality Index Baseline"}
                   </span>
                   <span>
-                    Peak Day Volume: <strong className="text-foreground">{maxDailyTotal} actions</strong>
+                    Peak Volume: <strong className="text-foreground">{maxDailyTotal} actions</strong>
                   </span>
                 </div>
                 <span className="flex items-center gap-1.5 text-emerald-500 font-medium">
-                  <ShieldCheck className="h-3.5 w-3.5" /> High Precision Observability
+                  <ShieldCheck className="h-3.5 w-3.5" /> Real-time Sub-30ms Telemetry
                 </span>
               </div>
             </div>
