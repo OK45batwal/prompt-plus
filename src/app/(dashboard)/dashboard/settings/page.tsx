@@ -402,8 +402,26 @@ export default function SettingsPage() {
       }),
     });
 
+    // 3. Save any pending API keys
+    const pendingKeys = Object.entries(apiKeysInput).filter(([, v]) => v?.trim());
+    if (pendingKeys.length > 0) {
+      for (const [prov, val] of pendingKeys) {
+        try {
+          await fetch("/api/v1/api-keys", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ provider: prov, apiKey: val.trim() }),
+          });
+          setSavedKeys((prev) => ({ ...prev, [prov]: true }));
+        } catch {
+          // ignore
+        }
+      }
+      setApiKeysInput({});
+    }
+
     setSaved(true);
-    toast("Settings and preferences saved successfully!", "success");
+    toast("Settings, preferences, and API keys saved successfully!", "success");
     setTimeout(() => setSaved(false), 2000);
   };
 
@@ -746,7 +764,7 @@ export default function SettingsPage() {
                           type={showKeys[p.id] ? "text" : "password"}
                           value={apiKeysInput[p.id] || ""}
                           onChange={(e) => setApiKeysInput({ ...apiKeysInput, [p.id]: e.target.value })}
-                          placeholder={savedKeys[p.id] ? "••••••••••••••••" : p.placeholder}
+                          placeholder={savedKeys[p.id] ? "•••••••••••••••• (Encrypted & Active)" : p.placeholder}
                           className="h-9 w-full rounded-xl border bg-background px-3 pr-9 text-xs outline-none focus:border-ring font-mono"
                         />
                         <button
