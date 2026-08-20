@@ -17,6 +17,7 @@ import {
   Cpu,
   Zap,
   CheckCircle2,
+  ShieldCheck,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSession, signOut } from "next-auth/react";
@@ -733,6 +734,16 @@ export default function SettingsPage() {
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
                   Prompt+ works 100% free with server-managed AI models. Custom API keys are strictly optional for paid overrides.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-blue-500/30 bg-blue-500/5 text-xs space-y-1.5 shadow-xs">
+                <div className="flex items-center gap-2 font-bold text-blue-600 dark:text-blue-400">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span>Cross-Device Cloud Sync Guarantee</span>
+                </div>
+                <p className="text-muted-foreground leading-relaxed text-[11px]">
+                  All saved API keys are encrypted with AES-256 on your account. When you log in on any new device or computer, Prompt+ automatically loads and uses your connected keys in the background without exposing raw secret tokens on screen.
                 </p>
               </div>
 

@@ -22,8 +22,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Retrieve default saved context blocks for authenticated user session
+    // Retrieve default saved context blocks and connected API key providers for authenticated user
     const savedBlocks = getSavedContextBlocks();
+    const { getDb } = await import("@/lib/db/prisma");
+    const userKeys = await getDb().apiKey.findMany({
+      where: { userId: session.user.id, isActive: true },
+      select: { provider: true },
+    }).catch(() => []);
+
+    const connectedProviders = userKeys.map((k) => k.provider);
 
     return jsonResponse(
       {
@@ -34,6 +41,7 @@ export async function GET(request: NextRequest) {
           email: session.user.email,
         },
         savedBlocks,
+        connectedProviders,
         syncedAt: new Date().toISOString(),
       },
       { requestId }
