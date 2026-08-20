@@ -70,7 +70,28 @@ export function Header({ onMenuClick }: HeaderProps) {
         }
       });
     }
-  }, [session?.user?.image]);
+
+    // Direct Extension Communication Bridge: Broadcast active web session to Prompt+ Extension
+    if (typeof window !== "undefined" && session?.user) {
+      try {
+        window.postMessage(
+          {
+            source: "promptplus_web",
+            type: "SESSION_UPDATE",
+            user: {
+              id: session.user.id,
+              name: session.user.name,
+              email: session.user.email,
+              avatar: effectiveAvatar,
+            },
+          },
+          "*"
+        );
+      } catch {
+        // Silently catch postMessage edge cases
+      }
+    }
+  }, [session?.user, effectiveAvatar]);
 
   useEffect(() => {
     if (searchOpen && searchRef.current) searchRef.current.focus();

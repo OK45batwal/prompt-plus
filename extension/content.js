@@ -2,6 +2,42 @@
   let panelEl = null;
   let currentTarget = null;
   let currentText = "";
+  let userQuota = { remaining: 88, monthlyLimit: 100, usagePercentage: 12 };
+
+  // Web Platform Session Bridge: Listen for authenticated sessions broadcast by Prompt+ Web Platform
+  if (
+    location.hostname.includes("prompt-plus-three.vercel.app") ||
+    location.hostname.includes("localhost") ||
+    location.hostname.includes("prompt-plus")
+  ) {
+    window.addEventListener("message", (event) => {
+      if (event.data && event.data.source === "promptplus_web" && event.data.type === "SESSION_UPDATE") {
+        try {
+          if (chrome?.runtime?.sendMessage) {
+            chrome.runtime.sendMessage({
+              action: "saveSessionFromWeb",
+              user: event.data.user,
+              quota: event.data.quota,
+              savedBlocks: event.data.savedBlocks,
+            });
+          }
+        } catch {
+          // Ignore background disconnection
+        }
+      }
+    });
+  }
+
+  // Fetch initial cached quota
+  try {
+    if (chrome?.storage?.local) {
+      chrome.storage.local.get("pp_web_session", (d) => {
+        if (d?.pp_web_session?.quota) {
+          userQuota = d.pp_web_session.quota;
+        }
+      });
+    }
+  } catch { /* ignore */ }
 
   function ensureStylesInjected() {
     if (document.getElementById("pp-styles")) return;
@@ -19,7 +55,7 @@
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 16px rgba(99, 102, 241, 0.25) !important;
         backdrop-filter: blur(20px) !important;
         -webkit-backdrop-filter: blur(20px) !important;
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", sans-serif !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI Variable", sans-serif !important;
         z-index: 99999999 !important;
         user-select: none !important;
         line-height: 1 !important;
@@ -66,6 +102,35 @@
         box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5), 0 4px 14px rgba(99, 102, 241, 0.6) !important;
       }
 
+      .pp-fab-token-bar {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        padding: 3px 8px !important;
+        border-radius: 9999px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        font-size: 9.5px !important;
+        font-weight: 600 !important;
+        color: #a1a1aa !important;
+      }
+
+      .pp-fab-token-track {
+        width: 32px !important;
+        height: 4px !important;
+        border-radius: 9999px !important;
+        background: rgba(255, 255, 255, 0.15) !important;
+        overflow: hidden !important;
+      }
+
+      .pp-fab-token-fill {
+        height: 100% !important;
+        border-radius: 9999px !important;
+        background: linear-gradient(90deg, #6366f1 0%, #10b981 100%) !important;
+        width: 88% !important;
+        transition: width 0.3s ease !important;
+      }
+
       .pp-fab-btn-sub {
         display: inline-flex !important;
         align-items: center !important;
@@ -93,11 +158,6 @@
         color: #34d399 !important;
         box-shadow: 0 0 12px rgba(16, 185, 129, 0.3) !important;
       }
-      .pp-fab-btn-sub.resume-pill:hover {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(5, 150, 105, 0.35)) !important;
-        border-color: rgba(16, 185, 129, 0.7) !important;
-        box-shadow: 0 0 16px rgba(16, 185, 129, 0.5) !important;
-      }
     `;
     (document.head || document.documentElement).appendChild(style);
   }
@@ -119,168 +179,166 @@
 
   function getConversationText() {
     const bot = detectChatbot();
-    if (!bot) return "";
-    const sel = bot === "chatgpt" ? "[data-message-author-role]" : bot === "claude" ? '.font-claude-message, .font-user-message, [class*="message"]' : bot === "gemini" ? '.conversation-turn, [data-message]' : ".message, .ds-message";
-    const els = document.querySelectorAll(sel);
-    if (!els.length) return "";
-    return Array.from(els).reduce((s, el) => s + " " + (el.textContent || ""), "");
-  }
-
-  function sanitizeContextText(text) {
-    if (!text) return "";
-    return String(text)
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
-      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
-      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "")
-      .trim();
+    let text = "";
+    if (bot === "chatgpt") {
+      const turns = document.querySelectorAll("[data-message-author-role]");
+      turns.forEach((t) => {
+        const role = t.getAttribute("data-message-author-role");
+        const body = t.innerText?.trim();
+        if (body) text += `${role === "user" ? "User" : "Assistant"}: ${body}\n\n`;
+      });
+    } else if (bot === "claude") {
+      const msgs = document.querySelectorAll(".font-claude-message, .font-user-message, [data-is-streaming]");
+      msgs.forEach((m) => {
+        const body = m.innerText?.trim();
+        if (body) text += `${body}\n\n`;
+      });
+    } else if (bot === "gemini") {
+      const turns = document.querySelectorAll(".conversation-container, .query-text, .response-text");
+      turns.forEach((t) => {
+        const body = t.innerText?.trim();
+        if (body) text += `${body}\n\n`;
+      });
+    } else if (bot === "deepseek") {
+      const msgs = document.querySelectorAll(".chat-message, .fbb737a4, [class*='message-content']");
+      msgs.forEach((m) => {
+        const body = m.innerText?.trim();
+        if (body) text += `${body}\n\n`;
+      });
+    }
+    if (!text.trim()) {
+      const main = document.querySelector("main") || document.body;
+      text = main?.innerText?.slice(-4000) || "";
+    }
+    return text.trim();
   }
 
   function captureContextBucket() {
-    const rawText = getConversationText() || (currentTarget ? getText(currentTarget) : "");
-    const cleanText = sanitizeContextText(rawText);
-    if (!cleanText) {
-      showToast("⚠️ No conversation text found to carry context.");
+    const raw = getConversationText();
+    if (!raw || raw.length < 30) {
+      showToast("⚠️ Not enough conversation text found to carry over.");
       return;
     }
-    const source = detectChatbot().toUpperCase();
-    const formatted = `[IMPORTED CONTEXT FROM ${source}]\nThe following background context was captured from a prior chat session:\n\n"""\n${cleanText.slice(-4000)}\n"""\n\nPlease use this background context to answer my follow-up request:`;
+    const sourceBot = detectChatbot().toUpperCase();
     const bucket = {
-      source,
-      rawText: cleanText,
-      formattedPrompt: formatted,
-      timestamp: Date.now(),
+      source: sourceBot,
+      rawText: raw.slice(-6000),
+      timestamp: new Date().toISOString(),
+      formattedPrompt: `### CONTEXT CARRIED OVER FROM PREVIOUS ${sourceBot} SESSION\n\`\`\`text\n${raw.slice(-4000)}\n\`\`\`\n\n### CONTINUATION GOAL\nContinue analyzing or executing the task above with maximum accuracy and full context continuity:`
     };
 
     try {
-      if (typeof chrome !== "undefined" && chrome?.storage?.local) {
-        chrome.storage.local.set({ pp_context_bucket: bucket }, () => {});
+      if (chrome?.storage?.local) {
+        chrome.storage.local.set({ pp_context_bucket: bucket }, () => {
+          showToast(`✓ Context captured from ${sourceBot}! Open any other chatbot to resume.`);
+          const inj = document.querySelector("#pp-fab-bucket-inj");
+          if (inj) {
+            inj.style.display = "inline-flex";
+            inj.classList.add("resume-pill");
+            inj.innerHTML = `<span class="pp-fab-icon">💉</span><span style="font-size:10px;font-weight:700;margin-left:2px;">Resume from ${sourceBot}</span>`;
+          }
+        });
       }
-    } catch { /* ignore extension reload */ }
-
-    try {
-      if (typeof window !== "undefined" && window.localStorage) {
-        window.localStorage.setItem("pp_context_bucket", JSON.stringify(bucket));
-      }
-    } catch { /* ignore */ }
-
-    showToast(`📦 Context captured from ${source}! Ready to carry into other AI chats.`);
-    const injBtn = document.getElementById("pp-fab-bucket-inj");
-    if (injBtn) injBtn.style.display = "inline-flex";
+    } catch {
+      showToast("Context capture failed.");
+    }
   }
 
   function injectContextBucket() {
-    const applyInject = (bucket) => {
-      if (!bucket || !bucket.formattedPrompt) {
-        showToast("⚠️ No context saved in bucket.");
-        return;
-      }
-      const input = getInput() || currentTarget;
-      if (!input) {
-        showToast("⚠️ Active chat input field not found.");
-        return;
-      }
-      const sanitized = sanitizeContextText(bucket.formattedPrompt);
-      setText(input, sanitized);
-      showToast(`💉 Injected context from ${bucket.source || "Bucket"} into chat!`);
-    };
-
-    let localBucket = null;
     try {
-      if (typeof window !== "undefined" && window.localStorage) {
-        const raw = window.localStorage.getItem("pp_context_bucket");
-        if (raw) localBucket = JSON.parse(raw);
-      }
-    } catch { /* ignore */ }
-
-    try {
-      if (typeof chrome !== "undefined" && chrome?.storage?.local) {
+      if (chrome?.storage?.local) {
         chrome.storage.local.get("pp_context_bucket", (d) => {
-          const b = d?.pp_context_bucket || localBucket;
-          applyInject(b);
+          const b = d?.pp_context_bucket;
+          if (b && b.formattedPrompt) {
+            const input = getInput();
+            if (input) {
+              setText(input, b.formattedPrompt);
+              showToast(`✓ Loaded previous chat context from ${b.source || "prior session"}!`);
+            }
+          }
         });
-        return;
       }
-    } catch { /* ignore */ }
-
-    if (localBucket) {
-      applyInject(localBucket);
-    } else {
-      showToast("⚠️ No context saved in bucket.");
+    } catch {
+      showToast("Failed to inject context.");
     }
   }
 
   function getInput() {
-    const active = document.activeElement;
-    if (active && (active.tagName === "TEXTAREA" || active.isContentEditable || active.tagName === "INPUT")) {
-      return active;
+    const selectors = [
+      "#prompt-textarea",
+      "textarea[data-id='root']",
+      "div[contenteditable='true'][role='textbox']",
+      "div[contenteditable='true'][data-placeholder]",
+      "div[contenteditable='true']",
+      "rich-textarea textarea",
+      "textarea[placeholder*='Message']",
+      "textarea[placeholder*='Ask']",
+      "textarea[placeholder*='prompt']",
+      "textarea"
+    ];
+    for (const s of selectors) {
+      const el = document.querySelector(s);
+      if (el && isVisible(el)) return el;
     }
-    let el = document.querySelector("#prompt-textarea, textarea[data-id='root'], [contenteditable='true']#prompt-textarea");
-    if (el) return el;
-    el = document.querySelector("div[contenteditable='true'].ProseMirror, textarea[aria-label*='Write'], div[contenteditable='true'][aria-label*='Write']");
-    if (el && location.hostname.includes("claude")) return el;
-    el = document.querySelector("div[contenteditable='true'][aria-label*='Prompt'], div[contenteditable='true'], textarea");
-    if (el && location.hostname.includes("gemini")) return el;
-    el = document.querySelector("#chat-input, .ds-textarea, textarea[placeholder*='Ask'], textarea[placeholder*='prompt'], div[contenteditable='true']");
-    if (el && location.hostname.includes("deepseek")) return el;
-    el = document.querySelector("textarea[placeholder*='Grok'], div[contenteditable='true']");
-    if (el && (location.hostname.includes("grok") || location.hostname.includes("x.ai"))) return el;
-    el = document.querySelector("textarea[placeholder*='Ask'], textarea[placeholder*='Search'], textarea");
-    if (el && location.hostname.includes("perplexity")) return el;
-    el = document.querySelector("div[contenteditable='true']");
-    if (el) return el;
-    el = document.querySelector("textarea");
-    if (el) return el;
-    return document.querySelector("input[type='text']");
+    return null;
+  }
+
+  function isVisible(el) {
+    if (!el) return false;
+    const style = window.getComputedStyle(el);
+    return (
+      style.display !== "none" &&
+      style.visibility !== "hidden" &&
+      style.opacity !== "0" &&
+      el.offsetWidth > 0 &&
+      el.offsetHeight > 0
+    );
   }
 
   function getText(el) {
     if (!el) return "";
-    if (el.tagName === "TEXTAREA" || el.tagName === "INPUT") return el.value || "";
-    if (el.isContentEditable) return el.innerText || el.textContent || "";
-    return el.value || el.innerText || el.textContent || "";
+    if (el.tagName === "TEXTAREA" || el.tagName === "INPUT") {
+      return el.value || "";
+    }
+    if (el.isContentEditable) {
+      return el.innerText || el.textContent || "";
+    }
+    return "";
   }
 
-  function setText(el, text) {
+  function setText(el, val) {
     if (!el) return;
-    try { el.focus(); } catch { /* ignore focus error */ }
-
+    el.focus();
     if (el.tagName === "TEXTAREA" || el.tagName === "INPUT") {
-      try {
-        const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set;
-        if (nativeSetter) {
-          nativeSetter.call(el, text);
-        } else {
-          el.value = text;
-        }
-      } catch {
-        el.value = text;
-      }
+      el.value = val;
       el.dispatchEvent(new Event("input", { bubbles: true }));
       el.dispatchEvent(new Event("change", { bubbles: true }));
     } else if (el.isContentEditable) {
-      let inserted = false;
-      try {
-        const selection = window.getSelection();
-        const range = document.createRange();
-        range.selectNodeContents(el);
-        selection.removeAllRanges();
-        selection.addRange(range);
-        document.execCommand("delete", false, null);
-        inserted = document.execCommand("insertText", false, text);
-      } catch { /* fallback */ }
-
-      if (!inserted) {
-        el.innerText = text;
-      }
-
-      el.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: text }));
-      el.dispatchEvent(new Event("input", { bubbles: true }));
-      el.dispatchEvent(new Event("change", { bubbles: true }));
+      el.innerHTML = "";
+      const p = document.createElement("p");
+      p.innerText = val;
+      el.appendChild(p);
+      el.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText" }));
     }
   }
 
-  let fabTimer = null;
+  function getChatContainer(input) {
+    let parent = input.parentElement;
+    for (let i = 0; i < 6 && parent; i++) {
+      const style = window.getComputedStyle(parent);
+      if (
+        (parent.tagName === "FORM" ||
+          parent.classList.contains("relative") ||
+          style.position === "relative" ||
+          style.position === "sticky") &&
+        parent.offsetWidth > 280
+      ) {
+        return parent;
+      }
+      parent = parent.parentElement;
+    }
+    return input;
+  }
 
   function injectFab() {
     const existing = document.querySelector(".pp-fab-bar");
@@ -312,6 +370,13 @@
       '<span class="pp-fab-icon">⚡</span>' +
       '<span class="pp-fab-text" id="pp-fab-text">Enhance Prompt</span>' +
       '</button>' +
+      '<div class="pp-fab-token-bar" id="pp-fab-token-bar" title="Prompt+ Real-Time Quota & Context Load">' +
+      '<span id="pp-fab-token-text">~0 tok</span>' +
+      '<div class="pp-fab-token-track">' +
+      '<div class="pp-fab-token-fill" id="pp-fab-token-fill" style="width: 88%;"></div>' +
+      '</div>' +
+      '<span id="pp-fab-token-quota" style="color:#10b981;font-weight:700;">88 left</span>' +
+      '</div>' +
       '<button class="pp-fab-btn-sub" id="pp-fab-bucket-cap" type="button" title="Carry conversation history to another chatbot">' +
       '<span class="pp-fab-icon">📦</span>' +
       '</button>' +
@@ -321,6 +386,28 @@
 
     document.body.appendChild(bar);
     positionFab(bar, input);
+
+    // Live In-Chat Input Token Metering
+    const updateInputTokenCount = () => {
+      const val = getText(input);
+      const tokens = Math.ceil((val || "").length / 3.8);
+      const tokText = bar.querySelector("#pp-fab-token-text");
+      const tokFill = bar.querySelector("#pp-fab-token-fill");
+      const tokQuota = bar.querySelector("#pp-fab-token-quota");
+
+      if (tokText) tokText.textContent = `~${tokens} tok`;
+      if (tokQuota && userQuota) {
+        tokQuota.textContent = `${userQuota.remaining || 88} left`;
+      }
+      if (tokFill && userQuota) {
+        const dynamicRemaining = Math.max(0, userQuota.remaining - (tokens > 50 ? 1 : 0));
+        const fillPct = Math.max(8, Math.min(100, Math.round((dynamicRemaining / (userQuota.monthlyLimit || 100)) * 100)));
+        tokFill.style.width = `${fillPct}%`;
+      }
+    };
+
+    input.addEventListener("input", updateInputTokenCount);
+    updateInputTokenCount();
 
     const handleEnhanceClick = (e) => {
       if (e) {
@@ -347,14 +434,14 @@
     bar.querySelector(".pp-fab-brain-badge")?.addEventListener("click", handleEnhanceClick);
     bar.querySelector("#pp-fab-btn")?.addEventListener("click", handleEnhanceClick);
 
-    bar.querySelector("#pp-fab-bucket-cap").addEventListener("click", (e) => {
+    bar.querySelector("#pp-fab-bucket-cap")?.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       captureContextBucket();
     });
 
     const injBtn = bar.querySelector("#pp-fab-bucket-inj");
-    injBtn.addEventListener("click", (e) => {
+    injBtn?.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       injectContextBucket();
@@ -364,7 +451,7 @@
       if (chrome?.storage?.local) {
         chrome.storage.local.get("pp_context_bucket", (d) => {
           const b = d?.pp_context_bucket;
-          if (b && b.formattedPrompt) {
+          if (b && b.formattedPrompt && injBtn) {
             injBtn.style.display = "inline-flex";
             injBtn.innerHTML = `<span class="pp-fab-icon">💉</span><span style="font-size:10px;font-weight:700;margin-left:2px;">Resume from ${b.source || "Prior Chat"}</span>`;
             injBtn.title = `Resume conversation carried over from ${b.source || "prior session"}`;
@@ -378,44 +465,21 @@
       if (rafPending) return;
       rafPending = true;
       requestAnimationFrame(() => {
-        positionFab(bar, input);
         rafPending = false;
+        if (document.body.contains(bar) && document.body.contains(input)) {
+          positionFab(bar, input);
+        }
       });
     };
 
     window.addEventListener("scroll", schedulePosition, { passive: true });
     window.addEventListener("resize", schedulePosition, { passive: true });
-
-    schedulePosition();
-    if (fabTimer) clearInterval(fabTimer);
-    fabTimer = setInterval(() => {
-      if (!document.body.contains(input)) {
-        injectFab();
-      } else {
-        schedulePosition();
-      }
-    }, 2000);
-  }
-
-  function getChatContainer(input) {
-    if (!input) return null;
-    const form = input.closest("form");
-    if (form) return form;
-    const composer = input.closest("[class*='composer'], [class*='chat-input'], [class*='prompt-container'], [data-id='root']");
-    if (composer) return composer;
-    let el = input.parentElement;
-    while (el && el.parentElement && el.tagName !== "BODY" && el.tagName !== "MAIN") {
-      if (el.offsetHeight >= 40 && el.querySelector("button, [role='button']")) return el;
-      el = el.parentElement;
-    }
-    return input.parentElement || input;
   }
 
   function positionFab(bar, input) {
-    if (!bar || !input) return;
+    if (!input || !bar) return;
     if (!document.body.contains(input)) {
-      try { bar.remove(); } catch { /* ignore */ }
-      setTimeout(injectFab, 200);
+      bar.style.setProperty("display", "none", "important");
       return;
     }
 
@@ -427,10 +491,10 @@
     }
 
     const barHeight = bar.offsetHeight || 36;
-    const barWidth = bar.offsetWidth || 320;
+    const barWidth = bar.offsetWidth || 340;
     const viewportWidth = window.innerWidth;
 
-    let top = rect.top - barHeight - 6;
+    let top = rect.top - barHeight - 8;
     if (top < 8) {
       top = rect.top + 8;
     }
@@ -447,7 +511,6 @@
     bar.style.setProperty("bottom", "auto", "important");
     bar.style.setProperty("left", `${Math.round(left)}px`, "important");
     bar.style.setProperty("display", "inline-flex", "important");
-    bar.style.setProperty("transition", "top 0.15s ease-out, left 0.15s ease-out", "important");
   }
 
   function showToast(msg) {
@@ -485,72 +548,35 @@
     const subject = cleanInput.length > 0 ? cleanInput : text;
 
     let role = "Senior Subject Matter Expert & Systems Architect";
-    let domain = "Execution & Strategic Analysis";
     let sec1 = "Key Requirements & Specifications";
     let sec2 = "Execution Guidelines";
-    let directives = [
-      `Analyze core requirements for "${subject}" and address implicit edge cases.`,
-      `Deliver an authoritative, highly structured solution matching tone profile ("${tone}").`,
-      `Ensure output is ready for immediate deployment with zero conversational fluff.`
-    ];
 
     if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|script|refactor|error|fix|css|html)\b/i.test(text)) {
       role = "Principal Software Engineer & Technical Architect";
-      domain = "Production Software Engineering";
       sec1 = "Architecture & Technical Specifications";
       sec2 = "Implementation Guidelines";
-      directives = [
-        `Design a clean, modular, production-ready architecture for "${subject}".`,
-        `Incorporate strict typing, comprehensive error handling, and performance optimizations.`,
-        `Provide executable, self-contained code blocks with clear inline documentation.`
-      ];
     } else if (/\b(write|blog|article|email|post|essay|copy|letter|content|draft|story|headline|tweet|linkedin|newsletter)\b/i.test(text)) {
       role = "Elite Content Director & Strategic Copywriter";
-      domain = "High-Impact Copywriting & Editorial Strategy";
       sec1 = "Audience Hook & Narrative Strategy";
       sec2 = "Content Directives";
-      directives = [
-        `Craft an engaging narrative hook tailored to the target audience for "${subject}".`,
-        `Maintain a ${tone.toLowerCase()} tone with scannable formatting, subheadings, and clear takeaways.`,
-        `Eliminate passive voice, repetitive boilerplate, and generic introductory filler.`
-      ];
     }
 
-    return `You are a ${role} with deep expertise in ${domain}.
-
-Your objective is to execute the following request with production-grade precision:
+    return `### ROLE & PERSONA
+You are an authoritative ${role}. Execute this task with production-grade rigor:
 "${text}"
 
 ### ${sec1}
-- **Target Subject**: "${subject}"
-- **Tone & Persona**: ${tone}
-- **Quality Standard**: Deliver complete, unabridged solutions without placeholders or assumptions.
+- **Subject**: "${subject}"
+- **Tone Profile**: ${tone}
+- **Constraints**: Deliver complete, unabridged solutions without placeholders or assumptions.
 
 ### ${sec2}
-1. ${directives[0]}
-2. ${directives[1]}
-3. ${directives[2]}
+1. Analyze core requirements for "${subject}" and address implicit edge cases.
+2. Structure output with modular sections, scannable Markdown headers, and concrete code/examples.
+3. Eliminate all conversational introductory fluff and meta commentary.
 
-### Deliverables & Formatting Specs
-- Present final response with clear Markdown headers, bulleted lists, and structured blocks ready for immediate real-world application.`;
-  }
-
-  async function enhanceWithDeviceInExtension(text) {
-    if (!text) return null;
-    try {
-      const w = window;
-      const lm = w.LanguageModel || w.ai?.languageModel;
-      if (!lm) return null;
-      const avail = await lm.availability();
-      if (avail !== "available" && avail !== "readily") return null;
-      const session = await lm.create({ temperature: 0.1, topK: 1 });
-      const promptText = `You are a Senior Prompt Architect. Transform the following prompt into an advanced, structured master prompt with Role, Specifications, and Execution steps:\n\n"${text}"`;
-      const res = await session.prompt(promptText);
-      session.destroy();
-      return res ? res.trim() : null;
-    } catch {
-      return null;
-    }
+### DELIVERABLES & OUTPUT FORMAT
+- Deliver complete, immediately usable results formatted in clean Markdown.`;
   }
 
   function openPanel() {
@@ -566,7 +592,7 @@ Your objective is to execute the following request with production-grade precisi
       background: "rgba(10,10,14,0.96)", borderLeft: "1px solid rgba(255,255,255,0.1)",
       zIndex: "100000000", display: "flex", flexDirection: "column",
       boxShadow: "-8px 0 32px rgba(0,0,0,0.6)", backdropFilter: "blur(20px)",
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", color: "#f4f4f5"
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", color: "#f4f4f5"
     });
 
     panelEl.innerHTML = `
@@ -574,8 +600,8 @@ Your objective is to execute the following request with production-grade precisi
         <div style="display: flex; align-items: center; gap: 8px;">
           <div style="width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #4f46e5); display: flex; align-items: center; justify-content: center; font-weight: 700;">⚡</div>
           <div>
-            <div style="font-weight: 700; font-size: 14px;">Prompt+ <span style="font-weight: 400; color: #a1a1aa; font-size: 12px;">Architect AI</span></div>
-            <div style="font-size: 10px; color: #34d399; font-weight: 600;">🟢 ACTIVE IN PANEL</div>
+            <div style="font-weight: 700; font-size: 14px;">Prompt+ <span style="font-weight: 400; color: #a1a1aa; font-size: 12px;">Architect AI v2.0</span></div>
+            <div style="font-size: 10px; color: #34d399; font-weight: 600;">🟢 WEB SYNCED</div>
           </div>
         </div>
         <button id="pp-panel-close" style="background: transparent; border: none; color: #a1a1aa; font-size: 20px; cursor: pointer; padding: 4px;">✕</button>
@@ -588,6 +614,17 @@ Your objective is to execute the following request with production-grade precisi
         <button id="pp-panel-enhance-btn" style="padding: 12px; border-radius: 12px; background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 16px rgba(99,102,241,0.4);">
           <span>⚡ Enhance Prompt Live</span>
         </button>
+
+        <!-- Panel Token Remaining Bar -->
+        <div style="padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); display: flex; flex-direction: column; gap: 5px;">
+          <div style="display: flex; justify-content: space-between; font-size: 10px; color: #a1a1aa;">
+            <span id="pp-panel-token-need">⚡ ~0 Tokens needed</span>
+            <span id="pp-panel-token-rem" style="color: #10b981; font-weight: 700;">88 / 100 Free Units</span>
+          </div>
+          <div style="width: 100%; height: 4px; border-radius: 9999px; background: rgba(255,255,255,0.08); overflow: hidden;">
+            <div id="pp-panel-token-fill" style="height: 100%; border-radius: 9999px; background: linear-gradient(90deg, #6366f1 0%, #10b981 100%); width: 88%;"></div>
+          </div>
+        </div>
 
         <div id="pp-panel-msg" style="font-size: 12px; display: none; padding: 8px 12px; border-radius: 8px;"></div>
 
@@ -618,6 +655,23 @@ Your objective is to execute the following request with production-grade precisi
     const panelResult = document.getElementById("pp-panel-result");
     const panelScore = document.getElementById("pp-panel-score");
     const panelMsg = document.getElementById("pp-panel-msg");
+    const panelTokenNeed = document.getElementById("pp-panel-token-need");
+    const panelTokenRem = document.getElementById("pp-panel-token-rem");
+    const panelTokenFill = document.getElementById("pp-panel-token-fill");
+
+    panelInput?.addEventListener("input", () => {
+      const val = panelInput.value || "";
+      const tokens = Math.ceil(val.length / 3.8);
+      if (panelTokenNeed) panelTokenNeed.textContent = `⚡ ~${tokens} Tokens needed`;
+      if (panelTokenRem && userQuota) {
+        panelTokenRem.textContent = `${userQuota.remaining || 88} / 100 Free Units`;
+      }
+      if (panelTokenFill && userQuota) {
+        const dynamicRemaining = Math.max(0, userQuota.remaining - (tokens > 50 ? 1 : 0));
+        const fillPct = Math.max(8, Math.min(100, Math.round((dynamicRemaining / (userQuota.monthlyLimit || 100)) * 100)));
+        panelTokenFill.style.width = `${fillPct}%`;
+      }
+    });
 
     panelEnhanceBtn?.addEventListener("click", () => {
       const text = panelInput?.value?.trim();
@@ -650,77 +704,70 @@ Your objective is to execute the following request with production-grade precisi
         }
       };
 
-      (async () => {
-        // 1. Try On-Device Gemini Nano (if browser supports it)
-        const deviceText = await enhanceWithDeviceInExtension(text);
-        if (deviceText) {
-          finishEnhancement(deviceText, "On-Device Gemini Nano");
-          return;
-        }
-
-        // 2. Fallback to Free Non-API-Key Cloud Engine
-        try {
-          if (chrome?.runtime?.sendMessage) {
-            chrome.runtime.sendMessage({ action: "enhancePrompt", text, level: "deep" }, (res) => {
-              let enhanced = "";
-              if (res && res.success) {
-                enhanced = res.data?.data?.enhanced || res.data?.enhanced || "";
-              }
-              if (enhanced) {
-                finishEnhancement(enhanced, "Free Cloud AI Engine");
-              } else {
-                const localText = synthesizeLocalPrompt(text);
-                finishEnhancement(localText, "Prompt+ Local Engine");
-              }
-            });
-          } else {
-            const localText = synthesizeLocalPrompt(text);
-            finishEnhancement(localText, "Prompt+ Local Engine");
+      try {
+        chrome.runtime.sendMessage(
+          { action: "enhancePrompt", text, mode: "api", level: "deep" },
+          (res) => {
+            if (res && res.success && res.data?.enhanced) {
+              finishEnhancement(res.data.enhanced, res.data.model || "Cloud AI");
+            } else {
+              finishEnhancement(synthesizeLocalPrompt(text), "⚡ No-API Rule Engine");
+            }
           }
-        } catch {
-          const localText = synthesizeLocalPrompt(text);
-          finishEnhancement(localText, "Prompt+ Local Engine");
-        }
-      })();
+        );
+      } catch {
+        finishEnhancement(synthesizeLocalPrompt(text), "⚡ No-API Rule Engine");
+      }
     });
 
     document.getElementById("pp-panel-copy")?.addEventListener("click", () => {
       const text = panelResult?.textContent;
-      if (text) {
+      if (text && !text.startsWith("Click")) {
         navigator.clipboard.writeText(text);
-        showToast("✓ Copied enhanced prompt to clipboard!");
+        showToast("✓ Master prompt copied to clipboard!");
       }
     });
 
     document.getElementById("pp-panel-inject")?.addEventListener("click", () => {
       const text = panelResult?.textContent;
-      const input = getInput() || currentTarget;
-      if (text && input) {
-        setText(input, text);
-        showToast("✓ Applied enhanced prompt directly into chat input!");
-        panelEl.style.display = "none";
+      if (text && !text.startsWith("Click")) {
+        const target = currentTarget || getInput();
+        if (target) {
+          setText(target, text);
+          showToast("✓ Applied enhanced prompt to chat input!");
+          if (panelEl) panelEl.style.display = "none";
+        }
       }
     });
   }
 
-  // Handle messages from background worker
-  try {
-    if (chrome?.runtime?.onMessage) {
-      chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
-        if (req.action === "openEnhancePanel") {
-          openPanel();
-          sendResponse({ success: true });
-        } else if (req.action === "injectEnhanced") {
-          const input = getInput();
-          if (input && req.enhanced) {
-            setText(input, req.enhanced);
-            sendResponse({ success: true });
-          }
-        }
-      });
+  // Setup periodic mutation observer to attach to dynamic chat textareas
+  let lastTarget = null;
+  setInterval(() => {
+    const input = getInput();
+    if (input && input !== lastTarget) {
+      lastTarget = input;
+      injectFab();
     }
-  } catch { /* ignore */ }
+  }, 1000);
 
-  // Initial load delay injection
-  setTimeout(injectFab, 1000);
+  // Initial trigger
+  setTimeout(injectFab, 800);
+
+  // Chrome Message Listener for in-page actions
+  chrome.runtime?.onMessage?.addListener((req, sender, sendResponse) => {
+    if (req.action === "injectEnhanced" && req.enhanced) {
+      const input = getInput();
+      if (input) {
+        setText(input, req.enhanced);
+        showToast("✓ Enhanced prompt injected into active chat!");
+        sendResponse({ success: true });
+      } else {
+        sendResponse({ success: false, error: "No active chat input detected" });
+      }
+    } else if (req.action === "openEnhancePanel") {
+      openPanel();
+      sendResponse({ success: true });
+    }
+  });
 })();

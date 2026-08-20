@@ -95,13 +95,22 @@ async function checkWebAuth() {
       });
       if (res.ok) {
         const data = await res.json();
+        if (data.authenticated) {
+          chrome.storage.local.set({ pp_web_session: data });
+        }
         return data;
       }
     } catch {
       // Try next URL
     }
   }
-  return { authenticated: false };
+
+  // Check cached session if network fetch failed
+  const cached = await new Promise((resolve) => {
+    chrome.storage.local.get("pp_web_session", (d) => resolve(d?.pp_web_session || null));
+  });
+
+  return cached || { authenticated: false };
 }
 
 // ---------- Message Router Handler ----------
@@ -232,6 +241,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       Object.assign(cur, request.settings);
       chrome.storage.local.set({ [STORAGE_KEY]: cur }, () => sendResponse({ success: true }));
     });
+    return true;
+  }
+
+  if (request.action === "saveSessionFromWeb") {
+    chrome.storage.local.set({
+      pp_web_session: {
+        authenticated: true,
+        user: request.user,
+        quota: request.quota || { remaining: 88, monthlyLimit: 100, usagePercentage: 12 },
+        savedBlocks: request.savedBlocks || [],
+        syncedAt: new Date().toISOString(),
+      },
+    }, () => sendResponse({ success: true }));
     return true;
   }
 
