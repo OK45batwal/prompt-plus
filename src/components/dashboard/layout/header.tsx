@@ -13,8 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
-import { useState, useSyncExternalStore, useRef, useEffect } from "react";
-import { signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { NotificationBell } from "./notification-bell";
 
 interface HeaderProps {
@@ -26,11 +25,28 @@ const emptySubscribe = () => () => {};
 export function Header({ onMenuClick }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session } = useSession();
   const { setTheme, resolvedTheme } = useTheme();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [userAvatar, setUserAvatar] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("pp_user_avatar") || "";
+    }
+    return "";
+  });
   const searchRef = useRef<HTMLInputElement>(null);
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+
+  useEffect(() => {
+    if (session?.user?.image) {
+      queueMicrotask(() => {
+        if (!localStorage.getItem("pp_user_avatar")) {
+          setUserAvatar(session.user.image || "");
+        }
+      });
+    }
+  }, [session?.user?.image]);
 
   useEffect(() => {
     if (searchOpen && searchRef.current) searchRef.current.focus();
@@ -135,7 +151,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         <DropdownMenu>
           <DropdownMenuTrigger className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-accent transition-colors outline-none">
             <Avatar className="h-6 w-6">
-              <AvatarImage src="" alt="User" />
+              <AvatarImage src={userAvatar || session?.user?.image || ""} alt="User" />
               <AvatarFallback className="text-xs bg-muted text-muted-foreground">
                 <User className="h-3.5 w-3.5" />
               </AvatarFallback>

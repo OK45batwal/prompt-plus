@@ -192,6 +192,12 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [name, setName] = useState(session?.user?.name || "");
   const [email, setEmail] = useState(session?.user?.email || "");
+  const [avatar, setAvatar] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("pp_user_avatar") || "";
+    }
+    return "";
+  });
   const [developerRole, setDeveloperRole] = useState("Prompt Architect");
 
   // API Keys state
@@ -257,13 +263,16 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    if (session?.user?.name || session?.user?.email) {
+    if (session?.user?.name || session?.user?.email || session?.user?.image) {
       queueMicrotask(() => {
         if (session?.user?.name) setName(session.user.name);
         if (session?.user?.email) setEmail(session.user.email);
+        if (session?.user?.image && !localStorage.getItem("pp_user_avatar")) {
+          setAvatar(session.user.image);
+        }
       });
     }
-  }, [session?.user?.name, session?.user?.email]);
+  }, [session?.user?.name, session?.user?.email, session?.user?.image]);
 
   useEffect(() => {
     let isMounted = true;
@@ -353,12 +362,16 @@ export default function SettingsPage() {
   };
 
   const handleSaveAll = async () => {
-    // 1. Save Profile
+    // 1. Save Profile & Avatar
     await fetch("/api/auth/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, avatar }),
     });
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pp_user_avatar", avatar);
+    }
 
     // 2. Save Preferences
     await fetch("/api/v1/user/preferences", {
@@ -451,6 +464,67 @@ export default function SettingsPage() {
               </div>
 
               <div className="p-4 rounded-2xl border bg-card/60 space-y-4 shadow-xs">
+                {/* Profile Image & Avatar Presets */}
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-2 block">Profile Avatar</label>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    {/* Active Avatar Preview */}
+                    <div className="relative">
+                      <div className="w-14 h-14 rounded-2xl border-2 border-primary overflow-hidden bg-muted flex items-center justify-center shadow-sm shrink-0">
+                        {avatar ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={avatar} alt="Profile avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <User className="h-6 w-6 text-muted-foreground" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Presets Grid */}
+                    <div className="flex-1 space-y-2">
+                      <span className="text-[11px] text-muted-foreground font-medium block">Choose an AI Developer Avatar preset:</span>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { name: "Cyber Architect", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Architect&backgroundColor=6366f1" },
+                          { name: "Quantum Neural", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Quantum&backgroundColor=10b981" },
+                          { name: "Deep Tech Bot", url: "https://api.dicebear.com/7.x/bottts/svg?seed=DeepTech&backgroundColor=3b82f6" },
+                          { name: "Matrix Hacker", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Matrix&backgroundColor=f59e0b" },
+                          { name: "Neon Synth", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Synth&backgroundColor=ec4899" },
+                          { name: "Pixel Dev", url: "https://api.dicebear.com/7.x/bottts/svg?seed=PixelDev&backgroundColor=8b5cf6" },
+                        ].map((preset) => (
+                          <button
+                            key={preset.name}
+                            type="button"
+                            onClick={() => setAvatar(preset.url)}
+                            className={`w-9 h-9 rounded-xl border-2 overflow-hidden transition-all relative ${
+                              avatar === preset.url
+                                ? "border-primary scale-105 shadow-xs"
+                                : "border-border hover:border-primary/50 opacity-80 hover:opacity-100"
+                            }`}
+                            title={preset.name}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={preset.url} alt={preset.name} className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Custom Avatar URL input */}
+                      <div className="pt-1">
+                        <input
+                          type="text"
+                          value={avatar}
+                          onChange={(e) => setAvatar(e.target.value)}
+                          placeholder="Or paste custom image/avatar URL (https://...)"
+                          className="h-8 w-full rounded-lg border bg-background px-3 text-xs outline-none focus:border-ring font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <hr className="border-border/50" />
+
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1.5 block">Full Name</label>
                   <input

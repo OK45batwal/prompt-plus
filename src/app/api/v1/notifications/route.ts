@@ -58,11 +58,14 @@ const defaultNotifications: Omit<InAppNotification, "isRead">[] = [
 export const GET = withAuth(
   async (_req, { userId, requestId }) => {
     const readSet = userReadNotificationsMap.get(userId) || new Set<string>();
+    const dismissedSet = userDismissedNotificationsMap.get(userId) || new Set<string>();
 
-    const notifications: InAppNotification[] = defaultNotifications.map((n) => ({
-      ...n,
-      isRead: readSet.has(n.id),
-    }));
+    const notifications: InAppNotification[] = defaultNotifications
+      .filter((n) => !dismissedSet.has(n.id))
+      .map((n) => ({
+        ...n,
+        isRead: readSet.has(n.id),
+      }));
 
     const unreadCount = notifications.filter((n) => !n.isRead).length;
 
@@ -109,4 +112,36 @@ export const PATCH = withAuth(
     );
   },
   { schema: patchSchema }
+);
+
+// Dismissed notifications map per user
+const userDismissedNotificationsMap = new Map<string, Set<string>>();
+
+export const DELETE = withAuth(
+  async (req, { userId, requestId }) => {
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id");
+    const clearAll = url.searchParams.get("all") === "true";
+
+    if (!userDismissedNotificationsMap.has(userId)) {
+      userDismissedNotificationsMap.set(userId, new Set<string>());
+    }
+    const dismissedSet = userDismissedNotificationsMap.get(userId)!;
+
+    if (clearAll) {
+      defaultNotifications.forEach((n) => dismissedSet.add(n.id));
+    } else if (id) {
+      dismissedSet.add(id);
+    }
+
+    return jsonResponse(
+      {
+        data: {
+          success: true,
+          dismissedCount: dismissedSet.size,
+        },
+      },
+      { requestId }
+    );
+  }
 );

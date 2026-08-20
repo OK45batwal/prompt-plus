@@ -1,7 +1,19 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Bell, CheckCheck, Sparkles, ExternalLink, Zap, Layers, ShieldCheck } from "lucide-react";
+import {
+  Bell,
+  CheckCheck,
+  Sparkles,
+  ExternalLink,
+  Zap,
+  Layers,
+  ShieldCheck,
+  X,
+  Trash2,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -20,7 +32,8 @@ export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [filter, setFilter] = useState<"all" | "unread" | "optimization" | "system">("all");
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const popoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,7 +53,7 @@ export function NotificationBell() {
       }
     }
     loadNotifications();
-    const interval = setInterval(loadNotifications, 60000);
+    const interval = setInterval(loadNotifications, 45000);
     return () => {
       active = false;
       clearInterval(interval);
@@ -90,6 +103,33 @@ export function NotificationBell() {
     }
   };
 
+  const handleDismissNotification = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await fetch(`/api/v1/notifications?id=${id}`, {
+        method: "DELETE",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      });
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      await fetch("/api/v1/notifications?all=true", {
+        method: "DELETE",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      });
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch {
+      // ignore
+    }
+  };
+
   const getCategoryIcon = (cat: InAppNotification["category"]) => {
     switch (cat) {
       case "optimization":
@@ -103,9 +143,12 @@ export function NotificationBell() {
     }
   };
 
-  const filteredNotifications = filter === "unread"
-    ? notifications.filter((n) => !n.isRead)
-    : notifications;
+  const filteredNotifications = notifications.filter((n) => {
+    if (filter === "unread") return !n.isRead;
+    if (filter === "optimization") return n.category === "optimization";
+    if (filter === "system") return n.category === "system" || n.category === "extension";
+    return true;
+  });
 
   return (
     <div className="relative" ref={popoverRef}>
@@ -139,26 +182,14 @@ export function NotificationBell() {
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="flex items-center p-0.5 rounded-lg bg-background border text-[10px] font-medium">
-                <button
-                  type="button"
-                  onClick={() => setFilter("all")}
-                  className={`px-2 py-0.5 rounded-md transition-all ${
-                    filter === "all" ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground"
-                  }`}
-                >
-                  All
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFilter("unread")}
-                  className={`px-2 py-0.5 rounded-md transition-all ${
-                    filter === "unread" ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground"
-                  }`}
-                >
-                  Unread
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                title={soundEnabled ? "Mute notification sounds" : "Enable notification sounds"}
+                className="text-muted-foreground hover:text-foreground transition-colors p-1"
+              >
+                {soundEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5 opacity-50" />}
+              </button>
 
               {unreadCount > 0 && (
                 <button
@@ -167,10 +198,44 @@ export function NotificationBell() {
                   className="text-[10px] text-muted-foreground hover:text-foreground font-medium flex items-center gap-1 hover:underline"
                   title="Mark all as read"
                 >
-                  <CheckCheck className="h-3 w-3" />
+                  <CheckCheck className="h-3.5 w-3.5" />
+                </button>
+              )}
+
+              {notifications.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearAll}
+                  className="text-[10px] text-muted-foreground hover:text-red-500 font-medium flex items-center gap-1 hover:underline"
+                  title="Clear all notifications"
+                >
+                  <Trash2 className="h-3 w-3" />
                 </button>
               )}
             </div>
+          </div>
+
+          {/* Filter Pills */}
+          <div className="px-3.5 py-2 border-b bg-background/50 flex items-center gap-1 overflow-x-auto text-[10px] font-semibold">
+            {[
+              { id: "all", label: "All" },
+              { id: "unread", label: "Unread" },
+              { id: "optimization", label: "Optimizations" },
+              { id: "system", label: "System" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setFilter(tab.id as typeof filter)}
+                className={`px-2.5 py-0.5 rounded-lg transition-all ${
+                  filter === tab.id
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
           {/* Notifications List */}
@@ -180,7 +245,7 @@ export function NotificationBell() {
                 <div
                   key={n.id}
                   onClick={() => !n.isRead && handleMarkOneRead(n.id)}
-                  className={`p-3.5 transition-colors cursor-pointer text-xs space-y-1.5 ${
+                  className={`p-3.5 transition-colors cursor-pointer text-xs space-y-1.5 group relative ${
                     !n.isRead ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-accent/40 opacity-80"
                   }`}
                 >
@@ -189,9 +254,20 @@ export function NotificationBell() {
                       {getCategoryIcon(n.category)}
                       <span className="truncate">{n.title}</span>
                     </div>
-                    {!n.isRead && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-1" />
-                    )}
+
+                    <div className="flex items-center gap-1.5">
+                      {!n.isRead && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => handleDismissNotification(n.id, e)}
+                        title="Dismiss notification"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-red-500 p-0.5 rounded"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
                   </div>
 
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
@@ -225,7 +301,7 @@ export function NotificationBell() {
               <div className="p-8 text-center text-xs text-muted-foreground space-y-1">
                 <Bell className="h-6 w-6 text-muted-foreground/50 mx-auto mb-2" />
                 <p className="font-medium text-foreground">All caught up!</p>
-                <p className="text-[11px]">No unread notifications to display.</p>
+                <p className="text-[11px]">No notifications found under this filter.</p>
               </div>
             )}
           </div>
