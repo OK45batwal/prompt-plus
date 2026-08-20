@@ -388,8 +388,21 @@ export default function PromptBuilderPage() {
   };
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const basePromptRef = useRef<string>("");
 
-  const handleVoiceInput = () => {
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch {
+          // ignore
+        }
+      }
+    };
+  }, []);
+
+  const handleVoiceInput = async () => {
     if (isListening) {
       if (recognitionRef.current) {
         try {
@@ -409,16 +422,36 @@ export default function PromptBuilderPage() {
       return;
     }
 
+    // Step 1: Explicitly prompt & verify microphone hardware access
+    if (typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Immediately release stream tracks so SpeechRecognition has dedicated microphone access
+        stream.getTracks().forEach((track) => track.stop());
+      } catch (err: unknown) {
+        const isDenied = err instanceof Error && (err.name === "NotAllowedError" || err.name === "PermissionDeniedError");
+        if (isDenied) {
+          const msg = "Microphone access blocked. Click the camera/microphone icon in your URL address bar to allow access.";
+          setErrorNotice(msg);
+          toast(msg, "error");
+          return;
+        }
+      }
+    }
+
+    // Step 2: Initialize Speech Recognition with continuous interim dictation
     try {
       const rec = new SR();
-      rec.continuous = false;
-      rec.interimResults = false;
+      rec.continuous = true;
+      rec.interimResults = true;
       rec.lang = "en-US";
+
+      basePromptRef.current = prompt;
 
       rec.onstart = () => {
         setIsListening(true);
         setErrorNotice(null);
-        toast("Listening for voice input...", "info");
+        toast("🎙️ Listening... Speak your prompt naturally.", "info");
       };
 
       rec.onend = () => {
@@ -430,20 +463,33 @@ export default function PromptBuilderPage() {
         setIsListening(false);
         recognitionRef.current = null;
         if (e.error === "not-allowed" || e.error === "permission-denied") {
-          setErrorNotice("Microphone access denied. Please allow microphone permissions in browser settings.");
+          setErrorNotice("Microphone permission denied. Click the lock/settings icon in your address bar to enable microphone access.");
           toast("Microphone access denied.", "error");
         } else if (e.error === "no-speech") {
           setErrorNotice("No speech detected. Please speak clearly into your microphone.");
-        } else {
+        } else if (e.error !== "aborted") {
           setErrorNotice(`Voice input error (${e.error}). Please try again.`);
         }
       };
 
       rec.onresult = (e: SpeechRecognitionEvent) => {
-        const transcript = e.results?.[0]?.[0]?.transcript || "";
-        if (transcript) {
-          setPrompt((prev) => (prev ? `${prev} ${transcript}` : transcript));
-          toast("Voice input captured!", "success");
+        let finalSegment = "";
+        let interimSegment = "";
+
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const item = e.results[i];
+          const transcriptText = item[0]?.transcript || "";
+          if (item.isFinal) {
+            finalSegment += transcriptText + " ";
+          } else {
+            interimSegment += transcriptText;
+          }
+        }
+
+        const base = basePromptRef.current ? basePromptRef.current.trim() + " " : "";
+        const combined = `${base}${finalSegment}${interimSegment}`.trimStart();
+        if (combined) {
+          setPrompt(combined);
         }
       };
 
@@ -551,14 +597,25 @@ export default function PromptBuilderPage() {
                 <button
                   type="button"
                   onClick={handleVoiceInput}
-                  className={`text-[11px] flex items-center gap-1 px-2.5 py-1 rounded-full border transition-colors ${
+                  className={`text-[11px] flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all ${
                     isListening
-                      ? "bg-red-500/10 border-red-500/40 text-red-500 font-medium"
+                      ? "bg-red-500/15 border-red-500/50 text-red-500 font-semibold shadow-xs animate-pulse"
                       : "text-muted-foreground border-border hover:text-foreground hover:bg-accent"
                   }`}
+                  title={isListening ? "Click to stop dictation" : "Click to start voice dictation"}
                 >
-                  {isListening ? <MicOff className="h-3 w-3" /> : <Mic className="h-3 w-3" />}
-                  {isListening ? "Listening…" : "Voice input"}
+                  {isListening ? (
+                    <>
+                      <span className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
+                      <MicOff className="h-3 w-3 text-red-500" />
+                      <span>Stop Listening</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="h-3 w-3" />
+                      <span>Voice input</span>
+                    </>
+                  )}
                 </button>
               </div>
               <textarea
