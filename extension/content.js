@@ -394,10 +394,13 @@
       const tokText = bar.querySelector("#pp-fab-token-text");
       const tokFill = bar.querySelector("#pp-fab-token-fill");
       const tokQuota = bar.querySelector("#pp-fab-token-quota");
+      const bot = detectChatbot().toUpperCase();
+      const botMaxContext = bot === "CLAUDE" ? 200000 : bot === "GEMINI" ? 1000000 : 128000;
+      const freeK = (Math.max(0, botMaxContext - tokens) / 1000).toFixed(0);
 
-      if (tokText) tokText.textContent = `~${tokens} tok`;
+      if (tokText) tokText.textContent = `~${tokens} tok · ${freeK}K free`;
       if (tokQuota && userQuota) {
-        tokQuota.textContent = `${userQuota.remaining || 88} left`;
+        tokQuota.textContent = `${userQuota.remaining || 88} units`;
       }
       if (tokFill && userQuota) {
         const dynamicRemaining = Math.max(0, userQuota.remaining - (tokens > 50 ? 1 : 0));

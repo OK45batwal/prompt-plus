@@ -505,7 +505,18 @@
       color: #e4e4e7;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+    }
+
+    .active-bot-pill {
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 5px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      color: #c7d2fe;
+      white-space: nowrap;
     }
 
     .token-remaining-badge {
@@ -799,10 +810,13 @@
       <span class="btn-nested-icon">↗</span>
     </button>
 
-    <!-- Real-Time Token Remaining Meter (Directly Below Pop-Up Button) -->
+    <!-- Real-Time Token Remaining Meter (Live Active Chatbot Model & Context) -->
     <div class="token-meter-strip" id="token-meter-strip">
       <div class="token-meter-header">
-        <span class="token-needed-txt" id="token-needed-txt">⚡ ~0 Tokens needed</span>
+        <div class="token-needed-txt">
+          <span class="active-bot-pill" id="active-bot-pill">🤖 Active Chatbot · 128K</span>
+          <span id="token-needed-txt">⚡ ~0 tok</span>
+        </div>
         <span class="token-remaining-badge" id="token-remaining-badge">88 / 100 Free Units</span>
       </div>
       <div class="token-meter-track">
@@ -810,7 +824,7 @@
       </div>
       <div class="token-meter-footer">
         <span id="engine-telemetry-txt">Sub-30ms Loop Engine</span>
-        <span id="context-capacity-txt">128K Max Context</span>
+        <span id="context-capacity-txt">128.0K tokens free in active chat</span>
       </div>
     </div>
 

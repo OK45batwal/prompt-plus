@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const userName = document.getElementById("user-name");
   const syncStatusText = document.getElementById("sync-status-text");
   const syncDot = document.getElementById("sync-dot");
+  const activeBotPill = document.getElementById("active-bot-pill");
   const tokenNeededTxt = document.getElementById("token-needed-txt");
   const tokenRemainingBadge = document.getElementById("token-remaining-badge");
   const tokenMeterFill = document.getElementById("token-meter-fill");
@@ -35,7 +36,45 @@ document.addEventListener("DOMContentLoaded", () => {
   let recognitionInstance = null;
   let userQuota = { remaining: 88, monthlyLimit: 100, usagePercentage: 12 };
 
-  // 1. Bi-Directional Web Account Sync
+  // Chatbot Model Context Matrix
+  const BOT_PROFILES = [
+    { match: "chatgpt", name: "ChatGPT · GPT-4o", maxContext: 128000, color: "#10a37f" },
+    { match: "claude", name: "Claude 3.5 Sonnet", maxContext: 200000, color: "#d97706" },
+    { match: "gemini", name: "Gemini 2.0 Flash", maxContext: 1000000, color: "#3b82f6" },
+    { match: "deepseek", name: "DeepSeek R1", maxContext: 128000, color: "#6366f1" },
+    { match: "grok", name: "Grok 3", maxContext: 128000, color: "#ec4899" },
+    { match: "perplexity", name: "Perplexity AI", maxContext: 32000, color: "#06b6d4" },
+    { match: "copilot", name: "MS Copilot", maxContext: 128000, color: "#0284c7" },
+  ];
+
+  let activeBot = { name: "Universal AI", maxContext: 128000, color: "#6366f1" };
+
+  // 1. Detect Active Chatbot in the User's Current Tab
+  function detectActiveChatbot() {
+    try {
+      chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
+        const url = tabs?.[0]?.url || "";
+        const lower = url.toLowerCase();
+        for (const p of BOT_PROFILES) {
+          if (lower.includes(p.match)) {
+            activeBot = p;
+            break;
+          }
+        }
+        if (activeBotPill) {
+          activeBotPill.textContent = `🟢 ${activeBot.name}`;
+          activeBotPill.style.borderColor = activeBot.color;
+          activeBotPill.style.color = "#ffffff";
+        }
+        updateTokenMetrics();
+      });
+    } catch {
+      // Fallback
+    }
+  }
+  detectActiveChatbot();
+
+  // 2. Bi-Directional Web Account Sync
   async function syncWithWebPlatform() {
     try {
       const authData = await new Promise((resolve) => {
@@ -72,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Populate dynamic context blocks from cloud
         if (Array.isArray(authData.savedBlocks) && authData.savedBlocks.length > 0 && contextChipsBox) {
           contextChipsBox.innerHTML = authData.savedBlocks.map((b, idx) => `
-            <div class="context-chip ${idx === 0 ? "selected" : ""}" data-ctx="${b.id || idx}">
+            <div class="context-memory-chip ${idx === 0 ? "selected" : ""}" data-ctx="${b.id || idx}">
               ${b.name || "Custom Rule"}
             </div>
           `).join("");
@@ -88,44 +127,52 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   syncWithWebPlatform();
 
-  // 2. Character & Token Counter with Real-Time Meter Updates
-  if (input) {
-    input.addEventListener("input", () => {
-      const len = input.value.length;
-      const estTokens = Math.ceil(len / 3.8);
+  // 3. Real-Time Token Calculation
+  function updateTokenMetrics() {
+    const raw = input ? input.value : "";
+    const len = raw.length;
+    const estTokens = Math.ceil(len / 3.8);
+    const availableContext = Math.max(0, activeBot.maxContext - estTokens);
+    const availableK = (availableContext / 1000).toFixed(1);
 
-      if (charCount) charCount.textContent = `${len} char${len === 1 ? "" : "s"}`;
-      if (tokenEstimate) tokenEstimate.textContent = `~${estTokens} Tokens`;
-      if (tokenNeededTxt) tokenNeededTxt.textContent = `⚡ ~${estTokens} Tokens needed`;
-      if (contextCapacityTxt) contextCapacityTxt.textContent = `${Math.max(1, 128 - Math.ceil(estTokens / 1000))}K Context Free`;
+    if (charCount) charCount.textContent = `${len} char${len === 1 ? "" : "s"}`;
+    if (tokenEstimate) tokenEstimate.textContent = `~${estTokens} Tokens`;
+    if (tokenNeededTxt) tokenNeededTxt.textContent = `⚡ ~${estTokens} tok needed`;
+    if (contextCapacityTxt) {
+      contextCapacityTxt.textContent = `${availableK}K free in ${activeBot.name.split(" ")[0]}`;
+    }
 
-      if (tokenMeterFill && userQuota) {
-        const dynamicRemaining = Math.max(0, userQuota.remaining - (estTokens > 50 ? 1 : 0));
-        const fillPct = Math.max(8, Math.min(100, Math.round((dynamicRemaining / (userQuota.monthlyLimit || 100)) * 100)));
-        tokenMeterFill.style.width = `${fillPct}%`;
-      }
-    });
+    if (tokenMeterFill && userQuota) {
+      const dynamicRemaining = Math.max(0, userQuota.remaining - (estTokens > 50 ? 1 : 0));
+      const fillPct = Math.max(8, Math.min(100, Math.round((dynamicRemaining / (userQuota.monthlyLimit || 100)) * 100)));
+      tokenMeterFill.style.width = `${fillPct}%`;
+    }
   }
 
-  // 3. Preset Pills (Optimization Levels)
-  document.querySelectorAll(".level-pill").forEach((pill) => {
+  if (input) {
+    input.addEventListener("input", updateTokenMetrics);
+  }
+
+  // 4. Preset Pills (Optimization Levels)
+  document.querySelectorAll(".level-toggle-pill").forEach((pill) => {
     pill.addEventListener("click", () => {
-      document.querySelectorAll(".level-pill").forEach((p) => p.classList.remove("active"));
+      document.querySelectorAll(".level-toggle-pill").forEach((p) => p.classList.remove("active"));
       pill.classList.add("active");
       currentLevel = pill.getAttribute("data-level") || "deep";
     });
   });
 
-  // 4. Context Memory Chips Toggle
+  // 5. Context Memory Chips Toggle
   if (contextChipsToggle && contextChipsBox) {
     contextChipsToggle.addEventListener("click", () => {
       contextChipsBox.classList.toggle("open");
+      contextChipsToggle.classList.toggle("open");
     });
   }
 
   function setupContextChipListeners() {
     if (!contextChipsBox) return;
-    contextChipsBox.querySelectorAll(".context-chip").forEach((chip) => {
+    contextChipsBox.querySelectorAll(".context-memory-chip").forEach((chip) => {
       chip.addEventListener("click", () => {
         chip.classList.toggle("selected");
         updateActiveContextCount();
@@ -136,12 +183,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateActiveContextCount() {
     if (!contextChipsBox || !contextCountBadge) return;
-    const selected = contextChipsBox.querySelectorAll(".context-chip.selected").length;
+    const selected = contextChipsBox.querySelectorAll(".context-memory-chip.selected").length;
     contextCountBadge.textContent = `(${selected})`;
   }
   setupContextChipListeners();
 
-  // 5. Segmented Mode Switcher
+  // 6. Segmented Mode Switcher
   function setMode(mode) {
     currentMode = mode;
     if (modeApi) modeApi.classList.remove("active");
@@ -161,7 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (modeAlgo) modeAlgo.addEventListener("click", () => setMode("algo"));
   if (modeDevice) modeDevice.addEventListener("click", () => setMode("device"));
 
-  // 6. Voice Dictation
+  // 7. Voice Dictation
   if (voiceBtn) {
     voiceBtn.addEventListener("click", async () => {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -320,7 +367,7 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
 - Deliver complete, immediately usable results formatted in clean Markdown.`;
   }
 
-  // 7. Enhance Action Handler
+  // 8. Enhance Action Handler
   if (enhanceBtn) {
     enhanceBtn.addEventListener("click", async () => {
       const rawText = input ? input.value.trim() : "";
@@ -408,7 +455,7 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
     });
   }
 
-  // 8. Copy Button
+  // 9. Copy Button
   if (copyBtn) {
     copyBtn.addEventListener("click", () => {
       if (enhancedResult) {
@@ -419,7 +466,7 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
     });
   }
 
-  // 9. Use in Active Tab
+  // 10. Use in Active Tab
   if (useBtn) {
     useBtn.addEventListener("click", () => {
       if (enhancedResult) {
@@ -439,7 +486,7 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
     });
   }
 
-  // 10. Multi-AI Split Launch Handlers
+  // 11. Multi-AI Split Launch Handlers
   const openTargetAI = (targetUrl) => {
     try {
       chrome.tabs?.create({ url: targetUrl });
