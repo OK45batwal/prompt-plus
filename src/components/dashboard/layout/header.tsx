@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState, useSyncExternalStore, useRef, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useSession, signOut } from "next-auth/react";
 import { NotificationBell } from "./notification-bell";
@@ -39,10 +40,11 @@ export function Header({ onMenuClick }: HeaderProps) {
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   useEffect(() => {
-    if (session?.user?.image) {
+    const userImg = session?.user?.image;
+    if (userImg) {
       queueMicrotask(() => {
         if (!localStorage.getItem("pp_user_avatar")) {
-          setUserAvatar(session.user.image || "");
+          setUserAvatar(userImg);
         }
       });
     }
