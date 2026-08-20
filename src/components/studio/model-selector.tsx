@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Zap, Brain, Sliders, ChevronDown } from "lucide-react";
+import { Zap, Brain, Sliders, ChevronDown, AlertTriangle } from "lucide-react";
+import Link from "next/link";
 import { MODELS, getModelById, ModelDefinition } from "@/lib/models";
 import { isDeviceAISupported, checkDeviceAvailability } from "@/lib/llm/device-ai";
 
@@ -14,6 +15,7 @@ interface ModelSelectorProps {
   onSetEnhanceMode: (mode: EnhanceEngineMode) => void;
   deviceState: "unknown" | "available" | "unavailable" | "downloading";
   onSetDeviceState: (state: "unknown" | "available" | "unavailable" | "downloading") => void;
+  savedKeys?: Record<string, boolean>;
 }
 
 export function ModelSelector({
@@ -23,6 +25,7 @@ export function ModelSelector({
   onSetEnhanceMode,
   deviceState,
   onSetDeviceState,
+  savedKeys = {},
 }: ModelSelectorProps) {
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -107,9 +110,40 @@ export function ModelSelector({
         </div>
 
         {enhanceMode === "api" && (
-          <div className="mt-2.5 p-2 rounded-md bg-primary/5 border border-primary/10 text-[10px] text-muted-foreground flex items-center justify-between">
-            <span>🔑 Enter API key in Settings for full LLM power, or leave blank to use automatic fallback.</span>
-          </div>
+          <>
+            {!selectedModelData?.free && !savedKeys[selectedModelData?.provider || "openai"] && !savedKeys["openrouter"] ? (
+              <div className="mt-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-700 dark:text-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
+                <div className="flex items-start sm:items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5 sm:mt-0" />
+                  <div>
+                    <p className="font-bold text-[12px]">⚠️ API Key Required for {selectedModelData?.name || "Target Model"}</p>
+                    <p className="text-[11px] opacity-90">
+                      No connected key for <span className="font-semibold uppercase">{selectedModelData?.provider || "OpenAI"}</span>. Add your key in Settings or switch to the 100% Free No-API Engine.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                  <Link
+                    href="/dashboard/settings"
+                    className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] transition-colors"
+                  >
+                    Add Key
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => onSetEnhanceMode("algorithmic")}
+                    className="px-2.5 py-1 rounded-lg bg-background border border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-accent font-semibold text-[11px] transition-colors"
+                  >
+                    Switch to No-API
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-2.5 p-2 rounded-md bg-primary/5 border border-primary/10 text-[10px] text-muted-foreground flex items-center justify-between">
+                <span>🔑 Custom API key connected & active in Cloud Vault.</span>
+              </div>
+            )}
+          </>
         )}
 
         {enhanceMode === "device" && deviceState === "unavailable" && (

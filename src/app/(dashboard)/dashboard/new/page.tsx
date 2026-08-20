@@ -158,6 +158,33 @@ export default function PromptBuilderPage() {
     return `${contextPrefix}\n\n[User Prompt]:\n${prompt}`;
   };
 
+  const [savedKeys, setSavedKeys] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadApiKeys() {
+      try {
+        const res = await fetch("/api/v1/api-keys");
+        if (res.ok && isMounted) {
+          const json = await res.json();
+          if (Array.isArray(json.data)) {
+            const keyMap: Record<string, boolean> = {};
+            json.data.forEach((k: { provider: string; isActive: boolean }) => {
+              keyMap[k.provider] = k.isActive;
+            });
+            setSavedKeys(keyMap);
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+    loadApiKeys();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const selectedModelData = getModelById(selectedModel);
 
   // Token & Cost Calculations
@@ -190,9 +217,10 @@ export default function PromptBuilderPage() {
 
     try {
       let finalEnhancedText: string | undefined;
-      let enhanceProvider = "api";
+      let enhanceProvider = enhanceMode;
       let v2Data: EnhancedResult["v2"] | undefined;
 
+      // ── Branch 1: On-Device Gemini Nano ──
       if (enhanceMode === "device" && isDeviceAISupported()) {
         try {
           finalEnhancedText = await enhanceWithDevice({
@@ -204,12 +232,15 @@ export default function PromptBuilderPage() {
           });
           enhanceProvider = "device";
         } catch {
-          // Device AI unavailable — seamless failover
+          // Fallback to No-API Engine
+          const { synthesizeAlgorithmicPrompt } = await import("@/lib/llm/algorithmic-enhancers");
+          finalEnhancedText = synthesizeAlgorithmicPrompt(fullPrompt, enhanceLevel);
+          enhanceProvider = "algorithmic";
         }
       }
 
-      // Try V2 Optimization Engine API
-      if (!finalEnhancedText) {
+      // ── Branch 2: No-API Rule Engine (100% Offline, Deterministic, Sub-30ms) ──
+      else if (enhanceMode === "algorithmic") {
         try {
           const v2Res = await fetch("/api/v2/optimize", {
             method: "POST",
@@ -219,7 +250,7 @@ export default function PromptBuilderPage() {
             },
             body: JSON.stringify({
               text: fullPrompt,
-              mode: enhanceMode,
+              mode: "fast",
               targetModel: selectedModelData?.rawModel || selectedModel,
             }),
           });
@@ -231,47 +262,89 @@ export default function PromptBuilderPage() {
               security: v2Json.data.security,
               selectedCandidate: v2Json.data.selectedCandidate,
               candidates: v2Json.data.candidates || [],
-              modelRouting: v2Json.data.modelRouting || { recommended: selectedModel, reason: "Default model" },
+              modelRouting: v2Json.data.modelRouting || { recommended: selectedModel, reason: "No-API Rule Engine" },
               loopTrace: v2Json.data.loopTrace,
             };
           }
         } catch {
-          // Fall back to V1 / LLM Provider
+          // client-side algorithmic fallback
         }
-      }
 
-      if (!finalEnhancedText) {
-        // Fallback to V1 Cloud AI
-        const aiRes = await fetch("/api/v1/prompts/enhance-ai", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Requested-With": "XMLHttpRequest",
-          },
-          body: JSON.stringify({
-            text: fullPrompt,
-            model: selectedModelData?.rawModel || selectedModel,
-            provider: selectedModelData?.provider,
-            category: selectedCategory,
-            tone: selectedTone,
-            length: selectedLength,
-            level: enhanceLevel,
-            userApiKey,
-          }),
-        });
-        const aiData = await aiRes.json();
-
-        if (aiRes.ok && aiData.data?.enhanced) {
-          finalEnhancedText = aiData.data.enhanced;
-        } else {
-          // Failover to client-side algorithmic engine
+        if (!finalEnhancedText) {
           const { synthesizeAlgorithmicPrompt } = await import("@/lib/llm/algorithmic-enhancers");
           finalEnhancedText = synthesizeAlgorithmicPrompt(fullPrompt, enhanceLevel);
         }
+        enhanceProvider = "algorithmic";
+      }
+
+      // ── Branch 3: Dedicated API Cloud AI ──
+      else {
+        enhanceProvider = "api";
+        const hasConnectedKey = !!(savedKeys[selectedModelData?.provider || "openai"] || userApiKey);
+        if (!selectedModelData?.free && !hasConnectedKey) {
+          toast(`⚠️ No API key found for ${selectedModelData?.provider || "selected model"}. Using Free Server AI fallback.`, "info");
+        }
+
+        try {
+          const v2Res = await fetch("/api/v2/optimize", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Requested-With": "XMLHttpRequest",
+            },
+            body: JSON.stringify({
+              text: fullPrompt,
+              mode: "deep",
+              targetModel: selectedModelData?.rawModel || selectedModel,
+            }),
+          });
+          const v2Json = await v2Res.json();
+          if (v2Res.ok && v2Json.data?.selectedCandidate?.renderedText) {
+            finalEnhancedText = v2Json.data.selectedCandidate.renderedText;
+            v2Data = {
+              intent: v2Json.data.intent,
+              security: v2Json.data.security,
+              selectedCandidate: v2Json.data.selectedCandidate,
+              candidates: v2Json.data.candidates || [],
+              modelRouting: v2Json.data.modelRouting || { recommended: selectedModel, reason: "API Cloud Model" },
+              loopTrace: v2Json.data.loopTrace,
+            };
+          }
+        } catch {
+          // Fall back to V1 enhance-ai
+        }
+
+        if (!finalEnhancedText) {
+          const aiRes = await fetch("/api/v1/prompts/enhance-ai", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Requested-With": "XMLHttpRequest",
+            },
+            body: JSON.stringify({
+              text: fullPrompt,
+              model: selectedModelData?.rawModel || selectedModel,
+              provider: selectedModelData?.provider,
+              category: selectedCategory,
+              tone: selectedTone,
+              length: selectedLength,
+              level: enhanceLevel,
+              userApiKey,
+            }),
+          });
+          const aiData = await aiRes.json();
+
+          if (aiRes.ok && aiData.data?.enhanced) {
+            finalEnhancedText = aiData.data.enhanced;
+          } else {
+            const { synthesizeAlgorithmicPrompt } = await import("@/lib/llm/algorithmic-enhancers");
+            finalEnhancedText = synthesizeAlgorithmicPrompt(fullPrompt, enhanceLevel);
+          }
+        }
       }
 
       if (!finalEnhancedText) {
-        setErrorNotice("No enhancement returned");
+        setErrorNotice("No enhancement returned. Please try again.");
         return;
       }
 
@@ -544,6 +617,7 @@ export default function PromptBuilderPage() {
             onSetEnhanceMode={setEnhanceMode}
             deviceState={deviceState}
             onSetDeviceState={setDeviceState}
+            savedKeys={savedKeys}
           />
 
           {/* Enhancement Level Selector */}
@@ -827,7 +901,22 @@ export default function PromptBuilderPage() {
               {/* Enhanced Prompt Result */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold">Optimized Prompt</label>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-semibold">Optimized Prompt</label>
+                    {enhanceMode === "api" ? (
+                      <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-[10px] border border-blue-500/20">
+                        ☁️ API Cloud AI · {selectedModelData?.name || selectedModel}
+                      </span>
+                    ) : enhanceMode === "device" ? (
+                      <span className="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold text-[10px] border border-purple-500/20">
+                        🧠 On-Device Gemini Nano
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-[10px] border border-amber-500/20">
+                        ⚡ No-API Rule Engine · Offline Sub-30ms
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
