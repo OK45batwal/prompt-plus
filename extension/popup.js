@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const tokenEstimate = document.getElementById("token-estimate");
   const enhanceBtn = document.getElementById("enhance-btn");
   const btnText = document.getElementById("btn-text");
-  const msg = document.getElementById("msg");
+  const toastMsg = document.getElementById("toast-msg");
   const resultCard = document.getElementById("result-card");
   const resultBody = document.getElementById("result-body");
   const scoreBadge = document.getElementById("quality-score-badge");
@@ -15,21 +15,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const modeApi = document.getElementById("mode-api");
   const modeAlgo = document.getElementById("mode-algo");
   const modeDevice = document.getElementById("mode-device");
-  const engineStatusDesc = document.getElementById("engine-status-desc");
-  const modelProviderPill = document.getElementById("model-provider-pill");
-  const sizeToggle = document.getElementById("size-toggle");
   const voiceBtn = document.getElementById("voice-btn");
-  const contextDrawer = document.getElementById("context-drawer");
-  const contextDrawerToggle = document.getElementById("context-drawer-toggle");
+  const contextChipsBox = document.getElementById("context-chips-box");
+  const contextChipsToggle = document.getElementById("context-chips-toggle");
   const contextCountBadge = document.getElementById("context-count-badge");
   const userAvatar = document.getElementById("user-avatar");
   const userName = document.getElementById("user-name");
   const syncStatusText = document.getElementById("sync-status-text");
   const syncDot = document.getElementById("sync-dot");
-  const btnTokenNeededText = document.getElementById("btn-token-needed-text");
-  const btnTokenRemainingText = document.getElementById("btn-token-remaining-text");
-  const btnTokenBarFill = document.getElementById("btn-token-bar-fill");
-  const btnTokenCapacityText = document.getElementById("btn-token-capacity-text");
+  const tokenNeededTxt = document.getElementById("token-needed-txt");
+  const tokenRemainingBadge = document.getElementById("token-remaining-badge");
+  const tokenMeterFill = document.getElementById("token-meter-fill");
+  const contextCapacityTxt = document.getElementById("context-capacity-txt");
 
   let currentMode = "api";
   let currentLevel = "deep";
@@ -55,27 +52,31 @@ document.addEventListener("DOMContentLoaded", () => {
         if (authData.quota) {
           userQuota = authData.quota;
           const { remaining, monthlyLimit, usagePercentage } = authData.quota;
-          if (btnTokenRemainingText) {
-            btnTokenRemainingText.textContent = `${remaining} / ${monthlyLimit} Free Units`;
-          }
-          if (btnTokenBarFill) {
-            const fillPct = Math.max(8, Math.min(100, 100 - usagePercentage));
-            btnTokenBarFill.style.width = `${fillPct}%`;
+          if (tokenRemainingBadge) {
+            tokenRemainingBadge.textContent = `${remaining} / ${monthlyLimit} Free Units`;
             if (remaining < 15) {
-              btnTokenBarFill.style.background = "linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)";
+              tokenRemainingBadge.style.color = "#ef4444";
+              tokenRemainingBadge.style.borderColor = "rgba(239, 68, 68, 0.4)";
+              tokenRemainingBadge.style.background = "rgba(239, 68, 68, 0.12)";
+            }
+          }
+          if (tokenMeterFill) {
+            const fillPct = Math.max(8, Math.min(100, 100 - usagePercentage));
+            tokenMeterFill.style.width = `${fillPct}%`;
+            if (remaining < 15) {
+              tokenMeterFill.style.background = "linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)";
             }
           }
         }
 
         // Populate dynamic context blocks from cloud
-        if (Array.isArray(authData.savedBlocks) && authData.savedBlocks.length > 0 && contextDrawer) {
-          contextDrawer.innerHTML = authData.savedBlocks.map((b, idx) => `
-            <div class="context-block-item">
-              <input type="checkbox" id="ctx-dyn-${idx}" ${idx === 0 ? "checked" : ""} value="${b.id || idx}">
-              <label for="ctx-dyn-${idx}">${b.name || "Custom Rule"}</label>
+        if (Array.isArray(authData.savedBlocks) && authData.savedBlocks.length > 0 && contextChipsBox) {
+          contextChipsBox.innerHTML = authData.savedBlocks.map((b, idx) => `
+            <div class="context-chip ${idx === 0 ? "selected" : ""}" data-ctx="${b.id || idx}">
+              ${b.name || "Custom Rule"}
             </div>
           `).join("");
-          updateActiveContextCount();
+          setupContextChipListeners();
         }
       } else {
         if (syncStatusText) syncStatusText.textContent = "Local Mode";
@@ -87,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   syncWithWebPlatform();
 
-  // 2. Character & Token Counter with Below-Button Bar Updates
+  // 2. Character & Token Counter with Real-Time Meter Updates
   if (input) {
     input.addEventListener("input", () => {
       const len = input.value.length;
@@ -95,60 +96,52 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (charCount) charCount.textContent = `${len} char${len === 1 ? "" : "s"}`;
       if (tokenEstimate) tokenEstimate.textContent = `~${estTokens} Tokens`;
-      if (btnTokenNeededText) btnTokenNeededText.textContent = `⚡ ~${estTokens} Tokens needed`;
-      if (btnTokenCapacityText) btnTokenCapacityText.textContent = `${Math.max(1, 128 - Math.ceil(estTokens / 1000))}K Context Free`;
+      if (tokenNeededTxt) tokenNeededTxt.textContent = `⚡ ~${estTokens} Tokens needed`;
+      if (contextCapacityTxt) contextCapacityTxt.textContent = `${Math.max(1, 128 - Math.ceil(estTokens / 1000))}K Context Free`;
 
-      if (btnTokenBarFill && userQuota) {
+      if (tokenMeterFill && userQuota) {
         const dynamicRemaining = Math.max(0, userQuota.remaining - (estTokens > 50 ? 1 : 0));
         const fillPct = Math.max(8, Math.min(100, Math.round((dynamicRemaining / (userQuota.monthlyLimit || 100)) * 100)));
-        btnTokenBarFill.style.width = `${fillPct}%`;
+        tokenMeterFill.style.width = `${fillPct}%`;
       }
     });
   }
 
-  // 3. Preset Pills (Enhancement Levels)
-  document.querySelectorAll(".preset-pill").forEach((pill) => {
+  // 3. Preset Pills (Optimization Levels)
+  document.querySelectorAll(".level-pill").forEach((pill) => {
     pill.addEventListener("click", () => {
-      document.querySelectorAll(".preset-pill").forEach((p) => p.classList.remove("active"));
+      document.querySelectorAll(".level-pill").forEach((p) => p.classList.remove("active"));
       pill.classList.add("active");
       currentLevel = pill.getAttribute("data-level") || "deep";
     });
   });
 
-  // 4. Context Memory Drawer Toggle
-  if (contextDrawerToggle && contextDrawer) {
-    contextDrawerToggle.addEventListener("click", () => {
-      contextDrawer.classList.toggle("open");
+  // 4. Context Memory Chips Toggle
+  if (contextChipsToggle && contextChipsBox) {
+    contextChipsToggle.addEventListener("click", () => {
+      contextChipsBox.classList.toggle("open");
     });
+  }
+
+  function setupContextChipListeners() {
+    if (!contextChipsBox) return;
+    contextChipsBox.querySelectorAll(".context-chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        chip.classList.toggle("selected");
+        updateActiveContextCount();
+      });
+    });
+    updateActiveContextCount();
   }
 
   function updateActiveContextCount() {
-    if (!contextDrawer || !contextCountBadge) return;
-    const checked = contextDrawer.querySelectorAll("input[type='checkbox']:checked").length;
-    contextCountBadge.textContent = `(${checked})`;
+    if (!contextChipsBox || !contextCountBadge) return;
+    const selected = contextChipsBox.querySelectorAll(".context-chip.selected").length;
+    contextCountBadge.textContent = `(${selected})`;
   }
+  setupContextChipListeners();
 
-  if (contextDrawer) {
-    contextDrawer.addEventListener("change", updateActiveContextCount);
-  }
-
-  // 5. Size Toggle
-  let currentWidthIdx = 0;
-  const widths = [
-    { name: "380px", class: "" },
-    { name: "480px", class: "wide-mode" },
-    { name: "540px", class: "full-mode" },
-  ];
-
-  if (sizeToggle) {
-    sizeToggle.addEventListener("click", () => {
-      currentWidthIdx = (currentWidthIdx + 1) % widths.length;
-      document.body.className = widths[currentWidthIdx].class;
-      sizeToggle.textContent = widths[currentWidthIdx].name;
-    });
-  }
-
-  // 6. Mode Switcher
+  // 5. Segmented Mode Switcher
   function setMode(mode) {
     currentMode = mode;
     if (modeApi) modeApi.classList.remove("active");
@@ -157,16 +150,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (mode === "api") {
       if (modeApi) modeApi.classList.add("active");
-      if (engineStatusDesc) engineStatusDesc.textContent = "Cloud AI Mode — Multi-model compiler";
-      if (modelProviderPill) modelProviderPill.textContent = "Auto-Routing";
     } else if (mode === "algo") {
       if (modeAlgo) modeAlgo.classList.add("active");
-      if (engineStatusDesc) engineStatusDesc.textContent = "100% Offline Rule-Based Compiler (<30ms)";
-      if (modelProviderPill) modelProviderPill.textContent = "Offline No-API";
     } else {
       if (modeDevice) modeDevice.classList.add("active");
-      if (engineStatusDesc) engineStatusDesc.textContent = "On-Device Gemini Nano — Private Local AI";
-      if (modelProviderPill) modelProviderPill.textContent = "Gemini Nano";
     }
   }
 
@@ -174,12 +161,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (modeAlgo) modeAlgo.addEventListener("click", () => setMode("algo"));
   if (modeDevice) modeDevice.addEventListener("click", () => setMode("device"));
 
-  // 7. Voice Dictation
+  // 6. Voice Dictation
   if (voiceBtn) {
     voiceBtn.addEventListener("click", async () => {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
-        showMsg("Speech recognition not supported in this browser.", true);
+        showToast("Speech recognition not supported in this browser.", true);
         return;
       }
 
@@ -208,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
           isListening = true;
           voiceBtn.classList.add("recording");
           voiceBtn.innerHTML = "<span>🔴 Listening...</span>";
-          showMsg("🎙️ Listening... Speak your prompt idea.");
+          showToast("🎙️ Listening... Speak your prompt idea.");
         };
 
         rec.onresult = (event) => {
@@ -220,6 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
           if (finalTranscript && input) {
             input.value = (input.value ? input.value + " " : "") + finalTranscript;
+            input.dispatchEvent(new Event("input"));
           }
         };
 
@@ -238,18 +226,18 @@ document.addEventListener("DOMContentLoaded", () => {
         rec.start();
         recognitionInstance = rec;
       } catch {
-        showMsg("Microphone permission denied.", true);
+        showToast("Microphone permission denied.", true);
       }
     });
   }
 
-  function showMsg(text, isErr = false) {
-    if (!msg) return;
-    msg.textContent = text;
-    msg.className = `msg-toast ${isErr ? "err" : "ok"}`;
-    msg.style.display = "block";
+  function showToast(text, isErr = false) {
+    if (!toastMsg) return;
+    toastMsg.textContent = text;
+    toastMsg.className = `toast-msg ${isErr ? "err" : "ok"}`;
+    toastMsg.style.display = "block";
     setTimeout(() => {
-      msg.style.display = "none";
+      toastMsg.style.display = "none";
     }, 4000);
   }
 
@@ -332,12 +320,12 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
 - Deliver complete, immediately usable results formatted in clean Markdown.`;
   }
 
-  // 8. Enhance Action Handler
+  // 7. Enhance Action Handler
   if (enhanceBtn) {
     enhanceBtn.addEventListener("click", async () => {
       const rawText = input ? input.value.trim() : "";
       if (!rawText) {
-        showMsg("Please type a prompt idea first!", true);
+        showToast("Please type a prompt idea first!", true);
         if (input) input.focus();
         return;
       }
@@ -353,7 +341,7 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
       // If mode is "algo" (No-API Engine) -> use offline local rule engine
       if (currentMode === "algo") {
         finalResult = synthesizeLocalPrompt(rawText);
-        sourceTag = "⚡ No-API Rule Engine";
+        sourceTag = "⚡ No-API Engine";
       }
 
       // If mode is "device" -> try On-Device Gemini Nano
@@ -383,7 +371,7 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
 
           if (res?.success && res.data?.enhanced) {
             finalResult = res.data.enhanced;
-            sourceTag = `☁️ API Cloud AI (${res.data.model || "Auto"})`;
+            sourceTag = `☁️ API Cloud (${res.data.model || "Auto"})`;
           }
         } catch {}
       }
@@ -391,7 +379,7 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
       // Fail-Safe Synthesizer
       if (!finalResult) {
         finalResult = synthesizeLocalPrompt(rawText);
-        sourceTag = "⚡ No-API Rule Engine";
+        sourceTag = "⚡ No-API Engine";
       }
 
       enhanceBtn.disabled = false;
@@ -411,11 +399,16 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
       }
       if (copyBtn) copyBtn.disabled = false;
       if (useBtn) useBtn.disabled = false;
-      showMsg(`✓ Compiled successfully!`);
+      showToast(`✓ Master prompt compiled!`);
+
+      // Scroll smoothly to the result
+      if (resultCard) {
+        resultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
     });
   }
 
-  // 9. Copy Button
+  // 8. Copy Button
   if (copyBtn) {
     copyBtn.addEventListener("click", () => {
       if (enhancedResult) {
@@ -426,7 +419,7 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
     });
   }
 
-  // 10. Use in Active Tab
+  // 9. Use in Active Tab
   if (useBtn) {
     useBtn.addEventListener("click", () => {
       if (enhancedResult) {
@@ -437,7 +430,7 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
                 useBtn.textContent = "✓ Injected";
                 setTimeout(() => { useBtn.textContent = "🚀 Use in Active Tab"; }, 2000);
               } else {
-                showMsg("Open ChatGPT / Claude / Gemini to inject directly!", true);
+                showToast("Open ChatGPT / Claude / Gemini to inject directly!", true);
               }
             });
           }
@@ -446,7 +439,7 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
     });
   }
 
-  // 11. Multi-AI Split Launch Handlers
+  // 10. Multi-AI Split Launch Handlers
   const openTargetAI = (targetUrl) => {
     try {
       chrome.tabs?.create({ url: targetUrl });

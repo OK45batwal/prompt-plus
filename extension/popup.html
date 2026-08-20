@@ -3,11 +3,23 @@
 
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prompt+ Architect AI v2.0</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg: #09090b;
+      --card-bg: rgba(18, 18, 23, 0.75);
+      --card-border: rgba(255, 255, 255, 0.09);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --text-main: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --text-dim: #71717a;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -21,45 +33,40 @@
       background: transparent;
     }
     ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.14);
       border-radius: 4px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.28);
     }
 
-    body {
-      width: 380px;
-      min-width: 360px;
-      max-width: 540px;
-      height: auto;
-      min-height: 540px;
-      max-height: 660px;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: radial-gradient(800px 380px at 50% -50px, rgba(99, 102, 241, 0.22), transparent 75%), #09090b;
-      color: #f4f4f5;
-      letter-spacing: -0.01em;
-      overflow-x: hidden;
-      overflow-y: auto;
-      transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    html, body {
+      width: 420px;
+      height: 580px;
+      max-height: 580px;
+      background: radial-gradient(600px 320px at 50% -40px, rgba(99, 102, 241, 0.2), transparent 70%), var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.4;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
     }
 
-    body.wide-mode { width: 480px; }
-    body.full-mode { width: 540px; }
-
-    /* ---------- Header (Matches Web Dashboard Header) ---------- */
+    /* ---------- Header ---------- */
     .header {
+      flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 12px 16px;
-      background: rgba(18, 18, 23, 0.6);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      position: sticky;
-      top: 0;
-      z-index: 40;
+      background: rgba(18, 18, 23, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--card-border);
+      z-index: 50;
     }
 
     .header-left {
@@ -69,23 +76,23 @@
     }
 
     .header-logo {
-      width: 32px;
-      height: 32px;
-      border-radius: 10px;
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
       background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
       display: flex;
       align-items: center;
       justify-content: center;
       color: #fff;
       font-weight: 800;
-      font-size: 15px;
-      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), 0 4px 12px rgba(99, 102, 241, 0.35);
+      font-size: 14px;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 2px 8px rgba(99, 102, 241, 0.35);
     }
 
     .header-info {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
     }
 
     .header-title-row {
@@ -97,34 +104,35 @@
     .header-title {
       font-size: 13px;
       font-weight: 700;
-      color: #f4f4f5;
-      letter-spacing: -0.02em;
+      color: #ffffff;
+      letter-spacing: -0.01em;
     }
 
     .v2-badge {
       font-size: 9px;
       font-weight: 800;
       padding: 1px 5px;
-      border-radius: 6px;
+      border-radius: 5px;
       background: rgba(99, 102, 241, 0.2);
       color: #a5b4fc;
-      border: 1px solid rgba(99, 102, 241, 0.4);
+      border: 1px solid rgba(99, 102, 241, 0.35);
     }
 
-    .header-account-sync {
+    .header-sync-status {
       display: flex;
       align-items: center;
       gap: 5px;
-      font-size: 10px;
-      color: #71717a;
+      font-size: 10.5px;
+      color: var(--text-muted);
     }
 
     .sync-dot {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 8px #10b981;
+      background: var(--accent-green);
+      box-shadow: 0 0 6px var(--accent-green);
+      transition: background 0.3s ease;
     }
 
     .header-right {
@@ -133,21 +141,22 @@
       gap: 8px;
     }
 
-    .user-avatar-btn {
+    .user-profile-btn {
       display: flex;
       align-items: center;
       gap: 6px;
       padding: 3px 8px 3px 4px;
       border-radius: 20px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      cursor: pointer;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
       text-decoration: none;
+      color: var(--text-main);
+      cursor: pointer;
       transition: all 0.2s ease;
     }
 
-    .user-avatar-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
+    .user-profile-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
       border-color: rgba(99, 102, 241, 0.4);
     }
 
@@ -162,180 +171,180 @@
     .user-name-text {
       font-size: 11px;
       font-weight: 600;
-      color: #e4e4e7;
-      max-width: 75px;
+      max-width: 80px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    .size-toggle-btn {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: #a1a1aa;
-      font-size: 10px;
-      font-weight: 600;
-      padding: 4px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .size-toggle-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: #fff;
-    }
-
-    /* ---------- Container ---------- */
-    .container {
-      padding: 12px 14px 16px 14px;
+    /* ---------- Main Scrollable Content ---------- */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px 20px;
       display: flex;
       flex-direction: column;
-      gap: 11px;
+      gap: 12px;
     }
 
-    /* ---------- Engine Selector (Segmented Control) ---------- */
-    .engine-selector {
+    /* ---------- Segmented Control (Engine) ---------- */
+    .engine-switcher {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 4px;
-      background: rgba(0, 0, 0, 0.4);
+      gap: 3px;
+      background: rgba(0, 0, 0, 0.45);
       padding: 3px;
-      border-radius: 11px;
-      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
     }
 
-    .engine-btn {
+    .engine-tab {
       background: transparent;
       border: none;
-      color: #a1a1aa;
-      font-size: 10.5px;
+      color: var(--text-muted);
+      font-size: 11px;
       font-weight: 600;
-      padding: 7px 4px;
-      border-radius: 8px;
+      padding: 6px 4px;
+      border-radius: 7px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 4px;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.15s ease;
     }
 
-    .engine-btn.active {
+    .engine-tab:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .engine-tab.active {
       background: rgba(99, 102, 241, 0.25);
       color: #ffffff;
-      border: 1px solid rgba(99, 102, 241, 0.5);
-      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+      border: 1px solid rgba(99, 102, 241, 0.45);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     }
 
-    .engine-status-strip {
-      font-size: 10px;
-      color: #a1a1aa;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 4px;
-    }
-
-    /* ---------- Level & Context Controls ---------- */
-    .controls-row {
+    /* ---------- Optimization Levels & Context ---------- */
+    .level-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
     }
 
-    .preset-pills {
+    .level-pills {
       display: flex;
       gap: 4px;
     }
 
-    .preset-pill {
-      font-size: 10px;
+    .level-pill {
+      font-size: 10.5px;
       font-weight: 600;
       padding: 4px 8px;
-      border-radius: 7px;
+      border-radius: 6px;
       background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: #a1a1aa;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
       cursor: pointer;
       transition: all 0.15s ease;
     }
 
-    .preset-pill.active {
+    .level-pill:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+    }
+
+    .level-pill.active {
       background: rgba(99, 102, 241, 0.2);
       border-color: rgba(99, 102, 241, 0.5);
       color: #c7d2fe;
     }
 
-    .drawer-toggle-btn {
-      font-size: 10px;
+    .context-tag-btn {
+      font-size: 10.5px;
       font-weight: 600;
-      padding: 4px 8px;
-      border-radius: 7px;
+      padding: 4px 9px;
+      border-radius: 6px;
       background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: #a1a1aa;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 4px;
-      transition: all 0.2s;
+      transition: all 0.15s ease;
     }
 
-    .drawer-toggle-btn:hover {
+    .context-tag-btn:hover {
       background: rgba(255, 255, 255, 0.08);
-      color: #fff;
+      color: #ffffff;
     }
 
-    /* ---------- Context Memory Drawer ---------- */
-    .context-drawer {
+    .context-tag-btn.active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+
+    /* Context Memory Pills Container */
+    .context-chips-box {
       display: none;
-      padding: 10px;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 8px 10px;
       border-radius: 10px;
-      background: rgba(18, 18, 23, 0.7);
+      background: rgba(18, 18, 23, 0.6);
+      border: 1px solid var(--card-border);
+    }
+
+    .context-chips-box.open {
+      display: flex;
+    }
+
+    .context-chip {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .context-drawer.open {
-      display: flex;
-    }
-
-    .context-block-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
-      color: #d4d4d8;
+      color: var(--text-muted);
       cursor: pointer;
+      transition: all 0.15s ease;
     }
 
-    .context-block-item input[type="checkbox"] {
-      accent-color: #6366f1;
-      cursor: pointer;
+    .context-chip:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #ffffff;
     }
 
-    /* ---------- Input Card (Double-Bezel UI) ---------- */
+    .context-chip.selected {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: rgba(99, 102, 241, 0.5);
+      color: #c7d2fe;
+    }
+
+    /* ---------- Input Card ---------- */
     .input-card {
-      background: rgba(18, 18, 23, 0.65);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 14px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
       padding: 10px 12px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       transition: all 0.2s ease;
     }
 
     .input-card:focus-within {
       border-color: rgba(99, 102, 241, 0.5);
       box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
-      background: rgba(18, 18, 23, 0.85);
+      background: rgba(18, 18, 23, 0.95);
     }
 
-    .input-header {
+    .input-card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -346,45 +355,50 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: #71717a;
+      color: var(--text-dim);
     }
 
-    .voice-dictation-btn {
-      font-size: 10px;
+    .voice-btn {
+      font-size: 10.5px;
       font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 12px;
+      padding: 2px 7px;
+      border-radius: 10px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #a1a1aa;
+      color: var(--text-muted);
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 4px;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
     }
 
-    .voice-dictation-btn.recording {
-      background: rgba(239, 68, 68, 0.15);
-      border-color: rgba(239, 68, 68, 0.4);
+    .voice-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .voice-btn.recording {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.5);
       color: #ef4444;
-      animation: pulse 1.5s infinite;
+      animation: micPulse 1.2s infinite;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
+    @keyframes micPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.96); }
     }
 
     textarea {
       width: 100%;
-      height: 85px;
+      height: 76px;
       background: transparent;
       border: none;
-      color: #f4f4f5;
+      color: #ffffff;
       font-family: inherit;
       font-size: 12.5px;
-      line-height: 1.5;
+      line-height: 1.45;
       resize: none;
       outline: none;
     }
@@ -393,24 +407,24 @@
       color: #52525b;
     }
 
-    .input-footer {
+    .input-card-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-size: 10px;
-      color: #71717a;
-      border-top: 1px solid rgba(255, 255, 255, 0.04);
-      padding-top: 6px;
+      color: var(--text-dim);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 5px;
     }
 
-    /* ---------- Action Buttons & Below-Button Token Bar ---------- */
+    /* ---------- Enhance Master Button ---------- */
     .enhance-btn {
       width: 100%;
-      height: 42px;
+      height: 40px;
       background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 12px;
-      color: #fff;
+      border-radius: 11px;
+      color: #ffffff;
       font-size: 12.5px;
       font-weight: 700;
       cursor: pointer;
@@ -428,34 +442,37 @@
       transform: translateY(-1px);
     }
 
+    .enhance-btn:active {
+      transform: translateY(0);
+    }
+
     .enhance-btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none;
+      box-shadow: none;
     }
 
-    /* Modern Dark Glassmorphic Token Remaining Progress Bar (Below Pop-Up Button) */
-    .button-token-bar-card {
-      padding: 9px 12px;
-      border-radius: 12px;
-      background: rgba(18, 18, 23, 0.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+    /* ---------- Real-Time Token Remaining Meter (Below Pop-Up Button) ---------- */
+    .token-meter-strip {
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(18, 18, 23, 0.8);
+      border: 1px solid var(--card-border);
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      gap: 5px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     }
 
-    .button-token-bar-header {
+    .token-meter-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 10px;
+      font-size: 10.5px;
     }
 
-    .btn-token-needed {
+    .token-needed-txt {
       font-weight: 600;
       color: #e4e4e7;
       display: flex;
@@ -463,101 +480,101 @@
       gap: 4px;
     }
 
-    .btn-token-remaining {
+    .token-remaining-badge {
       font-weight: 700;
-      color: #10b981;
+      color: var(--accent-green);
       padding: 1px 6px;
-      border-radius: 6px;
+      border-radius: 5px;
       background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.25);
+      border: 1px solid rgba(16, 185, 129, 0.3);
     }
 
-    .button-token-bar-track {
+    .token-meter-track {
       width: 100%;
-      height: 5px;
+      height: 4px;
       border-radius: 9999px;
       background: rgba(255, 255, 255, 0.08);
       overflow: hidden;
       position: relative;
     }
 
-    .button-token-bar-fill {
+    .token-meter-fill {
       height: 100%;
       border-radius: 9999px;
       background: linear-gradient(90deg, #6366f1 0%, #10b981 100%);
       width: 88%;
-      transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+      transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
     }
 
-    .button-token-bar-footer {
+    .token-meter-footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-size: 9.5px;
-      color: #71717a;
+      color: var(--text-dim);
     }
 
-    /* ---------- Multi-AI Split Bar ---------- */
-    .multi-ai-bar {
+    /* ---------- Multi-AI Split Launcher ---------- */
+    .multi-ai-section {
       display: flex;
       flex-direction: column;
       gap: 6px;
-      padding: 10px 12px;
-      border-radius: 12px;
+      padding: 9px 12px;
+      border-radius: 11px;
       background: rgba(18, 18, 23, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--card-border);
     }
 
-    .multi-ai-label {
+    .multi-ai-title {
       font-size: 10px;
       font-weight: 700;
-      color: #a1a1aa;
+      color: var(--text-muted);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    .multi-ai-btns {
+    .multi-ai-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 5px;
     }
 
-    .ai-target-btn {
-      padding: 6px 2px;
-      border-radius: 8px;
+    .ai-btn {
+      padding: 5px 2px;
+      border-radius: 7px;
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
       color: #d4d4d8;
-      font-size: 10px;
+      font-size: 10.5px;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 3px;
-      transition: all 0.2s;
+      transition: all 0.15s ease;
     }
 
-    .ai-target-btn:hover {
-      background: rgba(255, 255, 255, 0.09);
+    .ai-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
       border-color: rgba(99, 102, 241, 0.4);
-      color: #fff;
+      color: #ffffff;
+      transform: translateY(-1px);
     }
 
     /* ---------- Result Card ---------- */
     .result-card {
       display: none;
-      background: rgba(18, 18, 23, 0.8);
+      background: var(--card-bg);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(99, 102, 241, 0.35);
-      border-radius: 14px;
+      border-radius: 12px;
       padding: 12px;
       flex-direction: column;
       gap: 8px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     }
 
     .result-header {
@@ -575,8 +592,8 @@
     .score-badge {
       font-size: 10px;
       font-weight: 800;
-      padding: 2px 7px;
-      border-radius: 8px;
+      padding: 2px 6px;
+      border-radius: 6px;
       background: rgba(16, 185, 129, 0.15);
       border: 1px solid rgba(16, 185, 129, 0.3);
       color: #34d399;
@@ -586,7 +603,7 @@
       font-size: 10px;
       font-weight: 700;
       padding: 2px 6px;
-      border-radius: 8px;
+      border-radius: 6px;
       background: rgba(99, 102, 241, 0.15);
       border: 1px solid rgba(99, 102, 241, 0.3);
       color: #a5b4fc;
@@ -594,16 +611,17 @@
 
     .result-body {
       font-size: 11.5px;
-      line-height: 1.55;
+      line-height: 1.5;
       color: #e4e4e7;
       background: rgba(0, 0, 0, 0.45);
       padding: 10px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      max-height: 160px;
+      border-radius: 9px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      max-height: 140px;
       overflow-y: auto;
       white-space: pre-wrap;
-      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+      user-select: text;
     }
 
     .result-actions {
@@ -614,7 +632,7 @@
     .action-btn {
       flex: 1;
       height: 32px;
-      border-radius: 9px;
+      border-radius: 8px;
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
@@ -622,13 +640,13 @@
       align-items: center;
       justify-content: center;
       gap: 4px;
-      transition: all 0.2s;
+      transition: all 0.15s ease;
     }
 
     .btn-copy {
       background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #f4f4f5;
+      border: 1px solid var(--card-border);
+      color: #ffffff;
     }
 
     .btn-copy:hover {
@@ -645,23 +663,23 @@
       background: rgba(16, 185, 129, 0.3);
     }
 
-    /* Message Toast */
-    .msg-toast {
+    /* Toast Notification */
+    .toast-msg {
       display: none;
-      font-size: 10.5px;
+      font-size: 11px;
       padding: 6px 10px;
       border-radius: 8px;
       text-align: center;
       font-weight: 600;
     }
 
-    .msg-toast.ok {
+    .toast-msg.ok {
       background: rgba(16, 185, 129, 0.15);
       border: 1px solid rgba(16, 185, 129, 0.3);
       color: #34d399;
     }
 
-    .msg-toast.err {
+    .toast-msg.err {
       background: rgba(239, 68, 68, 0.15);
       border: 1px solid rgba(239, 68, 68, 0.3);
       color: #f87171;
@@ -670,7 +688,7 @@
 </head>
 
 <body>
-  <!-- Header (Synchronized with Prompt+ Web Platform) -->
+  <!-- Header -->
   <header class="header">
     <div class="header-left">
       <div class="header-logo">✦</div>
@@ -679,7 +697,7 @@
           <span class="header-title">Prompt+ Architect</span>
           <span class="v2-badge">v2.0</span>
         </div>
-        <div class="header-account-sync">
+        <div class="header-sync-status">
           <span class="sync-dot" id="sync-dot"></span>
           <span id="sync-status-text">Cloud Synced</span>
         </div>
@@ -687,75 +705,61 @@
     </div>
 
     <div class="header-right">
-      <a href="https://prompt-plus-three.vercel.app/dashboard" target="_blank" class="user-avatar-btn" id="user-profile-link" title="Open Web Dashboard">
+      <a href="https://prompt-plus-three.vercel.app/dashboard" target="_blank" class="user-profile-btn" id="user-profile-link" title="Open Web Dashboard">
         <img src="https://api.dicebear.com/7.x/bottts/svg?seed=promptplus_arch" class="user-avatar-img" id="user-avatar" alt="Avatar" />
         <span class="user-name-text" id="user-name">Studio</span>
       </a>
-      <button type="button" class="size-toggle-btn" id="size-toggle" title="Toggle Popup Width">380px</button>
     </div>
   </header>
 
-  <main class="container">
-    <!-- Engine Selector (Segmented Control) -->
-    <div class="engine-selector">
-      <button type="button" class="engine-btn active" id="mode-api" title="Cloud AI with Key or Free Server Routing">
-        <span>🟢 API Cloud AI</span>
+  <!-- Main Scrollable Content -->
+  <main class="main-content">
+    <!-- Engine Switcher -->
+    <div class="engine-switcher">
+      <button type="button" class="engine-tab active" id="mode-api" title="Multi-Model Cloud AI">
+        <span>🟢 API Cloud</span>
       </button>
-      <button type="button" class="engine-btn" id="mode-algo" title="100% Offline Rule-Based Compiler (<30ms)">
-        <span>⚡ No-API Engine</span>
+      <button type="button" class="engine-tab" id="mode-algo" title="100% Offline Rule Engine (<30ms)">
+        <span>⚡ No-API</span>
       </button>
-      <button type="button" class="engine-btn" id="mode-device" title="Chrome On-Device Gemini Nano">
+      <button type="button" class="engine-tab" id="mode-device" title="Chrome On-Device Gemini Nano">
         <span>🧠 On-Device</span>
       </button>
     </div>
 
-    <div class="engine-status-strip">
-      <span id="engine-status-desc">Cloud AI Mode — Dispatched via Web Account</span>
-      <span id="model-provider-pill" style="font-weight:700; color:#a5b4fc;">Auto-Routing</span>
-    </div>
-
-    <!-- Level & Context Memory Controls -->
-    <div class="controls-row">
-      <div class="preset-pills">
-        <button type="button" class="preset-pill active" data-level="deep">Deep</button>
-        <button type="button" class="preset-pill" data-level="quick">Quick</button>
-        <button type="button" class="preset-pill" data-level="expert">Expert</button>
+    <!-- Optimization Level & Context Tag Button -->
+    <div class="level-row">
+      <div class="level-pills">
+        <button type="button" class="level-pill active" data-level="deep">Deep</button>
+        <button type="button" class="level-pill" data-level="quick">Quick</button>
+        <button type="button" class="level-pill" data-level="expert">Expert</button>
       </div>
 
-      <button type="button" class="drawer-toggle-btn" id="context-drawer-toggle">
+      <button type="button" class="context-tag-btn" id="context-chips-toggle">
         <span>📦 Project Context</span>
         <span id="context-count-badge" style="font-weight:700; color:#10b981;">(1)</span>
       </button>
     </div>
 
-    <!-- Expandable Context Memory Drawer -->
-    <div class="context-drawer" id="context-drawer">
-      <div class="context-block-item">
-        <input type="checkbox" id="ctx-nextjs" checked value="nextjs-tailwind">
-        <label for="ctx-nextjs">Next.js 16 + Tailwind CSS v4</label>
-      </div>
-      <div class="context-block-item">
-        <input type="checkbox" id="ctx-python" value="python-fastapi">
-        <label for="ctx-python">Python FastAPI & PostgreSQL</label>
-      </div>
-      <div class="context-block-item">
-        <input type="checkbox" id="ctx-exec" value="executive-tone">
-        <label for="ctx-exec">Executive Concise Tone</label>
-      </div>
+    <!-- Expandable Context Chips -->
+    <div class="context-chips-box" id="context-chips-box">
+      <div class="context-chip selected" data-ctx="nextjs">Next.js 16 + Tailwind v4</div>
+      <div class="context-chip" data-ctx="python">Python FastAPI & PostgreSQL</div>
+      <div class="context-chip" data-ctx="exec">Executive Concise Tone</div>
     </div>
 
     <!-- Input Card -->
     <div class="input-card">
-      <div class="input-header">
+      <div class="input-card-header">
         <span class="input-label">Raw Prompt Idea</span>
-        <button type="button" class="voice-dictation-btn" id="voice-btn">
+        <button type="button" class="voice-btn" id="voice-btn">
           <span>🎙️ Voice Input</span>
         </button>
       </div>
 
       <textarea id="input" placeholder="Type your rough idea, query, or task... (e.g. build an auth middleware for nextjs)"></textarea>
 
-      <div class="input-footer">
+      <div class="input-card-footer">
         <span id="char-count">0 characters</span>
         <span id="token-estimate">~0 Tokens</span>
       </div>
@@ -766,34 +770,34 @@
       <span id="btn-text">⚡ Compile Master Prompt</span>
     </button>
 
-    <!-- Modern Dark Glassmorphic Token Remaining Bar (Directly Below Action Button) -->
-    <div class="button-token-bar-card" id="btn-token-bar">
-      <div class="button-token-bar-header">
-        <span class="btn-token-needed" id="btn-token-needed-text">⚡ ~0 Tokens needed</span>
-        <span class="btn-token-remaining" id="btn-token-remaining-text">88 / 100 Free Units Remaining</span>
+    <!-- Real-Time Token Remaining Meter (Directly Below Pop-Up Button) -->
+    <div class="token-meter-strip" id="token-meter-strip">
+      <div class="token-meter-header">
+        <span class="token-needed-txt" id="token-needed-txt">⚡ ~0 Tokens needed</span>
+        <span class="token-remaining-badge" id="token-remaining-badge">88 / 100 Free Units</span>
       </div>
-      <div class="button-token-bar-track">
-        <div class="button-token-bar-fill" id="btn-token-bar-fill" style="width: 88%;"></div>
+      <div class="token-meter-track">
+        <div class="token-meter-fill" id="token-meter-fill" style="width: 88%;"></div>
       </div>
-      <div class="button-token-bar-footer">
-        <span>Sub-30ms Loop Engine Active</span>
-        <span id="btn-token-capacity-text">128K Max Context Window</span>
+      <div class="token-meter-footer">
+        <span id="engine-telemetry-txt">Sub-30ms Loop Engine</span>
+        <span id="context-capacity-txt">128K Max Context</span>
       </div>
     </div>
 
-    <!-- Message Toast -->
-    <div class="msg-toast" id="msg"></div>
+    <!-- Toast Notification -->
+    <div class="toast-msg" id="toast-msg"></div>
 
-    <!-- Multi-AI Split Launch (Side-by-Side) -->
-    <div class="multi-ai-bar">
-      <div class="multi-ai-label">
+    <!-- Multi-AI Split Launch -->
+    <div class="multi-ai-section">
+      <div class="multi-ai-title">
         <span>🔀 Multi-AI Split Launch (Side-by-Side)</span>
       </div>
-      <div class="multi-ai-btns">
-        <button type="button" class="ai-target-btn" id="bridge-chatgpt" title="Open in ChatGPT">ChatGPT</button>
-        <button type="button" class="ai-target-btn" id="bridge-claude" title="Open in Claude 3.5">Claude</button>
-        <button type="button" class="ai-target-btn" id="bridge-gemini" title="Open in Gemini">Gemini</button>
-        <button type="button" class="ai-target-btn" id="bridge-deepseek" title="Open in DeepSeek R1">DeepSeek</button>
+      <div class="multi-ai-grid">
+        <button type="button" class="ai-btn" id="bridge-chatgpt" title="Open in ChatGPT">ChatGPT</button>
+        <button type="button" class="ai-btn" id="bridge-claude" title="Open in Claude 3.5">Claude</button>
+        <button type="button" class="ai-btn" id="bridge-gemini" title="Open in Gemini">Gemini</button>
+        <button type="button" class="ai-btn" id="bridge-deepseek" title="Open in DeepSeek R1">DeepSeek</button>
       </div>
     </div>
 
@@ -804,7 +808,7 @@
           <span class="score-badge" id="quality-score-badge">Score: 92/100</span>
           <span class="loop-badge" id="loop-telemetry-badge">⚡ Loop: &lt;30ms</span>
         </div>
-        <span id="engine-tag" style="font-size:10px; color:#a1a1aa;">Compiled Master Prompt</span>
+        <span id="engine-tag" style="font-size:10px; color:#a1a1aa;">Master Prompt</span>
       </div>
 
       <div class="result-body" id="result-body"></div>
