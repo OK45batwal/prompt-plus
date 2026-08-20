@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Bell, Moon, Sun, Menu, User, Settings, Key, LogOut, X } from "lucide-react";
+import { Search, Moon, Sun, Menu, User, Settings, Key, LogOut, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import { useState, useSyncExternalStore, useRef, useEffect } from "react";
 import { signOut } from "next-auth/react";
+import { NotificationBell } from "./notification-bell";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -128,10 +129,8 @@ export function Header({ onMenuClick }: HeaderProps) {
           <span className="sr-only">Toggle theme</span>
         </Button>
 
-        <Button variant="ghost" size="icon" className="h-8 w-8 relative">
-          <Bell className="h-4 w-4" />
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-foreground" />
-        </Button>
+        {/* In-App Notification Center */}
+        <NotificationBell />
 
         <DropdownMenu>
           <DropdownMenuTrigger className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-accent transition-colors outline-none">
