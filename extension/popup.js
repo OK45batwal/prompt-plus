@@ -16,9 +16,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const modeAlgo = document.getElementById("mode-algo");
   const modeDevice = document.getElementById("mode-device");
   const voiceBtn = document.getElementById("voice-btn");
-  const contextChipsBox = document.getElementById("context-chips-box");
-  const contextChipsToggle = document.getElementById("context-chips-toggle");
-  const contextCountBadge = document.getElementById("context-count-badge");
   const userAvatar = document.getElementById("user-avatar");
   const userName = document.getElementById("user-name");
   const syncStatusText = document.getElementById("sync-status-text");
@@ -29,12 +26,53 @@ document.addEventListener("DOMContentLoaded", () => {
   const tokenMeterFill = document.getElementById("token-meter-fill");
   const contextCapacityTxt = document.getElementById("context-capacity-txt");
 
+  // Tab Panels
+  const tabBtnEnhance = document.getElementById("tab-btn-enhance");
+  const tabBtnLibrary = document.getElementById("tab-btn-library");
+  const tabBtnContext = document.getElementById("tab-btn-context");
+  const panelEnhance = document.getElementById("panel-enhance");
+  const panelLibrary = document.getElementById("panel-library");
+  const panelContext = document.getElementById("panel-context");
+  const libraryGrid = document.getElementById("library-grid");
+  const libSearch = document.getElementById("lib-search");
+  const contextVaultList = document.getElementById("context-vault-list");
+
   let currentMode = "api";
-  let currentLevel = "deep";
+  let currentTone = "code";
   let enhancedResult = "";
   let isListening = false;
   let recognitionInstance = null;
   let userQuota = { remaining: 88, monthlyLimit: 100, usagePercentage: 12 };
+  let cloudPrompts = [];
+  let activeContextBlocks = ["Next.js 16 + Tailwind v4"];
+
+  // Curated Blueprints (AIPRM & Prompt Genius Inspiration)
+  const CURATED_TEMPLATES = [
+    {
+      id: "code-architect",
+      title: "Senior Full-Stack Code Architect",
+      category: "Development",
+      text: "Act as a Principal Software Engineer. Review and implement a clean, type-safe, production-ready solution for: {{task}}. Include error handling, architecture notes, and unit tests.",
+    },
+    {
+      id: "landing-copy",
+      title: "High-Converting SaaS Landing Copy",
+      category: "Marketing",
+      text: "Act as an elite conversion copywriter. Write a high-converting hero section, value proposition, and 3 feature benefit bullets for: {{product}}.",
+    },
+    {
+      id: "executive-brief",
+      title: "C-Level Executive Strategy Memo",
+      category: "Business",
+      text: "Act as a Senior Management Consultant. Create an executive summary memo for {{initiative}}, with strategic objectives, ROI impact, and a 90-day phased roadmap.",
+    },
+    {
+      id: "root-cause-debug",
+      title: "Root Cause Bug Diagnostic Engine",
+      category: "Debugging",
+      text: "Act as a Lead Systems Debugger. Analyze this error/stack trace: {{error_details}}. Identify the root cause, edge conditions, and provide a minimal robust fix.",
+    },
+  ];
 
   // Chatbot Model Context Matrix
   const BOT_PROFILES = [
@@ -44,7 +82,6 @@ document.addEventListener("DOMContentLoaded", () => {
     { match: "deepseek", name: "DeepSeek R1", maxContext: 128000, color: "#6366f1" },
     { match: "grok", name: "Grok 3", maxContext: 128000, color: "#ec4899" },
     { match: "perplexity", name: "Perplexity AI", maxContext: 32000, color: "#06b6d4" },
-    { match: "copilot", name: "MS Copilot", maxContext: 128000, color: "#0284c7" },
   ];
 
   let activeBot = { name: "Universal AI", maxContext: 128000, color: "#6366f1" };
@@ -74,7 +111,98 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   detectActiveChatbot();
 
-  // 2. Bi-Directional Web Account Sync
+  // 2. Navigation Tab Switching
+  function switchTab(tab) {
+    [tabBtnEnhance, tabBtnLibrary, tabBtnContext].forEach((b) => b?.classList.remove("active"));
+    [panelEnhance, panelLibrary, panelContext].forEach((p) => {
+      if (p) p.style.display = "none";
+    });
+
+    if (tab === "enhance") {
+      tabBtnEnhance?.classList.add("active");
+      if (panelEnhance) panelEnhance.style.display = "flex";
+    } else if (tab === "library") {
+      tabBtnLibrary?.classList.add("active");
+      if (panelLibrary) panelLibrary.style.display = "flex";
+      renderLibrary();
+    } else if (tab === "context") {
+      tabBtnContext?.classList.add("active");
+      if (panelContext) panelContext.style.display = "flex";
+      renderContextVault();
+    }
+  }
+
+  tabBtnEnhance?.addEventListener("click", () => switchTab("enhance"));
+  tabBtnLibrary?.addEventListener("click", () => switchTab("library"));
+  tabBtnContext?.addEventListener("click", () => switchTab("context"));
+
+  // 3. Render Library (AIPRM Style)
+  function renderLibrary(filterText = "") {
+    if (!libraryGrid) return;
+    const all = [...(cloudPrompts || []), ...CURATED_TEMPLATES];
+    const filtered = filterText
+      ? all.filter((t) => (t.title + t.category + (t.text || t.enhancedText || "")).toLowerCase().includes(filterText.toLowerCase()))
+      : all;
+
+    libraryGrid.innerHTML = filtered.map((item) => `
+      <div class="template-card" data-prompt="${encodeURIComponent(item.enhancedText || item.text || item.originalText || "")}">
+        <div class="template-title-row">
+          <span class="template-title">${item.title || "Untitled Blueprint"}</span>
+          <span class="template-cat-badge">${item.category || "General"}</span>
+        </div>
+        <div class="template-preview">${item.text || item.enhancedText || item.originalText || ""}</div>
+      </div>
+    `).join("");
+
+    libraryGrid.querySelectorAll(".template-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        const text = decodeURIComponent(card.getAttribute("data-prompt") || "");
+        if (input) {
+          input.value = text;
+          switchTab("enhance");
+          input.dispatchEvent(new Event("input"));
+          showToast("✓ Template loaded into Optimizer!");
+        }
+      });
+    });
+  }
+
+  if (libSearch) {
+    libSearch.addEventListener("input", () => {
+      renderLibrary(libSearch.value.trim());
+    });
+  }
+
+  // 4. Render Context Vault
+  function renderContextVault() {
+    if (!contextVaultList) return;
+    const defaults = [
+      { id: "nextjs", name: "Next.js 16 + Tailwind CSS v4", desc: "Production React 19 rules & responsive styling" },
+      { id: "python", name: "Python FastAPI Architecture", desc: "Strict typing, Pydantic v2, and async DB patterns" },
+      { id: "exec", name: "Executive Strategic Tone", desc: "Zero conversational fluff, bulleted takeaways & KPI focus" },
+    ];
+
+    contextVaultList.innerHTML = defaults.map((item) => `
+      <div style="background: rgba(18,18,23,0.7); border: 1px solid rgba(255,255,255,0.08); padding: 9px 12px; border-radius: 9px; display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div style="font-weight: 700; font-size: 11.5px; color: #fff;">${item.name}</div>
+          <div style="font-size: 10px; color: #a1a1aa;">${item.desc}</div>
+        </div>
+        <input type="checkbox" checked style="accent-color: #6366f1; cursor: pointer;" />
+      </div>
+    `).join("");
+  }
+
+  // 5. Tone Pill Handlers
+  document.querySelectorAll(".tone-pill-btn").forEach((pill) => {
+    pill.addEventListener("click", () => {
+      document.querySelectorAll(".tone-pill-btn").forEach((p) => p.classList.remove("active"));
+      pill.classList.add("active");
+      currentTone = pill.getAttribute("data-tone") || "code";
+    });
+  });
+
+  // 6. Bi-Directional Web Account Sync
   async function syncWithWebPlatform() {
     try {
       const authData = await new Promise((resolve) => {
@@ -86,6 +214,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (userAvatar && authData.user.avatar) userAvatar.src = authData.user.avatar;
         if (syncStatusText) syncStatusText.textContent = "Web Synced";
         if (syncDot) syncDot.style.background = "#10b981";
+
+        if (Array.isArray(authData.recentPrompts)) {
+          cloudPrompts = authData.recentPrompts;
+        }
 
         // Update Quota Bar
         if (authData.quota) {
@@ -107,16 +239,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           }
         }
-
-        // Populate dynamic context blocks from cloud
-        if (Array.isArray(authData.savedBlocks) && authData.savedBlocks.length > 0 && contextChipsBox) {
-          contextChipsBox.innerHTML = authData.savedBlocks.map((b, idx) => `
-            <div class="context-memory-chip ${idx === 0 ? "selected" : ""}" data-ctx="${b.id || idx}">
-              ${b.name || "Custom Rule"}
-            </div>
-          `).join("");
-          setupContextChipListeners();
-        }
       } else {
         if (syncStatusText) syncStatusText.textContent = "Local Mode";
         if (syncDot) syncDot.style.background = "#a1a1aa";
@@ -127,7 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   syncWithWebPlatform();
 
-  // 3. Real-Time Token Calculation
+  // 7. Real-Time Token Calculation
   function updateTokenMetrics() {
     const raw = input ? input.value : "";
     const len = raw.length;
@@ -153,42 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
     input.addEventListener("input", updateTokenMetrics);
   }
 
-  // 4. Preset Pills (Optimization Levels)
-  document.querySelectorAll(".level-toggle-pill").forEach((pill) => {
-    pill.addEventListener("click", () => {
-      document.querySelectorAll(".level-toggle-pill").forEach((p) => p.classList.remove("active"));
-      pill.classList.add("active");
-      currentLevel = pill.getAttribute("data-level") || "deep";
-    });
-  });
-
-  // 5. Context Memory Chips Toggle
-  if (contextChipsToggle && contextChipsBox) {
-    contextChipsToggle.addEventListener("click", () => {
-      contextChipsBox.classList.toggle("open");
-      contextChipsToggle.classList.toggle("open");
-    });
-  }
-
-  function setupContextChipListeners() {
-    if (!contextChipsBox) return;
-    contextChipsBox.querySelectorAll(".context-memory-chip").forEach((chip) => {
-      chip.addEventListener("click", () => {
-        chip.classList.toggle("selected");
-        updateActiveContextCount();
-      });
-    });
-    updateActiveContextCount();
-  }
-
-  function updateActiveContextCount() {
-    if (!contextChipsBox || !contextCountBadge) return;
-    const selected = contextChipsBox.querySelectorAll(".context-memory-chip.selected").length;
-    contextCountBadge.textContent = `(${selected})`;
-  }
-  setupContextChipListeners();
-
-  // 6. Segmented Mode Switcher
+  // 8. Segmented Mode Switcher
   function setMode(mode) {
     currentMode = mode;
     if (modeApi) modeApi.classList.remove("active");
@@ -208,7 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (modeAlgo) modeAlgo.addEventListener("click", () => setMode("algo"));
   if (modeDevice) modeDevice.addEventListener("click", () => setMode("device"));
 
-  // 7. Voice Dictation
+  // 9. Voice Dictation
   if (voiceBtn) {
     voiceBtn.addEventListener("click", async () => {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -319,55 +406,54 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function detectImplicitTone(input) {
-    const text = (input || "").toLowerCase();
-    if (/\b(tweet|post|linkedin|casual|friendly|fun|newsletter|blog|engaging|story)\b/i.test(text)) return "Engaging & Conversational";
-    if (/\b(sell|pitch|copy|ad|convert|sales|landing|cta|email|headline|offer)\b/i.test(text)) return "High-Conversion & Action-Oriented";
-    if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|script|refactor|error|fix|css|html)\b/i.test(text)) return "Technically Rigorous & Production-Grade";
-    if (/\b(strategy|plan|executive|kpi|growth|roadmap|summary|business|report)\b/i.test(text)) return "Executive & Strategic";
-    return "Clear, Authoritative & Direct";
-  }
-
   function synthesizeLocalPrompt(userInput) {
     const text = normalizeExtensionTypos((userInput || "").trim());
     if (!text) return "";
-    const tone = detectImplicitTone(text);
     const cleanInput = text.replace(/^(please|can you|help me|i want to|i need to|how to|write|create|build|fix|generate|make)\s+/i, "");
     const subject = cleanInput.length > 0 ? cleanInput : text;
 
-    let role = "Senior Subject Matter Expert & Systems Architect";
+    let role = "Principal Technical Architect & Systems Engineer";
+    let toneStr = "Technically Rigorous, Production-Ready";
     let sec1 = "SPECIFICATIONS & ARCHITECTURE";
-    let sec2 = "EXECUTION PROTOCOL";
+    let sec2 = "IMPLEMENTATION PROTOCOL";
 
-    if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|script|refactor|error|fix|css|html)\b/i.test(text)) {
-      role = "Principal Software Engineer & Technical Architect";
-      sec1 = "TECHNICAL SPECIFICATIONS & CONSTRAINTS";
-      sec2 = "IMPLEMENTATION PROTOCOL";
-    } else if (/\b(write|blog|article|email|post|essay|copy|letter|content|draft|story|headline|tweet|linkedin|newsletter)\b/i.test(text)) {
-      role = "Elite Content Director & Strategic Copywriter";
-      sec1 = "AUDIENCE HOOK & CONTENT DIRECTIVES";
+    if (currentTone === "copy") {
+      role = "Elite Conversion Copywriter & Brand Strategist";
+      toneStr = "High-Conversion, Punchy & Action-Oriented";
+      sec1 = "AUDIENCE HOOK & VALUE DIRECTIVES";
       sec2 = "NARRATIVE EXECUTION STEPS";
+    } else if (currentTone === "exec") {
+      role = "Senior Management Consultant & Executive Director";
+      toneStr = "Concise, Strategic & Metric-Driven";
+      sec1 = "STRATEGIC OBJECTIVES & CONSTRAINTS";
+      sec2 = "ACTIONABLE ROADMAP & DECISION STEPS";
+    } else if (currentTone === "deep") {
+      role = "Lead AI Research Scientist & Deep Logic Reasoner";
+      toneStr = "Exhaustive, First-Principles Reasoning";
+      sec1 = "CORE HYPOTHESES & LOGICAL CONSTRAINTS";
+      sec2 = "STEP-BY-STEP DEDUCTION & VALIDATION";
     }
 
     return `### ROLE & PERSONA
-You are an authoritative ${role}. Execute this task with production-grade rigor:
+You are an authoritative ${role}. Execute this task with highest precision:
 "${text}"
 
 ### ${sec1}
 - **Subject**: "${subject}"
-- **Tone Profile**: ${tone}
-- **Constraints**: Deliver complete, unabridged solutions without placeholders or assumptions.
+- **Tone Profile**: ${toneStr}
+- **Active Project Context**: ${activeContextBlocks.join(", ")}
+- **Constraints**: Deliver complete, production-grade output without omissions, placeholders, or conversational fluff.
 
 ### ${sec2}
-1. Analyze core requirements for "${subject}" and anticipate implicit edge cases.
-2. Structure output with modular sections, scannable Markdown headers, and concrete code/examples.
-3. Eliminate all conversational introductory fluff and meta commentary.
+1. Analyze the core requirements for "${subject}" and anticipate implicit edge cases.
+2. Structure output with modular sections, scannable headers, and concrete code/examples.
+3. Validate solution against security, scalability, and efficiency best practices.
 
 ### DELIVERABLES & OUTPUT FORMAT
-- Deliver complete, immediately usable results formatted in clean Markdown.`;
+- Deliver immediately usable, clean Markdown formatted content.`;
   }
 
-  // 8. Enhance Action Handler
+  // 10. Enhance Action Handler
   if (enhanceBtn) {
     enhanceBtn.addEventListener("click", async () => {
       const rawText = input ? input.value.trim() : "";
@@ -411,7 +497,7 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
         try {
           const res = await new Promise((resolve) => {
             chrome.runtime.sendMessage(
-              { action: "enhancePrompt", text: rawText, mode: currentMode, level: currentLevel },
+              { action: "enhancePrompt", text: rawText, mode: currentMode, level: currentTone },
               (r) => resolve(r)
             );
           });
@@ -455,7 +541,7 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
     });
   }
 
-  // 9. Copy Button
+  // 11. Copy Button
   if (copyBtn) {
     copyBtn.addEventListener("click", () => {
       if (enhancedResult) {
@@ -466,7 +552,7 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
     });
   }
 
-  // 10. Use in Active Tab
+  // 12. Use in Active Tab
   if (useBtn) {
     useBtn.addEventListener("click", () => {
       if (enhancedResult) {
@@ -486,7 +572,7 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
     });
   }
 
-  // 11. Multi-AI Split Launch Handlers
+  // 13. Multi-AI Split Launch Handlers
   const openTargetAI = (targetUrl) => {
     try {
       chrome.tabs?.create({ url: targetUrl });

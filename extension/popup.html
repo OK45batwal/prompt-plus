@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prompt+ Architect AI</title>
+  <title>Prompt+ Architect AI v2.1</title>
   <style>
     :root {
       --bg: #09090b;
@@ -71,8 +71,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
-      background: rgba(18, 18, 23, 0.85);
+      padding: 10px 14px;
+      background: rgba(18, 18, 23, 0.88);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border-subtle);
@@ -82,21 +82,21 @@
     .header-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 9px;
     }
 
     .header-logo-badge {
-      width: 32px;
-      height: 32px;
-      border-radius: 10px;
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
       background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
       display: flex;
       align-items: center;
       justify-content: center;
       color: #fff;
       font-weight: 800;
-      font-size: 14px;
-      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 4px 12px var(--primary-glow);
+      font-size: 13.5px;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 3px 10px var(--primary-glow);
     }
 
     .header-title-group {
@@ -108,7 +108,7 @@
     .header-title-row {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
     }
 
     .header-title {
@@ -133,7 +133,7 @@
       display: flex;
       align-items: center;
       gap: 5px;
-      font-size: 10.5px;
+      font-size: 10px;
       color: var(--text-muted);
     }
 
@@ -142,21 +142,21 @@
       height: 6px;
       border-radius: 50%;
       background: var(--emerald);
-      box-shadow: 0 0 8px var(--emerald);
+      box-shadow: 0 0 6px var(--emerald);
       transition: background 0.3s ease;
     }
 
     .header-right {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .user-pill-btn {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 3px 9px 3px 4px;
+      gap: 5px;
+      padding: 3px 8px 3px 4px;
       border-radius: var(--radius-pill);
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border-subtle);
@@ -173,40 +173,82 @@
     }
 
     .user-avatar-img {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: #1e1b4b;
       object-fit: cover;
     }
 
     .user-name-label {
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 600;
-      max-width: 80px;
+      max-width: 75px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    /* ---------- Navigation Top Strip (AIPRM & PromptPerfect Style) ---------- */
+    .nav-tabs-bar {
+      display: flex;
+      padding: 6px 14px 0 14px;
+      gap: 6px;
+      background: rgba(18, 18, 23, 0.5);
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+
+    .nav-tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 6px 4px 8px;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.15s var(--ease-spring);
+    }
+
+    .nav-tab-btn:hover {
+      color: var(--text-white);
+    }
+
+    .nav-tab-btn.active {
+      color: #ffffff;
+      border-bottom-color: var(--primary);
     }
 
     /* ---------- Main Scroll Area ---------- */
     .main-viewport {
       flex: 1;
       overflow-y: auto;
-      padding: 12px 16px 20px;
+      padding: 10px 14px 18px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
-    /* ---------- Engine Segmented Control (Double-Bezel) ---------- */
+    .tab-content-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ---------- Engine Segmented Control ---------- */
     .engine-segmented-box {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 3px;
       background: rgba(0, 0, 0, 0.45);
       padding: 3px;
-      border-radius: 11px;
+      border-radius: 10px;
       border: 1px solid var(--border-subtle);
     }
 
@@ -214,15 +256,15 @@
       background: transparent;
       border: none;
       color: var(--text-muted);
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 600;
-      padding: 6px 4px;
-      border-radius: 8px;
+      padding: 5px 3px;
+      border-radius: 7px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 3px;
       transition: all 0.15s var(--ease-spring);
     }
 
@@ -238,101 +280,33 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
-    /* ---------- Level & Context Controls ---------- */
-    .controls-strip {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .level-pills-group {
+    /* ---------- Tone Selector Strip ---------- */
+    .tone-selector-strip {
       display: flex;
       gap: 4px;
+      overflow-x: auto;
+      padding-bottom: 2px;
     }
 
-    .level-toggle-pill {
-      font-size: 10.5px;
-      font-weight: 600;
-      padding: 4px 8px;
-      border-radius: 7px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.15s var(--ease-spring);
-    }
-
-    .level-toggle-pill:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-white);
-    }
-
-    .level-toggle-pill.active {
-      background: rgba(99, 102, 241, 0.2);
-      border-color: rgba(99, 102, 241, 0.5);
-      color: #c7d2fe;
-    }
-
-    .context-drawer-btn {
-      font-size: 10.5px;
-      font-weight: 600;
-      padding: 4px 9px;
-      border-radius: 7px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-muted);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      transition: all 0.15s var(--ease-spring);
-    }
-
-    .context-drawer-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-white);
-    }
-
-    .context-drawer-btn.open {
-      background: rgba(16, 185, 129, 0.15);
-      border-color: rgba(16, 185, 129, 0.4);
-      color: #34d399;
-    }
-
-    /* Context Memory Pills Container */
-    .context-chips-drawer {
-      display: none;
-      flex-wrap: wrap;
-      gap: 5px;
-      padding: 8px 10px;
-      border-radius: 11px;
-      background: rgba(18, 18, 23, 0.7);
-      border: 1px solid var(--border-subtle);
-    }
-
-    .context-chips-drawer.open {
-      display: flex;
-    }
-
-    .context-memory-chip {
+    .tone-pill-btn {
       font-size: 10px;
       font-weight: 600;
       padding: 3px 8px;
       border-radius: 6px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
       color: var(--text-muted);
+      white-space: nowrap;
       cursor: pointer;
       transition: all 0.15s var(--ease-spring);
     }
 
-    .context-memory-chip:hover {
-      border-color: rgba(99, 102, 241, 0.4);
+    .tone-pill-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
       color: var(--text-white);
     }
 
-    .context-memory-chip.selected {
+    .tone-pill-btn.active {
       background: rgba(99, 102, 241, 0.2);
       border-color: rgba(99, 102, 241, 0.5);
       color: #c7d2fe;
@@ -343,10 +317,10 @@
       background: var(--surface-1);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-outer);
-      padding: 10px 12px;
+      padding: 9px 11px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
       transition: all 0.2s var(--ease-spring);
     }
 
@@ -371,9 +345,9 @@
     }
 
     .voice-action-pill {
-      font-size: 10.5px;
+      font-size: 10px;
       font-weight: 600;
-      padding: 2px 8px;
+      padding: 2px 7px;
       border-radius: 12px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -404,7 +378,7 @@
 
     textarea {
       width: 100%;
-      height: 76px;
+      height: 72px;
       background: transparent;
       border: none;
       color: var(--text-white);
@@ -426,13 +400,13 @@
       font-size: 10px;
       color: var(--text-dim);
       border-top: 1px solid rgba(255, 255, 255, 0.05);
-      padding-top: 5px;
+      padding-top: 4px;
     }
 
-    /* ---------- Button-in-Button Primary Action ---------- */
+    /* ---------- Button-in-Button Master Enhance Action ---------- */
     .master-enhance-btn {
       width: 100%;
-      height: 42px;
+      height: 40px;
       background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: var(--radius-inner);
@@ -443,7 +417,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 12px 0 16px;
+      padding: 0 12px 0 14px;
       box-shadow: 0 4px 14px var(--primary-glow);
       transition: all 0.2s var(--ease-spring);
     }
@@ -466,14 +440,14 @@
     }
 
     .btn-nested-icon {
-      width: 26px;
-      height: 26px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.18);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
+      font-size: 12px;
       transition: transform 0.2s var(--ease-spring);
     }
 
@@ -483,13 +457,13 @@
 
     /* ---------- Real-Time Token Remaining Meter (Below Pop-Up Button) ---------- */
     .token-meter-strip {
-      padding: 9px 12px;
+      padding: 8px 11px;
       border-radius: var(--radius-inner);
       background: var(--surface-1);
       border: 1px solid var(--border-subtle);
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     }
 
@@ -512,7 +486,7 @@
       font-size: 9.5px;
       font-weight: 700;
       padding: 1px 6px;
-      border-radius: 5px;
+      border-radius: 4px;
       background: rgba(99, 102, 241, 0.15);
       border: 1px solid rgba(99, 102, 241, 0.35);
       color: #c7d2fe;
@@ -522,8 +496,8 @@
     .token-remaining-badge {
       font-weight: 700;
       color: var(--emerald);
-      padding: 1px 7px;
-      border-radius: 5px;
+      padding: 1px 6px;
+      border-radius: 4px;
       background: rgba(16, 185, 129, 0.12);
       border: 1px solid rgba(16, 185, 129, 0.3);
     }
@@ -558,8 +532,8 @@
     .multi-ai-section {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      padding: 10px 12px;
+      gap: 5px;
+      padding: 8px 11px;
       border-radius: 11px;
       background: rgba(18, 18, 23, 0.5);
       border: 1px solid var(--border-subtle);
@@ -577,7 +551,7 @@
     .multi-ai-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 5px;
+      gap: 4px;
     }
 
     .ai-pill-btn {
@@ -586,7 +560,7 @@
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
       color: #d4d4d8;
-      font-size: 10.5px;
+      font-size: 10px;
       font-weight: 600;
       cursor: pointer;
       display: flex;
@@ -610,9 +584,9 @@
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(99, 102, 241, 0.35);
       border-radius: var(--radius-outer);
-      padding: 12px;
+      padding: 11px;
       flex-direction: column;
-      gap: 8px;
+      gap: 7px;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     }
 
@@ -625,14 +599,14 @@
     .result-badges {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
     }
 
     .score-badge {
       font-size: 10px;
       font-weight: 800;
       padding: 2px 6px;
-      border-radius: 6px;
+      border-radius: 5px;
       background: rgba(16, 185, 129, 0.15);
       border: 1px solid rgba(16, 185, 129, 0.3);
       color: #34d399;
@@ -642,7 +616,7 @@
       font-size: 10px;
       font-weight: 700;
       padding: 2px 6px;
-      border-radius: 6px;
+      border-radius: 5px;
       background: rgba(99, 102, 241, 0.15);
       border: 1px solid rgba(99, 102, 241, 0.3);
       color: #a5b4fc;
@@ -653,10 +627,10 @@
       line-height: 1.5;
       color: #e4e4e7;
       background: rgba(0, 0, 0, 0.45);
-      padding: 10px;
-      border-radius: 9px;
+      padding: 9px;
+      border-radius: 8px;
       border: 1px solid rgba(255, 255, 255, 0.06);
-      max-height: 140px;
+      max-height: 130px;
       overflow-y: auto;
       white-space: pre-wrap;
       font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
@@ -702,6 +676,84 @@
       background: rgba(16, 185, 129, 0.3);
     }
 
+    /* ---------- Library Tab View (AIPRM Style) ---------- */
+    .library-search-box {
+      display: flex;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 6px 10px;
+      gap: 6px;
+    }
+
+    .library-search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-size: 11.5px;
+      outline: none;
+    }
+
+    .library-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+
+    .template-card {
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9px;
+      padding: 9px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.15s var(--ease-spring);
+    }
+
+    .template-card:hover {
+      border-color: rgba(99, 102, 241, 0.5);
+      background: rgba(255, 255, 255, 0.04);
+      transform: translateY(-1px);
+    }
+
+    .template-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .template-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .template-cat-badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+    }
+
+    .template-preview {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      line-height: 1.35;
+    }
+
     /* Toast Notification */
     .toast-msg {
       display: none;
@@ -727,14 +779,14 @@
 </head>
 
 <body>
-  <!-- Header -->
+  <!-- Floating Island Header -->
   <header class="header">
     <div class="header-left">
       <div class="header-logo-badge">✦</div>
       <div class="header-title-group">
         <div class="header-title-row">
           <span class="header-title">Prompt+ Architect</span>
-          <span class="v2-pill">v2.0.1</span>
+          <span class="v2-pill">v2.1</span>
         </div>
         <div class="header-sync-row">
           <span class="sync-indicator-dot" id="sync-dot"></span>
@@ -751,114 +803,133 @@
     </div>
   </header>
 
+  <!-- Top Navigation Tabs (AIPRM & PromptPerfect style) -->
+  <nav class="nav-tabs-bar">
+    <button type="button" class="nav-tab-btn active" id="tab-btn-enhance">⚡ Optimizer</button>
+    <button type="button" class="nav-tab-btn" id="tab-btn-library">📚 Library</button>
+    <button type="button" class="nav-tab-btn" id="tab-btn-context">📦 Context Vault</button>
+  </nav>
+
   <!-- Main Viewport -->
   <main class="main-viewport">
-    <!-- Engine Switcher -->
-    <div class="engine-segmented-box">
-      <button type="button" class="engine-segmented-tab active" id="mode-api" title="Multi-Model Cloud AI">
-        <span>🟢 API Cloud</span>
-      </button>
-      <button type="button" class="engine-segmented-tab" id="mode-algo" title="100% Offline Rule Engine (<30ms)">
-        <span>⚡ No-API</span>
-      </button>
-      <button type="button" class="engine-segmented-tab" id="mode-device" title="Chrome On-Device Gemini Nano">
-        <span>🧠 On-Device</span>
-      </button>
-    </div>
-
-    <!-- Optimization Level & Context Drawer Toggle -->
-    <div class="controls-strip">
-      <div class="level-pills-group">
-        <button type="button" class="level-toggle-pill active" data-level="deep">Deep</button>
-        <button type="button" class="level-toggle-pill" data-level="quick">Quick</button>
-        <button type="button" class="level-toggle-pill" data-level="expert">Expert</button>
-      </div>
-
-      <button type="button" class="context-drawer-btn" id="context-chips-toggle">
-        <span>📦 Context Memory</span>
-        <span id="context-count-badge" style="font-weight:700; color:#10b981;">(1)</span>
-      </button>
-    </div>
-
-    <!-- Expandable Context Chips -->
-    <div class="context-chips-drawer" id="context-chips-box">
-      <div class="context-memory-chip selected" data-ctx="nextjs">Next.js 16 + Tailwind v4</div>
-      <div class="context-memory-chip" data-ctx="python">Python FastAPI Architecture</div>
-      <div class="context-memory-chip" data-ctx="exec">Executive Strategic Tone</div>
-    </div>
-
-    <!-- Input Double-Bezel Card -->
-    <div class="input-bezel-card">
-      <div class="input-bezel-header">
-        <span class="input-bezel-label">Raw Prompt Idea</span>
-        <button type="button" class="voice-action-pill" id="voice-btn">
-          <span>🎙️ Voice Input</span>
+    <!-- PANEL 1: ENHANCE / OPTIMIZER -->
+    <div class="tab-content-panel" id="panel-enhance">
+      <!-- Engine Switcher -->
+      <div class="engine-segmented-box">
+        <button type="button" class="engine-segmented-tab active" id="mode-api" title="Multi-Model Cloud AI">
+          <span>🟢 API Cloud</span>
+        </button>
+        <button type="button" class="engine-segmented-tab" id="mode-algo" title="100% Offline Rule Engine (<30ms)">
+          <span>⚡ No-API</span>
+        </button>
+        <button type="button" class="engine-segmented-tab" id="mode-device" title="Chrome On-Device Gemini Nano">
+          <span>🧠 On-Device</span>
         </button>
       </div>
 
-      <textarea id="input" placeholder="Type your rough task, code idea, or query... (e.g. build auth middleware with rate limiting)"></textarea>
-
-      <div class="input-bezel-footer">
-        <span id="char-count">0 characters</span>
-        <span id="token-estimate">~0 Tokens</span>
+      <!-- Tone Persona Strip -->
+      <div class="tone-selector-strip">
+        <button type="button" class="tone-pill-btn active" data-tone="code">💻 Tech Architecture</button>
+        <button type="button" class="tone-pill-btn" data-tone="copy">📈 Marketing Copy</button>
+        <button type="button" class="tone-pill-btn" data-tone="exec">👔 Executive Strategy</button>
+        <button type="button" class="tone-pill-btn" data-tone="deep">🔬 Deep Reasoning</button>
       </div>
-    </div>
 
-    <!-- Button-in-Button Master Enhance Action -->
-    <button type="button" class="master-enhance-btn" id="enhance-btn">
-      <span id="btn-text">⚡ Compile Master Prompt</span>
-      <span class="btn-nested-icon">↗</span>
-    </button>
-
-    <!-- Real-Time Token Remaining Meter (Live Active Chatbot Model & Context) -->
-    <div class="token-meter-strip" id="token-meter-strip">
-      <div class="token-meter-header">
-        <div class="token-needed-txt">
-          <span class="active-bot-pill" id="active-bot-pill">🤖 Active Chatbot · 128K</span>
-          <span id="token-needed-txt">⚡ ~0 tok</span>
+      <!-- Input Double-Bezel Card -->
+      <div class="input-bezel-card">
+        <div class="input-bezel-header">
+          <span class="input-bezel-label">Raw Prompt Idea</span>
+          <button type="button" class="voice-action-pill" id="voice-btn">
+            <span>🎙️ Voice Input</span>
+          </button>
         </div>
-        <span class="token-remaining-badge" id="token-remaining-badge">88 / 100 Free Units</span>
-      </div>
-      <div class="token-meter-track">
-        <div class="token-meter-fill" id="token-meter-fill" style="width: 88%;"></div>
-      </div>
-      <div class="token-meter-footer">
-        <span id="engine-telemetry-txt">Sub-30ms Loop Engine</span>
-        <span id="context-capacity-txt">128.0K tokens free in active chat</span>
-      </div>
-    </div>
 
-    <!-- Toast Notification -->
-    <div class="toast-msg" id="toast-msg"></div>
+        <textarea id="input" placeholder="Type your rough task, code idea, or query... (e.g. build auth middleware with rate limiting)"></textarea>
 
-    <!-- Multi-AI Split Launch -->
-    <div class="multi-ai-section">
-      <div class="multi-ai-title">
-        <span>🔀 Multi-AI Split Launch (Side-by-Side)</span>
-      </div>
-      <div class="multi-ai-grid">
-        <button type="button" class="ai-pill-btn" id="bridge-chatgpt" title="Open in ChatGPT">ChatGPT</button>
-        <button type="button" class="ai-pill-btn" id="bridge-claude" title="Open in Claude 3.5">Claude</button>
-        <button type="button" class="ai-pill-btn" id="bridge-gemini" title="Open in Gemini">Gemini</button>
-        <button type="button" class="ai-pill-btn" id="bridge-deepseek" title="Open in DeepSeek R1">DeepSeek</button>
-      </div>
-    </div>
-
-    <!-- Result Card -->
-    <div class="result-bezel-card" id="result-card">
-      <div class="result-header">
-        <div class="result-badges">
-          <span class="score-badge" id="quality-score-badge">Score: 92/100</span>
-          <span class="loop-badge" id="loop-telemetry-badge">⚡ Loop: &lt;30ms</span>
+        <div class="input-bezel-footer">
+          <span id="char-count">0 characters</span>
+          <span id="token-estimate">~0 Tokens</span>
         </div>
-        <span id="engine-tag" style="font-size:10px; color:#a1a1aa;">Master Prompt</span>
       </div>
 
-      <div class="result-body" id="result-body"></div>
+      <!-- Button-in-Button Master Enhance Action -->
+      <button type="button" class="master-enhance-btn" id="enhance-btn">
+        <span id="btn-text">⚡ Compile Master Prompt</span>
+        <span class="btn-nested-icon">↗</span>
+      </button>
 
-      <div class="result-actions">
-        <button type="button" class="action-btn btn-copy" id="copy-btn">📋 Copy Prompt</button>
-        <button type="button" class="action-btn btn-inject" id="use-btn">🚀 Use in Active Tab</button>
+      <!-- Real-Time Token Remaining Meter (Live Active Chatbot Model & Context) -->
+      <div class="token-meter-strip" id="token-meter-strip">
+        <div class="token-meter-header">
+          <div class="token-needed-txt">
+            <span class="active-bot-pill" id="active-bot-pill">🤖 Active Chatbot · 128K</span>
+            <span id="token-needed-txt">⚡ ~0 tok</span>
+          </div>
+          <span class="token-remaining-badge" id="token-remaining-badge">88 / 100 Free Units</span>
+        </div>
+        <div class="token-meter-track">
+          <div class="token-meter-fill" id="token-meter-fill" style="width: 88%;"></div>
+        </div>
+        <div class="token-meter-footer">
+          <span id="engine-telemetry-txt">Sub-30ms Loop Engine</span>
+          <span id="context-capacity-txt">128.0K tokens free in active chat</span>
+        </div>
+      </div>
+
+      <!-- Toast Notification -->
+      <div class="toast-msg" id="toast-msg"></div>
+
+      <!-- Multi-AI Split Launch -->
+      <div class="multi-ai-section">
+        <div class="multi-ai-title">
+          <span>🔀 Multi-AI Split Launch (Side-by-Side)</span>
+        </div>
+        <div class="multi-ai-grid">
+          <button type="button" class="ai-pill-btn" id="bridge-chatgpt" title="Open in ChatGPT">ChatGPT</button>
+          <button type="button" class="ai-pill-btn" id="bridge-claude" title="Open in Claude 3.5">Claude</button>
+          <button type="button" class="ai-pill-btn" id="bridge-gemini" title="Open in Gemini">Gemini</button>
+          <button type="button" class="ai-pill-btn" id="bridge-deepseek" title="Open in DeepSeek R1">DeepSeek</button>
+        </div>
+      </div>
+
+      <!-- Result Card -->
+      <div class="result-bezel-card" id="result-card">
+        <div class="result-header">
+          <div class="result-badges">
+            <span class="score-badge" id="quality-score-badge">Score: 92/100</span>
+            <span class="loop-badge" id="loop-telemetry-badge">⚡ Loop: &lt;30ms</span>
+          </div>
+          <span id="engine-tag" style="font-size:10px; color:#a1a1aa;">Master Prompt</span>
+        </div>
+
+        <div class="result-body" id="result-body"></div>
+
+        <div class="result-actions">
+          <button type="button" class="action-btn btn-copy" id="copy-btn">📋 Copy Prompt</button>
+          <button type="button" class="action-btn btn-inject" id="use-btn">🚀 Use in Active Tab</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL 2: PROMPT LIBRARY & BLUEPRINTS (AIPRM Style) -->
+    <div class="tab-content-panel" id="panel-library" style="display: none;">
+      <div class="library-search-box">
+        <span>🔍</span>
+        <input type="text" class="library-search-input" id="lib-search" placeholder="Search templates & blueprints..." />
+      </div>
+
+      <div class="library-grid" id="library-grid">
+        <!-- Dynamic templates injected via JS -->
+      </div>
+    </div>
+
+    <!-- PANEL 3: CONTEXT VAULT -->
+    <div class="tab-content-panel" id="panel-context" style="display: none;">
+      <div style="font-size: 11px; color: #a1a1aa; line-height: 1.4;">
+        Active Project Rules automatically injected into every compiled prompt:
+      </div>
+      <div id="context-vault-list" style="display: flex; flex-direction: column; gap: 6px;">
+        <!-- Injected via JS -->
       </div>
     </div>
   </main>
