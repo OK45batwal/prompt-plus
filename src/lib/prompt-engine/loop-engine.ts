@@ -5,14 +5,14 @@
  * closed-loop convergence cycle for sub-30ms prompt quality refinement.
  */
 
-import { PromptCandidate, TaskType, ComplexityLevel } from "./types";
+import { PromptCandidate, TaskType, ComplexityLevel, SecurityScanResult } from "./types";
 import { parseTextToPromptIR } from "./prompt-ir";
 import { extractIntent } from "./intent-engine";
 import { generateCandidates } from "./candidate-generator";
 import { calculateHybridScore, HybridScoreBreakdown } from "./evaluation-engine";
 import { diagnosePromptFailures, repairPromptIR } from "./repair-engine";
 import { cleanPromptResponse } from "./cleaner";
-import { scanPromptSecurity, SecurityScanResult } from "./security-scanner";
+import { scanPromptSecurity } from "./security-scanner";
 import { autocorrectText, AutoCorrectResult } from "./autocorrect";
 
 export interface LoopTrace {
