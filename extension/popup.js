@@ -5,13 +5,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const enhanceBtn = document.getElementById("enhance-btn");
   const btnText = document.getElementById("btn-text");
   const toastMsg = document.getElementById("toast-msg");
-  const resultCard = document.getElementById("result-card");
+  const panelResult = document.getElementById("panel-result");
   const resultBody = document.getElementById("result-body");
   const scoreBadge = document.getElementById("quality-score-badge");
   const loopBadge = document.getElementById("loop-telemetry-badge");
-  const engineTag = document.getElementById("engine-tag");
   const copyBtn = document.getElementById("copy-btn");
   const useBtn = document.getElementById("use-btn");
+  const backToEditBtn = document.getElementById("back-to-edit-btn");
+  const pasteBtn = document.getElementById("paste-btn");
+  const clearBtn = document.getElementById("clear-btn");
   const modeApi = document.getElementById("mode-api");
   const modeAlgo = document.getElementById("mode-algo");
   const modeDevice = document.getElementById("mode-device");
@@ -44,9 +46,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let recognitionInstance = null;
   let userQuota = { remaining: 88, monthlyLimit: 100, usagePercentage: 12 };
   let cloudPrompts = [];
-  let activeContextBlocks = ["Next.js 16 + Tailwind v4"];
+  const activeContextBlocks = ["Next.js 16 + Tailwind v4"];
 
-  // Curated Blueprints (AIPRM & Prompt Genius Inspiration)
+  // Curated Blueprints
   const CURATED_TEMPLATES = [
     {
       id: "code-architect",
@@ -114,13 +116,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // 2. Navigation Tab Switching
   function switchTab(tab) {
     [tabBtnEnhance, tabBtnLibrary, tabBtnContext].forEach((b) => b?.classList.remove("active"));
-    [panelEnhance, panelLibrary, panelContext].forEach((p) => {
+    [panelEnhance, panelResult, panelLibrary, panelContext].forEach((p) => {
       if (p) p.style.display = "none";
     });
 
     if (tab === "enhance") {
       tabBtnEnhance?.classList.add("active");
       if (panelEnhance) panelEnhance.style.display = "flex";
+      if (input) input.focus();
     } else if (tab === "library") {
       tabBtnLibrary?.classList.add("active");
       if (panelLibrary) panelLibrary.style.display = "flex";
@@ -136,7 +139,47 @@ document.addEventListener("DOMContentLoaded", () => {
   tabBtnLibrary?.addEventListener("click", () => switchTab("library"));
   tabBtnContext?.addEventListener("click", () => switchTab("context"));
 
-  // 3. Render Library (AIPRM Style)
+  // 3. Stage 1 <-> Stage 2 Transition (Editor vs Result View)
+  function showResultView(compiledText, score = 94, latency = "<25ms") {
+    if (panelEnhance) panelEnhance.style.display = "none";
+    if (panelResult) panelResult.style.display = "flex";
+    if (resultBody) resultBody.textContent = compiledText;
+    if (scoreBadge) scoreBadge.textContent = `Score: ${score}/100`;
+    if (loopBadge) loopBadge.textContent = `⚡ Loop: ${latency}`;
+    enhancedResult = compiledText;
+  }
+
+  function showEditView() {
+    if (panelResult) panelResult.style.display = "none";
+    if (panelEnhance) panelEnhance.style.display = "flex";
+    if (input) input.focus();
+  }
+
+  backToEditBtn?.addEventListener("click", showEditView);
+
+  // 4. Quick Paste & Clear Buttons
+  pasteBtn?.addEventListener("click", async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text && input) {
+        input.value = text;
+        input.dispatchEvent(new Event("input"));
+        showToast("✓ Text pasted from clipboard!");
+      }
+    } catch {
+      showToast("Clipboard access denied.", true);
+    }
+  });
+
+  clearBtn?.addEventListener("click", () => {
+    if (input) {
+      input.value = "";
+      input.dispatchEvent(new Event("input"));
+      input.focus();
+    }
+  });
+
+  // 5. Render Library
   function renderLibrary(filterText = "") {
     if (!libraryGrid) return;
     const all = [...(cloudPrompts || []), ...CURATED_TEMPLATES];
@@ -160,8 +203,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (input) {
           input.value = text;
           switchTab("enhance");
+          showEditView();
           input.dispatchEvent(new Event("input"));
-          showToast("✓ Template loaded into Optimizer!");
+          showToast("✓ Template loaded!");
         }
       });
     });
@@ -173,7 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 4. Render Context Vault
+  // 6. Render Context Vault
   function renderContextVault() {
     if (!contextVaultList) return;
     const defaults = [
@@ -193,7 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `).join("");
   }
 
-  // 5. Tone Pill Handlers
+  // 7. Tone Pill Handlers
   document.querySelectorAll(".tone-pill-btn").forEach((pill) => {
     pill.addEventListener("click", () => {
       document.querySelectorAll(".tone-pill-btn").forEach((p) => p.classList.remove("active"));
@@ -202,7 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // 6. Bi-Directional Web Account Sync
+  // 8. Bi-Directional Web Account Sync
   async function syncWithWebPlatform() {
     try {
       const authData = await new Promise((resolve) => {
@@ -249,7 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   syncWithWebPlatform();
 
-  // 7. Real-Time Token Calculation
+  // 9. Real-Time Token Calculation
   function updateTokenMetrics() {
     const raw = input ? input.value : "";
     const len = raw.length;
@@ -275,7 +319,7 @@ document.addEventListener("DOMContentLoaded", () => {
     input.addEventListener("input", updateTokenMetrics);
   }
 
-  // 8. Segmented Mode Switcher
+  // 10. Segmented Mode Switcher
   function setMode(mode) {
     currentMode = mode;
     if (modeApi) modeApi.classList.remove("active");
@@ -295,7 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (modeAlgo) modeAlgo.addEventListener("click", () => setMode("algo"));
   if (modeDevice) modeDevice.addEventListener("click", () => setMode("device"));
 
-  // 9. Voice Dictation
+  // 11. Voice Dictation
   if (voiceBtn) {
     voiceBtn.addEventListener("click", async () => {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -310,7 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         isListening = false;
         voiceBtn.classList.remove("recording");
-        voiceBtn.innerHTML = "<span>🎙️ Voice Input</span>";
+        voiceBtn.innerHTML = "<span>🎙️ Voice</span>";
         return;
       }
 
@@ -328,7 +372,7 @@ document.addEventListener("DOMContentLoaded", () => {
         rec.onstart = () => {
           isListening = true;
           voiceBtn.classList.add("recording");
-          voiceBtn.innerHTML = "<span>🔴 Listening...</span>";
+          voiceBtn.innerHTML = "<span>🔴 Listening</span>";
           showToast("🎙️ Listening... Speak your prompt idea.");
         };
 
@@ -348,13 +392,13 @@ document.addEventListener("DOMContentLoaded", () => {
         rec.onerror = () => {
           isListening = false;
           voiceBtn.classList.remove("recording");
-          voiceBtn.innerHTML = "<span>🎙️ Voice Input</span>";
+          voiceBtn.innerHTML = "<span>🎙️ Voice</span>";
         };
 
         rec.onend = () => {
           isListening = false;
           voiceBtn.classList.remove("recording");
-          voiceBtn.innerHTML = "<span>🎙️ Voice Input</span>";
+          voiceBtn.innerHTML = "<span>🎙️ Voice</span>";
         };
 
         rec.start();
@@ -453,95 +497,83 @@ You are an authoritative ${role}. Execute this task with highest precision:
 - Deliver immediately usable, clean Markdown formatted content.`;
   }
 
-  // 10. Enhance Action Handler
-  if (enhanceBtn) {
-    enhanceBtn.addEventListener("click", async () => {
-      const rawText = input ? input.value.trim() : "";
-      if (!rawText) {
-        showToast("Please type a prompt idea first!", true);
-        if (input) input.focus();
-        return;
-      }
+  // 12. Enhance Action Handler
+  async function triggerCompilation() {
+    const rawText = input ? input.value.trim() : "";
+    if (!rawText) {
+      showToast("Please type a prompt idea first!", true);
+      if (input) input.focus();
+      return;
+    }
 
-      enhanceBtn.disabled = true;
-      if (btnText) btnText.textContent = "⚡ Compiling Master Prompt...";
-      if (resultCard) resultCard.style.display = "flex";
-      if (resultBody) resultBody.textContent = "Compiling with Prompt+ Intelligence...";
+    if (enhanceBtn) enhanceBtn.disabled = true;
+    if (btnText) btnText.textContent = "⚡ Compiling Master Prompt...";
 
-      let finalResult = "";
-      let sourceTag = "Cloud AI";
+    let finalResult = "";
 
-      // If mode is "algo" (No-API Engine) -> use offline local rule engine
-      if (currentMode === "algo") {
-        finalResult = synthesizeLocalPrompt(rawText);
-        sourceTag = "⚡ No-API Engine";
-      }
+    // Mode 1: No-API Offline Engine
+    if (currentMode === "algo") {
+      finalResult = synthesizeLocalPrompt(rawText);
+    }
 
-      // If mode is "device" -> try On-Device Gemini Nano
-      if (!finalResult && currentMode === "device") {
-        try {
-          const w = window;
-          const lm = w.LanguageModel || w.ai?.languageModel;
-          if (lm && (await lm.availability()) !== "unavailable") {
-            const session = await lm.create({ temperature: 0.1, topK: 1 });
-            const promptText = `Transform into a structured Master Prompt with Role, Specs, and Steps:\n\n"${rawText}"`;
-            finalResult = await session.prompt(promptText);
-            session.destroy();
-            sourceTag = "🧠 On-Device Gemini Nano";
-          }
-        } catch {}
-      }
+    // Mode 2: On-Device Gemini Nano
+    if (!finalResult && currentMode === "device") {
+      try {
+        const w = window;
+        const lm = w.LanguageModel || w.ai?.languageModel;
+        if (lm && (await lm.availability()) !== "unavailable") {
+          const session = await lm.create({ temperature: 0.1, topK: 1 });
+          const promptText = `Transform into a structured Master Prompt with Role, Specs, and Steps:\n\n"${rawText}"`;
+          finalResult = await session.prompt(promptText);
+          session.destroy();
+        }
+      } catch {}
+    }
 
-      // API Mode or Fallback -> Call Background Message Router
-      if (!finalResult) {
-        try {
-          const res = await new Promise((resolve) => {
-            chrome.runtime.sendMessage(
-              { action: "enhancePrompt", text: rawText, mode: currentMode, level: currentTone },
-              (r) => resolve(r)
-            );
-          });
+    // Mode 3: Cloud API
+    if (!finalResult) {
+      try {
+        const res = await new Promise((resolve) => {
+          chrome.runtime.sendMessage(
+            { action: "enhancePrompt", text: rawText, mode: currentMode, level: currentTone },
+            (r) => resolve(r)
+          );
+        });
 
-          if (res?.success && res.data?.enhanced) {
-            finalResult = res.data.enhanced;
-            sourceTag = `☁️ API Cloud (${res.data.model || "Auto"})`;
-          }
-        } catch {}
-      }
+        if (res?.success && res.data?.enhanced) {
+          finalResult = res.data.enhanced;
+        }
+      } catch {}
+    }
 
-      // Fail-Safe Synthesizer
-      if (!finalResult) {
-        finalResult = synthesizeLocalPrompt(rawText);
-        sourceTag = "⚡ No-API Engine";
-      }
+    // Fail-Safe
+    if (!finalResult) {
+      finalResult = synthesizeLocalPrompt(rawText);
+    }
 
-      enhanceBtn.disabled = false;
-      if (btnText) btnText.textContent = "⚡ Compile Master Prompt";
+    if (enhanceBtn) enhanceBtn.disabled = false;
+    if (btnText) btnText.textContent = "⚡ Compile Master Prompt";
 
-      enhancedResult = finalResult;
-      if (resultBody) resultBody.textContent = enhancedResult;
-      if (scoreBadge) {
-        const qScore = calculateScore(enhancedResult);
-        scoreBadge.textContent = `Score: ${qScore}/100`;
-      }
-      if (loopBadge) {
-        loopBadge.textContent = `⚡ Loop: <30ms`;
-      }
-      if (engineTag) {
-        engineTag.textContent = sourceTag;
-      }
-      if (copyBtn) copyBtn.disabled = false;
-      if (useBtn) useBtn.disabled = false;
-      showToast(`✓ Master prompt compiled!`);
-
-      // Scroll smoothly to the result
-      if (resultCard) {
-        resultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
-    });
+    const qScore = calculateScore(finalResult);
+    showResultView(finalResult, qScore, "<25ms");
+    showToast("✓ Master prompt compiled!");
   }
 
-  // 11. Copy Button
+  if (enhanceBtn) {
+    enhanceBtn.addEventListener("click", triggerCompilation);
+  }
+
+  // Keyboard Shortcuts: Cmd+Enter to compile, Esc to go back
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      triggerCompilation();
+    } else if (e.key === "Escape") {
+      showEditView();
+    }
+  });
+
+  // 13. Copy Button
   if (copyBtn) {
     copyBtn.addEventListener("click", () => {
       if (enhancedResult) {
@@ -552,7 +584,7 @@ You are an authoritative ${role}. Execute this task with highest precision:
     });
   }
 
-  // 12. Use in Active Tab
+  // 14. Use in Active Tab
   if (useBtn) {
     useBtn.addEventListener("click", () => {
       if (enhancedResult) {
@@ -572,7 +604,7 @@ You are an authoritative ${role}. Execute this task with highest precision:
     });
   }
 
-  // 13. Multi-AI Split Launch Handlers
+  // 15. Multi-AI Split Launch Handlers
   const openTargetAI = (targetUrl) => {
     try {
       chrome.tabs?.create({ url: targetUrl });

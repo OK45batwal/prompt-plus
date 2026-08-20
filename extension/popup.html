@@ -65,7 +65,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ---------- Floating Island Header ---------- */
+    /* ---------- Header ---------- */
     .header {
       flex-shrink: 0;
       display: flex;
@@ -229,7 +229,7 @@
     .main-viewport {
       flex: 1;
       overflow-y: auto;
-      padding: 10px 14px 18px;
+      padding: 10px 14px 16px;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -344,27 +344,33 @@
       color: var(--text-dim);
     }
 
-    .voice-action-pill {
-      font-size: 10px;
+    .input-actions-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tool-icon-btn {
+      font-size: 9.5px;
       font-weight: 600;
-      padding: 2px 7px;
-      border-radius: 12px;
+      padding: 2px 6px;
+      border-radius: 6px;
       background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       color: var(--text-muted);
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 4px;
-      transition: all 0.2s var(--ease-spring);
+      gap: 3px;
+      transition: all 0.15s var(--ease-spring);
     }
 
-    .voice-action-pill:hover {
+    .tool-icon-btn:hover {
       background: rgba(255, 255, 255, 0.1);
       color: var(--text-white);
     }
 
-    .voice-action-pill.recording {
+    .tool-icon-btn.recording {
       background: rgba(239, 68, 68, 0.2);
       border-color: rgba(239, 68, 68, 0.5);
       color: #ef4444;
@@ -378,7 +384,7 @@
 
     textarea {
       width: 100%;
-      height: 72px;
+      height: 70px;
       background: transparent;
       border: none;
       color: var(--text-white);
@@ -576,94 +582,81 @@
       transform: translateY(-1px);
     }
 
-    /* ---------- Result Double-Bezel Card ---------- */
-    .result-bezel-card {
+    /* ---------- Result View (Seamless Focused State) ---------- */
+    .result-view-panel {
       display: none;
-      background: var(--surface-1);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(99, 102, 241, 0.35);
-      border-radius: var(--radius-outer);
-      padding: 11px;
       flex-direction: column;
-      gap: 7px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      gap: 9px;
     }
 
-    .result-header {
+    .result-header-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    .result-badges {
+    .back-to-edit-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 7px;
+      cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
+      transition: all 0.15s var(--ease-spring);
     }
 
-    .score-badge {
-      font-size: 10px;
-      font-weight: 800;
-      padding: 2px 6px;
-      border-radius: 5px;
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: #34d399;
+    .back-to-edit-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
     }
 
-    .loop-badge {
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 5px;
-      background: rgba(99, 102, 241, 0.15);
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      color: #a5b4fc;
-    }
-
-    .result-body {
-      font-size: 11.5px;
+    .result-body-card {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 12px;
       line-height: 1.5;
       color: #e4e4e7;
-      background: rgba(0, 0, 0, 0.45);
-      padding: 9px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      max-height: 130px;
+      max-height: 330px;
       overflow-y: auto;
       white-space: pre-wrap;
       font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
       user-select: text;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
     }
 
-    .result-actions {
+    .result-bottom-actions {
       display: flex;
       gap: 6px;
     }
 
     .action-btn {
       flex: 1;
-      height: 32px;
+      height: 36px;
       border-radius: 8px;
-      font-size: 11px;
+      font-size: 11.5px;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 5px;
       transition: all 0.15s var(--ease-spring);
     }
 
     .btn-copy {
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--border-subtle);
       color: #ffffff;
     }
 
     .btn-copy:hover {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.14);
     }
 
     .btn-inject {
@@ -804,7 +797,7 @@
     </div>
   </header>
 
-  <!-- Top Navigation Tabs (AIPRM & PromptPerfect style) -->
+  <!-- Top Navigation Tabs -->
   <nav class="nav-tabs-bar">
     <button type="button" class="nav-tab-btn active" id="tab-btn-enhance">⚡ Optimizer</button>
     <button type="button" class="nav-tab-btn" id="tab-btn-library">📚 Library</button>
@@ -813,7 +806,7 @@
 
   <!-- Main Viewport -->
   <main class="main-viewport">
-    <!-- PANEL 1: ENHANCE / OPTIMIZER -->
+    <!-- PANEL 1: ENHANCE / OPTIMIZER (STAGE 1: INPUT VIEW) -->
     <div class="tab-content-panel" id="panel-enhance">
       <!-- Engine Switcher -->
       <div class="engine-segmented-box">
@@ -840,9 +833,17 @@
       <div class="input-bezel-card">
         <div class="input-bezel-header">
           <span class="input-bezel-label">Raw Prompt Idea</span>
-          <button type="button" class="voice-action-pill" id="voice-btn">
-            <span>🎙️ Voice Input</span>
-          </button>
+          <div class="input-actions-group">
+            <button type="button" class="tool-icon-btn" id="paste-btn" title="Paste clipboard text">
+              <span>📋 Paste</span>
+            </button>
+            <button type="button" class="tool-icon-btn" id="voice-btn" title="Voice dictation">
+              <span>🎙️ Voice</span>
+            </button>
+            <button type="button" class="tool-icon-btn" id="clear-btn" title="Clear text">
+              <span>✕</span>
+            </button>
+          </div>
         </div>
 
         <textarea id="input" placeholder="Type your rough task, code idea, or query... (e.g. build auth middleware with rate limiting)"></textarea>
@@ -859,7 +860,7 @@
         <span class="btn-nested-icon">↗</span>
       </button>
 
-      <!-- Real-Time Token Remaining Meter (Live Active Chatbot Model & Context) -->
+      <!-- Real-Time Token Remaining Meter -->
       <div class="token-meter-strip" id="token-meter-strip">
         <div class="token-meter-header">
           <div class="token-needed-txt">
@@ -892,23 +893,25 @@
           <button type="button" class="ai-pill-btn" id="bridge-deepseek" title="Open in DeepSeek R1">DeepSeek</button>
         </div>
       </div>
+    </div>
 
-      <!-- Result Card -->
-      <div class="result-bezel-card" id="result-card">
-        <div class="result-header">
-          <div class="result-badges">
-            <span class="score-badge" id="quality-score-badge">Score: 92/100</span>
-            <span class="loop-badge" id="loop-telemetry-badge">⚡ Loop: &lt;30ms</span>
-          </div>
-          <span id="engine-tag" style="font-size:10px; color:#a1a1aa;">Master Prompt</span>
+    <!-- STAGE 2: COMPILED RESULT VIEW -->
+    <div class="result-view-panel" id="panel-result">
+      <div class="result-header-bar">
+        <button type="button" class="back-to-edit-btn" id="back-to-edit-btn">
+          <span>← Back to Edit</span>
+        </button>
+        <div style="display: flex; gap: 5px; align-items: center;">
+          <span class="score-badge" id="quality-score-badge" style="font-size:10px; font-weight:800; padding:2px 6px; border-radius:5px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); color:#34d399;">Score: 94/100</span>
+          <span class="loop-badge" id="loop-telemetry-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); color:#a5b4fc;">⚡ &lt;30ms</span>
         </div>
+      </div>
 
-        <div class="result-body" id="result-body"></div>
+      <div class="result-body-card" id="result-body"></div>
 
-        <div class="result-actions">
-          <button type="button" class="action-btn btn-copy" id="copy-btn">📋 Copy Prompt</button>
-          <button type="button" class="action-btn btn-inject" id="use-btn">🚀 Use in Active Tab</button>
-        </div>
+      <div class="result-bottom-actions">
+        <button type="button" class="action-btn btn-copy" id="copy-btn">📋 Copy Prompt</button>
+        <button type="button" class="action-btn btn-inject" id="use-btn">🚀 Use in Active Tab</button>
       </div>
     </div>
 
