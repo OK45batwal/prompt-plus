@@ -121,13 +121,15 @@ export interface PromptIR {
   metadata: PromptMetadata;
 }
 
+export type ComplexityLevel = "low" | "medium" | "high" | "expert";
+
 export interface IntentExtractionResult {
   domain: string;
   taskType: TaskType;
   goal: string;
   audience?: string;
   platform?: string;
-  complexity: "low" | "medium" | "high" | "expert";
+  complexity: ComplexityLevel;
   outputType: string;
   assumptions: string[];
   unknowns: string[];

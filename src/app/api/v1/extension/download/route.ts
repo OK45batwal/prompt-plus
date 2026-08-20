@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const cwd = /* turbopackIgnore: true */ process.cwd();
   // Resolve current version from the packaged manifest so the download always tracks releases
