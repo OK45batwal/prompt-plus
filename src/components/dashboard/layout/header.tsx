@@ -39,6 +39,28 @@ export function Header({ onMenuClick }: HeaderProps) {
   const searchRef = useRef<HTMLInputElement>(null);
   const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
+  const effectiveAvatar =
+    userAvatar ||
+    session?.user?.image ||
+    (session?.user?.name
+      ? `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(session.user.name)}&backgroundColor=6366f1`
+      : "https://api.dicebear.com/7.x/bottts/svg?seed=Architect&backgroundColor=6366f1");
+
+  useEffect(() => {
+    const syncAvatar = () => {
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem("pp_user_avatar");
+        if (saved) setUserAvatar(saved);
+      }
+    };
+    window.addEventListener("promptplus:avatar_updated", syncAvatar);
+    window.addEventListener("storage", syncAvatar);
+    return () => {
+      window.removeEventListener("promptplus:avatar_updated", syncAvatar);
+      window.removeEventListener("storage", syncAvatar);
+    };
+  }, []);
+
   useEffect(() => {
     const userImg = session?.user?.image;
     if (userImg) {
@@ -151,11 +173,11 @@ export function Header({ onMenuClick }: HeaderProps) {
         <NotificationBell />
 
         <DropdownMenu>
-          <DropdownMenuTrigger className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-accent transition-colors outline-none">
-            <Avatar className="h-6 w-6">
-              <AvatarImage src={userAvatar || session?.user?.image || ""} alt="User" />
-              <AvatarFallback className="text-xs bg-muted text-muted-foreground">
-                <User className="h-3.5 w-3.5" />
+          <DropdownMenuTrigger className="h-8 w-8 rounded-full flex items-center justify-center hover:ring-2 hover:ring-primary/40 transition-all outline-none">
+            <Avatar className="h-7 w-7 rounded-full border overflow-hidden shadow-xs">
+              <AvatarImage src={effectiveAvatar} alt="User Avatar" className="object-cover w-full h-full" />
+              <AvatarFallback className="text-[10px] bg-primary/20 text-primary font-bold">
+                {session?.user?.name ? session.user.name.slice(0, 2).toUpperCase() : "AI"}
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>

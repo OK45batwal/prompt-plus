@@ -361,6 +361,14 @@ export default function SettingsPage() {
     }
   };
 
+  const handleSelectAvatar = (url: string) => {
+    setAvatar(url);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pp_user_avatar", url);
+      window.dispatchEvent(new Event("promptplus:avatar_updated"));
+    }
+  };
+
   const handleSaveAll = async () => {
     // 1. Save Profile & Avatar
     await fetch("/api/auth/profile", {
@@ -371,6 +379,7 @@ export default function SettingsPage() {
 
     if (typeof window !== "undefined") {
       localStorage.setItem("pp_user_avatar", avatar);
+      window.dispatchEvent(new Event("promptplus:avatar_updated"));
     }
 
     // 2. Save Preferences
@@ -495,7 +504,7 @@ export default function SettingsPage() {
                           <button
                             key={preset.name}
                             type="button"
-                            onClick={() => setAvatar(preset.url)}
+                            onClick={() => handleSelectAvatar(preset.url)}
                             className={`w-9 h-9 rounded-xl border-2 overflow-hidden transition-all relative ${
                               avatar === preset.url
                                 ? "border-primary scale-105 shadow-xs"
@@ -514,7 +523,7 @@ export default function SettingsPage() {
                         <input
                           type="text"
                           value={avatar}
-                          onChange={(e) => setAvatar(e.target.value)}
+                          onChange={(e) => handleSelectAvatar(e.target.value)}
                           placeholder="Or paste custom image/avatar URL (https://...)"
                           className="h-8 w-full rounded-lg border bg-background px-3 text-xs outline-none focus:border-ring font-mono"
                         />
