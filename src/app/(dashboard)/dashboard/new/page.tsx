@@ -27,6 +27,8 @@ import { ModelSelector, EnhanceEngineMode } from "@/components/studio/model-sele
 import { ContextMemoryPanel } from "@/components/studio/context-memory-panel";
 import { ScoreBreakdown } from "@/components/studio/score-breakdown";
 import { ExportCodeModal } from "@/components/prompts/export-code-modal";
+import { LoopTraceCard } from "@/components/studio/loop-trace-card";
+import type { LoopTrace } from "@/lib/prompt-engine/loop-engine";
 
 interface V2Intent {
   domain: string;
@@ -76,6 +78,7 @@ interface EnhancedResult {
     selectedCandidate: V2Candidate;
     candidates: V2Candidate[];
     modelRouting: { recommended: string; reason: string };
+    loopTrace?: LoopTrace;
   };
 }
 
@@ -229,6 +232,7 @@ export default function PromptBuilderPage() {
               selectedCandidate: v2Json.data.selectedCandidate,
               candidates: v2Json.data.candidates || [],
               modelRouting: v2Json.data.modelRouting || { recommended: selectedModel, reason: "Default model" },
+              loopTrace: v2Json.data.loopTrace,
             };
           }
         } catch {
@@ -718,6 +722,11 @@ export default function PromptBuilderPage() {
                 enhancedScore={result.enhanced.score}
                 v2HybridScore={result.v2?.selectedCandidate?.hybridScore}
               />
+
+              {/* Loop Engineering Telemetry Card */}
+              {result.v2?.loopTrace && (
+                <LoopTraceCard loopTrace={result.v2.loopTrace} />
+              )}
 
               {/* V2 Candidates Switcher */}
               {result.v2 && result.v2.candidates.length > 0 && (

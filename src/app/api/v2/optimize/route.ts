@@ -3,15 +3,12 @@ import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 import { checkIpRateLimit, extractClientIp, getRateLimitHeaders } from "@/lib/rate-limit";
 import {
-  extractIntent,
-  parseTextToPromptIR,
-  generateCandidates,
   validatePromptIR,
   calculateHybridScore,
   routeToOptimalModel,
-  scanPromptSecurity,
   addConstraint,
-  autocorrectText,
+  renderPromptIRToString,
+  executeLoopEngineering,
 } from "@/lib/prompt-engine";
 import { z } from "zod";
 
@@ -49,27 +46,27 @@ export const POST = withAuth(
 
     const { text, answers, privacyPreference } = parseResult.data;
 
-    // 1. Security Scan
-    const security = scanPromptSecurity(text);
+    // Execute Loop Engineering Optimization Loop (Generate -> Critique -> Auto-Repair -> Polish)
+    const loopResult = executeLoopEngineering(text, { zeroFluff: true });
 
-    // 2. Intent Extraction
-    const intent = extractIntent(text);
-
-    // 3. Build Base PromptIR & incorporate user answers to adaptive questions
-    let baseIR = parseTextToPromptIR(text);
+    // Incorporate any user answers to adaptive questions
+    let finalSelected = loopResult.selectedCandidate;
     if (answers) {
+      let irWithAnswers = { ...finalSelected.ir };
       for (const [field, val] of Object.entries(answers)) {
         if (val) {
-          baseIR = addConstraint(baseIR, `User specified ${field.replace(/_/g, " ")}: ${val}`, "high", "user");
+          irWithAnswers = addConstraint(irWithAnswers, `User specified ${field.replace(/_/g, " ")}: ${val}`, "high", "user");
         }
       }
+      finalSelected = {
+        ...finalSelected,
+        ir: irWithAnswers,
+        renderedText: renderPromptIRToString(irWithAnswers),
+      };
     }
 
-    // 4. Generate Candidate Prompts (4 Candidates)
-    const candidates = generateCandidates(baseIR, intent.taskType, intent.complexity);
-
-    // 5. Score & Validate Candidates
-    const scoredCandidates = candidates.map((cand) => {
+    // Score & Validate Candidates
+    const scoredCandidates = loopResult.candidates.map((cand) => {
       const validation = validatePromptIR(cand.ir);
       const hybridScore = calculateHybridScore(text, cand);
       return {
@@ -79,28 +76,24 @@ export const POST = withAuth(
       };
     });
 
-    // Pick top candidate
-    const selectedCandidate = [...scoredCandidates].sort((a, b) => b.hybridScore.totalScore - a.hybridScore.totalScore)[0];
-
-    // 6. Model Router Recommendation
+    // Model Router Recommendation
     const modelRouting = routeToOptimalModel({
-      taskType: intent.taskType,
-      complexity: intent.complexity,
+      taskType: loopResult.intent.taskType,
+      complexity: loopResult.intent.complexity,
       privacyPreference,
     });
-
-    const autoCorrect = autocorrectText(text);
 
     return jsonResponse(
       {
         success: true,
         data: {
-          autoCorrect,
-          security,
-          intent,
-          selectedCandidate,
+          autoCorrect: loopResult.autoCorrect,
+          security: loopResult.security,
+          intent: loopResult.intent,
+          selectedCandidate: finalSelected,
           candidates: scoredCandidates,
           modelRouting,
+          loopTrace: loopResult.loopTrace,
         },
       },
       { requestId }

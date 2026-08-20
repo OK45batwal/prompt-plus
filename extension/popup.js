@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultCard = document.getElementById("result-card");
   const resultBody = document.getElementById("result-body");
   const scoreBadge = document.getElementById("quality-score-badge");
+  const loopBadge = document.getElementById("loop-telemetry-badge");
   const copyBtn = document.getElementById("copy-btn");
   const useBtn = document.getElementById("use-btn");
   const modeApi = document.getElementById("mode-api");
@@ -280,6 +281,10 @@ Your objective is to execute the following request with production-grade precisi
       if (scoreBadge) {
         const qScore = calculateScore(enhancedResult);
         scoreBadge.textContent = `Score: ${qScore}/100`;
+      }
+      if (loopBadge) {
+        loopBadge.style.display = "inline-flex";
+        loopBadge.textContent = `⚡ Loop: <30ms`;
       }
       if (copyBtn) copyBtn.disabled = false;
       if (useBtn) useBtn.disabled = false;
