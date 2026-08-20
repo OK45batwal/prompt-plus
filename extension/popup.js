@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("input");
   const charCount = document.getElementById("char-count");
+  const tokenEstimate = document.getElementById("token-estimate");
   const enhanceBtn = document.getElementById("enhance-btn");
   const btnText = document.getElementById("btn-text");
   const msg = document.getElementById("msg");
@@ -8,44 +9,120 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultBody = document.getElementById("result-body");
   const scoreBadge = document.getElementById("quality-score-badge");
   const loopBadge = document.getElementById("loop-telemetry-badge");
+  const engineTag = document.getElementById("engine-tag");
   const copyBtn = document.getElementById("copy-btn");
   const useBtn = document.getElementById("use-btn");
   const modeApi = document.getElementById("mode-api");
   const modeAlgo = document.getElementById("mode-algo");
   const modeDevice = document.getElementById("mode-device");
-  const modeLabel = document.getElementById("mode-label");
+  const engineStatusDesc = document.getElementById("engine-status-desc");
+  const modelProviderPill = document.getElementById("model-provider-pill");
   const sizeToggle = document.getElementById("size-toggle");
-  const sizeText = document.getElementById("size-text");
+  const voiceBtn = document.getElementById("voice-btn");
+  const contextDrawer = document.getElementById("context-drawer");
+  const contextDrawerToggle = document.getElementById("context-drawer-toggle");
+  const contextCountBadge = document.getElementById("context-count-badge");
+  const userAvatar = document.getElementById("user-avatar");
+  const userName = document.getElementById("user-name");
+  const syncStatusText = document.getElementById("sync-status-text");
+  const syncDot = document.getElementById("sync-dot");
+  const quotaRemainingText = document.getElementById("quota-remaining-text");
+  const quotaBarFill = document.getElementById("quota-bar-fill");
+  const tokenLoadText = document.getElementById("token-load-text");
 
   let currentMode = "api";
+  let currentLevel = "deep";
   let enhancedResult = "";
+  let isListening = false;
+  let recognitionInstance = null;
 
-  // 1. Character Counter
+  // 1. Bi-Directional Web Account Sync
+  async function syncWithWebPlatform() {
+    try {
+      const authData = await new Promise((resolve) => {
+        chrome.runtime.sendMessage({ action: "syncAuth" }, (res) => resolve(res));
+      });
+
+      if (authData?.authenticated && authData.user) {
+        if (userName) userName.textContent = authData.user.name.split(" ")[0] || "User";
+        if (userAvatar && authData.user.avatar) userAvatar.src = authData.user.avatar;
+        if (syncStatusText) syncStatusText.textContent = "Web Synced";
+        if (syncDot) syncDot.style.background = "#10b981";
+
+        // Update Quota Bar
+        if (authData.quota) {
+          const { remaining, monthlyLimit, usagePercentage } = authData.quota;
+          if (quotaRemainingText) {
+            quotaRemainingText.textContent = `${remaining} / ${monthlyLimit} Free Units`;
+          }
+          if (quotaBarFill) {
+            const fillPct = Math.max(8, Math.min(100, 100 - usagePercentage));
+            quotaBarFill.style.width = `${fillPct}%`;
+            if (remaining < 15) {
+              quotaBarFill.style.background = "linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)";
+            }
+          }
+        }
+
+        // Populate dynamic context blocks from cloud
+        if (Array.isArray(authData.savedBlocks) && authData.savedBlocks.length > 0 && contextDrawer) {
+          contextDrawer.innerHTML = authData.savedBlocks.map((b, idx) => `
+            <div class="context-block-item">
+              <input type="checkbox" id="ctx-dyn-${idx}" ${idx === 0 ? "checked" : ""} value="${b.id || idx}">
+              <label for="ctx-dyn-${idx}">${b.name || "Custom Rule"}</label>
+            </div>
+          `).join("");
+          updateActiveContextCount();
+        }
+      } else {
+        if (syncStatusText) syncStatusText.textContent = "Local Mode";
+        if (syncDot) syncDot.style.background = "#a1a1aa";
+      }
+    } catch {
+      // Sync failover
+    }
+  }
+  syncWithWebPlatform();
+
+  // 2. Character & Token Counter
   if (input) {
     input.addEventListener("input", () => {
       const len = input.value.length;
-      if (charCount) charCount.textContent = `${len} character${len === 1 ? "" : "s"}`;
+      const estTokens = Math.ceil(len / 3.8);
+
+      if (charCount) charCount.textContent = `${len} char${len === 1 ? "" : "s"}`;
+      if (tokenEstimate) tokenEstimate.textContent = `~${estTokens} Tokens`;
+      if (tokenLoadText) tokenLoadText.textContent = `~${estTokens} / 128K context load`;
     });
   }
 
-  // 2. Preset Pills
+  // 3. Preset Pills (Enhancement Levels)
   document.querySelectorAll(".preset-pill").forEach((pill) => {
     pill.addEventListener("click", () => {
-      document.querySelectorAll(".preset-pill").forEach((p) => {
-        p.classList.remove("active");
-        p.style.background = "rgba(255,255,255,0.04)";
-        p.style.borderColor = "rgba(255,255,255,0.1)";
-        p.style.color = "#a1a1aa";
-      });
+      document.querySelectorAll(".preset-pill").forEach((p) => p.classList.remove("active"));
       pill.classList.add("active");
-      pill.style.background = "rgba(99,102,241,0.2)";
-      pill.style.borderColor = "rgba(99,102,241,0.4)";
-      pill.style.color = "#a5b4fc";
-      selectedPreset = pill.getAttribute("data-preset") || "auto";
+      currentLevel = pill.getAttribute("data-level") || "deep";
     });
   });
 
-  // 3. Size Toggle
+  // 4. Context Memory Drawer Toggle
+  if (contextDrawerToggle && contextDrawer) {
+    contextDrawerToggle.addEventListener("click", () => {
+      contextDrawer.classList.toggle("open");
+    });
+  }
+
+  function updateActiveContextCount() {
+    if (!contextDrawer || !contextCountBadge) return;
+    const checked = contextDrawer.querySelectorAll("input[type='checkbox']:checked").length;
+    contextCountBadge.textContent = `(${checked})`;
+  }
+
+  if (contextDrawer) {
+    contextDrawer.addEventListener("change", updateActiveContextCount);
+  }
+
+  // 5. Size Toggle
   let currentWidthIdx = 0;
   const widths = [
     { name: "380px", class: "" },
@@ -57,11 +134,11 @@ document.addEventListener("DOMContentLoaded", () => {
     sizeToggle.addEventListener("click", () => {
       currentWidthIdx = (currentWidthIdx + 1) % widths.length;
       document.body.className = widths[currentWidthIdx].class;
-      if (sizeText) sizeText.textContent = widths[currentWidthIdx].name;
+      sizeToggle.textContent = widths[currentWidthIdx].name;
     });
   }
 
-  // 4. Mode Switches
+  // 6. Mode Switcher
   function setMode(mode) {
     currentMode = mode;
     if (modeApi) modeApi.classList.remove("active");
@@ -70,13 +147,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (mode === "api") {
       if (modeApi) modeApi.classList.add("active");
-      if (modeLabel) modeLabel.textContent = "🟢 API Cloud AI — Key or free fallback";
+      if (engineStatusDesc) engineStatusDesc.textContent = "Cloud AI Mode — Multi-model compiler";
+      if (modelProviderPill) modelProviderPill.textContent = "Auto-Routing";
     } else if (mode === "algo") {
       if (modeAlgo) modeAlgo.classList.add("active");
-      if (modeLabel) modeLabel.textContent = "⚡ No-API Rule Engine — 100% offline, zero key required";
+      if (engineStatusDesc) engineStatusDesc.textContent = "100% Offline Rule-Based Compiler (<30ms)";
+      if (modelProviderPill) modelProviderPill.textContent = "Offline No-API";
     } else {
       if (modeDevice) modeDevice.classList.add("active");
-      if (modeLabel) modeLabel.textContent = "🧠 On-Device Gemini Nano — private offline execution";
+      if (engineStatusDesc) engineStatusDesc.textContent = "On-Device Gemini Nano — Private Local AI";
+      if (modelProviderPill) modelProviderPill.textContent = "Gemini Nano";
     }
   }
 
@@ -84,11 +164,80 @@ document.addEventListener("DOMContentLoaded", () => {
   if (modeAlgo) modeAlgo.addEventListener("click", () => setMode("algo"));
   if (modeDevice) modeDevice.addEventListener("click", () => setMode("device"));
 
+  // 7. Voice Dictation
+  if (voiceBtn) {
+    voiceBtn.addEventListener("click", async () => {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        showMsg("Speech recognition not supported in this browser.", true);
+        return;
+      }
+
+      if (isListening) {
+        if (recognitionInstance) {
+          try { recognitionInstance.stop(); } catch {}
+        }
+        isListening = false;
+        voiceBtn.classList.remove("recording");
+        voiceBtn.innerHTML = "<span>🎙️ Voice Input</span>";
+        return;
+      }
+
+      try {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          stream.getTracks().forEach((t) => t.stop());
+        }
+
+        const rec = new SpeechRecognition();
+        rec.continuous = true;
+        rec.interimResults = true;
+        rec.lang = "en-US";
+
+        rec.onstart = () => {
+          isListening = true;
+          voiceBtn.classList.add("recording");
+          voiceBtn.innerHTML = "<span>🔴 Listening...</span>";
+          showMsg("🎙️ Listening... Speak your prompt idea.");
+        };
+
+        rec.onresult = (event) => {
+          let finalTranscript = "";
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript;
+            }
+          }
+          if (finalTranscript && input) {
+            input.value = (input.value ? input.value + " " : "") + finalTranscript;
+          }
+        };
+
+        rec.onerror = () => {
+          isListening = false;
+          voiceBtn.classList.remove("recording");
+          voiceBtn.innerHTML = "<span>🎙️ Voice Input</span>";
+        };
+
+        rec.onend = () => {
+          isListening = false;
+          voiceBtn.classList.remove("recording");
+          voiceBtn.innerHTML = "<span>🎙️ Voice Input</span>";
+        };
+
+        rec.start();
+        recognitionInstance = rec;
+      } catch {
+        showMsg("Microphone permission denied.", true);
+      }
+    });
+  }
+
   function showMsg(text, isErr = false) {
     if (!msg) return;
     msg.textContent = text;
-    msg.className = `msg ${isErr ? "err" : "ok"}`;
-    msg.style.display = "inline-flex";
+    msg.className = `msg-toast ${isErr ? "err" : "ok"}`;
+    msg.style.display = "block";
     setTimeout(() => {
       msg.style.display = "none";
     }, 4000);
@@ -96,21 +245,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function calculateScore(text) {
     if (!text) return 0;
-    let score = 70;
-    if (text.includes("### Role") || text.includes("### Persona")) score += 10;
-    if (text.includes("### Objective") || text.includes("### Context")) score += 10;
-    if (text.includes("### Step-by-Step") || text.includes("### Output Format")) score += 8;
+    let score = 75;
+    if (text.includes("### ROLE") || text.includes("### Persona")) score += 10;
+    if (text.includes("### SPECIFICATIONS") || text.includes("### Context")) score += 8;
+    if (text.includes("### EXECUTION") || text.includes("### Output Format")) score += 6;
     return Math.min(99, score);
-  }
-
-  function detectImplicitTone(input) {
-    const text = (input || "").toLowerCase();
-    if (/\b(tweet|post|linkedin|casual|friendly|fun|newsletter|blog|engaging|story)\b/i.test(text)) return "Engaging, Authentic & Conversational";
-    if (/\b(sell|pitch|copy|ad|convert|sales|landing|cta|email|headline|offer)\b/i.test(text)) return "High-Conversion, Persuasive & Action-Oriented";
-    if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|script|refactor|error|fix|css|html)\b/i.test(text)) return "Technically Rigorous, Precise & Production-Grade";
-    if (/\b(strategy|plan|executive|kpi|growth|roadmap|summary|business|report)\b/i.test(text)) return "Executive, Strategic & High-Level";
-    if (/\b(data|analyze|analysis|statistics|metrics|research|paper|study)\b/i.test(text)) return "Analytical, Objective & Data-Driven";
-    return "Clear, Authoritative & Direct";
   }
 
   const TYPO_REPLACEMENTS = {
@@ -135,6 +274,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function detectImplicitTone(input) {
+    const text = (input || "").toLowerCase();
+    if (/\b(tweet|post|linkedin|casual|friendly|fun|newsletter|blog|engaging|story)\b/i.test(text)) return "Engaging & Conversational";
+    if (/\b(sell|pitch|copy|ad|convert|sales|landing|cta|email|headline|offer)\b/i.test(text)) return "High-Conversion & Action-Oriented";
+    if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|script|refactor|error|fix|css|html)\b/i.test(text)) return "Technically Rigorous & Production-Grade";
+    if (/\b(strategy|plan|executive|kpi|growth|roadmap|summary|business|report)\b/i.test(text)) return "Executive & Strategic";
+    return "Clear, Authoritative & Direct";
+  }
+
   function synthesizeLocalPrompt(userInput) {
     const text = normalizeExtensionTypos((userInput || "").trim());
     if (!text) return "";
@@ -143,138 +291,101 @@ document.addEventListener("DOMContentLoaded", () => {
     const subject = cleanInput.length > 0 ? cleanInput : text;
 
     let role = "Senior Subject Matter Expert & Systems Architect";
-    let domain = "Execution & Strategic Analysis";
-    let sec1 = "Key Requirements & Specifications";
-    let sec2 = "Execution Guidelines";
-    let directives = [
-      `Analyze core requirements for "${subject}" and address implicit edge cases.`,
-      `Deliver an authoritative, highly structured solution matching tone profile ("${tone}").`,
-      `Ensure output is ready for immediate deployment with zero conversational fluff.`
-    ];
+    let sec1 = "SPECIFICATIONS & ARCHITECTURE";
+    let sec2 = "EXECUTION PROTOCOL";
 
     if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|script|refactor|error|fix|css|html)\b/i.test(text)) {
       role = "Principal Software Engineer & Technical Architect";
-      domain = "Production Software Engineering";
-      sec1 = "Architecture & Technical Specifications";
-      sec2 = "Implementation Guidelines";
-      directives = [
-        `Design a clean, modular, production-ready architecture for "${subject}".`,
-        `Incorporate strict typing, comprehensive error handling, and performance optimizations.`,
-        `Provide executable, self-contained code blocks with clear inline documentation.`
-      ];
+      sec1 = "TECHNICAL SPECIFICATIONS & CONSTRAINTS";
+      sec2 = "IMPLEMENTATION PROTOCOL";
     } else if (/\b(write|blog|article|email|post|essay|copy|letter|content|draft|story|headline|tweet|linkedin|newsletter)\b/i.test(text)) {
       role = "Elite Content Director & Strategic Copywriter";
-      domain = "High-Impact Copywriting & Editorial Strategy";
-      sec1 = "Audience Hook & Narrative Strategy";
-      sec2 = "Content Directives";
-      directives = [
-        `Craft an engaging narrative hook tailored to the target audience for "${subject}".`,
-        `Maintain a ${tone.toLowerCase()} tone with scannable formatting, subheadings, and clear takeaways.`,
-        `Eliminate passive voice, repetitive boilerplate, and generic introductory filler.`
-      ];
+      sec1 = "AUDIENCE HOOK & CONTENT DIRECTIVES";
+      sec2 = "NARRATIVE EXECUTION STEPS";
     }
 
-    return `You are a ${role} with deep expertise in ${domain}.
-
-Your objective is to execute the following request with production-grade precision:
+    return `### ROLE & PERSONA
+You are an authoritative ${role}. Execute this task with production-grade rigor:
 "${text}"
 
 ### ${sec1}
-- **Target Subject**: "${subject}"
-- **Tone & Persona**: ${tone}
-- **Quality Standard**: Deliver complete, unabridged solutions without placeholders or assumptions.
+- **Subject**: "${subject}"
+- **Tone Profile**: ${tone}
+- **Constraints**: Deliver complete, unabridged solutions without placeholders or assumptions.
 
 ### ${sec2}
-1. ${directives[0]}
-2. ${directives[1]}
-3. ${directives[2]}
+1. Analyze core requirements for "${subject}" and anticipate implicit edge cases.
+2. Structure output with modular sections, scannable Markdown headers, and concrete code/examples.
+3. Eliminate all conversational introductory fluff and meta commentary.
 
-### Deliverables & Formatting Specs
-- Present final response with clear Markdown headers, bulleted lists, and structured blocks ready for immediate real-world application.`;
+### DELIVERABLES & OUTPUT FORMAT
+- Deliver complete, immediately usable results formatted in clean Markdown.`;
   }
 
-  async function enhanceWithDeviceInExtension(text) {
-    if (!text) return null;
-    try {
-      const w = window;
-      const lm = w.LanguageModel || w.ai?.languageModel;
-      if (!lm) return null;
-      const avail = await lm.availability();
-      if (avail !== "available" && avail !== "readily") return null;
-      const session = await lm.create({ temperature: 0.1, topK: 1 });
-      const promptText = `You are a Senior Prompt Architect. Transform the following prompt into an advanced, structured master prompt with Role, Specifications, and Execution steps:\n\n"${text}"`;
-      const res = await session.prompt(promptText);
-      session.destroy();
-      return res ? res.trim() : null;
-    } catch {
-      return null;
-    }
-  }
-
-  // 5. Enhance Action
+  // 8. Enhance Action Handler
   if (enhanceBtn) {
     enhanceBtn.addEventListener("click", async () => {
-      const text = input ? input.value.trim() : "";
-      if (!text) {
-        showMsg("Please type a prompt first!", true);
+      const rawText = input ? input.value.trim() : "";
+      if (!rawText) {
+        showMsg("Please type a prompt idea first!", true);
         if (input) input.focus();
         return;
       }
 
       enhanceBtn.disabled = true;
-      if (btnText) btnText.textContent = "Compiling Master Prompt...";
-      if (resultCard) resultCard.style.display = "block";
-      if (resultBody) resultBody.textContent = "Enhancing prompt with Prompt+ Intelligence...";
+      if (btnText) btnText.textContent = "⚡ Compiling Master Prompt...";
+      if (resultCard) resultCard.style.display = "flex";
+      if (resultBody) resultBody.textContent = "Compiling with Prompt+ Intelligence...";
 
       let finalResult = "";
-      let sourceLabel = "Cloud AI";
+      let sourceTag = "Cloud AI";
 
-      // 1. If mode is "algo" (No-API Engine) -> use offline local rule engine
+      // If mode is "algo" (No-API Engine) -> use offline local rule engine
       if (currentMode === "algo") {
-        finalResult = synthesizeLocalPrompt(text);
-        sourceLabel = "No-API Rule Engine";
+        finalResult = synthesizeLocalPrompt(rawText);
+        sourceTag = "⚡ No-API Rule Engine";
       }
 
-      // 2. If mode is "device" -> try On-Device Gemini Nano
+      // If mode is "device" -> try On-Device Gemini Nano
       if (!finalResult && currentMode === "device") {
-        const deviceText = await enhanceWithDeviceInExtension(text);
-        if (deviceText) {
-          finalResult = deviceText;
-          sourceLabel = "On-Device Gemini Nano";
-        }
+        try {
+          const w = window;
+          const lm = w.LanguageModel || w.ai?.languageModel;
+          if (lm && (await lm.availability()) !== "unavailable") {
+            const session = await lm.create({ temperature: 0.1, topK: 1 });
+            const promptText = `Transform into a structured Master Prompt with Role, Specs, and Steps:\n\n"${rawText}"`;
+            finalResult = await session.prompt(promptText);
+            session.destroy();
+            sourceTag = "🧠 On-Device Gemini Nano";
+          }
+        } catch {}
       }
 
-      // 3. API Mode or Fallback -> Call Cloud API (uses key if present, or free tier/algo fallback)
+      // API Mode or Fallback -> Call Background Message Router
       if (!finalResult) {
         try {
           const res = await new Promise((resolve) => {
-            try {
-              chrome.runtime.sendMessage(
-                { action: "enhancePrompt", text, mode: currentMode },
-                (r) => resolve(r)
-              );
-            } catch {
-              resolve(null);
-            }
+            chrome.runtime.sendMessage(
+              { action: "enhancePrompt", text: rawText, mode: currentMode, level: currentLevel },
+              (r) => resolve(r)
+            );
           });
 
           if (res?.success && res.data?.enhanced) {
             finalResult = res.data.enhanced;
-            sourceLabel = "API Cloud AI";
+            sourceTag = `☁️ API Cloud AI (${res.data.model || "Auto"})`;
           }
-        } catch {
-          // Cloud failover
-        }
+        } catch {}
       }
 
-      // 4. Ultimate Fail-safe: Local Synthesizer (Zero-Failure Guarantee)
+      // Fail-Safe Synthesizer
       if (!finalResult) {
-        finalResult = synthesizeLocalPrompt(text);
-        sourceLabel = "No-API Fail-Safe Engine";
+        finalResult = synthesizeLocalPrompt(rawText);
+        sourceTag = "⚡ No-API Rule Engine";
       }
 
       enhanceBtn.disabled = false;
-      if (btnText) btnText.textContent = "⚡ Enhance Prompt Live";
+      if (btnText) btnText.textContent = "⚡ Compile Master Prompt";
 
       enhancedResult = finalResult;
       if (resultBody) resultBody.textContent = enhancedResult;
@@ -283,27 +394,29 @@ Your objective is to execute the following request with production-grade precisi
         scoreBadge.textContent = `Score: ${qScore}/100`;
       }
       if (loopBadge) {
-        loopBadge.style.display = "inline-flex";
         loopBadge.textContent = `⚡ Loop: <30ms`;
+      }
+      if (engineTag) {
+        engineTag.textContent = sourceTag;
       }
       if (copyBtn) copyBtn.disabled = false;
       if (useBtn) useBtn.disabled = false;
-      showMsg(`✓ Enhanced via ${sourceLabel}!`);
+      showMsg(`✓ Compiled successfully!`);
     });
   }
 
-  // 6. Copy Button
+  // 9. Copy Button
   if (copyBtn) {
     copyBtn.addEventListener("click", () => {
       if (enhancedResult) {
         navigator.clipboard.writeText(enhancedResult);
         copyBtn.textContent = "✓ Copied!";
-        setTimeout(() => { copyBtn.textContent = "Copy"; }, 2000);
+        setTimeout(() => { copyBtn.textContent = "📋 Copy Prompt"; }, 2000);
       }
     });
   }
 
-  // 7. Use in Active Tab
+  // 10. Use in Active Tab
   if (useBtn) {
     useBtn.addEventListener("click", () => {
       if (enhancedResult) {
@@ -312,9 +425,9 @@ Your objective is to execute the following request with production-grade precisi
             chrome.tabs.sendMessage(tabs[0].id, { action: "injectEnhanced", enhanced: enhancedResult }, (r) => {
               if (r?.success) {
                 useBtn.textContent = "✓ Injected";
-                setTimeout(() => { useBtn.textContent = "Use in Tab →"; }, 2000);
+                setTimeout(() => { useBtn.textContent = "🚀 Use in Active Tab"; }, 2000);
               } else {
-                showMsg("Open an AI chat tab (ChatGPT / Claude) to inject!", true);
+                showMsg("Open ChatGPT / Claude / Gemini to inject directly!", true);
               }
             });
           }
@@ -323,7 +436,7 @@ Your objective is to execute the following request with production-grade precisi
     });
   }
 
-  // 8. Cross-AI Context Bridge Handlers
+  // 11. Multi-AI Split Launch Handlers
   const openTargetAI = (targetUrl) => {
     try {
       chrome.tabs?.create({ url: targetUrl });
@@ -332,8 +445,8 @@ Your objective is to execute the following request with production-grade precisi
     }
   };
 
+  document.getElementById("bridge-chatgpt")?.addEventListener("click", () => openTargetAI("https://chatgpt.com/"));
   document.getElementById("bridge-claude")?.addEventListener("click", () => openTargetAI("https://claude.ai/new"));
   document.getElementById("bridge-gemini")?.addEventListener("click", () => openTargetAI("https://gemini.google.com/app"));
-  document.getElementById("bridge-chatgpt")?.addEventListener("click", () => openTargetAI("https://chatgpt.com/"));
   document.getElementById("bridge-deepseek")?.addEventListener("click", () => openTargetAI("https://chat.deepseek.com/"));
 });
