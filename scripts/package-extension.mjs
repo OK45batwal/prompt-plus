@@ -53,8 +53,11 @@ try {
   fs.copyFileSync(zipPath, publicZipPath);
   fs.copyFileSync(zipPath, publicVerZipPath);
 
-  console.log(`\n✅ Extension packaged successfully!`);
-  console.log(`📍 Output Archive (Dist): ${zipPath}`);
+  const stats = fs.statSync(zipPath);
+  const sizeKB = (stats.size / 1024).toFixed(1);
+
+  console.log(`\n✅ Extension packaged successfully! (${sizeKB} KB)`);
+  console.log(`📍 Output Archive (Dist): ${zipPath} (${sizeKB} KB)`);
   console.log(`📍 Output Archive (Public Web): ${publicZipPath}`);
   console.log(`🚀 Ready for direct web download & store uploads.\n`);
 } catch (err) {

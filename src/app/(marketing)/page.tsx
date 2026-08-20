@@ -312,7 +312,7 @@ export default function LandingPage() {
                 className="h-10 w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground px-5 text-sm font-semibold hover:bg-primary/90 transition-colors gap-2 active:scale-[0.98]"
               >
                 <Puzzle className="h-3.5 w-3.5" />
-                Download zip
+                Download ZIP (55 KB)
               </a>
               <Link
                 href="/extension"
