@@ -16,7 +16,7 @@
       <img src="https://img.shields.io/badge/Production-Live-6366f1?style=for-the-badge&logo=vercel&logoColor=white&labelColor=0a0a0c" alt="Live app" />
     </a>
     <a href="https://chromewebstore.google.com/detail/gdfaohfmmjjmpiggdcankjjihpljoccn">
-      <img src="https://img.shields.io/badge/Chrome_Web_Store-Live_v1.3.1-10b981?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=0a0a0c" alt="Chrome Web Store" />
+      <img src="https://img.shields.io/badge/Chrome_Web_Store-Live_v1.4.0-10b981?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=0a0a0c" alt="Chrome Web Store" />
     </a>
     <a href="https://github.com/OK45batwal/Prompt-plus">
       <img src="https://img.shields.io/github/stars/OK45batwal/Prompt-plus?style=for-the-badge&logo=github&logoColor=white&labelColor=0a0a0c&color=eab308" alt="Stars" />
