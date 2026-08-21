@@ -475,6 +475,26 @@ You are an authoritative ${role}. Execute this task with highest precision:
 - Deliver complete, immediately usable results formatted in clean Markdown.`;
   }
 
+  function getModelContextInfo() {
+    const bot = detectChatbot();
+    if (bot === "gemini") {
+      return { botKey: "GEMINI", name: "Gemini 2.0 / 1.5", maxContext: 1000000, tag: "1,000K Context", color: "#3b82f6" };
+    }
+    if (bot === "claude") {
+      return { botKey: "CLAUDE", name: "Claude 3.5 Sonnet", maxContext: 200000, tag: "200K Context", color: "#d97706" };
+    }
+    if (bot === "chatgpt") {
+      return { botKey: "CHATGPT", name: "ChatGPT (GPT-4o)", maxContext: 128000, tag: "128K Context", color: "#10a37f" };
+    }
+    if (bot === "deepseek") {
+      return { botKey: "DEEPSEEK", name: "DeepSeek R1", maxContext: 128000, tag: "128K Context", color: "#6366f1" };
+    }
+    if (bot === "grok") {
+      return { botKey: "GROK", name: "Grok 3", maxContext: 128000, tag: "128K Context", color: "#ec4899" };
+    }
+    return { botKey: "AI", name: "Active Chatbot", maxContext: 128000, tag: "128K Context", color: "#6366f1" };
+  }
+
   // Open Floating Optimizer Modal
   function openFloatingModal(inputEl) {
     if (modalEl) {
@@ -482,10 +502,13 @@ You are an authoritative ${role}. Execute this task with highest precision:
       modalEl = null;
     }
 
-    currentTarget = inputEl;
     const currentVal = getText(inputEl).trim();
     const tokenCount = Math.ceil(currentVal.length / 3.8);
-    const bot = detectChatbot().toUpperCase();
+    const modelInfo = getModelContextInfo();
+    const freeTokens = Math.max(0, modelInfo.maxContext - tokenCount);
+    const freeK = (freeTokens / 1000).toFixed(1);
+    const usedPct = Math.min(100, Math.max(1, (tokenCount / modelInfo.maxContext) * 100)).toFixed(2);
+    const freePct = (100 - parseFloat(usedPct)).toFixed(1);
 
     modalEl = document.createElement("div");
     modalEl.className = "pp-floating-modal";
@@ -495,10 +518,24 @@ You are an authoritative ${role}. Execute this task with highest precision:
         <div class="pp-modal-title">
           <span style="color:#6366f1;font-size:14px;">✦</span>
           <span>Prompt+ Instant Optimizer</span>
-          <span style="font-size:9.5px;color:#10b981;font-weight:700;">🟢 ${bot}</span>
-          <span style="font-size:9.5px;color:#a1a1aa;">(~${tokenCount} tok)</span>
+          <span style="font-size:9.5px;color:${modelInfo.color};font-weight:800;padding:1px 6px;border-radius:4px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);">🟢 ${modelInfo.name}</span>
         </div>
         <button type="button" class="pp-modal-close-btn" id="pp-modal-close">✕</button>
+      </div>
+
+      <!-- Real-Time Token Context Remaining Telemetry Card -->
+      <div style="background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:7px 10px;display:flex;flex-direction:column;gap:4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:10.5px;">
+          <span style="font-weight:700;color:#ffffff;">Remaining Context</span>
+          <span style="font-weight:800;color:#10b981;background:rgba(16,185,129,0.15);padding:1px 6px;border-radius:4px;border:1px solid rgba(16,185,129,0.3);">${freeK}K tokens free (${freePct}%)</span>
+        </div>
+        <div style="width:100%;height:4.5px;border-radius:9999px;background:rgba(255,255,255,0.1);overflow:hidden;">
+          <div style="height:100%;border-radius:9999px;background:linear-gradient(90deg,#6366f1 0%,#10b981 100%);width:${Math.max(8, freePct)}%;box-shadow:0 0 8px rgba(16,185,129,0.4);"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:9.5px;color:#a1a1aa;">
+          <span>Prompt Load: ~${tokenCount} tokens</span>
+          <span>Max Window: ${(modelInfo.maxContext / 1000).toFixed(0)}K tokens</span>
+        </div>
       </div>
 
       <div class="pp-tone-row">
@@ -527,7 +564,7 @@ You are an authoritative ${role}. Execute this task with highest precision:
     // Position modal right above the input box
     const card = getChatContainer(inputEl) || inputEl;
     const rect = card.getBoundingClientRect();
-    const modalHeight = modalEl.offsetHeight || 220;
+    const modalHeight = modalEl.offsetHeight || 260;
     const modalWidth = modalEl.offsetWidth || 380;
 
     let top = rect.top - modalHeight - 12;
@@ -598,11 +635,16 @@ You are an authoritative ${role}. Execute this task with highest precision:
     trigger.className = "pp-floating-trigger";
     trigger._targetInput = input;
 
+    const model = getModelContextInfo();
+    const initialVal = getText(input);
+    const initialTokens = Math.ceil(initialVal.length / 3.8);
+    const initialFreeK = ((model.maxContext - initialTokens) / 1000).toFixed(0);
+
     trigger.innerHTML = `
       <div class="pp-trigger-icon">✦</div>
       <div class="pp-trigger-text">
         <span>Enhance</span>
-        <span class="pp-trigger-token-badge" id="pp-trigger-tok">~0 tok</span>
+        <span class="pp-trigger-token-badge" id="pp-trigger-tok">${initialFreeK}K free · ~${initialTokens} tok</span>
       </div>
     `;
 
@@ -613,8 +655,10 @@ You are an authoritative ${role}. Execute this task with highest precision:
     const updateTokens = () => {
       const val = getText(input);
       const tokens = Math.ceil(val.length / 3.8);
+      const m = getModelContextInfo();
+      const freeK = Math.max(0, (m.maxContext - tokens) / 1000).toFixed(0);
       const tokBadge = trigger.querySelector("#pp-trigger-tok");
-      if (tokBadge) tokBadge.textContent = `~${tokens} tok`;
+      if (tokBadge) tokBadge.textContent = `${freeK}K free · ~${tokens} tok`;
     };
     input.addEventListener("input", updateTokens);
     updateTokens();
