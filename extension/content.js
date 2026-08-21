@@ -58,7 +58,7 @@
         z-index: 99999999 !important;
         cursor: pointer !important;
         user-select: none !important;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        transition: top 0.12s cubic-bezier(0.16, 1, 0.3, 1), left 0.12s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease !important;
         color: #ffffff !important;
       }
       .pp-floating-trigger:hover {
@@ -684,6 +684,22 @@ You are an authoritative ${role}. Execute this task with highest precision:
         }
       });
     };
+
+    // Dynamic Text Field Observers: Follows the chatbot input as it grows, shrinks, or moves
+    input.addEventListener("input", schedulePosition);
+    input.addEventListener("focus", schedulePosition);
+    input.addEventListener("blur", schedulePosition);
+    input.addEventListener("keyup", schedulePosition);
+
+    const capsule = input.closest("rich-textarea, input-area-v2, .input-area, form, .composer-parent, fieldset") || input;
+
+    try {
+      if (window.ResizeObserver) {
+        const ro = new ResizeObserver(() => schedulePosition());
+        ro.observe(input);
+        if (capsule && capsule !== input) ro.observe(capsule);
+      }
+    } catch {}
 
     window.addEventListener("scroll", schedulePosition, { passive: true });
     window.addEventListener("resize", schedulePosition, { passive: true });
