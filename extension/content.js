@@ -619,17 +619,14 @@ You are an authoritative ${role}. Execute this task with highest precision:
     input.addEventListener("input", updateTokens);
     updateTokens();
 
+    setupDraggable(trigger);
+
     // Reliable click handler
     trigger.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const val = getText(input).trim();
-      if (val) {
-        // Direct in-place optimize or open modal
-        openFloatingModal(input);
-      } else {
-        openFloatingModal(input);
-      }
+      if (trigger._hasMoved && trigger._hasMoved()) return;
+      openFloatingModal(input);
     });
 
     let rafPending = false;
@@ -655,9 +652,26 @@ You are an authoritative ${role}. Execute this task with highest precision:
       return;
     }
 
-    const card = getChatContainer(input) || input;
-    const rect = card.getBoundingClientRect();
-    if (!rect || rect.width === 0 || rect.height === 0) {
+    // Check if user has saved a custom dragged position
+    const customPosStr = localStorage.getItem("pp_btn_custom_pos");
+    if (customPosStr) {
+      try {
+        const pos = JSON.parse(customPosStr);
+        if (typeof pos.top === "number" && typeof pos.left === "number") {
+          const clampedTop = Math.max(8, Math.min(window.innerHeight - 40, pos.top));
+          const clampedLeft = Math.max(8, Math.min(window.innerWidth - 120, pos.left));
+          trigger.style.setProperty("top", `${clampedTop}px`, "important");
+          trigger.style.setProperty("left", `${clampedLeft}px`, "important");
+          trigger.style.setProperty("display", "inline-flex", "important");
+          return;
+        }
+      } catch {}
+    }
+
+    // Find the closest active prompt capsule
+    const capsule = input.closest("input-area-v2, .input-area, form, .composer-parent, fieldset, main") || input;
+    const rect = capsule.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0 || rect.top < 0) {
       trigger.style.setProperty("display", "none", "important");
       return;
     }
@@ -666,13 +680,13 @@ You are an authoritative ${role}. Execute this task with highest precision:
     const triggerWidth = trigger.offsetWidth || 110;
     const viewportWidth = window.innerWidth;
 
-    // Position clean in the top-right docked corner of the prompt card
+    // Dock neatly aligned to the top-right of the prompt capsule
     let top = rect.top - triggerHeight - 8;
-    if (top < 12) {
+    if (top < 10) {
       top = rect.top + 8;
     }
 
-    let left = rect.right - triggerWidth - 8;
+    let left = rect.right - triggerWidth - 12;
     if (left < 16) left = 16;
     if (left + triggerWidth > viewportWidth - 16) {
       left = Math.max(16, viewportWidth - triggerWidth - 16);
@@ -681,6 +695,53 @@ You are an authoritative ${role}. Execute this task with highest precision:
     trigger.style.setProperty("top", `${Math.round(top)}px`, "important");
     trigger.style.setProperty("left", `${Math.round(left)}px`, "important");
     trigger.style.setProperty("display", "inline-flex", "important");
+  }
+
+  // Draggable support for floating button
+  function setupDraggable(trigger) {
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let initialLeft = 0;
+    let initialTop = 0;
+    let moved = false;
+
+    trigger.addEventListener("mousedown", (e) => {
+      if (e.button !== 0) return;
+      isDragging = true;
+      moved = false;
+      startX = e.clientX;
+      startY = e.clientY;
+      const rect = trigger.getBoundingClientRect();
+      initialLeft = rect.left;
+      initialTop = rect.top;
+      trigger.style.transition = "none";
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+        moved = true;
+      }
+      const newLeft = Math.max(8, Math.min(window.innerWidth - trigger.offsetWidth - 8, initialLeft + dx));
+      const newTop = Math.max(8, Math.min(window.innerHeight - trigger.offsetHeight - 8, initialTop + dy));
+      trigger.style.setProperty("left", `${newLeft}px`, "important");
+      trigger.style.setProperty("top", `${newTop}px`, "important");
+    });
+
+    document.addEventListener("mouseup", () => {
+      if (!isDragging) return;
+      isDragging = false;
+      trigger.style.transition = "";
+      if (moved) {
+        const rect = trigger.getBoundingClientRect();
+        localStorage.setItem("pp_btn_custom_pos", JSON.stringify({ top: rect.top, left: rect.left }));
+      }
+    });
+
+    trigger._hasMoved = () => moved;
   }
 
   // Keyboard shortcut listener: Cmd+Shift+P / Ctrl+Shift+P to enhance in-place
