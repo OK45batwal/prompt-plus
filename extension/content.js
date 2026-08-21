@@ -1,9 +1,6 @@
 (function () {
-  let panelEl = null;
-  let currentTarget = null;
-  let currentText = "";
-  let userQuota = { remaining: 88, monthlyLimit: 100, usagePercentage: 12 };
-  let uiMode = localStorage.getItem("pp_ui_mode") || "full"; // "full" | "compact" | "hidden"
+  let modalEl = null;
+  let selectedTone = "code";
 
   // Web Platform Session Bridge: Listen for authenticated sessions broadcast by Prompt+ Web Platform
   if (
@@ -41,134 +38,216 @@
   } catch { /* ignore */ }
 
   function ensureStylesInjected() {
-    if (document.getElementById("pp-styles")) return;
+    if (document.getElementById("pp-styles-v2")) return;
     const style = document.createElement("style");
-    style.id = "pp-styles";
+    style.id = "pp-styles-v2";
     style.textContent = `
-      .pp-fab-bar {
+      .pp-floating-trigger {
+        position: fixed !important;
         display: inline-flex !important;
         align-items: center !important;
         gap: 6px !important;
-        padding: 4px 10px !important;
+        padding: 5px 12px 5px 8px !important;
         border-radius: 9999px !important;
-        background: rgba(10, 10, 14, 0.94) !important;
-        border: 1px solid rgba(99, 102, 241, 0.4) !important;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 16px rgba(99, 102, 241, 0.25) !important;
-        backdrop-filter: blur(20px) !important;
-        -webkit-backdrop-filter: blur(20px) !important;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI Variable", sans-serif !important;
+        background: rgba(14, 14, 18, 0.94) !important;
+        border: 1px solid rgba(99, 102, 241, 0.45) !important;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 14px rgba(99, 102, 241, 0.25) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif !important;
         z-index: 99999999 !important;
+        cursor: pointer !important;
         user-select: none !important;
-        line-height: 1 !important;
-        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, opacity 0.2s ease !important;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        color: #ffffff !important;
       }
-      .pp-fab-bar:hover {
-        border-color: rgba(99, 102, 241, 0.6) !important;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(99, 102, 241, 0.4) !important;
+      .pp-floating-trigger:hover {
+        transform: translateY(-2px) scale(1.02) !important;
+        border-color: rgba(99, 102, 241, 0.7) !important;
+        box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(99, 102, 241, 0.45) !important;
       }
-
-      .pp-fab-bar.mode-compact {
-        padding: 4px 8px !important;
-        gap: 4px !important;
-      }
-      .pp-fab-bar.mode-compact .pp-fab-btn,
-      .pp-fab-bar.mode-compact .pp-fab-token-bar,
-      .pp-fab-bar.mode-compact #pp-fab-bucket-cap,
-      .pp-fab-bar.mode-compact #pp-fab-bucket-inj {
-        display: none !important;
+      .pp-floating-trigger:active {
+        transform: translateY(0) scale(0.98) !important;
       }
 
-      .pp-fab-brain-badge {
+      .pp-trigger-icon {
+        width: 20px !important;
+        height: 20px !important;
+        border-radius: 50% !important;
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        width: 24px !important;
-        height: 24px !important;
-        border-radius: 50% !important;
-        cursor: pointer !important;
-        transition: transform 0.2s ease !important;
-      }
-      .pp-fab-brain-badge:hover {
-        transform: scale(1.15) rotate(5deg) !important;
-      }
-
-      .pp-fab-btn {
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 5px !important;
-        padding: 5px 12px !important;
-        border-radius: 9999px !important;
-        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-        border: none !important;
-        color: #ffffff !important;
         font-size: 11px !important;
-        font-weight: 700 !important;
-        cursor: pointer !important;
-        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), 0 2px 8px rgba(99, 102, 241, 0.4) !important;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-        white-space: nowrap !important;
-        margin: 0 !important;
-      }
-      .pp-fab-btn:hover {
-        transform: translateY(-1px) scale(1.02) !important;
-        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5), 0 4px 14px rgba(99, 102, 241, 0.6) !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
       }
 
-      .pp-fab-token-bar {
-        display: inline-flex !important;
+      .pp-trigger-text {
+        font-size: 11.5px !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.01em !important;
+        color: #ffffff !important;
+        display: flex !important;
         align-items: center !important;
         gap: 5px !important;
-        padding: 3px 8px !important;
-        border-radius: 9999px !important;
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      }
+
+      .pp-trigger-token-badge {
         font-size: 9.5px !important;
         font-weight: 600 !important;
+        padding: 2px 6px !important;
+        border-radius: 9999px !important;
+        background: rgba(255, 255, 255, 0.08) !important;
         color: #a1a1aa !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
       }
 
-      .pp-fab-token-track {
-        width: 32px !important;
-        height: 4px !important;
-        border-radius: 9999px !important;
-        background: rgba(255, 255, 255, 0.15) !important;
-        overflow: hidden !important;
+      /* Floating Modal Studio */
+      .pp-floating-modal {
+        position: fixed !important;
+        z-index: 100000000 !important;
+        width: 380px !important;
+        max-width: calc(100vw - 32px) !important;
+        background: rgba(14, 14, 18, 0.96) !important;
+        border: 1px solid rgba(99, 102, 241, 0.45) !important;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 24px rgba(99, 102, 241, 0.25) !important;
+        backdrop-filter: blur(24px) !important;
+        -webkit-backdrop-filter: blur(24px) !important;
+        border-radius: 14px !important;
+        padding: 12px 14px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif !important;
+        color: #f4f4f5 !important;
+        user-select: none !important;
+        animation: ppModalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
       }
 
-      .pp-fab-token-fill {
-        height: 100% !important;
-        border-radius: 9999px !important;
-        background: linear-gradient(90deg, #6366f1 0%, #10b981 100%) !important;
-        width: 88% !important;
-        transition: width 0.3s ease !important;
+      @keyframes ppModalIn {
+        from { opacity: 0; transform: translateY(8px) scale(0.97); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
       }
 
-      .pp-fab-btn-sub {
-        display: inline-flex !important;
+      .pp-modal-header {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+      }
+
+      .pp-modal-title {
+        display: flex !important;
+        align-items: center !important;
+        gap: 7px !important;
+        font-size: 12.5px !important;
+        font-weight: 700 !important;
+        color: #ffffff !important;
+      }
+
+      .pp-modal-close-btn {
+        background: transparent !important;
+        border: none !important;
+        color: #71717a !important;
+        font-size: 14px !important;
+        cursor: pointer !important;
+        padding: 2px 6px !important;
+        border-radius: 6px !important;
+        transition: color 0.15s ease !important;
+      }
+      .pp-modal-close-btn:hover {
+        color: #ffffff !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+      }
+
+      .pp-tone-row {
+        display: flex !important;
+        gap: 4px !important;
+        overflow-x: auto !important;
+      }
+
+      .pp-tone-chip {
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        padding: 3px 8px !important;
+        border-radius: 6px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #a1a1aa !important;
+        cursor: pointer !important;
+        white-space: nowrap !important;
+        transition: all 0.15s ease !important;
+      }
+      .pp-tone-chip:hover {
+        color: #ffffff !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+      }
+      .pp-tone-chip.active {
+        background: rgba(99, 102, 241, 0.25) !important;
+        border-color: rgba(99, 102, 241, 0.6) !important;
+        color: #c7d2fe !important;
+      }
+
+      .pp-modal-preview {
+        background: rgba(0, 0, 0, 0.45) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 9px !important;
+        padding: 8px 10px !important;
+        font-size: 11.5px !important;
+        line-height: 1.45 !important;
+        color: #e4e4e7 !important;
+        max-height: 100px !important;
+        overflow-y: auto !important;
+        white-space: pre-wrap !important;
+        user-select: text !important;
+      }
+
+      .pp-modal-actions {
+        display: flex !important;
+        gap: 6px !important;
+      }
+
+      .pp-modal-btn-primary {
+        flex: 1 !important;
+        height: 36px !important;
+        border-radius: 8px !important;
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        color: #ffffff !important;
+        font-size: 11.5px !important;
+        font-weight: 700 !important;
+        cursor: pointer !important;
+        display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        padding: 5px 8px !important;
-        border-radius: 9999px !important;
+        gap: 5px !important;
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
+        transition: all 0.15s ease !important;
+      }
+      .pp-modal-btn-primary:hover {
+        filter: brightness(1.08) !important;
+        transform: translateY(-1px) !important;
+      }
+
+      .pp-modal-btn-sub {
+        height: 36px !important;
+        padding: 0 12px !important;
+        border-radius: 8px !important;
         background: rgba(255, 255, 255, 0.06) !important;
         border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        color: #f4f4f5 !important;
+        color: #ffffff !important;
         font-size: 11px !important;
         font-weight: 600 !important;
         cursor: pointer !important;
-        transition: all 0.2s ease !important;
-        margin: 0 !important;
-        white-space: nowrap !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        transition: all 0.15s ease !important;
       }
-      .pp-fab-btn-sub:hover {
-        background: rgba(255, 255, 255, 0.16) !important;
-        border-color: rgba(255, 255, 255, 0.25) !important;
-        transform: translateY(-1px) !important;
-      }
-      .pp-fab-btn-sub.resume-pill {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)) !important;
-        border-color: rgba(16, 185, 129, 0.45) !important;
-        color: #34d399 !important;
-        box-shadow: 0 0 12px rgba(16, 185, 129, 0.3) !important;
+      .pp-modal-btn-sub:hover {
+        background: rgba(255, 255, 255, 0.12) !important;
       }
     `;
     (document.head || document.documentElement).appendChild(style);
@@ -184,8 +263,6 @@
     if (host.includes("deepseek")) return "deepseek";
     if (host.includes("grok") || host.includes("x.ai")) return "grok";
     if (host.includes("perplexity")) return "perplexity";
-    if (host.includes("copilot")) return "copilot";
-    if (host.includes("poe")) return "poe";
     return "general";
   }
 
@@ -335,205 +412,13 @@
     return input;
   }
 
-  function injectFab() {
-    const existing = document.querySelector(".pp-fab-bar");
-    if (existing) {
-      if (existing._targetInput && document.body.contains(existing._targetInput) && !isSidebarElement(existing._targetInput)) {
-        positionFab(existing, existing._targetInput);
-        return;
-      }
-      try { existing.remove(); } catch { /* ignore */ }
-    }
-
-    const input = getInput();
-    if (!input || !input.parentElement) return;
-
-    const rect = input.getBoundingClientRect();
-    if (!rect || rect.width === 0) { setTimeout(injectFab, 800); return; }
-
-    const bar = document.createElement("div");
-    bar.className = `pp-fab-bar ${uiMode === "compact" ? "mode-compact" : ""}`;
-    bar._targetInput = input;
-
-    bar.innerHTML =
-      '<div class="pp-fab-brain-badge" title="Prompt+ Intelligence Engine (Click to Enhance or Switch UI)" style="background: transparent; padding: 0; cursor: pointer;">' +
-      '<svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-      '<defs><linearGradient id="fabLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#1D70F5"/><stop offset="100%" stopColor="#8B5CF6"/></linearGradient></defs>' +
-      '<path d="M22 90V28C22 16 32 10 52 10C72 10 85 22 85 40C85 58 72 68 52 68H42V90H22Z" fill="url(#fabLogoGrad)"/>' +
-      '<path d="M26 68L56 38M56 38H42M56 38V52" stroke="white" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>' +
-      '</svg>' +
-      '</div>' +
-      '<button class="pp-fab-btn" id="pp-fab-btn" type="button" title="Enhance prompt with Prompt+ Intelligence">' +
-      '<span class="pp-fab-icon">⚡</span>' +
-      '<span class="pp-fab-text" id="pp-fab-text">Enhance Prompt</span>' +
-      '</button>' +
-      '<div class="pp-fab-token-bar" id="pp-fab-token-bar" title="Prompt+ Real-Time Quota & Context Load">' +
-      '<span id="pp-fab-token-text">~0 tok</span>' +
-      '<div class="pp-fab-token-track">' +
-      '<div class="pp-fab-token-fill" id="pp-fab-token-fill" style="width: 88%;"></div>' +
-      '</div>' +
-      '<span id="pp-fab-token-quota" style="color:#10b981;font-weight:700;">88 units</span>' +
-      '</div>' +
-      '<button class="pp-fab-btn-sub" id="pp-fab-bucket-cap" type="button" title="Carry conversation history to another chatbot">' +
-      '<span class="pp-fab-icon">📦</span>' +
-      '</button>' +
-      '<button class="pp-fab-btn-sub" id="pp-fab-bucket-inj" type="button" style="display:none;" title="Inject saved context">' +
-      '<span class="pp-fab-icon">💉</span>' +
-      '</button>' +
-      '<button class="pp-fab-btn-sub" id="pp-fab-switch-mode" type="button" title="Switch UI Box (Full / Compact Sparkle)">' +
-      '<span class="pp-fab-icon">⇄</span>' +
-      '</button>';
-
-    document.body.appendChild(bar);
-    positionFab(bar, input);
-
-    // Live In-Chat Input Token Metering
-    const updateInputTokenCount = () => {
-      const val = getText(input);
-      const tokens = Math.ceil((val || "").length / 3.8);
-      const tokText = bar.querySelector("#pp-fab-token-text");
-      const tokFill = bar.querySelector("#pp-fab-token-fill");
-      const tokQuota = bar.querySelector("#pp-fab-token-quota");
-      const bot = detectChatbot().toUpperCase();
-      const botMaxContext = bot === "CLAUDE" ? 200000 : bot === "GEMINI" ? 1000000 : 128000;
-      const freeK = (Math.max(0, botMaxContext - tokens) / 1000).toFixed(0);
-
-      if (tokText) tokText.textContent = `~${tokens} tok · ${freeK}K free`;
-      if (tokQuota && userQuota) {
-        tokQuota.textContent = `${userQuota.remaining || 88} units`;
-      }
-      if (tokFill && userQuota) {
-        const dynamicRemaining = Math.max(0, userQuota.remaining - (tokens > 50 ? 1 : 0));
-        const fillPct = Math.max(8, Math.min(100, Math.round((dynamicRemaining / (userQuota.monthlyLimit || 100)) * 100)));
-        tokFill.style.width = `${fillPct}%`;
-      }
-    };
-
-    input.addEventListener("input", updateInputTokenCount);
-    updateInputTokenCount();
-
-    const handleEnhanceClick = (e) => {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      const el = getInput() || input;
-      currentTarget = el;
-      currentText = el ? getText(el) : "";
-      if (!currentText.trim()) {
-        showToast("⚠️ Type your prompt idea in the chat box first!");
-        try { el?.focus(); } catch { /* ignore */ }
-        return;
-      }
-      openPanel();
-      setTimeout(() => {
-        const panelInput = document.getElementById("pp-panel-input");
-        const panelEnhanceBtn = document.getElementById("pp-panel-enhance-btn");
-        if (panelInput) panelInput.value = currentText;
-        if (panelEnhanceBtn) panelEnhanceBtn.click();
-      }, 100);
-    };
-
-    bar.querySelector(".pp-fab-brain-badge")?.addEventListener("click", (e) => {
-      if (uiMode === "compact") {
-        handleEnhanceClick(e);
-      } else {
-        handleEnhanceClick(e);
-      }
-    });
-
-    bar.querySelector("#pp-fab-btn")?.addEventListener("click", handleEnhanceClick);
-
-    // Switch UI Box presentation (Full <-> Compact)
-    bar.querySelector("#pp-fab-switch-mode")?.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      uiMode = uiMode === "full" ? "compact" : "full";
-      localStorage.setItem("pp_ui_mode", uiMode);
-      if (uiMode === "compact") {
-        bar.classList.add("mode-compact");
-        showToast("✓ Switched to Compact Sparkle Mode. Click ⇄ or ✦ to expand.");
-      } else {
-        bar.classList.remove("mode-compact");
-        showToast("✓ Switched to Full Omni-Bar Mode.");
-      }
-      positionFab(bar, input);
-    });
-
-    bar.querySelector("#pp-fab-bucket-cap")?.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      captureContextBucket();
-    });
-
-    const injBtn = bar.querySelector("#pp-fab-bucket-inj");
-    injBtn?.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      injectContextBucket();
-    });
-
-    let rafPending = false;
-    const schedulePosition = () => {
-      if (rafPending) return;
-      rafPending = true;
-      requestAnimationFrame(() => {
-        rafPending = false;
-        if (document.body.contains(bar) && document.body.contains(input)) {
-          positionFab(bar, input);
-        }
-      });
-    };
-
-    window.addEventListener("scroll", schedulePosition, { passive: true });
-    window.addEventListener("resize", schedulePosition, { passive: true });
-  }
-
-  function positionFab(bar, input) {
-    if (!input || !bar) return;
-    if (!document.body.contains(input) || isSidebarElement(input)) {
-      bar.style.setProperty("display", "none", "important");
-      return;
-    }
-
-    const card = getChatContainer(input) || input;
-    const rect = card.getBoundingClientRect();
-    if (!rect || rect.width === 0 || rect.height === 0) {
-      bar.style.setProperty("display", "none", "important");
-      return;
-    }
-
-    const barHeight = bar.offsetHeight || 36;
-    const barWidth = bar.offsetWidth || 340;
-    const viewportWidth = window.innerWidth;
-
-    // Position directly docked above the chat input container
-    let top = rect.top - barHeight - 10;
-    if (top < 12) {
-      top = rect.top + 8;
-    }
-
-    let left = rect.right - barWidth - 10;
-    if (left < 16) left = 16;
-    if (left + barWidth > viewportWidth - 16) {
-      left = Math.max(16, viewportWidth - barWidth - 16);
-    }
-
-    bar.style.setProperty("position", "fixed", "important");
-    bar.style.setProperty("z-index", "99999999", "important");
-    bar.style.setProperty("top", `${Math.round(top)}px`, "important");
-    bar.style.setProperty("bottom", "auto", "important");
-    bar.style.setProperty("left", `${Math.round(left)}px`, "important");
-    bar.style.setProperty("display", "inline-flex", "important");
-  }
-
   function showToast(msg) {
     const t = document.createElement("div");
     t.textContent = msg;
     Object.assign(t.style, {
       position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
-      background: "rgba(10,10,12,0.92)", color: "#f1f5f9", padding: "10px 20px", borderRadius: "14px",
-      fontSize: "13px", fontWeight: "600", zIndex: "100000001", boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+      background: "rgba(10,10,12,0.92)", color: "#f1f5f9", padding: "8px 18px", borderRadius: "12px",
+      fontSize: "12px", fontWeight: "600", zIndex: "100000001", boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
       border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(12px)", transition: "all 0.3s ease"
     });
     document.body.appendChild(t);
@@ -544,186 +429,258 @@
     }, 2800);
   }
 
-  function detectImplicitTone(input) {
-    const text = (input || "").toLowerCase();
-    if (/\b(tweet|post|linkedin|casual|friendly|fun|newsletter|blog|engaging|story)\b/i.test(text)) return "Engaging, Authentic & Conversational";
-    if (/\b(sell|pitch|copy|ad|convert|sales|landing|cta|email|headline|offer)\b/i.test(text)) return "High-Conversion, Persuasive & Action-Oriented";
-    if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|script|refactor|error|fix|css|html)\b/i.test(text)) return "Technically Rigorous, Precise & Production-Grade";
-    if (/\b(strategy|plan|executive|kpi|growth|roadmap|summary|business|report)\b/i.test(text)) return "Executive, Strategic & High-Level";
-    if (/\b(data|analyze|analysis|statistics|metrics|research|paper|study)\b/i.test(text)) return "Analytical, Objective & Data-Driven";
-    return "Clear, Authoritative & Direct";
-  }
-
-  function synthesizeLocalPrompt(userInput) {
+  function synthesizeLocalPrompt(userInput, tone = "code") {
     const text = (userInput || "").trim();
     if (!text) return "";
-    const tone = detectImplicitTone(text);
     const cleanInput = text.replace(/^(please|can you|help me|i want to|i need to|how to|write|create|build|fix|generate|make)\s+/i, "");
     const subject = cleanInput.length > 0 ? cleanInput : text;
 
-    let role = "Senior Subject Matter Expert & Technical Architect";
+    let role = "Senior Subject Matter Expert & Principal Architect";
+    let toneStr = "Technically Rigorous, Production-Grade";
     let sec1 = "SPECIFICATIONS & ARCHITECTURAL CONSTRAINTS";
-    let sec2 = "STEP-BY-STEP EXECUTION PROTOCOL";
+    let sec2 = "IMPLEMENTATION PROTOCOL";
 
-    if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|script|refactor|error|fix|css|html)\b/i.test(text)) {
-      role = "Principal Software Architect & Lead Systems Engineer";
-      sec1 = "TECHNICAL SPECIFICATIONS & QUALITY CONSTRAINTS";
-      sec2 = "IMPLEMENTATION PROTOCOL";
-    } else if (/\b(write|blog|article|email|post|essay|copy|letter|content|draft|story|headline|tweet|linkedin|newsletter)\b/i.test(text)) {
-      role = "Elite Content Director & Strategic Copywriter";
-      sec1 = "AUDIENCE HOOK & CONTENT DIRECTIVES";
+    if (tone === "copy") {
+      role = "Elite Conversion Copywriter & Brand Strategist";
+      toneStr = "High-Conversion, Punchy & Action-Oriented";
+      sec1 = "AUDIENCE HOOK & VALUE DIRECTIVES";
       sec2 = "NARRATIVE EXECUTION STEPS";
+    } else if (tone === "exec") {
+      role = "Senior Management Consultant & Executive Director";
+      toneStr = "Concise, Strategic & Metric-Driven";
+      sec1 = "STRATEGIC OBJECTIVES & CONSTRAINTS";
+      sec2 = "ACTIONABLE ROADMAP & DECISION STEPS";
+    } else if (tone === "deep") {
+      role = "Lead AI Research Scientist & Deep Logic Reasoner";
+      toneStr = "Exhaustive, First-Principles Reasoning";
+      sec1 = "CORE HYPOTHESES & LOGICAL CONSTRAINTS";
+      sec2 = "STEP-BY-STEP DEDUCTION & VALIDATION";
     }
 
     return `### ROLE & PERSONA
-You are an authoritative ${role}. Execute this task with highest quality and production-grade precision:
+You are an authoritative ${role}. Execute this task with highest precision:
 "${text}"
 
 ### ${sec1}
 - **Subject**: "${subject}"
-- **Tone Profile**: ${tone}
-- **Constraints**: Deliver complete, unabridged solutions without placeholders or assumptions.
+- **Tone Profile**: ${toneStr}
+- **Constraints**: Deliver complete, unabridged solutions without placeholders or conversational fluff.
 
 ### ${sec2}
 1. Analyze core requirements for "${subject}" and anticipate implicit edge cases.
 2. Structure output with modular sections, scannable Markdown headers, and concrete code/examples.
-3. Eliminate all conversational introductory fluff and meta commentary.
+3. Validate solution against scalability, efficiency, and reliability best practices.
 
 ### DELIVERABLES & OUTPUT FORMAT
-- Deliver immediately usable results formatted in clean Markdown.`;
+- Deliver complete, immediately usable results formatted in clean Markdown.`;
   }
 
-  function openPanel() {
-    if (panelEl) {
-      panelEl.style.display = "flex";
-      return;
+  // Open Floating Optimizer Modal
+  function openFloatingModal(inputEl) {
+    if (modalEl) {
+      modalEl.remove();
+      modalEl = null;
     }
 
-    panelEl = document.createElement("div");
-    panelEl.className = "pp-panel";
-    panelEl.id = "pp-panel";
-    panelEl.innerHTML = `
-      <div class="pp-panel-header">
-        <div class="pp-panel-title">
-          <div style="width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,#6366f1,#4f46e5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;">✦</div>
-          <span>Prompt+ Studio</span>
-          <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:rgba(99,102,241,0.2);color:#a5b4fc;font-weight:700;">v2.1.2</span>
+    currentTarget = inputEl;
+    const currentVal = getText(inputEl).trim();
+    const tokenCount = Math.ceil(currentVal.length / 3.8);
+    const bot = detectChatbot().toUpperCase();
+
+    modalEl = document.createElement("div");
+    modalEl.className = "pp-floating-modal";
+
+    modalEl.innerHTML = `
+      <div class="pp-modal-header">
+        <div class="pp-modal-title">
+          <span style="color:#6366f1;font-size:14px;">✦</span>
+          <span>Prompt+ Instant Optimizer</span>
+          <span style="font-size:9.5px;color:#10b981;font-weight:700;">🟢 ${bot}</span>
+          <span style="font-size:9.5px;color:#a1a1aa;">(~${tokenCount} tok)</span>
         </div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <span id="pp-panel-token-need" style="font-size:10px;color:#10b981;font-weight:700;">⚡ ~0 tok</span>
-          <button type="button" class="pp-panel-close" id="pp-panel-close">✕</button>
-        </div>
+        <button type="button" class="pp-modal-close-btn" id="pp-modal-close">✕</button>
       </div>
-      <div class="pp-panel-body">
-        <div style="display:flex;flex-direction:column;gap:4px;">
-          <div style="display:flex;justify-content:space-between;font-size:10.5px;color:#71717a;font-weight:700;text-transform:uppercase;">
-            <span>Raw Prompt</span>
-            <span id="pp-panel-char-count">0 chars</span>
-          </div>
-          <textarea class="pp-panel-textarea" id="pp-panel-input" placeholder="Type or refine your prompt idea..."></textarea>
-        </div>
 
-        <button type="button" class="pp-panel-enhance-btn" id="pp-panel-enhance-btn">
-          <span>⚡ Compile Master Prompt</span>
+      <div class="pp-tone-row">
+        <div class="pp-tone-chip ${selectedTone === "code" ? "active" : ""}" data-tone="code">💻 Tech</div>
+        <div class="pp-tone-chip ${selectedTone === "copy" ? "active" : ""}" data-tone="copy">📈 Copy</div>
+        <div class="pp-tone-chip ${selectedTone === "exec" ? "active" : ""}" data-tone="exec">👔 Executive</div>
+        <div class="pp-tone-chip ${selectedTone === "deep" ? "active" : ""}" data-tone="deep">🔬 Deep Logic</div>
+      </div>
+
+      <div class="pp-modal-preview" id="pp-modal-preview">
+        ${currentVal || "Type your prompt idea in the chatbox below..."}
+      </div>
+
+      <div class="pp-modal-actions">
+        <button type="button" class="pp-modal-btn-primary" id="pp-modal-replace-btn">
+          <span>⚡ Optimize & Replace in Chat</span>
         </button>
-
-        <div class="pp-panel-result" id="pp-panel-result" style="display:none;">
-          <div class="pp-panel-result-header">
-            <div style="display:flex;gap:5px;align-items:center;">
-              <span id="pp-panel-score" style="font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(16,185,129,0.15);color:#34d399;">Score: 94/100</span>
-              <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:rgba(99,102,241,0.15);color:#a5b4fc;">⚡ &lt;25ms</span>
-            </div>
-            <span id="pp-panel-engine-tag" style="font-size:10px;color:#a1a1aa;">Master Prompt</span>
-          </div>
-          <div class="pp-panel-result-body" id="pp-panel-result-body"></div>
-          <div class="pp-panel-result-actions">
-            <button type="button" class="pp-panel-action-btn pp-panel-btn-copy" id="pp-panel-btn-copy">📋 Copy</button>
-            <button type="button" class="pp-panel-action-btn pp-panel-btn-use" id="pp-panel-btn-use">🚀 Apply to Chat</button>
-          </div>
-        </div>
+        <button type="button" class="pp-modal-btn-sub" id="pp-modal-copy-btn" title="Copy to clipboard">
+          <span>📋</span>
+        </button>
       </div>
     `;
 
-    document.body.appendChild(panelEl);
+    document.body.appendChild(modalEl);
 
-    const closeBtn = panelEl.querySelector("#pp-panel-close");
-    const panelInput = panelEl.querySelector("#pp-panel-input");
-    const panelEnhanceBtn = panelEl.querySelector("#pp-panel-enhance-btn");
-    const panelResult = panelEl.querySelector("#pp-panel-result");
-    const panelResultBody = panelEl.querySelector("#pp-panel-result-body");
-    const panelBtnCopy = panelEl.querySelector("#pp-panel-btn-copy");
-    const panelBtnUse = panelEl.querySelector("#pp-panel-btn-use");
-    const panelCharCount = panelEl.querySelector("#pp-panel-char-count");
-    const panelTokenNeed = panelEl.querySelector("#pp-panel-token-need");
+    // Position modal right above the input box
+    const card = getChatContainer(inputEl) || inputEl;
+    const rect = card.getBoundingClientRect();
+    const modalHeight = modalEl.offsetHeight || 220;
+    const modalWidth = modalEl.offsetWidth || 380;
 
-    closeBtn?.addEventListener("click", () => {
-      panelEl.style.display = "none";
+    let top = rect.top - modalHeight - 12;
+    if (top < 12) top = rect.top + 8;
+    let left = rect.right - modalWidth;
+    if (left < 16) left = 16;
+
+    modalEl.style.top = `${Math.round(top)}px`;
+    modalEl.style.left = `${Math.round(left)}px`;
+
+    // Event handlers with stopPropagation to prevent host page cancellation
+    modalEl.querySelector("#pp-modal-close")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      modalEl.remove();
+      modalEl = null;
     });
 
-    panelInput?.addEventListener("input", () => {
-      const len = panelInput.value.length;
-      const tokens = Math.ceil(len / 3.8);
-      if (panelCharCount) panelCharCount.textContent = `${len} chars`;
-      if (panelTokenNeed) panelTokenNeed.textContent = `⚡ ~${tokens} tok`;
+    modalEl.querySelectorAll(".pp-tone-chip").forEach((chip) => {
+      chip.addEventListener("click", (e) => {
+        e.stopPropagation();
+        modalEl.querySelectorAll(".pp-tone-chip").forEach((c) => c.classList.remove("active"));
+        chip.classList.add("active");
+        selectedTone = chip.getAttribute("data-tone") || "code";
+      });
     });
 
-    let lastEnhanced = "";
-
-    panelEnhanceBtn?.addEventListener("click", async () => {
-      const text = panelInput.value.trim();
-      if (!text) {
-        showToast("Please enter a prompt idea!");
+    modalEl.querySelector("#pp-modal-replace-btn")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const raw = getText(inputEl).trim();
+      if (!raw) {
+        showToast("⚠️ Type your prompt idea in the chat box first!");
         return;
       }
+      const masterPrompt = synthesizeLocalPrompt(raw, selectedTone);
+      setText(inputEl, masterPrompt);
+      showToast("✓ Master prompt compiled & replaced in chat!");
+      modalEl.remove();
+      modalEl = null;
+    });
 
-      panelEnhanceBtn.disabled = true;
-      panelEnhanceBtn.innerHTML = "<span>⚡ Compiling Master Prompt...</span>";
-      panelResult.style.display = "flex";
-      panelResultBody.textContent = "Compiling with Prompt+ Intelligence...";
+    modalEl.querySelector("#pp-modal-copy-btn")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const raw = getText(inputEl).trim();
+      const masterPrompt = synthesizeLocalPrompt(raw || "Build full stack scalable app", selectedTone);
+      navigator.clipboard.writeText(masterPrompt);
+      showToast("✓ Copied Master Prompt!");
+    });
+  }
 
-      let result = "";
+  // Inject sleek floating trigger button
+  function injectFloatingButton() {
+    const existing = document.querySelector(".pp-floating-trigger");
+    if (existing) {
+      if (existing._targetInput && document.body.contains(existing._targetInput) && !isSidebarElement(existing._targetInput)) {
+        positionFloatingButton(existing, existing._targetInput);
+        return;
+      }
+      try { existing.remove(); } catch { /* ignore */ }
+    }
 
-      // Try background message route
-      try {
-        const res = await new Promise((resolve) => {
-          chrome.runtime.sendMessage(
-            { action: "enhancePrompt", text, mode: "api", level: "code" },
-            (r) => resolve(r)
-          );
-        });
-        if (res?.success && res.data?.enhanced) {
-          result = res.data.enhanced;
+    const input = getInput();
+    if (!input || !input.parentElement) return;
+
+    const rect = input.getBoundingClientRect();
+    if (!rect || rect.width === 0) { setTimeout(injectFloatingButton, 800); return; }
+
+    const trigger = document.createElement("div");
+    trigger.className = "pp-floating-trigger";
+    trigger._targetInput = input;
+
+    trigger.innerHTML = `
+      <div class="pp-trigger-icon">✦</div>
+      <div class="pp-trigger-text">
+        <span>Enhance</span>
+        <span class="pp-trigger-token-badge" id="pp-trigger-tok">~0 tok</span>
+      </div>
+    `;
+
+    document.body.appendChild(trigger);
+    positionFloatingButton(trigger, input);
+
+    // Live typing token count
+    const updateTokens = () => {
+      const val = getText(input);
+      const tokens = Math.ceil(val.length / 3.8);
+      const tokBadge = trigger.querySelector("#pp-trigger-tok");
+      if (tokBadge) tokBadge.textContent = `~${tokens} tok`;
+    };
+    input.addEventListener("input", updateTokens);
+    updateTokens();
+
+    // Reliable click handler
+    trigger.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const val = getText(input).trim();
+      if (val) {
+        // Direct in-place optimize or open modal
+        openFloatingModal(input);
+      } else {
+        openFloatingModal(input);
+      }
+    });
+
+    let rafPending = false;
+    const schedulePosition = () => {
+      if (rafPending) return;
+      rafPending = true;
+      requestAnimationFrame(() => {
+        rafPending = false;
+        if (document.body.contains(trigger) && document.body.contains(input)) {
+          positionFloatingButton(trigger, input);
         }
-      } catch {}
+      });
+    };
 
-      // Fallback synthesizer
-      if (!result) {
-        result = synthesizeLocalPrompt(text);
-      }
+    window.addEventListener("scroll", schedulePosition, { passive: true });
+    window.addEventListener("resize", schedulePosition, { passive: true });
+  }
 
-      lastEnhanced = result;
-      panelResultBody.textContent = result;
-      panelEnhanceBtn.disabled = false;
-      panelEnhanceBtn.innerHTML = "<span>⚡ Compile Master Prompt</span>";
-      showToast("✓ Master prompt compiled!");
-    });
+  function positionFloatingButton(trigger, input) {
+    if (!input || !trigger) return;
+    if (!document.body.contains(input) || isSidebarElement(input)) {
+      trigger.style.setProperty("display", "none", "important");
+      return;
+    }
 
-    panelBtnCopy?.addEventListener("click", () => {
-      if (lastEnhanced) {
-        navigator.clipboard.writeText(lastEnhanced);
-        panelBtnCopy.textContent = "✓ Copied!";
-        setTimeout(() => { panelBtnCopy.textContent = "📋 Copy"; }, 2000);
-      }
-    });
+    const card = getChatContainer(input) || input;
+    const rect = card.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0) {
+      trigger.style.setProperty("display", "none", "important");
+      return;
+    }
 
-    panelBtnUse?.addEventListener("click", () => {
-      const el = currentTarget || getInput();
-      if (el && lastEnhanced) {
-        setText(el, lastEnhanced);
-        panelEl.style.display = "none";
-        showToast("✓ Master prompt applied to chatbox!");
-      }
-    });
+    const triggerHeight = trigger.offsetHeight || 32;
+    const triggerWidth = trigger.offsetWidth || 110;
+    const viewportWidth = window.innerWidth;
+
+    // Position clean in the top-right docked corner of the prompt card
+    let top = rect.top - triggerHeight - 8;
+    if (top < 12) {
+      top = rect.top + 8;
+    }
+
+    let left = rect.right - triggerWidth - 8;
+    if (left < 16) left = 16;
+    if (left + triggerWidth > viewportWidth - 16) {
+      left = Math.max(16, viewportWidth - triggerWidth - 16);
+    }
+
+    trigger.style.setProperty("top", `${Math.round(top)}px`, "important");
+    trigger.style.setProperty("left", `${Math.round(left)}px`, "important");
+    trigger.style.setProperty("display", "inline-flex", "important");
   }
 
   // Keyboard shortcut listener: Cmd+Shift+P / Ctrl+Shift+P to enhance in-place
@@ -735,14 +692,12 @@ You are an authoritative ${role}. Execute this task with highest quality and pro
         const text = getText(input);
         if (text && text.trim()) {
           showToast("⚡ Compiling master prompt in-place...");
-          const master = synthesizeLocalPrompt(text);
+          const master = synthesizeLocalPrompt(text, selectedTone);
           setText(input, master);
           showToast("✓ Prompt optimized in-place!");
         } else {
-          openPanel();
+          openFloatingModal(input);
         }
-      } else {
-        openPanel();
       }
     }
   });
@@ -750,13 +705,13 @@ You are an authoritative ${role}. Execute this task with highest quality and pro
   // Observe DOM changes to re-inject when new chat views render
   setInterval(() => {
     const input = getInput();
-    if (input && !document.querySelector(".pp-fab-bar")) {
-      injectFab();
+    if (input && !document.querySelector(".pp-floating-trigger")) {
+      injectFloatingButton();
     }
   }, 1000);
 
   window.addEventListener("focus", () => {
     const input = getInput();
-    if (input) injectFab();
+    if (input) injectFloatingButton();
   });
 })();
