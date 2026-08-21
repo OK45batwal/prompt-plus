@@ -8,10 +8,12 @@
   <style>
     :root {
       --bg: #09090b;
-      --surface-1: rgba(18, 18, 23, 0.85);
-      --surface-2: rgba(24, 24, 30, 0.95);
+      --surface-1: rgba(18, 18, 23, 0.88);
+      --surface-2: rgba(26, 26, 34, 0.95);
+      --surface-inner: rgba(0, 0, 0, 0.4);
       --border-subtle: rgba(255, 255, 255, 0.08);
       --border-highlight: rgba(255, 255, 255, 0.16);
+      --border-active: rgba(99, 102, 241, 0.5);
       --primary: #6366f1;
       --primary-hover: #4f46e5;
       --primary-glow: rgba(99, 102, 241, 0.35);
@@ -65,7 +67,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ---------- Header ---------- */
+    /* ---------- Floating Island Header ---------- */
     .header {
       flex-shrink: 0;
       display: flex;
@@ -582,7 +584,7 @@
       transform: translateY(-1px);
     }
 
-    /* ---------- Result View (Seamless Focused State) ---------- */
+    /* ---------- Result View ---------- */
     .result-view-panel {
       display: none;
       flex-direction: column;
