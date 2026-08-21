@@ -719,7 +719,7 @@ You are an authoritative ${role}. Execute this task with highest precision:
         const pos = JSON.parse(customPosStr);
         if (typeof pos.top === "number" && typeof pos.left === "number") {
           const clampedTop = Math.max(8, Math.min(window.innerHeight - 40, pos.top));
-          const clampedLeft = Math.max(8, Math.min(window.innerWidth - 120, pos.left));
+          const clampedLeft = Math.max(8, Math.min(window.innerWidth - 140, pos.left));
           trigger.style.setProperty("top", `${clampedTop}px`, "important");
           trigger.style.setProperty("left", `${clampedLeft}px`, "important");
           trigger.style.setProperty("display", "inline-flex", "important");
@@ -729,7 +729,7 @@ You are an authoritative ${role}. Execute this task with highest precision:
     }
 
     // Find the closest active prompt capsule
-    const capsule = input.closest("rich-textarea, input-area-v2, .input-area, form, .composer-parent, fieldset") || input;
+    const capsule = input.closest("rich-textarea, input-area-v2, .input-area, form, .composer-parent, fieldset") || input.parentElement || input;
     const rect = capsule.getBoundingClientRect();
     if (!rect || rect.width === 0 || rect.height === 0 || rect.top < 0) {
       trigger.style.setProperty("display", "none", "important");
@@ -737,14 +737,13 @@ You are an authoritative ${role}. Execute this task with highest precision:
     }
 
     const triggerHeight = trigger.offsetHeight || 32;
-    const triggerWidth = trigger.offsetWidth || 130;
+    const triggerWidth = trigger.offsetWidth || 140;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
     // Determine ergonomic vertical placement:
-    // If the input box is in the middle of the screen (e.g. empty new chat), place cleanly BELOW the input box
-    // so it NEVER collides with greeting headers like "Hi Omkar, what's the plan?".
-    // If the input box is already at the bottom of the viewport (ongoing chat), place directly above it.
+    // If input is in the middle of screen (empty chat), place neatly below the capsule.
+    // If input is at the bottom of the viewport (ongoing chat), place directly above the capsule.
     let top = 0;
     if (rect.bottom + triggerHeight + 16 < viewportHeight) {
       top = rect.bottom + 8;
@@ -807,6 +806,17 @@ You are an authoritative ${role}. Execute this task with highest precision:
       if (moved) {
         const rect = trigger.getBoundingClientRect();
         localStorage.setItem("pp_btn_custom_pos", JSON.stringify({ top: rect.top, left: rect.left }));
+      }
+    });
+
+    // Double click resets position to default anchor
+    trigger.addEventListener("dblclick", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      localStorage.removeItem("pp_btn_custom_pos");
+      showToast("✓ Button position reset to default");
+      if (trigger._targetInput) {
+        positionFloatingButton(trigger, trigger._targetInput);
       }
     });
 
