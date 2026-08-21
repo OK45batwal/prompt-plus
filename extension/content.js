@@ -713,7 +713,7 @@ You are an authoritative ${role}. Execute this task with highest precision:
     }
 
     // Find the closest active prompt capsule
-    const capsule = input.closest("input-area-v2, .input-area, form, .composer-parent, fieldset, main") || input;
+    const capsule = input.closest("rich-textarea, input-area-v2, .input-area, form, .composer-parent, fieldset") || input;
     const rect = capsule.getBoundingClientRect();
     if (!rect || rect.width === 0 || rect.height === 0 || rect.top < 0) {
       trigger.style.setProperty("display", "none", "important");
@@ -721,16 +721,25 @@ You are an authoritative ${role}. Execute this task with highest precision:
     }
 
     const triggerHeight = trigger.offsetHeight || 32;
-    const triggerWidth = trigger.offsetWidth || 110;
+    const triggerWidth = trigger.offsetWidth || 130;
     const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
 
-    // Dock neatly aligned to the top-right of the prompt capsule
-    let top = rect.top - triggerHeight - 8;
-    if (top < 10) {
-      top = rect.top + 8;
+    // Determine ergonomic vertical placement:
+    // If the input box is in the middle of the screen (e.g. empty new chat), place cleanly BELOW the input box
+    // so it NEVER collides with greeting headers like "Hi Omkar, what's the plan?".
+    // If the input box is already at the bottom of the viewport (ongoing chat), place directly above it.
+    let top = 0;
+    if (rect.bottom + triggerHeight + 16 < viewportHeight) {
+      top = rect.bottom + 8;
+    } else {
+      top = rect.top - triggerHeight - 8;
     }
 
-    let left = rect.right - triggerWidth - 12;
+    if (top < 10) top = 10;
+    if (top + triggerHeight > viewportHeight - 10) top = viewportHeight - triggerHeight - 10;
+
+    let left = rect.right - triggerWidth - 8;
     if (left < 16) left = 16;
     if (left + triggerWidth > viewportWidth - 16) {
       left = Math.max(16, viewportWidth - triggerWidth - 16);
