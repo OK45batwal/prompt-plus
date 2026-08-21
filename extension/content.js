@@ -3,6 +3,7 @@
   let currentTarget = null;
   let currentText = "";
   let userQuota = { remaining: 88, monthlyLimit: 100, usagePercentage: 12 };
+  let uiMode = localStorage.getItem("pp_ui_mode") || "full"; // "full" | "compact" | "hidden"
 
   // Web Platform Session Bridge: Listen for authenticated sessions broadcast by Prompt+ Web Platform
   if (
@@ -59,11 +60,22 @@
         z-index: 99999999 !important;
         user-select: none !important;
         line-height: 1 !important;
-        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease !important;
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, opacity 0.2s ease !important;
       }
       .pp-fab-bar:hover {
         border-color: rgba(99, 102, 241, 0.6) !important;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(99, 102, 241, 0.4) !important;
+      }
+
+      .pp-fab-bar.mode-compact {
+        padding: 4px 8px !important;
+        gap: 4px !important;
+      }
+      .pp-fab-bar.mode-compact .pp-fab-btn,
+      .pp-fab-bar.mode-compact .pp-fab-token-bar,
+      .pp-fab-bar.mode-compact #pp-fab-bucket-cap,
+      .pp-fab-bar.mode-compact #pp-fab-bucket-inj {
+        display: none !important;
       }
 
       .pp-fab-brain-badge {
@@ -135,7 +147,7 @@
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        padding: 5px 10px !important;
+        padding: 5px 8px !important;
         border-radius: 9999px !important;
         background: rgba(255, 255, 255, 0.06) !important;
         border: 1px solid rgba(255, 255, 255, 0.12) !important;
@@ -177,122 +189,103 @@
     return "general";
   }
 
-  function getConversationText() {
-    const bot = detectChatbot();
-    let text = "";
-    if (bot === "chatgpt") {
-      const turns = document.querySelectorAll("[data-message-author-role]");
-      turns.forEach((t) => {
-        const role = t.getAttribute("data-message-author-role");
-        const body = t.innerText?.trim();
-        if (body) text += `${role === "user" ? "User" : "Assistant"}: ${body}\n\n`;
-      });
-    } else if (bot === "claude") {
-      const msgs = document.querySelectorAll(".font-claude-message, .font-user-message, [data-is-streaming]");
-      msgs.forEach((m) => {
-        const body = m.innerText?.trim();
-        if (body) text += `${body}\n\n`;
-      });
-    } else if (bot === "gemini") {
-      const turns = document.querySelectorAll(".conversation-container, .query-text, .response-text");
-      turns.forEach((t) => {
-        const body = t.innerText?.trim();
-        if (body) text += `${body}\n\n`;
-      });
-    } else if (bot === "deepseek") {
-      const msgs = document.querySelectorAll(".chat-message, .fbb737a4, [class*='message-content']");
-      msgs.forEach((m) => {
-        const body = m.innerText?.trim();
-        if (body) text += `${body}\n\n`;
-      });
-    }
-    if (!text.trim()) {
-      const main = document.querySelector("main") || document.body;
-      text = main?.innerText?.slice(-4000) || "";
-    }
-    return text.trim();
-  }
-
-  function captureContextBucket() {
-    const raw = getConversationText();
-    if (!raw || raw.length < 30) {
-      showToast("⚠️ Not enough conversation text found to carry over.");
-      return;
-    }
-    const sourceBot = detectChatbot().toUpperCase();
-    const bucket = {
-      source: sourceBot,
-      rawText: raw.slice(-6000),
-      timestamp: new Date().toISOString(),
-      formattedPrompt: `### CONTEXT CARRIED OVER FROM PREVIOUS ${sourceBot} SESSION\n\`\`\`text\n${raw.slice(-4000)}\n\`\`\`\n\n### CONTINUATION GOAL\nContinue analyzing or executing the task above with maximum accuracy and full context continuity:`
-    };
-
-    try {
-      if (chrome?.storage?.local) {
-        chrome.storage.local.set({ pp_context_bucket: bucket }, () => {
-          showToast(`✓ Context captured from ${sourceBot}! Open any other chatbot to resume.`);
-          const inj = document.querySelector("#pp-fab-bucket-inj");
-          if (inj) {
-            inj.style.display = "inline-flex";
-            inj.classList.add("resume-pill");
-            inj.innerHTML = `<span class="pp-fab-icon">💉</span><span style="font-size:10px;font-weight:700;margin-left:2px;">Resume from ${sourceBot}</span>`;
-          }
-        });
-      }
-    } catch {
-      showToast("Context capture failed.");
-    }
-  }
-
-  function injectContextBucket() {
-    try {
-      if (chrome?.storage?.local) {
-        chrome.storage.local.get("pp_context_bucket", (d) => {
-          const b = d?.pp_context_bucket;
-          if (b && b.formattedPrompt) {
-            const input = getInput();
-            if (input) {
-              setText(input, b.formattedPrompt);
-              showToast(`✓ Loaded previous chat context from ${b.source || "prior session"}!`);
-            }
-          }
-        });
-      }
-    } catch {
-      showToast("Failed to inject context.");
-    }
-  }
-
-  function getInput() {
-    const selectors = [
-      "#prompt-textarea",
-      "textarea[data-id='root']",
-      "div[contenteditable='true'][role='textbox']",
-      "div[contenteditable='true'][data-placeholder]",
-      "div[contenteditable='true']",
-      "rich-textarea textarea",
-      "textarea[placeholder*='Message']",
-      "textarea[placeholder*='Ask']",
-      "textarea[placeholder*='prompt']",
-      "textarea"
-    ];
-    for (const s of selectors) {
-      const el = document.querySelector(s);
-      if (el && isVisible(el)) return el;
-    }
-    return null;
+  function isSidebarElement(el) {
+    if (!el) return false;
+    return Boolean(
+      el.closest("aside, nav, [role='navigation'], #sidebar, .sidebar, header, [aria-label*='Search' i], [placeholder*='Search' i], [aria-label*='Notebook' i]")
+    );
   }
 
   function isVisible(el) {
     if (!el) return false;
     const style = window.getComputedStyle(el);
+    const rect = el.getBoundingClientRect();
     return (
       style.display !== "none" &&
       style.visibility !== "hidden" &&
       style.opacity !== "0" &&
-      el.offsetWidth > 0 &&
-      el.offsetHeight > 0
+      rect.width > 0 &&
+      rect.height > 0
     );
+  }
+
+  function getInput() {
+    const bot = detectChatbot();
+
+    // 1. Google Gemini specific selectors
+    if (bot === "gemini") {
+      const geminiSelectors = [
+        "rich-textarea .ql-editor",
+        "rich-textarea div[contenteditable='true']",
+        "rich-textarea textarea",
+        "input-area-v2 div[contenteditable='true']",
+        "div.input-area div[contenteditable='true']",
+        "div[aria-label*='Enter a prompt']",
+        "div[aria-label*='Ask Gemini']",
+        "textarea[aria-label*='prompt']"
+      ];
+      for (const s of geminiSelectors) {
+        const el = document.querySelector(s);
+        if (el && isVisible(el) && !isSidebarElement(el)) return el;
+      }
+    }
+
+    // 2. ChatGPT specific selectors
+    if (bot === "chatgpt") {
+      const chatgptSelectors = [
+        "#prompt-textarea",
+        "div[id='prompt-textarea']",
+        "div[contenteditable='true']#prompt-textarea",
+        "textarea[data-id='root']",
+        "textarea#prompt-textarea"
+      ];
+      for (const s of chatgptSelectors) {
+        const el = document.querySelector(s);
+        if (el && isVisible(el) && !isSidebarElement(el)) return el;
+      }
+    }
+
+    // 3. Claude specific selectors
+    if (bot === "claude") {
+      const claudeSelectors = [
+        "div[contenteditable='true'].ProseMirror",
+        "fieldset div[contenteditable='true']",
+        "div.ProseMirror"
+      ];
+      for (const s of claudeSelectors) {
+        const el = document.querySelector(s);
+        if (el && isVisible(el) && !isSidebarElement(el)) return el;
+      }
+    }
+
+    // 4. DeepSeek specific selectors
+    if (bot === "deepseek") {
+      const deepseekSelectors = [
+        "textarea#chat-input",
+        "textarea[placeholder*='DeepSeek']",
+        "textarea"
+      ];
+      for (const s of deepseekSelectors) {
+        const el = document.querySelector(s);
+        if (el && isVisible(el) && !isSidebarElement(el)) return el;
+      }
+    }
+
+    // 5. Fallback generic selectors
+    const fallbackSelectors = [
+      "form textarea",
+      "main div[contenteditable='true']",
+      "main textarea",
+      "textarea[placeholder*='Message']",
+      "textarea[placeholder*='Ask']",
+      "textarea[placeholder*='prompt']",
+      "textarea"
+    ];
+    for (const s of fallbackSelectors) {
+      const el = document.querySelector(s);
+      if (el && isVisible(el) && !isSidebarElement(el)) return el;
+    }
+    return null;
   }
 
   function getText(el) {
@@ -329,6 +322,8 @@
       if (
         (parent.tagName === "FORM" ||
           parent.classList.contains("relative") ||
+          parent.classList.contains("input-area") ||
+          parent.classList.contains("input-area-v2") ||
           style.position === "relative" ||
           style.position === "sticky") &&
         parent.offsetWidth > 280
@@ -343,11 +338,13 @@
   function injectFab() {
     const existing = document.querySelector(".pp-fab-bar");
     if (existing) {
-      if (existing._targetInput && document.body.contains(existing._targetInput)) {
+      if (existing._targetInput && document.body.contains(existing._targetInput) && !isSidebarElement(existing._targetInput)) {
+        positionFab(existing, existing._targetInput);
         return;
       }
       try { existing.remove(); } catch { /* ignore */ }
     }
+
     const input = getInput();
     if (!input || !input.parentElement) return;
 
@@ -355,11 +352,11 @@
     if (!rect || rect.width === 0) { setTimeout(injectFab, 800); return; }
 
     const bar = document.createElement("div");
-    bar.className = "pp-fab-bar";
+    bar.className = `pp-fab-bar ${uiMode === "compact" ? "mode-compact" : ""}`;
     bar._targetInput = input;
 
     bar.innerHTML =
-      '<div class="pp-fab-brain-badge" title="Prompt+ Intelligence Engine" style="background: transparent; padding: 0; cursor: pointer;">' +
+      '<div class="pp-fab-brain-badge" title="Prompt+ Intelligence Engine (Click to Enhance or Switch UI)" style="background: transparent; padding: 0; cursor: pointer;">' +
       '<svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">' +
       '<defs><linearGradient id="fabLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#1D70F5"/><stop offset="100%" stopColor="#8B5CF6"/></linearGradient></defs>' +
       '<path d="M22 90V28C22 16 32 10 52 10C72 10 85 22 85 40C85 58 72 68 52 68H42V90H22Z" fill="url(#fabLogoGrad)"/>' +
@@ -375,13 +372,16 @@
       '<div class="pp-fab-token-track">' +
       '<div class="pp-fab-token-fill" id="pp-fab-token-fill" style="width: 88%;"></div>' +
       '</div>' +
-      '<span id="pp-fab-token-quota" style="color:#10b981;font-weight:700;">88 left</span>' +
+      '<span id="pp-fab-token-quota" style="color:#10b981;font-weight:700;">88 units</span>' +
       '</div>' +
       '<button class="pp-fab-btn-sub" id="pp-fab-bucket-cap" type="button" title="Carry conversation history to another chatbot">' +
       '<span class="pp-fab-icon">📦</span>' +
       '</button>' +
       '<button class="pp-fab-btn-sub" id="pp-fab-bucket-inj" type="button" style="display:none;" title="Inject saved context">' +
       '<span class="pp-fab-icon">💉</span>' +
+      '</button>' +
+      '<button class="pp-fab-btn-sub" id="pp-fab-switch-mode" type="button" title="Switch UI Box (Full / Compact Sparkle)">' +
+      '<span class="pp-fab-icon">⇄</span>' +
       '</button>';
 
     document.body.appendChild(bar);
@@ -434,8 +434,31 @@
       }, 100);
     };
 
-    bar.querySelector(".pp-fab-brain-badge")?.addEventListener("click", handleEnhanceClick);
+    bar.querySelector(".pp-fab-brain-badge")?.addEventListener("click", (e) => {
+      if (uiMode === "compact") {
+        handleEnhanceClick(e);
+      } else {
+        handleEnhanceClick(e);
+      }
+    });
+
     bar.querySelector("#pp-fab-btn")?.addEventListener("click", handleEnhanceClick);
+
+    // Switch UI Box presentation (Full <-> Compact)
+    bar.querySelector("#pp-fab-switch-mode")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uiMode = uiMode === "full" ? "compact" : "full";
+      localStorage.setItem("pp_ui_mode", uiMode);
+      if (uiMode === "compact") {
+        bar.classList.add("mode-compact");
+        showToast("✓ Switched to Compact Sparkle Mode. Click ⇄ or ✦ to expand.");
+      } else {
+        bar.classList.remove("mode-compact");
+        showToast("✓ Switched to Full Omni-Bar Mode.");
+      }
+      positionFab(bar, input);
+    });
 
     bar.querySelector("#pp-fab-bucket-cap")?.addEventListener("click", (e) => {
       e.preventDefault();
@@ -449,19 +472,6 @@
       e.stopPropagation();
       injectContextBucket();
     });
-
-    try {
-      if (chrome?.storage?.local) {
-        chrome.storage.local.get("pp_context_bucket", (d) => {
-          const b = d?.pp_context_bucket;
-          if (b && b.formattedPrompt && injBtn) {
-            injBtn.style.display = "inline-flex";
-            injBtn.innerHTML = `<span class="pp-fab-icon">💉</span><span style="font-size:10px;font-weight:700;margin-left:2px;">Resume from ${b.source || "Prior Chat"}</span>`;
-            injBtn.title = `Resume conversation carried over from ${b.source || "prior session"}`;
-          }
-        });
-      }
-    } catch { /* ignore */ }
 
     let rafPending = false;
     const schedulePosition = () => {
@@ -481,7 +491,7 @@
 
   function positionFab(bar, input) {
     if (!input || !bar) return;
-    if (!document.body.contains(input)) {
+    if (!document.body.contains(input) || isSidebarElement(input)) {
       bar.style.setProperty("display", "none", "important");
       return;
     }
@@ -497,12 +507,13 @@
     const barWidth = bar.offsetWidth || 340;
     const viewportWidth = window.innerWidth;
 
-    let top = rect.top - barHeight - 8;
-    if (top < 8) {
+    // Position directly docked above the chat input container
+    let top = rect.top - barHeight - 10;
+    if (top < 12) {
       top = rect.top + 8;
     }
 
-    let left = rect.right - barWidth - 8;
+    let left = rect.right - barWidth - 10;
     if (left < 16) left = 16;
     if (left + barWidth > viewportWidth - 16) {
       left = Math.max(16, viewportWidth - barWidth - 16);
@@ -550,22 +561,22 @@
     const cleanInput = text.replace(/^(please|can you|help me|i want to|i need to|how to|write|create|build|fix|generate|make)\s+/i, "");
     const subject = cleanInput.length > 0 ? cleanInput : text;
 
-    let role = "Senior Subject Matter Expert & Systems Architect";
-    let sec1 = "Key Requirements & Specifications";
-    let sec2 = "Execution Guidelines";
+    let role = "Senior Subject Matter Expert & Technical Architect";
+    let sec1 = "SPECIFICATIONS & ARCHITECTURAL CONSTRAINTS";
+    let sec2 = "STEP-BY-STEP EXECUTION PROTOCOL";
 
     if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|script|refactor|error|fix|css|html)\b/i.test(text)) {
-      role = "Principal Software Engineer & Technical Architect";
-      sec1 = "Architecture & Technical Specifications";
-      sec2 = "Implementation Guidelines";
+      role = "Principal Software Architect & Lead Systems Engineer";
+      sec1 = "TECHNICAL SPECIFICATIONS & QUALITY CONSTRAINTS";
+      sec2 = "IMPLEMENTATION PROTOCOL";
     } else if (/\b(write|blog|article|email|post|essay|copy|letter|content|draft|story|headline|tweet|linkedin|newsletter)\b/i.test(text)) {
       role = "Elite Content Director & Strategic Copywriter";
-      sec1 = "Audience Hook & Narrative Strategy";
-      sec2 = "Content Directives";
+      sec1 = "AUDIENCE HOOK & CONTENT DIRECTIVES";
+      sec2 = "NARRATIVE EXECUTION STEPS";
     }
 
     return `### ROLE & PERSONA
-You are an authoritative ${role}. Execute this task with production-grade rigor:
+You are an authoritative ${role}. Execute this task with highest quality and production-grade precision:
 "${text}"
 
 ### ${sec1}
@@ -574,12 +585,12 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
 - **Constraints**: Deliver complete, unabridged solutions without placeholders or assumptions.
 
 ### ${sec2}
-1. Analyze core requirements for "${subject}" and address implicit edge cases.
+1. Analyze core requirements for "${subject}" and anticipate implicit edge cases.
 2. Structure output with modular sections, scannable Markdown headers, and concrete code/examples.
 3. Eliminate all conversational introductory fluff and meta commentary.
 
 ### DELIVERABLES & OUTPUT FORMAT
-- Deliver complete, immediately usable results formatted in clean Markdown.`;
+- Deliver immediately usable results formatted in clean Markdown.`;
   }
 
   function openPanel() {
@@ -589,188 +600,163 @@ You are an authoritative ${role}. Execute this task with production-grade rigor:
     }
 
     panelEl = document.createElement("div");
-    panelEl.id = "pp-side-panel";
-    Object.assign(panelEl.style, {
-      position: "fixed", top: "0", right: "0", width: "420px", height: "100vh",
-      background: "rgba(10,10,14,0.96)", borderLeft: "1px solid rgba(255,255,255,0.1)",
-      zIndex: "100000000", display: "flex", flexDirection: "column",
-      boxShadow: "-8px 0 32px rgba(0,0,0,0.6)", backdropFilter: "blur(20px)",
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif", color: "#f4f4f5"
-    });
-
+    panelEl.className = "pp-panel";
+    panelEl.id = "pp-panel";
     panelEl.innerHTML = `
-      <div style="padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <div style="width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #4f46e5); display: flex; align-items: center; justify-content: center; font-weight: 700;">⚡</div>
-          <div>
-            <div style="font-weight: 700; font-size: 14px;">Prompt+ <span style="font-weight: 400; color: #a1a1aa; font-size: 12px;">Architect AI v2.0</span></div>
-            <div style="font-size: 10px; color: #34d399; font-weight: 600;">🟢 WEB SYNCED</div>
-          </div>
+      <div class="pp-panel-header">
+        <div class="pp-panel-title">
+          <div style="width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,#6366f1,#4f46e5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;">✦</div>
+          <span>Prompt+ Studio</span>
+          <span style="font-size:9.5px;padding:2px 6px;border-radius:4px;background:rgba(99,102,241,0.2);color:#a5b4fc;font-weight:700;">v2.1.2</span>
         </div>
-        <button id="pp-panel-close" style="background: transparent; border: none; color: #a1a1aa; font-size: 20px; cursor: pointer; padding: 4px;">✕</button>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span id="pp-panel-token-need" style="font-size:10px;color:#10b981;font-weight:700;">⚡ ~0 tok</span>
+          <button type="button" class="pp-panel-close" id="pp-panel-close">✕</button>
+        </div>
       </div>
+      <div class="pp-panel-body">
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="display:flex;justify-content:space-between;font-size:10.5px;color:#71717a;font-weight:700;text-transform:uppercase;">
+            <span>Raw Prompt</span>
+            <span id="pp-panel-char-count">0 chars</span>
+          </div>
+          <textarea class="pp-panel-textarea" id="pp-panel-input" placeholder="Type or refine your prompt idea..."></textarea>
+        </div>
 
-      <div style="padding: 16px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;">
-        <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: #a1a1aa; letter-spacing: 0.05em;">Original User Input</div>
-        <textarea id="pp-panel-input" rows="4" style="width: 100%; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: #f4f4f5; font-size: 13px; font-family: inherit; resize: vertical; outline: none;" placeholder="Type or edit your prompt idea..."></textarea>
-
-        <button id="pp-panel-enhance-btn" style="padding: 12px; border-radius: 12px; background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 16px rgba(99,102,241,0.4);">
-          <span>⚡ Enhance Prompt Live</span>
+        <button type="button" class="pp-panel-enhance-btn" id="pp-panel-enhance-btn">
+          <span>⚡ Compile Master Prompt</span>
         </button>
 
-        <!-- Panel Token Remaining Bar -->
-        <div style="padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); display: flex; flex-direction: column; gap: 5px;">
-          <div style="display: flex; justify-content: space-between; font-size: 10px; color: #a1a1aa;">
-            <span id="pp-panel-token-need">⚡ ~0 Tokens needed</span>
-            <span id="pp-panel-token-rem" style="color: #10b981; font-weight: 700;">88 / 100 Free Units</span>
+        <div class="pp-panel-result" id="pp-panel-result" style="display:none;">
+          <div class="pp-panel-result-header">
+            <div style="display:flex;gap:5px;align-items:center;">
+              <span id="pp-panel-score" style="font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(16,185,129,0.15);color:#34d399;">Score: 94/100</span>
+              <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:rgba(99,102,241,0.15);color:#a5b4fc;">⚡ &lt;25ms</span>
+            </div>
+            <span id="pp-panel-engine-tag" style="font-size:10px;color:#a1a1aa;">Master Prompt</span>
           </div>
-          <div style="width: 100%; height: 4px; border-radius: 9999px; background: rgba(255,255,255,0.08); overflow: hidden;">
-            <div id="pp-panel-token-fill" style="height: 100%; border-radius: 9999px; background: linear-gradient(90deg, #6366f1 0%, #10b981 100%); width: 88%;"></div>
+          <div class="pp-panel-result-body" id="pp-panel-result-body"></div>
+          <div class="pp-panel-result-actions">
+            <button type="button" class="pp-panel-action-btn pp-panel-btn-copy" id="pp-panel-btn-copy">📋 Copy</button>
+            <button type="button" class="pp-panel-action-btn pp-panel-btn-use" id="pp-panel-btn-use">🚀 Apply to Chat</button>
           </div>
-        </div>
-
-        <div id="pp-panel-msg" style="font-size: 12px; display: none; padding: 8px 12px; border-radius: 8px;"></div>
-
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-          <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: #a1a1aa; letter-spacing: 0.05em;">Enhanced Master Prompt</span>
-          <span id="pp-panel-score" style="font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.4); color: #34d399; display: none;">Score: 98/100</span>
-        </div>
-
-        <div id="pp-panel-result" style="flex: 1; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); font-size: 12px; font-family: monospace; white-space: pre-wrap; color: #e4e4e7; min-height: 180px; overflow-y: auto;">
-          Click "Enhance Prompt Live" above to compile master instruction
-        </div>
-
-        <div style="display: flex; gap: 8px; margin-top: 4px;">
-          <button id="pp-panel-copy" style="flex: 1; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #f4f4f5; font-size: 12px; font-weight: 600; cursor: pointer;">Copy Result</button>
-          <button id="pp-panel-inject" style="flex: 1; padding: 10px; border-radius: 10px; background: linear-gradient(135deg, #34d399, #059669); border: none; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer;">Apply to Chat Input ✓</button>
         </div>
       </div>
     `;
 
     document.body.appendChild(panelEl);
 
-    document.getElementById("pp-panel-close")?.addEventListener("click", () => {
+    const closeBtn = panelEl.querySelector("#pp-panel-close");
+    const panelInput = panelEl.querySelector("#pp-panel-input");
+    const panelEnhanceBtn = panelEl.querySelector("#pp-panel-enhance-btn");
+    const panelResult = panelEl.querySelector("#pp-panel-result");
+    const panelResultBody = panelEl.querySelector("#pp-panel-result-body");
+    const panelBtnCopy = panelEl.querySelector("#pp-panel-btn-copy");
+    const panelBtnUse = panelEl.querySelector("#pp-panel-btn-use");
+    const panelCharCount = panelEl.querySelector("#pp-panel-char-count");
+    const panelTokenNeed = panelEl.querySelector("#pp-panel-token-need");
+
+    closeBtn?.addEventListener("click", () => {
       panelEl.style.display = "none";
     });
 
-    const panelEnhanceBtn = document.getElementById("pp-panel-enhance-btn");
-    const panelInput = document.getElementById("pp-panel-input");
-    const panelResult = document.getElementById("pp-panel-result");
-    const panelScore = document.getElementById("pp-panel-score");
-    const panelMsg = document.getElementById("pp-panel-msg");
-    const panelTokenNeed = document.getElementById("pp-panel-token-need");
-    const panelTokenRem = document.getElementById("pp-panel-token-rem");
-    const panelTokenFill = document.getElementById("pp-panel-token-fill");
-
     panelInput?.addEventListener("input", () => {
-      const val = panelInput.value || "";
-      const tokens = Math.ceil(val.length / 3.8);
-      if (panelTokenNeed) panelTokenNeed.textContent = `⚡ ~${tokens} Tokens needed`;
-      if (panelTokenRem && userQuota) {
-        panelTokenRem.textContent = `${userQuota.remaining || 88} / 100 Free Units`;
-      }
-      if (panelTokenFill && userQuota) {
-        const dynamicRemaining = Math.max(0, userQuota.remaining - (tokens > 50 ? 1 : 0));
-        const fillPct = Math.max(8, Math.min(100, Math.round((dynamicRemaining / (userQuota.monthlyLimit || 100)) * 100)));
-        panelTokenFill.style.width = `${fillPct}%`;
-      }
+      const len = panelInput.value.length;
+      const tokens = Math.ceil(len / 3.8);
+      if (panelCharCount) panelCharCount.textContent = `${len} chars`;
+      if (panelTokenNeed) panelTokenNeed.textContent = `⚡ ~${tokens} tok`;
     });
 
-    panelEnhanceBtn?.addEventListener("click", () => {
-      const text = panelInput?.value?.trim();
+    let lastEnhanced = "";
+
+    panelEnhanceBtn?.addEventListener("click", async () => {
+      const text = panelInput.value.trim();
       if (!text) {
-        if (panelMsg) {
-          panelMsg.textContent = "⚠️ Please type a prompt first!";
-          panelMsg.style.display = "block";
-          panelMsg.style.background = "rgba(239,68,68,0.15)";
-          panelMsg.style.color = "#f87171";
-        }
+        showToast("Please enter a prompt idea!");
         return;
       }
 
-      if (panelEnhanceBtn) panelEnhanceBtn.disabled = true;
-      if (panelResult) panelResult.textContent = "Enhancing prompt with Prompt+ Intelligence...";
+      panelEnhanceBtn.disabled = true;
+      panelEnhanceBtn.innerHTML = "<span>⚡ Compiling Master Prompt...</span>";
+      panelResult.style.display = "flex";
+      panelResultBody.textContent = "Compiling with Prompt+ Intelligence...";
 
-      const finishEnhancement = (enhanced, sourceLabel = "Cloud AI") => {
-        if (panelEnhanceBtn) panelEnhanceBtn.disabled = false;
-        if (panelResult) panelResult.textContent = enhanced;
-        if (panelScore) {
-          panelScore.textContent = "Score: 98/100";
-          panelScore.style.display = "inline-flex";
-        }
-        if (panelMsg) {
-          panelMsg.textContent = `⚡ Enhanced via ${sourceLabel}!`;
-          panelMsg.style.display = "block";
-          panelMsg.style.background = "rgba(52,211,153,0.15)";
-          panelMsg.style.color = "#34d399";
-          setTimeout(() => { panelMsg.style.display = "none"; }, 3500);
-        }
-      };
+      let result = "";
 
+      // Try background message route
       try {
-        chrome.runtime.sendMessage(
-          { action: "enhancePrompt", text, mode: "api", level: "deep" },
-          (res) => {
-            if (res && res.success && res.data?.enhanced) {
-              finishEnhancement(res.data.enhanced, res.data.model || "Cloud AI");
-            } else {
-              finishEnhancement(synthesizeLocalPrompt(text), "⚡ No-API Rule Engine");
-            }
-          }
-        );
-      } catch {
-        finishEnhancement(synthesizeLocalPrompt(text), "⚡ No-API Rule Engine");
-      }
-    });
-
-    document.getElementById("pp-panel-copy")?.addEventListener("click", () => {
-      const text = panelResult?.textContent;
-      if (text && !text.startsWith("Click")) {
-        navigator.clipboard.writeText(text);
-        showToast("✓ Master prompt copied to clipboard!");
-      }
-    });
-
-    document.getElementById("pp-panel-inject")?.addEventListener("click", () => {
-      const text = panelResult?.textContent;
-      if (text && !text.startsWith("Click")) {
-        const target = currentTarget || getInput();
-        if (target) {
-          setText(target, text);
-          showToast("✓ Applied enhanced prompt to chat input!");
-          if (panelEl) panelEl.style.display = "none";
+        const res = await new Promise((resolve) => {
+          chrome.runtime.sendMessage(
+            { action: "enhancePrompt", text, mode: "api", level: "code" },
+            (r) => resolve(r)
+          );
+        });
+        if (res?.success && res.data?.enhanced) {
+          result = res.data.enhanced;
         }
+      } catch {}
+
+      // Fallback synthesizer
+      if (!result) {
+        result = synthesizeLocalPrompt(text);
+      }
+
+      lastEnhanced = result;
+      panelResultBody.textContent = result;
+      panelEnhanceBtn.disabled = false;
+      panelEnhanceBtn.innerHTML = "<span>⚡ Compile Master Prompt</span>";
+      showToast("✓ Master prompt compiled!");
+    });
+
+    panelBtnCopy?.addEventListener("click", () => {
+      if (lastEnhanced) {
+        navigator.clipboard.writeText(lastEnhanced);
+        panelBtnCopy.textContent = "✓ Copied!";
+        setTimeout(() => { panelBtnCopy.textContent = "📋 Copy"; }, 2000);
+      }
+    });
+
+    panelBtnUse?.addEventListener("click", () => {
+      const el = currentTarget || getInput();
+      if (el && lastEnhanced) {
+        setText(el, lastEnhanced);
+        panelEl.style.display = "none";
+        showToast("✓ Master prompt applied to chatbox!");
       }
     });
   }
 
-  // Setup periodic mutation observer to attach to dynamic chat textareas
-  let lastTarget = null;
+  // Keyboard shortcut listener: Cmd+Shift+P / Ctrl+Shift+P to enhance in-place
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "P" || e.key === "p")) {
+      e.preventDefault();
+      const input = getInput();
+      if (input) {
+        const text = getText(input);
+        if (text && text.trim()) {
+          showToast("⚡ Compiling master prompt in-place...");
+          const master = synthesizeLocalPrompt(text);
+          setText(input, master);
+          showToast("✓ Prompt optimized in-place!");
+        } else {
+          openPanel();
+        }
+      } else {
+        openPanel();
+      }
+    }
+  });
+
+  // Observe DOM changes to re-inject when new chat views render
   setInterval(() => {
     const input = getInput();
-    if (input && input !== lastTarget) {
-      lastTarget = input;
+    if (input && !document.querySelector(".pp-fab-bar")) {
       injectFab();
     }
   }, 1000);
 
-  // Initial trigger
-  setTimeout(injectFab, 800);
-
-  // Chrome Message Listener for in-page actions
-  chrome.runtime?.onMessage?.addListener((req, sender, sendResponse) => {
-    if (req.action === "injectEnhanced" && req.enhanced) {
-      const input = getInput();
-      if (input) {
-        setText(input, req.enhanced);
-        showToast("✓ Enhanced prompt injected into active chat!");
-        sendResponse({ success: true });
-      } else {
-        sendResponse({ success: false, error: "No active chat input detected" });
-      }
-    } else if (req.action === "openEnhancePanel") {
-      openPanel();
-      sendResponse({ success: true });
-    }
+  window.addEventListener("focus", () => {
+    const input = getInput();
+    if (input) injectFab();
   });
 })();
