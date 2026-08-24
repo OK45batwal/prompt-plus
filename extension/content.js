@@ -434,13 +434,21 @@
     if (!text) return "";
     const cleanInput = text.replace(/^(please|can you|help me|i want to|i need to|how to|write|create|build|fix|generate|make)\s+/i, "");
     const subject = cleanInput.length > 0 ? cleanInput : text;
+    const bot = detectChatbot();
 
     let role = "Senior Subject Matter Expert & Principal Architect";
     let toneStr = "Technically Rigorous, Production-Grade";
     let sec1 = "SPECIFICATIONS & ARCHITECTURAL CONSTRAINTS";
     let sec2 = "IMPLEMENTATION PROTOCOL";
+    let antiCliche = "- **STRICT ANTI-CLICHÉ PROTOCOL**: Never use robotic AI buzzwords ('delve into', 'tapestry', 'testament', 'in conclusion', 'as an AI', 'game changer', 'unleash', 'seamlessly').";
 
-    if (tone === "copy") {
+    if (tone === "human") {
+      role = "Experienced Senior Peer & Pragmatic Thought Partner";
+      toneStr = "Authentic, Human-Sounding, Natural Cadence & Zero Fluff";
+      sec1 = "CORE GOAL & AUTHENTIC HUMAN CONTEXT";
+      sec2 = "PRAGMATIC EXECUTION STEPS";
+      antiCliche = "- **STRICT HUMAN VOICE MANDATE**: Write naturally like an experienced human peer. Vary sentence length for organic rhythm. Eliminate preamble ('Certainly! Here is...') and concluding summaries. Explicitly avoid all AI buzzwords and corporate fluff.";
+    } else if (tone === "copy") {
       role = "Elite Conversion Copywriter & Brand Strategist";
       toneStr = "High-Conversion, Punchy & Action-Oriented";
       sec1 = "AUDIENCE HOOK & VALUE DIRECTIVES";
@@ -457,6 +465,24 @@
       sec2 = "STEP-BY-STEP DEDUCTION & VALIDATION";
     }
 
+    if (bot === "claude") {
+      return `<role_and_objective>
+  <persona>${role}</persona>
+  <task>${text}</task>
+</role_and_objective>
+
+<specifications>
+  <subject>${subject}</subject>
+  <tone_profile>${toneStr}</tone_profile>
+  <anti_cliche_mandate>${antiCliche.replace("- **STRICT ANTI-CLICHÉ PROTOCOL**: ", "").replace("- **STRICT HUMAN VOICE MANDATE**: ", "")}</anti_cliche_mandate>
+</specifications>
+
+<execution_steps>
+  <step>1. Analyze objective from first principles.</step>
+  <step>2. Provide direct, production-grade output formatted cleanly without meta commentary.</step>
+</execution_steps>`;
+    }
+
     return `### ROLE & PERSONA
 You are an authoritative ${role}. Execute this task with highest precision:
 "${text}"
@@ -464,12 +490,13 @@ You are an authoritative ${role}. Execute this task with highest precision:
 ### ${sec1}
 - **Subject**: "${subject}"
 - **Tone Profile**: ${toneStr}
-- **Constraints**: Deliver complete, unabridged solutions without placeholders or conversational fluff.
+${antiCliche}
+- **Quality Constraint**: Deliver complete, immediately usable results without placeholders or conversational fluff.
 
 ### ${sec2}
 1. Analyze core requirements for "${subject}" and anticipate implicit edge cases.
 2. Structure output with modular sections, scannable Markdown headers, and concrete code/examples.
-3. Validate solution against scalability, efficiency, and reliability best practices.
+3. Validate solution against real-world usability, scalability, and performance.
 
 ### DELIVERABLES & OUTPUT FORMAT
 - Deliver complete, immediately usable results formatted in clean Markdown.`;
@@ -539,6 +566,7 @@ You are an authoritative ${role}. Execute this task with highest precision:
       </div>
 
       <div class="pp-tone-row">
+        <div class="pp-tone-chip ${selectedTone === "human" ? "active" : ""}" data-tone="human">🗣️ Human Voice</div>
         <div class="pp-tone-chip ${selectedTone === "code" ? "active" : ""}" data-tone="code">💻 Tech</div>
         <div class="pp-tone-chip ${selectedTone === "copy" ? "active" : ""}" data-tone="copy">📈 Copy</div>
         <div class="pp-tone-chip ${selectedTone === "exec" ? "active" : ""}" data-tone="exec">👔 Executive</div>

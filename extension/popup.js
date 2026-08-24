@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const contextVaultList = document.getElementById("context-vault-list");
 
   let currentMode = "api";
-  let currentTone = "code";
+  let currentTone = "human";
   let enhancedResult = "";
   let isListening = false;
   let recognitionInstance = null;
@@ -460,8 +460,15 @@ document.addEventListener("DOMContentLoaded", () => {
     let toneStr = "Technically Rigorous, Production-Ready";
     let sec1 = "SPECIFICATIONS & ARCHITECTURE";
     let sec2 = "IMPLEMENTATION PROTOCOL";
+    let antiCliche = "- **STRICT ANTI-CLICHÉ PROTOCOL**: Never use robotic AI buzzwords ('delve into', 'tapestry', 'testament', 'in conclusion', 'as an AI', 'game changer', 'unleash', 'seamlessly').";
 
-    if (currentTone === "copy") {
+    if (currentTone === "human") {
+      role = "Experienced Senior Peer & Pragmatic Thought Partner";
+      toneStr = "Authentic, Human-Sounding, Natural Cadence & Zero Fluff";
+      sec1 = "CORE GOAL & AUTHENTIC HUMAN CONTEXT";
+      sec2 = "PRAGMATIC EXECUTION STEPS";
+      antiCliche = "- **STRICT HUMAN VOICE MANDATE**: Write naturally like an experienced human peer. Vary sentence length for organic rhythm. Eliminate preamble ('Certainly! Here is...') and concluding summaries. Explicitly avoid all AI buzzwords and corporate fluff.";
+    } else if (currentTone === "copy") {
       role = "Elite Conversion Copywriter & Brand Strategist";
       toneStr = "High-Conversion, Punchy & Action-Oriented";
       sec1 = "AUDIENCE HOOK & VALUE DIRECTIVES";
@@ -478,6 +485,25 @@ document.addEventListener("DOMContentLoaded", () => {
       sec2 = "STEP-BY-STEP DEDUCTION & VALIDATION";
     }
 
+    if (activeBot.name.toLowerCase().includes("claude")) {
+      return `<role_and_objective>
+  <persona>${role}</persona>
+  <task>${text}</task>
+</role_and_objective>
+
+<specifications>
+  <subject>${subject}</subject>
+  <tone_profile>${toneStr}</tone_profile>
+  <active_project_context>${activeContextBlocks.join(", ")}</active_project_context>
+  <anti_cliche_mandate>${antiCliche.replace("- **STRICT ANTI-CLICHÉ PROTOCOL**: ", "").replace("- **STRICT HUMAN VOICE MANDATE**: ", "")}</anti_cliche_mandate>
+</specifications>
+
+<execution_steps>
+  <step>1. Analyze objective from first principles.</step>
+  <step>2. Provide direct, production-grade output formatted cleanly without meta commentary.</step>
+</execution_steps>`;
+    }
+
     return `### ROLE & PERSONA
 You are an authoritative ${role}. Execute this task with highest precision:
 "${text}"
@@ -486,6 +512,7 @@ You are an authoritative ${role}. Execute this task with highest precision:
 - **Subject**: "${subject}"
 - **Tone Profile**: ${toneStr}
 - **Active Project Context**: ${activeContextBlocks.join(", ")}
+${antiCliche}
 - **Constraints**: Deliver complete, production-grade output without omissions, placeholders, or conversational fluff.
 
 ### ${sec2}
