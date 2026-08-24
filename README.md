@@ -1,12 +1,10 @@
 <div align="center">
 
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0a0a0c,60:1e1b4b,100:4f46e5&height=150&section=header&text=PROMPT%2B&fontSize=44&fontColor=ffffff&fontAlign=50&fontAlignY=38&desc=Enterprise%20AI%20Prompt%20Compiler%20%2B%20Context%20Bridge%20%2B%20Chrome%20Extension&descSize=14&descAlign=50&descAlignY=64" width="100%" alt="Prompt+ banner" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:0a0a0c,60:1e1b4b,100:4f46e5&height=150&section=header&text=PROMPT%2B&fontSize=44&fontColor=ffffff&fontAlign=50&fontAlignY=38&desc=Enterprise%20AI%20Prompt%20Compiler%20%2B%20Human%20Voice%20Engine%20%2B%20Universal%20Extension&descSize=14&descAlign=50&descAlignY=64" width="100%" alt="Prompt+ banner" />
 
-  <h1>Prompt+</h1>
+  <h1>Prompt+ Architect AI</h1>
   <p>
-    <strong>Enterprise-grade AI prompt engineering & compilation.</strong> Rewrite rough ideas into role-conditioned, constraint-rich
-    instructions built for <strong>ChatGPT · Claude · Gemini · DeepSeek</strong> — with sub-30ms <strong>Loop Engineering</strong>,
-    a cross-AI <strong>Context Memory Bridge</strong>, a private <strong>On-Device Gemini Nano</strong> mode, and a native browser extension.
+    <strong>Enterprise-grade AI prompt engineering & universal compilation suite.</strong> Rewrite rough thoughts into role-conditioned, constraint-rich, humanized instructions built for <strong>Gemini · ChatGPT · Claude · DeepSeek · Grok · Perplexity · Copilot</strong> — featuring sub-30ms <strong>Loop Engineering</strong>, an authentic <strong>Human Voice & Anti-AI Cliché Engine</strong>, real-time <strong>Token Context Telemetry</strong>, and a native browser extension.
   </p>
 
   <br>
@@ -15,28 +13,27 @@
     <a href="https://prompt-plus-three.vercel.app/">
       <img src="https://img.shields.io/badge/Production-Live-6366f1?style=for-the-badge&logo=vercel&logoColor=white&labelColor=0a0a0c" alt="Live app" />
     </a>
-    <a href="https://chromewebstore.google.com/detail/gdfaohfmmjjmpiggdcankjjihpljoccn">
-      <img src="https://img.shields.io/badge/Chrome_Web_Store-Live_v1.3.2-10b981?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=0a0a0c" alt="Chrome Web Store" />
+    <a href="https://chromewebstore.google.com/detail/prompt+-architect-ai">
+      <img src="https://img.shields.io/badge/Chrome_Web_Store-v2.1.3-10b981?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=0a0a0c" alt="Chrome Web Store" />
     </a>
-    <a href="https://github.com/OK45batwal/Prompt-plus">
-      <img src="https://img.shields.io/github/stars/OK45batwal/Prompt-plus?style=for-the-badge&logo=github&logoColor=white&labelColor=0a0a0c&color=eab308" alt="Stars" />
+    <a href="https://github.com/OK45batwal/prompt-plus">
+      <img src="https://img.shields.io/github/stars/OK45batwal/prompt-plus?style=for-the-badge&logo=github&logoColor=white&labelColor=0a0a0c&color=eab308" alt="Stars" />
     </a>
-    <a href="https://github.com/OK45batwal/Prompt-plus/actions">
-      <img src="https://img.shields.io/github/actions/workflow/status/OK45batwal/Prompt-plus/ci.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=CI&labelColor=0a0a0c&color=10b981" alt="CI" />
+    <a href="https://github.com/OK45batwal/prompt-plus/actions">
+      <img src="https://img.shields.io/badge/CI-Passing_(94_Tests)-10b981?style=for-the-badge&logo=githubactions&logoColor=white&labelColor=0a0a0c" alt="CI" />
     </a>
     <a href="LICENSE">
       <img src="https://img.shields.io/badge/License-Proprietary-ef4444?style=for-the-badge&labelColor=0a0a0c&color=ef4444" alt="License" />
     </a>
   </p>
 
-  <!-- Nav -->
+  <!-- Navigation -->
   <p>
-    <a href="#features"><strong>Features</strong></a> ·
-    <a href="#visual-tour"><strong>Visual Tour</strong></a> ·
-    <a href="#loop-engine"><strong>Loop Engine</strong></a> ·
-    <a href="#browser-extension"><strong>Extension v1.3.2</strong></a> ·
+    <a href="#features"><strong>Core Features</strong></a> ·
+    <a href="#supported-platforms"><strong>Universal Compatibility</strong></a> ·
+    <a href="#human-voice-engine"><strong>Human Voice Engine</strong></a> ·
+    <a href="#browser-extension"><strong>Extension v2.1.3</strong></a> ·
     <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
-    <a href="#api-reference"><strong>API Reference</strong></a> ·
     <a href="#quickstart"><strong>Quickstart</strong></a>
   </p>
 
@@ -51,240 +48,160 @@
 <table width="100%">
   <tr>
     <td width="33%" valign="top">
-      <p align="center"><strong>⚡ Sub-30ms Loop Engine</strong></p>
-      <p align="center" style="font-size:13px;color:#94a3b8">Autonomous closed-loop refinement (<em>Generate → Evaluate → Auto-Repair → Polish</em>) with AutoCorrect typo normalization and Zero-Fluff Sanitizer.</p>
+      <p align="center"><strong>🗣️ Human Voice & Anti-Cliché Engine</strong></p>
+      <p align="center" style="font-size:13px;color:#94a3b8">Bans overused robotic AI tropes (<em>"delve into"</em>, <em>"tapestry"</em>, <em>"game changer"</em>) and formats outputs with authentic human cadence, varied sentence lengths, and zero corporate fluff.</p>
     </td>
     <td width="33%" valign="top">
-      <p align="center"><strong>📦 Cross-AI Context Bridge</strong></p>
-      <p align="center" style="font-size:13px;color:#94a3b8">1-click memory capture to seamlessly hand off active chat context between ChatGPT, Claude 3.5 Sonnet, Gemini 2.0, and DeepSeek.</p>
+      <p align="center"><strong>⚡ Sub-30ms Loop Engine</strong></p>
+      <p align="center" style="font-size:13px;color:#94a3b8">Closed-loop refinement (<em>Generate → Evaluate → Auto-Repair → Polish</em>) with automated typo normalization, variable parameter extraction, and structured output formatting.</p>
     </td>
-    <td width="34%" valign="top">
-      <p align="center"><strong>📱 On-Device Gemini Nano</strong></p>
-      <p align="center" style="font-size:13px;color:#94a3b8">Runs 100% locally in Chrome via the Prompt API. Fully private, zero latency, offline, and no API keys required.</p>
+    <td width="33%" valign="top">
+      <p align="center"><strong>📊 Real-Time Token Telemetry</strong></p>
+      <p align="center" style="font-size:13px;color:#94a3b8">Live context capacity tracking on every chatbot: <strong>1M context for Gemini</strong>, <strong>2M for AI Studio</strong>, <strong>200K for Claude 3.5</strong>, and <strong>128K for ChatGPT / DeepSeek</strong>.</p>
     </td>
   </tr>
   <tr>
-    <td valign="top">
-      <p align="center"><strong>📊 Real-Time Analytics Hub</strong></p>
-      <p align="center" style="font-size:13px;color:#94a3b8">Optimization velocity wave chart, AI model distribution breakdown, latency telemetry, and live execution audit stream.</p>
+    <td width="33%" valign="top">
+      <p align="center"><strong>🪟 In-Chat Instant Optimizer</strong></p>
+      <p align="center" style="font-size:13px;color:#94a3b8">Compact floating trigger button docked cleanly to any chatbot capsule. Draggable anywhere with double-click reset and 1-click in-place replacement.</p>
     </td>
-    <td valign="top">
-      <p align="center"><strong>🔔 In-App Notification Center</strong></p>
-      <p align="center" style="font-size:13px;color:#94a3b8">Real-time alert notifications with unread badges, category filtering (System, Optimization, Security), and 1-click dismiss actions.</p>
+    <td width="33%" valign="top">
+      <p align="center"><strong>🎯 Model-Tuned Architectures</strong></p>
+      <p align="center" style="font-size:13px;color:#94a3b8">Emits structured XML tags (<code>&lt;role&gt;</code>, <code>&lt;specifications&gt;</code>) for Claude 3.5 Sonnet and high-contrast Markdown with verification steps for ChatGPT, Gemini, and DeepSeek.</p>
     </td>
-    <td valign="top">
-      <p align="center"><strong>🔐 AES-256 Cloud Key Vault</strong></p>
-      <p align="center" style="font-size:13px;color:#94a3b8">Encrypted server persistence for OpenAI, Anthropic, Google, and OpenRouter keys with live syntax & connectivity validation.</p>
+    <td width="33%" valign="top">
+      <p align="center"><strong>🔐 Enterprise Security & Privacy</strong></p>
+      <p align="center" style="font-size:13px;color:#94a3b8">Multi-tenant isolation, AES-256 encrypted context vaults, strictly enforced CSRF protection headers, rate limiting, and zero third-party telemetry leakage.</p>
     </td>
   </tr>
 </table>
+
 </div>
 
 ---
 
-## Visual Tour
+<a name="supported-platforms"></a>
+## Universal Chatbot Compatibility (12+ AI Platforms)
 
-<div align="center">
-  <table>
-    <tr>
-      <td width="50%">
-        <img src="./public/screenshots/landing.png" alt="Landing page" width="100%" />
-        <p align="center"><sub><strong>Landing page & hero</strong></sub></p>
-      </td>
-      <td width="50%">
-        <img src="./public/screenshots/dashboard-home.png" alt="Dashboard home" width="100%" />
-        <p align="center"><sub><strong>Dashboard command center & quick stats</strong></sub></p>
-      </td>
-    </tr>
-    <tr>
-      <td width="50%">
-        <img src="./public/screenshots/dashboard-new.png" alt="Prompt builder" width="100%" />
-        <p align="center"><sub><strong>AI Studio with Voice Dictation & Context Memory</strong></sub></p>
-      </td>
-      <td width="50%">
-        <img src="./public/screenshots/dashboard-library.png" alt="Prompt library" width="100%" />
-        <p align="center"><sub><strong>Saved prompts & curated blueprints</strong></sub></p>
-      </td>
-    </tr>
-    <tr>
-      <td width="50%">
-        <img src="./public/screenshots/dashboard-collections.png" alt="Collections" width="100%" />
-        <p align="center"><sub><strong>Custom prompt collections</strong></sub></p>
-      </td>
-      <td width="50%">
-        <img src="./public/screenshots/dashboard-settings.png" alt="Settings & security" width="100%" />
-        <p align="center"><sub><strong>Developer persona, avatar presets & engine controls</strong></sub></p>
-      </td>
-    </tr>
-  </table>
-</div>
+Prompt+ runs universally across all major web-based AI interfaces with **Multi-Strategy Rich Text Injection** (Quill, ProseMirror, Slate, Lexical, and native inputs):
+
+| AI Platform | Supported Hostnames & Webapps | Model Context Limit |
+| :--- | :--- | :---: |
+| **Google Gemini** | `gemini.google.com/app` | **1,000,000 (1M tokens)** |
+| **Google AI Studio** | `aistudio.google.com` | **2,000,000 (2M tokens)** |
+| **ChatGPT (OpenAI)** | `chatgpt.com`, `chat.openai.com` | **128,000 (128K tokens)** |
+| **Claude (Anthropic)** | `claude.ai` | **200,000 (200K tokens)** |
+| **DeepSeek** | `chat.deepseek.com`, `deepseek.com` | **128,000 (128K tokens)** |
+| **Grok (xAI)** | `grok.com`, `x.ai`, `x.com/i/grok` | **128,000 (128K tokens)** |
+| **Perplexity AI** | `perplexity.ai` | **32,000 (32K tokens)** |
+| **Microsoft Copilot** | `copilot.microsoft.com`, `bing.com/chat` | **128,000 (128K tokens)** |
+| **Meta AI (Llama 3)** | `meta.ai`, `www.meta.ai` | **128,000 (128K tokens)** |
+| **Mistral / Le Chat** | `chat.mistral.ai`, `lechat.mistral.ai` | **128,000 (128K tokens)** |
+| **Poe (Quora)** | `poe.com` | **128,000 (128K tokens)** |
+| **HuggingChat / Groq** | `huggingface.co/chat`, `groq.com` | **32,000 / 128,000 tokens** |
+| **Universal Fallback** | Any custom web form, CMS, or editable textarea | **128,000 tokens** |
 
 ---
 
-## Loop Engine
+<a name="human-voice-engine"></a>
+## 🗣️ Human-Like Natural Voice & Anti-Cliché Engine
 
-The Prompt+ compilation pipeline runs a multi-cycle convergence optimizer guaranteeing **<30ms execution** with structural validation.
+Tired of robotic AI boilerplate? Prompt+ automatically injects strict negative constraints and persona voice guidelines:
 
-```mermaid
-flowchart LR
-    A[Raw Input] -->|Typo Normalizer| B[1. AutoCorrect]
-    B -->|Intent Extraction| C[2. PromptIR Synthesis]
-    C -->|Domain Routing| D[3. Multi-Engine Compiler]
-    D -->|Rubric Evaluator| E[4. Quality Audit 0-100]
-    E -->|Critique & Repair| F[5. Auto-Repair Loop]
-    F -->|Zero-Fluff Stripper| G[6. Production Polish]
-    G -->|Context Handoff| H[7. One-Click Insertion]
-```
+### Banned Robotic Clichés & Jargon:
+- ❌ *"Delve into / Dive deep"*
+- ❌ *"Testament to / Tapestry of"*
+- ❌ *"In today's fast-paced digital world..."*
+- ❌ *"In conclusion / To summarize..."*
+- ❌ *"As an AI language model..."*
+- ❌ *"Game changer / Unleash your potential"*
+- ❌ *"Seamlessly / Moreover / Furthermore"*
 
-<details>
-<summary><strong>Expand the per-stage breakdown</strong></summary>
-
-| Step | Stage | Functional workflow |
-| :--- | :--- | :--- |
-| **01** | **AutoCorrect Normalizer** | Corrects 150+ developer typos (*imrpove → improve, scrpaer → scraper*) prior to compilation. |
-| **02** | **PromptIR Synthesis** | Extracts goals, domain constraints, role personas, and target model schemas. |
-| **03** | **Multi-Engine Compiler** | Dispatches to Free Server AI, Gemini Nano (On-Device), or dedicated user API keys. |
-| **04** | **Quality Scoring Audit** | Evaluates Clarity, Specificity, Structure, Context, Constraints, and Actionability. |
-| **05** | **Auto-Repair Convergence** | Executes closed-loop refinement until quality index reaches $\ge 85\text{ pts}$. |
-| **06** | **Zero-Fluff Sanitizer** | Strips preamble filler, Prompt IDs, and conversational meta-artifacts. |
-| **07** | **Context Memory Sync** | Bundles active memory blocks for 1-click execution across target web chatbots. |
-
-</details>
+### Persona Tone Profiles:
+- **🗣️ Natural Human**: Sounds like an experienced, pragmatic senior colleague talking directly to you.
+- **💻 Tech Architecture**: Direct engineering clarity, clean code blocks, trade-offs, and zero preamble.
+- **📈 Marketing Copy**: High-conversion hooks, psychological triggers, and punchy value propositions.
+- **👔 Executive Strategy**: Metric-driven, ROI-focused, and prioritized decision roadmaps.
+- **🔬 Deep Logic**: Exhaustive first-principles hypotheses and chain-of-thought deduction.
 
 ---
 
-## Browser Extension
-
-The **Manifest V3 extension (v1.3.2)** is live on the **Chrome Web Store**! It drops straight into **ChatGPT**, **Claude AI**, **Gemini**, **DeepSeek**, and **Grok**.
-
-👉 **[Install from Official Chrome Web Store](https://chromewebstore.google.com/detail/gdfaohfmmjjmpiggdcankjjihpljoccn)**
+<a name="browser-extension"></a>
+## Browser Extension (v2.1.3)
 
 ```
-┌──────────────────────────────────────────────────┐
-│  ✦  Prompt+ Intelligence v1.3.2    [ • SECURE ]   │
-│                                                  │
-│  ( On-Device )   ( No-API Engine )  ( Cloud AI ) │
-│  ⚡ Sub-30ms Loop Engine Active                   │
-│                                                  │
-│  [ Paste or type your prompt to enhance...   ]   │
-│  [              ✦  Enhance Prompt           ]    │
-│                                                  │
-│  📦 Capture Memory › Multi-Model Context Bridge  │
-│  Context: 1,240 / 128K tokens           [ 1% ]   │
-│  Prompt+ Intelligence            [ Dashboard ]   │
-└──────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│ ✦ Prompt+ Instant Optimizer          🟢 Gemini 2.0 / 1.5    │
+├─────────────────────────────────────────────────────────────┤
+│ [🗣️ Human Voice]  [💻 Tech]  [📈 Copy]  [👔 Exec]  [🔬 Deep]  │
+├─────────────────────────────────────────────────────────────┤
+│  Remaining Context: 999.4K tokens free (99.9%)              │
+│  [================================================]         │
+│  Prompt Load: ~14 tokens  |  Max Window: 1,000K tokens       │
+├─────────────────────────────────────────────────────────────┤
+│  ⚡ Optimize & Replace in Chat               📋 Copy         │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### ⌨️ Extension Keyboard Shortcuts
-
-| Shortcut | OS | Action |
-| :--- | :--- | :--- |
-| **`Cmd + Shift + P`** | macOS | Open / toggle Prompt+ floating architect panel on active chat input |
-| **`Ctrl + Shift + P`** | Windows / Linux | Open / toggle Prompt+ floating architect panel on active chat input |
-
-<details>
-<summary><strong>📥 Manual & Local Developer Installation</strong></summary>
-
-1. Official Listing: [Chrome Web Store — Prompt+ Architect AI](https://chromewebstore.google.com/detail/gdfaohfmmjjmpiggdcankjjihpljoccn).
-2. For manual developer testing: Open `chrome://extensions` $\rightarrow$ Enable **Developer mode**.
-3. Click **Load unpacked** and select the [`/extension`](./extension) folder.
-4. Visit any supported web chatbot: `chatgpt.com`, `claude.ai`, `gemini.google.com`, or `deepseek.com`.
-5. Package build script: `npm run build:extension` $\rightarrow$ produces `dist/prompt-plus-extension-v1.3.2.zip`.
-
-</details>
+### Key Capabilities:
+1. **Docked Dynamic Positioning**: Observes outer prompt capsule bounds with `ResizeObserver`. Stays perfectly aligned with no overlap on central greeting text or native action buttons.
+2. **Keyboard Shortcut**: Press `Cmd + Shift + P` (or `Ctrl + Shift + P`) to enhance in-place.
+3. **Draggable Anchor & Snap Reset**: Drag the floating pill anywhere on your screen; double-click to instantly snap back to default anchor.
+4. **Popup Studio**: 420x580 double-bezel window with two-stage view transitions, template library, and context vault.
 
 ---
 
+<a name="tech-stack"></a>
 ## Tech Stack
 
-| Layer | Technologies |
-| :--- | :--- |
-| **Framework** | Next.js 16 (App Router, Turbopack), React 19, TypeScript 5, Tailwind CSS v4, Lucide icons |
-| **Security & Auth** | NextAuth.js v5, bcrypt (cost 12), AES-256-GCM cloud key vault, CSRF protection, rate limiting |
-| **Database & ORM** | Prisma ORM v7, PostgreSQL (Neon Serverless / Prisma Postgres) |
-| **AI Model Routing** | Chrome Gemini Nano, OpenRouter Free, NVIDIA NIM, OpenAI, Anthropic |
-| **Testing & CI** | Vitest v4 (89+ tests), Playwright E2E, GitHub Actions CI pipeline |
-| **Platform** | Vercel Serverless, `@vercel/analytics`, `@vercel/speed-insights` |
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router, Server Actions, React 19)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) with Obsidian OLED design tokens
+- **Database & ORM**: [Prisma ORM](https://www.prisma.io/) with PostgreSQL / SQLite
+- **Authentication & Security**: Custom Session Auth, AES-256 Vault Encryption, Anti-CSRF Gate
+- **Browser Extension**: Chrome Extensions Manifest V3, Webpack-free lightweight vanilla JS runtime
+- **Testing**: [Vitest](https://vitest.dev/) (94 tests across 16 test suites)
 
 ---
 
-## API Reference
+<a name="quickstart"></a>
+## Quickstart & Local Development
 
-Authenticated **`/api/v1`** REST endpoints strictly guarded with CSRF protection and schema validation.
-
-<details>
-<summary><strong>📡 Expand full endpoint table</strong></summary>
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/v1/prompts` | List prompts (pagination, search, filter) |
-| `POST` | `/api/v1/prompts` | Create a prompt |
-| `GET/PUT/DELETE` | `/api/v1/prompts/[id]` | Single prompt CRUD |
-| `GET/POST` | `/api/v1/prompts/[id]/versions` | List / create prompt version history |
-| `POST` | `/api/v1/prompts/enhance-ai` | **Core** — enhance a prompt via Loop Engine |
-| `POST` | `/api/v1/prompts/analyze` | Analyze prompt intent, context gaps & complexity |
-| `POST` | `/api/v1/prompts/score` | Score prompt quality across 6 rubrics |
-| `POST` | `/api/v1/prompts/share` | Generate or revoke prompt share token |
-| `GET/POST` | `/api/v1/collections` | List / create prompt collections |
-| `GET/PUT/DELETE` | `/api/v1/collections/[id]` | Single-collection CRUD |
-| `GET/POST` | `/api/v1/templates` | List / create blueprint templates |
-| `GET/PATCH/DELETE`| `/api/v1/notifications` | In-app notification center (feed, mark read, dismiss) |
-| `GET/PATCH` | `/api/v1/user/preferences` | Persist developer personas, AI defaults & alerts |
-| `GET/POST/DELETE` | `/api/v1/api-keys` | AES-256 encrypted personal API keys vault |
-| `POST` | `/api/v1/api-keys/test` | Live syntax and connectivity validator |
-| `GET` | `/api/v1/analytics/stats` | Real-time velocity, latency & model telemetry |
-| `POST` | `/api/v1/extension/enhance` | Chrome extension compiled enhancement endpoint |
-
-</details>
-
----
-
-## Quickstart
-
+### 1. Clone & Install
 ```bash
-# 1. Clone the repository
-git clone https://github.com/OK45batwal/Prompt-plus.git
-cd Prompt-plus
-
-# 2. Install dependencies
+git clone https://github.com/OK45batwal/prompt-plus.git
+cd prompt-plus
 npm install
-
-# 3. Configure environment
-cp .env.example .env.local
-
-# 4. Initialize the database schema
-npx prisma db push
-
-# 5. Start the development server
-npm run dev
 ```
 
-Then open `http://localhost:3000` (web) or install the extension from `chrome://extensions`.
+### 2. Environment Variables
+Create `.env.local`:
+```bash
+DATABASE_URL="file:./dev.db"
+NEXTAUTH_SECRET="your-development-secret-key-min-32-chars"
+ENCRYPTION_KEY="your-hex-encoded-32-byte-aes-key"
+```
+
+### 3. Run Web Dev Server
+```bash
+npm run dev
+# Open http://localhost:3000
+```
+
+### 4. Build & Load Chrome Extension
+```bash
+npm run build:extension
+```
+- Open Google Chrome $\rightarrow$ navigate to `chrome://extensions`
+- Enable **Developer mode** (top right toggle)
+- Click **Load unpacked** $\rightarrow$ select the `extension/` folder in this repo.
+
+### 5. Run Test Suite
+```bash
+npm test
+```
 
 ---
 
-## Featured Scripts
+## License
 
-| Command | Purpose |
-| :--- | :--- |
-| `npm run dev` | Start the Next.js Turbopack dev server |
-| `npm run build` | Production bundle build + extension packaging |
-| `npm run lint` | ESLint zero-warning check over the codebase |
-| `npm test` | Run API route security gate + Vitest suite (89/89 passing) |
-| `npm run test:e2e` | Run Playwright end-to-end browser tests |
-| `npm run build:extension` | Package the Chrome extension (`v1.3.2.zip`) |
-| `npm run check-env` | Validate required environment variables |
-
----
-
-<div align="center">
-
-**License** — Copyright © 2026 **Prompt+**. All rights reserved. See [`LICENSE`](./LICENSE).
-
-[**🌐 Visit the production app**](https://prompt-plus-three.vercel.app/) · [**View repository**](https://github.com/OK45batwal/Prompt-plus) · [**Author: OK45batwal**](https://github.com/OK45batwal)
-
-<br>
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:1e1b4b,1:4f46e5&height=90&section=footer" width="100%" alt="footer" />
-
-</div>
+Proprietary © Prompt+ Team. All rights reserved.

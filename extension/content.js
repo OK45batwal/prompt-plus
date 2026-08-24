@@ -749,11 +749,43 @@ ${antiCliche}
     });
   }
 
+  function resolveChatCapsule(input) {
+    if (!input) return null;
+    let cur = input.parentElement;
+    let best = input;
+    for (let i = 0; i < 8 && cur && cur !== document.body; i++) {
+      const tag = cur.tagName.toLowerCase();
+      const cls = (cur.className || "").toString().toLowerCase();
+      if (
+        tag === "input-area-v2" ||
+        tag === "form" ||
+        tag === "fieldset" ||
+        cls.includes("input-area") ||
+        cls.includes("chat-input") ||
+        cls.includes("composer-parent") ||
+        cls.includes("text-input-field") ||
+        cls.includes("conversation-compose") ||
+        cls.includes("prosemirror-focused") ||
+        cls.includes("bottom-composer") ||
+        cls.includes("chat-composer") ||
+        cur.getAttribute("role") === "region" ||
+        cur.offsetWidth > 380
+      ) {
+        best = cur;
+      }
+      cur = cur.parentElement;
+    }
+    return best;
+  }
+
   // Inject sleek floating trigger button
   function injectFloatingButton() {
+    if (!document.body) return;
+    ensureStylesInjected();
+
     const existing = document.querySelector(".pp-floating-trigger");
     if (existing) {
-      if (existing._targetInput && document.body.contains(existing._targetInput) && !isSidebarElement(existing._targetInput)) {
+      if (document.body.contains(existing._targetInput) && isVisible(existing._targetInput)) {
         positionFloatingButton(existing, existing._targetInput);
         return;
       }
@@ -771,15 +803,16 @@ ${antiCliche}
     trigger._targetInput = input;
 
     const model = getModelContextInfo();
-    const initialVal = getText(input);
-    const initialTokens = Math.ceil(initialVal.length / 3.8);
-    const initialFreeK = ((model.maxContext - initialTokens) / 1000).toFixed(0);
+    const initialVal = getText(input).trim();
+    const initialTokens = initialVal.length > 0 ? Math.ceil(initialVal.length / 3.8) : 0;
+    const initialFreeK = Math.max(0, (model.maxContext - initialTokens) / 1000).toFixed(0);
+    const badgeLabel = initialTokens > 0 ? `${initialFreeK}K free · ~${initialTokens} tok` : `${initialFreeK}K free`;
 
     trigger.innerHTML = `
       <div class="pp-trigger-icon">✦</div>
       <div class="pp-trigger-text">
         <span>Enhance</span>
-        <span class="pp-trigger-token-badge" id="pp-trigger-tok">${initialFreeK}K free · ~${initialTokens} tok</span>
+        <span class="pp-trigger-token-badge" id="pp-trigger-tok">${badgeLabel}</span>
       </div>
     `;
 
@@ -788,12 +821,14 @@ ${antiCliche}
 
     // Live typing token count
     const updateTokens = () => {
-      const val = getText(input);
-      const tokens = Math.ceil(val.length / 3.8);
+      const val = getText(input).trim();
+      const tokens = val.length > 0 ? Math.ceil(val.length / 3.8) : 0;
       const m = getModelContextInfo();
       const freeK = Math.max(0, (m.maxContext - tokens) / 1000).toFixed(0);
       const tokBadge = trigger.querySelector("#pp-trigger-tok");
-      if (tokBadge) tokBadge.textContent = `${freeK}K free · ~${tokens} tok`;
+      if (tokBadge) {
+        tokBadge.textContent = tokens > 0 ? `${freeK}K free · ~${tokens} tok` : `${freeK}K free`;
+      }
     };
     input.addEventListener("input", updateTokens);
     updateTokens();
@@ -826,7 +861,7 @@ ${antiCliche}
     input.addEventListener("blur", schedulePosition);
     input.addEventListener("keyup", schedulePosition);
 
-    const capsule = input.closest("rich-textarea, input-area-v2, .input-area, form, .composer-parent, fieldset") || input;
+    const capsule = resolveChatCapsule(input) || input;
 
     try {
       if (window.ResizeObserver) {
@@ -863,8 +898,8 @@ ${antiCliche}
       } catch {}
     }
 
-    // Find the closest active prompt capsule
-    const capsule = input.closest("rich-textarea, input-area-v2, .input-area, form, .composer-parent, fieldset") || input.parentElement || input;
+    // Find the full outermost active prompt capsule
+    const capsule = resolveChatCapsule(input) || input;
     const rect = capsule.getBoundingClientRect();
     if (!rect || rect.width === 0 || rect.height === 0 || rect.top < 0) {
       trigger.style.setProperty("display", "none", "important");
@@ -872,24 +907,23 @@ ${antiCliche}
     }
 
     const triggerHeight = trigger.offsetHeight || 32;
-    const triggerWidth = trigger.offsetWidth || 140;
+    const triggerWidth = trigger.offsetWidth || 155;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    // Determine ergonomic vertical placement:
-    // If input is in the middle of screen (empty chat), place neatly below the capsule.
-    // If input is at the bottom of the viewport (ongoing chat), place directly above the capsule.
+    // Ergonometric vertical placement with clean 14px separation
     let top = 0;
-    if (rect.bottom + triggerHeight + 16 < viewportHeight) {
-      top = rect.bottom + 8;
+    if (rect.bottom + triggerHeight + 20 < viewportHeight) {
+      top = rect.bottom + 14;
     } else {
-      top = rect.top - triggerHeight - 8;
+      top = rect.top - triggerHeight - 14;
     }
 
     if (top < 10) top = 10;
     if (top + triggerHeight > viewportHeight - 10) top = viewportHeight - triggerHeight - 10;
 
-    let left = rect.right - triggerWidth - 8;
+    // Align right with outer chat capsule
+    let left = rect.right - triggerWidth - 6;
     if (left < 16) left = 16;
     if (left + triggerWidth > viewportWidth - 16) {
       left = Math.max(16, viewportWidth - triggerWidth - 16);
