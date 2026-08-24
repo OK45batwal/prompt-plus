@@ -257,12 +257,19 @@
 
   function detectChatbot() {
     const host = location.hostname.toLowerCase();
-    if (host.includes("chatgpt") || host.includes("chat.openai")) return "chatgpt";
-    if (host.includes("claude")) return "claude";
-    if (host.includes("gemini")) return "gemini";
+    if (host.includes("chatgpt") || host.includes("chat.openai") || host.includes("oaistatic")) return "chatgpt";
+    if (host.includes("claude.ai") || host.includes("anthropic")) return "claude";
+    if (host.includes("gemini.google") || host.includes("bard.google")) return "gemini";
+    if (host.includes("aistudio.google")) return "aistudio";
     if (host.includes("deepseek")) return "deepseek";
-    if (host.includes("grok") || host.includes("x.ai")) return "grok";
+    if (host.includes("grok") || host.includes("x.ai") || (host.includes("x.com") && location.pathname.includes("grok"))) return "grok";
     if (host.includes("perplexity")) return "perplexity";
+    if (host.includes("copilot.microsoft") || (host.includes("bing.com") && location.pathname.includes("chat"))) return "copilot";
+    if (host.includes("meta.ai")) return "meta";
+    if (host.includes("poe.com")) return "poe";
+    if (host.includes("mistral.ai")) return "mistral";
+    if (host.includes("huggingface.co/chat")) return "huggingchat";
+    if (host.includes("groq.com")) return "groq";
     return "general";
   }
 
@@ -289,8 +296,8 @@
   function getInput() {
     const bot = detectChatbot();
 
-    // 1. Google Gemini specific selectors
-    if (bot === "gemini") {
+    // 1. Google Gemini & Google AI Studio
+    if (bot === "gemini" || bot === "aistudio") {
       const geminiSelectors = [
         "rich-textarea .ql-editor",
         "rich-textarea div[contenteditable='true']",
@@ -299,7 +306,8 @@
         "div.input-area div[contenteditable='true']",
         "div[aria-label*='Enter a prompt']",
         "div[aria-label*='Ask Gemini']",
-        "textarea[aria-label*='prompt']"
+        "textarea[aria-label*='prompt']",
+        "textarea[placeholder*='Ask Gemini']"
       ];
       for (const s of geminiSelectors) {
         const el = document.querySelector(s);
@@ -307,14 +315,16 @@
       }
     }
 
-    // 2. ChatGPT specific selectors
+    // 2. ChatGPT (OpenAI)
     if (bot === "chatgpt") {
       const chatgptSelectors = [
         "#prompt-textarea",
         "div[id='prompt-textarea']",
         "div[contenteditable='true']#prompt-textarea",
         "textarea[data-id='root']",
-        "textarea#prompt-textarea"
+        "textarea#prompt-textarea",
+        "textarea[placeholder*='Message ChatGPT']",
+        "textarea[placeholder*='Ask anything']"
       ];
       for (const s of chatgptSelectors) {
         const el = document.querySelector(s);
@@ -322,12 +332,13 @@
       }
     }
 
-    // 3. Claude specific selectors
+    // 3. Claude (Anthropic)
     if (bot === "claude") {
       const claudeSelectors = [
         "div[contenteditable='true'].ProseMirror",
         "fieldset div[contenteditable='true']",
-        "div.ProseMirror"
+        "div.ProseMirror",
+        "div[contenteditable='true'][role='textbox']"
       ];
       for (const s of claudeSelectors) {
         const el = document.querySelector(s);
@@ -335,11 +346,12 @@
       }
     }
 
-    // 4. DeepSeek specific selectors
+    // 4. DeepSeek
     if (bot === "deepseek") {
       const deepseekSelectors = [
         "textarea#chat-input",
         "textarea[placeholder*='DeepSeek']",
+        "div[contenteditable='true']#chat-input",
         "textarea"
       ];
       for (const s of deepseekSelectors) {
@@ -348,14 +360,73 @@
       }
     }
 
-    // 5. Fallback generic selectors
+    // 5. Grok (xAI)
+    if (bot === "grok") {
+      const grokSelectors = [
+        "textarea[placeholder*='Ask Grok']",
+        "textarea[placeholder*='Grok']",
+        "div[contenteditable='true'][data-placeholder*='Grok']",
+        "div[contenteditable='true'][role='textbox']",
+        "textarea"
+      ];
+      for (const s of grokSelectors) {
+        const el = document.querySelector(s);
+        if (el && isVisible(el) && !isSidebarElement(el)) return el;
+      }
+    }
+
+    // 6. Perplexity AI
+    if (bot === "perplexity") {
+      const perplexitySelectors = [
+        "textarea[placeholder*='Ask anything']",
+        "textarea[placeholder*='Ask follow-up']",
+        "div[contenteditable='true'][role='textbox']",
+        "textarea"
+      ];
+      for (const s of perplexitySelectors) {
+        const el = document.querySelector(s);
+        if (el && isVisible(el) && !isSidebarElement(el)) return el;
+      }
+    }
+
+    // 7. Microsoft Copilot
+    if (bot === "copilot") {
+      const copilotSelectors = [
+        "textarea#userInput",
+        "textarea[placeholder*='Message Copilot']",
+        "div[contenteditable='true'][role='textbox']",
+        "textarea"
+      ];
+      for (const s of copilotSelectors) {
+        const el = document.querySelector(s);
+        if (el && isVisible(el) && !isSidebarElement(el)) return el;
+      }
+    }
+
+    // 8. Meta AI, Poe, Mistral, HuggingChat
+    const platformSelectors = [
+      "textarea[placeholder*='Ask Meta']",
+      "textarea[class*='ChatMessageInput']",
+      "textarea[placeholder*='Talk to']",
+      "textarea[placeholder*='Ask Le Chat']",
+      "textarea[placeholder*='Ask anything']"
+    ];
+    for (const s of platformSelectors) {
+      const el = document.querySelector(s);
+      if (el && isVisible(el) && !isSidebarElement(el)) return el;
+    }
+
+    // 9. Universal heuristic fallback
     const fallbackSelectors = [
       "form textarea",
       "main div[contenteditable='true']",
       "main textarea",
+      "div[contenteditable='true'][role='textbox']",
+      "div[contenteditable='true']",
       "textarea[placeholder*='Message']",
       "textarea[placeholder*='Ask']",
       "textarea[placeholder*='prompt']",
+      "textarea[placeholder*='chat']",
       "textarea"
     ];
     for (const s of fallbackSelectors) {
@@ -379,16 +450,31 @@
   function setText(el, val) {
     if (!el) return;
     el.focus();
+
     if (el.tagName === "TEXTAREA" || el.tagName === "INPUT") {
       el.value = val;
       el.dispatchEvent(new Event("input", { bubbles: true }));
       el.dispatchEvent(new Event("change", { bubbles: true }));
     } else if (el.isContentEditable) {
-      el.innerHTML = "";
-      const p = document.createElement("p");
-      p.innerText = val;
-      el.appendChild(p);
-      el.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText" }));
+      try {
+        // Multi-strategy rich-text injection (Quill, ProseMirror, Slate, Lexical)
+        document.execCommand("selectAll", false, null);
+        const success = document.execCommand("insertText", false, val);
+        if (!success || !el.innerText || !el.innerText.trim()) {
+          el.innerHTML = "";
+          const p = document.createElement("p");
+          p.innerText = val;
+          el.appendChild(p);
+        }
+      } catch {
+        el.innerHTML = "";
+        const p = document.createElement("p");
+        p.innerText = val;
+        el.appendChild(p);
+      }
+      el.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: val }));
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+      el.dispatchEvent(new Event("change", { bubbles: true }));
     }
   }
 
@@ -507,6 +593,9 @@ ${antiCliche}
     if (bot === "gemini") {
       return { botKey: "GEMINI", name: "Gemini 2.0 / 1.5", maxContext: 1000000, tag: "1,000K Context", color: "#3b82f6" };
     }
+    if (bot === "aistudio") {
+      return { botKey: "AISTUDIO", name: "Google AI Studio", maxContext: 2000000, tag: "2,000K Context", color: "#4285f4" };
+    }
     if (bot === "claude") {
       return { botKey: "CLAUDE", name: "Claude 3.5 Sonnet", maxContext: 200000, tag: "200K Context", color: "#d97706" };
     }
@@ -517,9 +606,27 @@ ${antiCliche}
       return { botKey: "DEEPSEEK", name: "DeepSeek R1", maxContext: 128000, tag: "128K Context", color: "#6366f1" };
     }
     if (bot === "grok") {
-      return { botKey: "GROK", name: "Grok 3", maxContext: 128000, tag: "128K Context", color: "#ec4899" };
+      return { botKey: "GROK", name: "Grok 3 (xAI)", maxContext: 128000, tag: "128K Context", color: "#ec4899" };
     }
-    return { botKey: "AI", name: "Active Chatbot", maxContext: 128000, tag: "128K Context", color: "#6366f1" };
+    if (bot === "perplexity") {
+      return { botKey: "PERPLEXITY", name: "Perplexity AI", maxContext: 32000, tag: "32K Context", color: "#20b2aa" };
+    }
+    if (bot === "copilot") {
+      return { botKey: "COPILOT", name: "Microsoft Copilot", maxContext: 128000, tag: "128K Context", color: "#0078d4" };
+    }
+    if (bot === "meta") {
+      return { botKey: "META", name: "Meta Llama 3", maxContext: 128000, tag: "128K Context", color: "#0668e1" };
+    }
+    if (bot === "mistral") {
+      return { botKey: "MISTRAL", name: "Mistral Le Chat", maxContext: 128000, tag: "128K Context", color: "#ea580c" };
+    }
+    if (bot === "poe") {
+      return { botKey: "POE", name: "Poe AI", maxContext: 128000, tag: "128K Context", color: "#8b5cf6" };
+    }
+    if (bot === "huggingchat") {
+      return { botKey: "HUGGINGCHAT", name: "HuggingChat", maxContext: 32000, tag: "32K Context", color: "#f59e0b" };
+    }
+    return { botKey: "AI", name: "Universal Chatbot", maxContext: 128000, tag: "128K Context", color: "#6366f1" };
   }
 
   // Open Floating Optimizer Modal
