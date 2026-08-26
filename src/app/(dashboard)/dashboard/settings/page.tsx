@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   User,
   Key,
@@ -18,6 +18,9 @@ import {
   Zap,
   CheckCircle2,
   ShieldCheck,
+  UploadCloud,
+  Camera,
+  X,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSession, signOut } from "next-auth/react";
@@ -209,6 +212,8 @@ export default function SettingsPage() {
   const [isSavingKey, setIsSavingKey] = useState<Record<string, boolean>>({});
   const [isTestingKey, setIsTestingKey] = useState<Record<string, boolean>>({});
   const [testResults, setTestResults] = useState<Record<string, { ok: boolean; msg: string }>>({});
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Preferences State
   const [defaultModel, setDefaultModel] = useState(DEFAULT_MODEL_ID);
@@ -391,13 +396,68 @@ export default function SettingsPage() {
     }
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast("Please select a valid image file (PNG, JPG, WEBP, SVG).", "error");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast("Image size is too large. Please choose an image under 2MB.", "error");
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      if (result) {
+        setAvatar(result);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("pp_user_avatar", result);
+          window.dispatchEvent(new Event("promptplus:avatar_updated"));
+        }
+        toast("Custom avatar image uploaded successfully!", "success");
+      }
+      setIsUploadingAvatar(false);
+    };
+    reader.onerror = () => {
+      toast("Failed to process image file.", "error");
+      setIsUploadingAvatar(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveAvatar = () => {
+    const defaultSeed = name ? encodeURIComponent(name) : "Architect";
+    const defaultUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${defaultSeed}&backgroundColor=6366f1`;
+    setAvatar(defaultUrl);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pp_user_avatar", defaultUrl);
+      window.dispatchEvent(new Event("promptplus:avatar_updated"));
+    }
+    toast("Avatar reset to default preset.", "info");
+  };
+
   const handleSaveAll = async () => {
-    // 1. Save Profile & Avatar
+    // 1. Save Profile & Avatar to both v1/user/profile and auth/profile
+    await fetch("/api/v1/user/profile", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      body: JSON.stringify({ name, avatar }),
+    }).catch(() => {});
+
     await fetch("/api/auth/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, avatar }),
-    });
+    }).catch(() => {});
 
     if (typeof window !== "undefined") {
       localStorage.setItem("pp_user_avatar", avatar);
@@ -407,7 +467,10 @@ export default function SettingsPage() {
     // 2. Save Preferences
     await fetch("/api/v1/user/preferences", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
       body: JSON.stringify({
         developerRole,
         defaultEngineMode: engineMode,
@@ -431,7 +494,10 @@ export default function SettingsPage() {
         try {
           await fetch("/api/v1/api-keys", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "X-Requested-With": "XMLHttpRequest",
+            },
             body: JSON.stringify({ provider: prov, apiKey: val.trim() }),
           });
           setSavedKeys((prev) => ({ ...prev, [prov]: true }));
@@ -443,7 +509,7 @@ export default function SettingsPage() {
     }
 
     setSaved(true);
-    toast("Settings, preferences, and API keys saved successfully!", "success");
+    toast("Settings, preferences, and custom avatar saved successfully!", "success");
     setTimeout(() => setSaved(false), 2000);
   };
 
@@ -513,58 +579,108 @@ export default function SettingsPage() {
               </div>
 
               <div className="p-4 rounded-2xl border bg-card/60 space-y-4 shadow-xs">
-                {/* Profile Image & Avatar Presets */}
+                {/* Profile Image & Avatar Customization */}
                 <div>
-                  <label className="text-xs font-semibold text-foreground mb-2 block">Profile Avatar</label>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                    {/* Active Avatar Preview */}
-                    <div className="relative">
-                      <div className="w-14 h-14 rounded-2xl border-2 border-primary overflow-hidden bg-muted flex items-center justify-center shadow-sm shrink-0">
-                        {avatar ? (
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-semibold text-foreground block">Profile Avatar & Custom Photo</label>
+                    <span className="text-[11px] text-muted-foreground">Upload your own photo or choose a preset</span>
+                  </div>
+
+                  {/* Hidden File Input */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                    accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                    className="hidden"
+                  />
+
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-3 rounded-xl bg-accent/30 border border-border/60">
+                    {/* Active Avatar with Camera Overlay */}
+                    <div className="relative group shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-16 h-16 rounded-2xl border-2 border-primary overflow-hidden bg-muted flex items-center justify-center shadow-md relative transition-transform group-hover:scale-105"
+                        title="Click to upload custom photo"
+                      >
+                        {isUploadingAvatar ? (
+                          <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                        ) : avatar ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={avatar} alt="Profile avatar" className="w-full h-full object-cover" />
                         ) : (
-                          <User className="h-6 w-6 text-muted-foreground" />
+                          <User className="h-8 w-8 text-muted-foreground" />
                         )}
-                      </div>
+
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
+                          <Camera className="h-5 w-5" />
+                          <span className="text-[9px] font-bold mt-0.5">Upload</span>
+                        </div>
+                      </button>
                     </div>
 
-                    {/* Presets Grid */}
-                    <div className="flex-1 space-y-2">
-                      <span className="text-[11px] text-muted-foreground font-medium block">Choose an AI Developer Avatar preset:</span>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          { name: "Cyber Architect", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Architect&backgroundColor=6366f1" },
-                          { name: "Quantum Neural", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Quantum&backgroundColor=10b981" },
-                          { name: "Deep Tech Bot", url: "https://api.dicebear.com/7.x/bottts/svg?seed=DeepTech&backgroundColor=3b82f6" },
-                          { name: "Matrix Hacker", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Matrix&backgroundColor=f59e0b" },
-                          { name: "Neon Synth", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Synth&backgroundColor=ec4899" },
-                          { name: "Pixel Dev", url: "https://api.dicebear.com/7.x/bottts/svg?seed=PixelDev&backgroundColor=8b5cf6" },
-                        ].map((preset) => (
+                    {/* Upload Actions & Presets */}
+                    <div className="flex-1 space-y-3 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="h-8 px-3 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+                        >
+                          <UploadCloud className="h-3.5 w-3.5" /> Upload Custom Photo
+                        </button>
+                        {avatar && (
                           <button
-                            key={preset.name}
                             type="button"
-                            onClick={() => handleSelectAvatar(preset.url)}
-                            className={`w-9 h-9 rounded-xl border-2 overflow-hidden transition-all relative ${
-                              avatar === preset.url
-                                ? "border-primary scale-105 shadow-xs"
-                                : "border-border hover:border-primary/50 opacity-80 hover:opacity-100"
-                            }`}
-                            title={preset.name}
+                            onClick={handleRemoveAvatar}
+                            className="h-8 px-2.5 rounded-lg border border-border hover:bg-destructive/10 hover:text-destructive text-xs font-medium transition-colors flex items-center gap-1 text-muted-foreground"
                           >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={preset.url} alt={preset.name} className="w-full h-full object-cover" />
+                            <X className="h-3 w-3" /> Reset
                           </button>
-                        ))}
+                        )}
+                        <span className="text-[10px] text-muted-foreground">PNG, JPG, WebP, SVG up to 2MB</span>
+                      </div>
+
+                      {/* Presets Grid */}
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block">Or select an AI Developer Preset:</span>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            { name: "Cyber Architect", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Architect&backgroundColor=6366f1" },
+                            { name: "Quantum Neural", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Quantum&backgroundColor=10b981" },
+                            { name: "Deep Tech Bot", url: "https://api.dicebear.com/7.x/bottts/svg?seed=DeepTech&backgroundColor=3b82f6" },
+                            { name: "Matrix Hacker", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Matrix&backgroundColor=f59e0b" },
+                            { name: "Neon Synth", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Synth&backgroundColor=ec4899" },
+                            { name: "Pixel Dev", url: "https://api.dicebear.com/7.x/bottts/svg?seed=PixelDev&backgroundColor=8b5cf6" },
+                            { name: "Neural AI", url: "https://api.dicebear.com/7.x/bottts/svg?seed=NeuralPulse&backgroundColor=06b6d4" },
+                            { name: "Apex Lead", url: "https://api.dicebear.com/7.x/bottts/svg?seed=ApexLead&backgroundColor=f43f5e" },
+                          ].map((preset) => (
+                            <button
+                              key={preset.name}
+                              type="button"
+                              onClick={() => handleSelectAvatar(preset.url)}
+                              className={`w-9 h-9 rounded-xl border-2 overflow-hidden transition-all relative ${
+                                avatar === preset.url
+                                  ? "border-primary scale-105 shadow-sm ring-2 ring-primary/20"
+                                  : "border-border hover:border-primary/50 opacity-80 hover:opacity-100"
+                              }`}
+                              title={preset.name}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={preset.url} alt={preset.name} className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
                       </div>
 
                       {/* Custom Avatar URL input */}
-                      <div className="pt-1">
+                      <div>
                         <input
                           type="text"
                           value={avatar}
                           onChange={(e) => handleSelectAvatar(e.target.value)}
-                          placeholder="Or paste custom image/avatar URL (https://...)"
+                          placeholder="Or paste external image URL (https://...)"
                           className="h-8 w-full rounded-lg border bg-background px-3 text-xs outline-none focus:border-ring font-mono"
                         />
                       </div>

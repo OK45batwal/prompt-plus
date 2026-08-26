@@ -501,24 +501,7 @@ export default function PromptBuilderPage() {
       return;
     }
 
-    // Step 1: Explicitly prompt & verify microphone hardware access
-    if (typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        // Immediately release stream tracks so SpeechRecognition has dedicated microphone access
-        stream.getTracks().forEach((track) => track.stop());
-      } catch (err: unknown) {
-        const isDenied = err instanceof Error && (err.name === "NotAllowedError" || err.name === "PermissionDeniedError");
-        if (isDenied) {
-          const msg = "Microphone access blocked. Click the camera/microphone icon in your URL address bar to allow access.";
-          setErrorNotice(msg);
-          toast(msg, "error");
-          return;
-        }
-      }
-    }
-
-    // Step 2: Initialize Speech Recognition with continuous interim dictation
+    // Initialize Speech Recognition with continuous interim dictation
     try {
       const rec = new SR();
       rec.continuous = true;
@@ -542,7 +525,7 @@ export default function PromptBuilderPage() {
         setIsListening(false);
         recognitionRef.current = null;
         if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-          setErrorNotice("Microphone permission denied. Click the lock/settings icon in your address bar to enable microphone access.");
+          setErrorNotice("Microphone permission was denied. Click the lock or settings icon in your address bar to enable microphone access.");
           toast("Microphone access denied.", "error");
         } else if (e.error === "no-speech") {
           setErrorNotice("No speech detected. Please speak clearly into your microphone.");
