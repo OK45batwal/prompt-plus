@@ -31,10 +31,14 @@ export class LLMError extends Error {
 
 const OPENROUTER_FREE_MODELS = [
   "google/gemini-2.0-flash-exp:free",
+  "google/gemini-2.0-pro-exp-02-05:free",
   "deepseek/deepseek-r1:free",
+  "deepseek/deepseek-chat:free",
+  "meta-llama/llama-3.3-70b-instruct:free",
   "meta-llama/llama-3.1-8b-instruct:free",
   "qwen/qwen-2.5-coder-32b-instruct:free",
-  "mistralai/mistral-7b-instruct:free",
+  "mistralai/mistral-small-3.1-24b-instruct:free",
+  "microsoft/phi-3.5-mini-128k-instruct:free",
 ];
 
 interface CacheEntry {
