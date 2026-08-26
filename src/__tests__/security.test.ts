@@ -57,6 +57,8 @@ describe("Phase 1 Security & Correctness Hardening", () => {
     it("should throw in production if ENCRYPTION_KEY is unset or too short", () => {
       (process.env as Record<string, string | undefined>).NODE_ENV = "production";
       delete process.env.ENCRYPTION_KEY;
+      delete process.env.AUTH_SECRET;
+      delete process.env.NEXTAUTH_SECRET;
 
       expect(() => encrypt("secret-data")).toThrow(
         "FATAL: ENCRYPTION_KEY must be set in production environment variables"

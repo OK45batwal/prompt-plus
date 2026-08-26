@@ -3,7 +3,7 @@ import crypto from "crypto";
 const ALGORITHM = "aes-256-gcm";
 
 function getSecretKey(): Buffer {
-  const secret = process.env.ENCRYPTION_KEY;
+  const secret = process.env.ENCRYPTION_KEY || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
   if (process.env.NODE_ENV === "production" && (!secret || secret.length < 32)) {
     throw new Error("FATAL: ENCRYPTION_KEY must be set in production environment variables and be at least 32 characters long.");
   }
