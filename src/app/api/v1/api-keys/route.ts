@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getDb } from "@/lib/db/prisma";
-import { encrypt } from "@/lib/crypto";
+import { encrypt, decrypt } from "@/lib/crypto";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 
@@ -39,7 +39,7 @@ export const GET = withAuth(async (_req: NextRequest, { userId, requestId }) => 
     select: {
       id: true,
       provider: true,
-      keyHint: true,
+      apiKeyEnc: true,
       isActive: true,
       lastUsedAt: true,
       usageCount: true,
@@ -48,7 +48,26 @@ export const GET = withAuth(async (_req: NextRequest, { userId, requestId }) => 
     orderBy: { createdAt: "desc" },
   });
 
-  return jsonResponse({ data: keys }, { requestId });
+  const formatted = keys.map((k) => {
+    let keyHint = "••••••••";
+    try {
+      const decrypted = decrypt(k.apiKeyEnc);
+      keyHint = createKeyHint(decrypted);
+    } catch {
+      // Fallback preview
+    }
+    return {
+      id: k.id,
+      provider: k.provider,
+      keyHint,
+      isActive: k.isActive,
+      lastUsedAt: k.lastUsedAt,
+      usageCount: k.usageCount,
+      createdAt: k.createdAt,
+    };
+  });
+
+  return jsonResponse({ data: formatted }, { requestId });
 });
 
 export const POST = withAuth(
@@ -80,20 +99,18 @@ export const POST = withAuth(
       data: {
         userId,
         provider,
-        keyHint,
         apiKeyEnc,
         isActive: true,
       },
       select: {
         id: true,
         provider: true,
-        keyHint: true,
         isActive: true,
         createdAt: true,
       },
     });
 
-    return jsonResponse({ data: newKey }, { status: 201, requestId });
+    return jsonResponse({ data: { ...newKey, keyHint } }, { status: 201, requestId });
   }
 );
 

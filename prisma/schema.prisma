@@ -164,7 +164,6 @@ model ApiKey {
   id         String    @id @default(cuid())
   userId     String    @map("user_id")
   provider   String // e.g., "openai", "anthropic"
-  keyHint    String?   @map("key_hint")
   apiKeyEnc  String    @map("api_key_enc")
   isActive   Boolean   @default(true) @map("is_active")
   lastUsedAt DateTime? @map("last_used_at")
@@ -176,7 +175,6 @@ model ApiKey {
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, provider])
   @@index([userId])
   @@map("api_keys")
 }
