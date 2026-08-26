@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Clock, RotateCcw, ChevronDown, Check, Sparkles, Loader2 } from "lucide-react";
+import { Search, Clock, RotateCcw, ChevronDown, Check, Sparkles, Loader2, Trash2, AlertTriangle } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import Link from "next/link";
 
@@ -23,6 +23,9 @@ export default function HistoryPage() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isClearingAll, setIsClearingAll] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -98,11 +101,90 @@ export default function HistoryPage() {
     toast("Copied to clipboard", "success");
   };
 
+  const handleDeleteItem = async (item: HistoryItem, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setIsDeleting(item.id);
+
+    try {
+      // 1. Clean local storage
+      try {
+        const raw = localStorage.getItem("pp_local_history");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const filtered = (parsed || []).filter(
+            (x: { id?: string; originalText?: string }) =>
+              x.id !== item.id && x.originalText?.trim() !== item.originalText.trim()
+          );
+          localStorage.setItem("pp_local_history", JSON.stringify(filtered));
+        }
+      } catch {
+        // ignore
+      }
+
+      // 2. Call backend if server item
+      if (!item.id.startsWith("local_")) {
+        await fetch(`/api/v1/prompts?id=${encodeURIComponent(item.id)}`, {
+          method: "DELETE",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+          },
+        });
+      }
+
+      // 3. Update state
+      setHistory((prev) => prev.filter((h) => h.id !== item.id));
+      if (expandedId === item.id) setExpandedId(null);
+      toast("Prompt deleted from history", "info");
+    } catch {
+      toast("Failed to delete prompt", "error");
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  const handleClearAll = async () => {
+    setIsClearingAll(true);
+    try {
+      // 1. Clear local storage
+      localStorage.removeItem("pp_local_history");
+
+      // 2. Call backend to clear all history
+      await fetch("/api/v1/prompts?all=true", {
+        method: "DELETE",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+        },
+      });
+
+      // 3. Clear state
+      setHistory([]);
+      setShowClearConfirm(false);
+      toast("All prompt history cleared", "success");
+    } catch {
+      toast("Failed to clear history", "error");
+    } finally {
+      setIsClearingAll(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="font-semibold text-sm">History</h2>
-        <p className="text-xs text-muted-foreground">{loading ? "Loading..." : `${history.length} items`}</p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-semibold text-sm">Prompt History</h2>
+          <p className="text-xs text-muted-foreground">{loading ? "Loading..." : `${history.length} saved prompts`}</p>
+        </div>
+        {history.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowClearConfirm(true)}
+            className="h-8 px-3 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10 text-xs font-medium transition-colors flex items-center gap-1.5"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            <span>Clear All History</span>
+          </button>
+        )}
       </div>
 
       <div className="max-w-4xl">
@@ -111,7 +193,7 @@ export default function HistoryPage() {
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search history..."
+            placeholder="Search history by prompt text..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-9 w-full rounded-lg border bg-background pl-9 pr-3 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring"
@@ -161,6 +243,19 @@ export default function HistoryPage() {
                       <p className="text-xs text-muted-foreground">After</p>
                       <p className="text-sm font-bold text-green-600">{item.enhancedScore}</p>
                     </div>
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteItem(item, e)}
+                      disabled={isDeleting === item.id}
+                      className="h-7 w-7 rounded-md hover:bg-red-500/10 text-muted-foreground hover:text-red-500 flex items-center justify-center transition-colors ml-1"
+                      title="Delete prompt from history"
+                    >
+                      {isDeleting === item.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3.5 w-3.5" />
+                      )}
+                    </button>
                     <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${expandedId === item.id ? "rotate-180" : ""}`} />
                   </div>
                 </div>
@@ -169,27 +264,36 @@ export default function HistoryPage() {
                 {expandedId === item.id && (
                   <div className="border-t p-3 space-y-3">
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-1">Original</p>
-                      <p className="text-sm p-2 rounded bg-muted/50">{item.originalText}</p>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Original Prompt</p>
+                      <p className="text-sm p-2 rounded bg-muted/50 whitespace-pre-wrap">{item.originalText}</p>
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-1">Enhanced</p>
-                      <p className="text-sm p-2 rounded bg-muted/50">{item.enhancedText}</p>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Enhanced Output</p>
+                      <p className="text-sm p-2 rounded bg-muted/50 whitespace-pre-wrap">{item.enhancedText}</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => reusePrompt(item)}
+                          className="h-8 flex items-center justify-center rounded-lg bg-foreground text-background px-3 text-xs font-medium hover:bg-foreground/90 transition-colors"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5 mr-1" /> Reuse in Editor
+                        </button>
+                        <button
+                          onClick={() => copyToClipboard(item.enhancedText)}
+                          className="h-8 flex items-center justify-center rounded-lg border px-3 text-xs font-medium hover:bg-accent transition-colors"
+                        >
+                          <Check className="h-3.5 w-3.5 mr-1" /> Copy Enhanced
+                        </button>
+                      </div>
                       <button
-                        onClick={() => reusePrompt(item)}
-                        className="h-8 flex items-center justify-center rounded-lg bg-foreground text-background px-3 text-xs font-medium hover:bg-foreground/90 transition-colors"
+                        onClick={() => handleDeleteItem(item)}
+                        disabled={isDeleting === item.id}
+                        className="h-8 px-3 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10 text-xs font-medium transition-colors flex items-center gap-1"
                       >
-                        <RotateCcw className="h-3.5 w-3.5 mr-1" /> Reuse
+                        {isDeleting === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                        <span>Delete</span>
                       </button>
-                      <button
-                        onClick={() => copyToClipboard(item.enhancedText)}
-                        className="h-8 flex items-center justify-center rounded-lg border px-3 text-xs font-medium hover:bg-accent transition-colors"
-                      >
-                        <Check className="h-3.5 w-3.5 mr-1" /> Copy Enhanced
-                      </button>
-
                     </div>
                   </div>
                 )}
@@ -198,6 +302,42 @@ export default function HistoryPage() {
           </div>
         )}
       </div>
+
+      {/* Clear All Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-card border rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl animate-in fade-in zoom-in-95">
+            <div className="flex items-center gap-3 text-red-500">
+              <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <h3 className="font-semibold text-base text-foreground">Clear Prompt History?</h3>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              This will permanently delete all {history.length} saved prompts from your account and device. This action cannot be undone.
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowClearConfirm(false)}
+                disabled={isClearingAll}
+                className="h-9 px-4 rounded-xl border text-xs font-medium hover:bg-accent transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleClearAll}
+                disabled={isClearingAll}
+                className="h-9 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition-colors flex items-center gap-1.5"
+              >
+                {isClearingAll ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                <span>Clear All</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

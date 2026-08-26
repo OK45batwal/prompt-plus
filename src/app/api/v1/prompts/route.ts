@@ -74,3 +74,78 @@ export const POST = withAuth(
   },
   { schema: createPromptSchema }
 );
+
+export const DELETE = withAuth(
+  async (request: NextRequest, { userId, requestId }) => {
+    const { searchParams } = new URL(request.url);
+    const clearAll = searchParams.get("all") === "true";
+    const singleId = searchParams.get("id");
+
+    if (clearAll) {
+      const result = await getDb().prompt.updateMany({
+        where: {
+          userId,
+          deletedAt: null,
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      return jsonResponse(
+        { message: "History cleared successfully", count: result.count },
+        { requestId }
+      );
+    }
+
+    if (singleId) {
+      const result = await getDb().prompt.updateMany({
+        where: {
+          id: singleId,
+          userId,
+          deletedAt: null,
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      return jsonResponse(
+        { message: "Prompt deleted successfully", count: result.count },
+        { requestId }
+      );
+    }
+
+    // Try reading JSON body for bulk IDs
+    let body: { ids?: string[] } = {};
+    try {
+      body = await request.json();
+    } catch {
+      // Body may be empty
+    }
+
+    if (Array.isArray(body.ids) && body.ids.length > 0) {
+      const result = await getDb().prompt.updateMany({
+        where: {
+          id: { in: body.ids },
+          userId,
+          deletedAt: null,
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      return jsonResponse(
+        { message: "Prompts deleted successfully", count: result.count },
+        { requestId }
+      );
+    }
+
+    return jsonResponse(
+      { error: "Provide ?all=true, ?id=<promptId>, or a JSON body with { ids: string[] }" },
+      { status: 400, requestId }
+    );
+  }
+);
+

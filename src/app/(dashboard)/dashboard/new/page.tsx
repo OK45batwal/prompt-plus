@@ -333,6 +333,12 @@ export default function PromptBuilderPage() {
             }),
           });
           const aiData = await aiRes.json();
+          if (aiRes.status === 402 || aiData.code === "API_KEY_REQUIRED") {
+            setErrorNotice("API key required. Please configure your API key in Settings -> API Keys to access cloud AI models.");
+            toast("API Key Required: Please add your API key in Settings to enhance with AI models.", "error");
+            setIsEnhancing(false);
+            return;
+          }
 
           if (aiRes.ok && aiData.data?.enhanced) {
             finalEnhancedText = aiData.data.enhanced;

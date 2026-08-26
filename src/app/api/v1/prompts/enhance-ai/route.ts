@@ -44,7 +44,7 @@ export const POST = withAuth(
       targetProvider = "openai";
     }
 
-    const userApiKeyRow = await getDb().apiKey.findFirst({
+    let userApiKeyRow = await getDb().apiKey.findFirst({
       where: {
         userId,
         provider: targetProvider,
@@ -52,27 +52,43 @@ export const POST = withAuth(
       },
     });
 
-    let apiKey: string | undefined = userApiKey;
     let resolvedProvider = targetProvider;
+
+    // If no key for targetProvider, check if user has another active provider key
+    if (!userApiKey && !userApiKeyRow) {
+      const anyActiveKey = await getDb().apiKey.findFirst({
+        where: {
+          userId,
+          isActive: true,
+        },
+      });
+      if (anyActiveKey) {
+        userApiKeyRow = anyActiveKey;
+        resolvedProvider = anyActiveKey.provider as typeof targetProvider;
+      }
+    }
+
+    let apiKey: string | undefined = userApiKey;
 
     if (!apiKey && userApiKeyRow) {
       try {
         apiKey = decrypt(userApiKeyRow.apiKeyEnc);
       } catch {
-        // bad key fallback
+        // bad key
       }
     }
 
+    // STRICT USER API KEY ENFORCEMENT:
+    // If the user does not have a valid API key connected or provided, disallow API-based prompt enhancement.
     if (!apiKey) {
-      const serverKey = resolveServerApiKey(resolvedProvider);
-      apiKey = serverKey.apiKey;
-      resolvedProvider = serverKey.provider;
-    }
-
-    if (!apiKey && resolvedProvider !== "openrouter") {
-      // Fallback to openrouter free tier
-      resolvedProvider = "openrouter";
-      apiKey = "";
+      return jsonResponse(
+        {
+          error: "API key required. Please add your API key in Settings -> API Keys to use AI prompt enhancement.",
+          code: "API_KEY_REQUIRED",
+          provider: targetProvider,
+        },
+        { status: 402, requestId }
+      );
     }
 
     const cacheKey = `web:${userId}:${text}:${model || "default"}:${category || ""}:${tone || ""}:${length || ""}:${level || ""}`;

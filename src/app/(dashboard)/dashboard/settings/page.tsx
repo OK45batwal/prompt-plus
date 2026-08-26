@@ -204,6 +204,7 @@ export default function SettingsPage() {
   // API Keys state
   const [apiKeysInput, setApiKeysInput] = useState<Record<string, string>>({});
   const [savedKeys, setSavedKeys] = useState<Record<string, boolean>>({});
+  const [savedKeyHints, setSavedKeyHints] = useState<Record<string, string>>({});
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [isSavingKey, setIsSavingKey] = useState<Record<string, boolean>>({});
   const [isTestingKey, setIsTestingKey] = useState<Record<string, boolean>>({});
@@ -281,15 +282,20 @@ export default function SettingsPage() {
       try {
         const res = await fetch("/api/v1/api-keys");
         const keyMap: Record<string, boolean> = {};
+        const hintMap: Record<string, string> = {};
         if (res.ok && isMounted) {
           const json = await res.json();
           if (Array.isArray(json.data)) {
-            json.data.forEach((k: { provider: string; isActive: boolean }) => {
+            json.data.forEach((k: { provider: string; isActive: boolean; keyHint?: string }) => {
               keyMap[k.provider] = k.isActive;
+              if (k.keyHint) hintMap[k.provider] = k.keyHint;
             });
           }
         }
-        if (isMounted) setSavedKeys(keyMap);
+        if (isMounted) {
+          setSavedKeys(keyMap);
+          setSavedKeyHints(hintMap);
+        }
       } catch {
         // ignore
       }
@@ -335,16 +341,26 @@ export default function SettingsPage() {
 
     setIsSavingKey((prev) => ({ ...prev, [provider]: true }));
     try {
-      await fetch("/api/v1/api-keys", {
+      const res = await fetch("/api/v1/api-keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider, apiKey: rawKey }),
       });
 
-      setSavedKeys((prev) => ({ ...prev, [provider]: true }));
-      setApiKeysInput((prev) => ({ ...prev, [provider]: "" }));
-      setTestResults((prev) => ({ ...prev, [provider]: { ok: true, msg: "Saved!" } }));
-      toast(`API key saved for ${provider.toUpperCase()}!`, "success");
+      const json = await res.json();
+      if (res.ok) {
+        setSavedKeys((prev) => ({ ...prev, [provider]: true }));
+        if (json.data?.keyHint) {
+          setSavedKeyHints((prev) => ({ ...prev, [provider]: json.data.keyHint }));
+        }
+        setApiKeysInput((prev) => ({ ...prev, [provider]: "" }));
+        setTestResults((prev) => ({ ...prev, [provider]: { ok: true, msg: "Saved & synced to cloud!" } }));
+        toast(`API key saved for ${provider.toUpperCase()}!`, "success");
+      } else {
+        toast(json.error || "Failed to save API key", "error");
+      }
+    } catch {
+      toast("Failed to save API key", "error");
     } finally {
       setIsSavingKey((prev) => ({ ...prev, [provider]: false }));
     }
@@ -354,6 +370,11 @@ export default function SettingsPage() {
     try {
       await fetch(`/api/v1/api-keys?provider=${provider}`, { method: "DELETE" });
       setSavedKeys((prev) => ({ ...prev, [provider]: false }));
+      setSavedKeyHints((prev) => {
+        const next = { ...prev };
+        delete next[provider];
+        return next;
+      });
       setApiKeysInput((prev) => ({ ...prev, [provider]: "" }));
       setTestResults((prev) => ({ ...prev, [provider]: { ok: false, msg: "" } }));
       toast(`API key removed for ${provider.toUpperCase()}`, "info");
@@ -727,13 +748,13 @@ export default function SettingsPage() {
           {/* 3. API KEYS TAB */}
           {activeTab === "api-keys" && (
             <div className="space-y-6">
-              <div className="p-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-xs space-y-1 shadow-xs">
-                <div className="flex items-center gap-2 font-bold text-emerald-600 dark:text-emerald-400">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>🟢 Free Out-Of-The-Box Mode Active</span>
+              <div className="p-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 text-xs space-y-1 shadow-xs">
+                <div className="flex items-center gap-2 font-bold text-indigo-600 dark:text-indigo-400">
+                  <Key className="h-4 w-4" />
+                  <span>API-Based Prompt Enhancing Engine</span>
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
-                  Prompt+ works 100% free with server-managed AI models. Custom API keys are strictly optional for paid overrides.
+                  To power AI prompt enhancements, connect at least one valid API key below. Keys are securely stored in the cloud so you can use Prompt+ from any device or browser without re-entering them.
                 </p>
               </div>
 
@@ -749,7 +770,7 @@ export default function SettingsPage() {
 
               <div>
                 <h3 className="font-semibold text-sm">Custom API Credentials</h3>
-                <p className="text-xs text-muted-foreground">Optional: Connect your personal API keys for dedicated rate limits</p>
+                <p className="text-xs text-muted-foreground">Connect your personal API keys (OpenAI, Anthropic, Google, OpenRouter, or NVIDIA)</p>
               </div>
 
               <div className="space-y-4">
@@ -763,9 +784,14 @@ export default function SettingsPage() {
                         </a>
                       </div>
                       {savedKeys[p.id] && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center gap-1">
-                          <CheckCircle2 className="h-2.5 w-2.5" /> Connected
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-muted text-muted-foreground border">
+                            {savedKeyHints[p.id] || "••••••••"}
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center gap-1">
+                            <CheckCircle2 className="h-2.5 w-2.5" /> Connected & Synced
+                          </span>
+                        </div>
                       )}
                     </div>
 
@@ -775,7 +801,7 @@ export default function SettingsPage() {
                           type={showKeys[p.id] ? "text" : "password"}
                           value={apiKeysInput[p.id] || ""}
                           onChange={(e) => setApiKeysInput({ ...apiKeysInput, [p.id]: e.target.value })}
-                          placeholder={savedKeys[p.id] ? "•••••••••••••••• (Encrypted & Active)" : p.placeholder}
+                          placeholder={savedKeys[p.id] ? `Enter new key to replace (${savedKeyHints[p.id] || "Encrypted & Active"})` : p.placeholder}
                           className="h-9 w-full rounded-xl border bg-background px-3 pr-9 text-xs outline-none focus:border-ring font-mono"
                         />
                         <button

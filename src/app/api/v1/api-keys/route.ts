@@ -5,6 +5,29 @@ import { encrypt } from "@/lib/crypto";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 
+export function createKeyHint(key: string): string {
+  const trimmed = key.trim();
+  if (trimmed.length <= 8) {
+    return `••••${trimmed.slice(-3)}`;
+  }
+  let prefix = "";
+  if (trimmed.startsWith("sk-proj-")) {
+    prefix = "sk-proj-";
+  } else if (trimmed.startsWith("sk-ant-")) {
+    prefix = "sk-ant-";
+  } else if (trimmed.startsWith("sk-")) {
+    prefix = "sk-";
+  } else if (trimmed.startsWith("AIza")) {
+    prefix = "AIza";
+  } else if (trimmed.startsWith("nvapi-")) {
+    prefix = "nvapi-";
+  } else {
+    prefix = trimmed.slice(0, 3);
+  }
+  const suffix = trimmed.slice(-4);
+  return `${prefix}••••••••${suffix}`;
+}
+
 const createApiKeySchema = z.object({
   provider: z.enum(["openai", "anthropic", "google", "openrouter", "nvidia"]),
   apiKey: z.string().min(5, "API key must be at least 5 characters"),
@@ -16,11 +39,13 @@ export const GET = withAuth(async (_req: NextRequest, { userId, requestId }) => 
     select: {
       id: true,
       provider: true,
+      keyHint: true,
       isActive: true,
       lastUsedAt: true,
       usageCount: true,
       createdAt: true,
     },
+    orderBy: { createdAt: "desc" },
   });
 
   return jsonResponse({ data: keys }, { requestId });
@@ -45,6 +70,7 @@ export const POST = withAuth(
 
     const { provider, apiKey } = parseResult.data;
     const apiKeyEnc = encrypt(apiKey);
+    const keyHint = createKeyHint(apiKey);
 
     await getDb().apiKey.deleteMany({
       where: { userId, provider },
@@ -54,12 +80,14 @@ export const POST = withAuth(
       data: {
         userId,
         provider,
+        keyHint,
         apiKeyEnc,
         isActive: true,
       },
       select: {
         id: true,
         provider: true,
+        keyHint: true,
         isActive: true,
         createdAt: true,
       },
@@ -87,3 +115,4 @@ export const DELETE = withAuth(async (req: NextRequest, { userId, requestId }) =
 
   return jsonResponse({ data: { success: true } }, { requestId });
 });
+
