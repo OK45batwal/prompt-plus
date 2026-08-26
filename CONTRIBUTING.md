@@ -1,27 +1,37 @@
 # Contributing to Prompt+
 
-Thank you for your interest in contributing to **Prompt+**! We welcome contributions from developers of all skill levels.
+Thank you for your interest in contributing to **Prompt+**! We welcome contributions from developers, researchers, and prompt engineers of all experience levels.
 
 ---
 
-## 🚀 Quick Start Guide
+## 🌟 How You Can Contribute
+
+- **🤖 AI Engine & Enhancers**: Add new prompt optimization heuristics, model adapters (e.g. Mistral, DeepSeek), or scoring metrics in `src/lib/engine/`.
+- **💻 Web Application & Dashboard**: Enhance dashboard pages, components, analytics visualizations, and library management in `src/app/(dashboard)/`.
+- **🧩 Chrome Extension**: Improve web-wide prompt injection, bubble UX, keyboard triggers, and background sync in `extension/`.
+- **🔒 Security & API Architecture**: Strengthen encryption, token security, rate limiting, and API endpoints in `src/app/api/v1/`.
+- **🧪 Testing & QA**: Expand test coverage in `src/__tests__/` with unit and integration tests.
+
+---
+
+## 🚀 Development Setup
 
 ### 1. Fork & Clone
-1. Fork the repository on GitHub: `https://github.com/OK45batwal/prompt-plus`
+1. Fork the repository: [https://github.com/OK45batwal/prompt-plus](https://github.com/OK45batwal/prompt-plus)
 2. Clone your fork locally:
    ```bash
    git clone https://github.com/YOUR_USERNAME/prompt-plus.git
    cd prompt-plus
    ```
 
-### 2. Environment & Dependencies
-1. Install dependencies:
+### 2. Install Dependencies & Setup Environment
+1. Install project dependencies:
    ```bash
    npm install
    ```
-2. Copy environment file:
+2. Setup environment variables:
    ```bash
-   cp .env.example .env
+   cp .env.example .env.local
    ```
 3. Generate Prisma Client bindings:
    ```bash
@@ -34,43 +44,58 @@ npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### 4. Build Chrome Extension
+```bash
+npm run build:extension
+```
+Load the `extension/` folder in Chrome at `chrome://extensions` with Developer Mode enabled.
+
 ---
 
 ## 🧪 Testing & Validation
 
-Before submitting a Pull Request, ensure all unit tests and builds pass cleanly:
+Before submitting your pull request, make sure all tests and build checks pass:
 
 ```bash
-# Run unit & integration test suite
+# Run unit & integration test suites
 npm test
 
 # Run Next.js production build check
 npm run build
+
+# Run linting check
+npm run lint
 ```
 
 ---
 
-## 📝 Commit Conventions
+## 📝 Commit & Branch Conventions
 
-We follow the Conventional Commits specification:
+We follow Conventional Commits:
 
-- `feat:` New features (e.g., `feat(ui): add prompt tag filtering`)
-- `fix:` Bug fixes (e.g., `fix(auth): resolve session expiration callback`)
-- `refactor:` Code refactoring without behavioral changes
-- `docs:` Documentation improvements
-- `test:` Adding or updating tests
+- `feat:` A new feature (e.g. `feat(api-keys): add cross-device hint masking`)
+- `fix:` A bug fix (e.g. `fix(history): resolve soft-delete cascade`)
+- `docs:` Documentation updates (e.g. `docs: add contributing guide`)
+- `refactor:` Code improvements without behavioral changes
+- `test:` Adding or modifying tests
+- `perf:` Performance optimizations
+
+Branch naming format: `feat/feature-name` or `fix/issue-description`.
 
 ---
 
-## 🤝 Pull Request Workflow
+## 🤝 Pull Request Process
 
-1. Create a descriptive topic branch:
+1. Create a feature branch from `main`:
    ```bash
    git checkout -b feat/your-feature-name
    ```
-2. Make your changes and verify with `npm test` and `npm run build`.
-3. Commit your changes:
+2. Implement your changes with corresponding test coverage.
+3. Verify that `npm test` passes completely.
+4. Push your branch to GitHub:
    ```bash
-   git commit -m "feat(scope): detailed message"
+   git push origin feat/your-feature-name
    ```
-4. Push to your fork and submit a Pull Request on GitHub!
+5. Open a Pull Request on GitHub against `main` using our PR template.
+
+Thank you for helping make Prompt+ the leading prompt engineering platform!

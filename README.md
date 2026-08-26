@@ -202,6 +202,17 @@ npm test
 
 ---
 
+## 🤝 Contributing
+
+We welcome contributions! Whether you're fixing a bug, adding new prompt enhancement algorithms, improving dashboard UX, or expanding the Chrome extension:
+
+1. Read our [Contributing Guide](CONTRIBUTING.md) for full development instructions.
+2. Fork the repository and create your feature branch: `git checkout -b feat/my-feature`.
+3. Ensure all tests pass with `npm test`.
+4. Submit a Pull Request on GitHub.
+
+---
+
 ## License
 
 Proprietary © Prompt+ Team. All rights reserved.
