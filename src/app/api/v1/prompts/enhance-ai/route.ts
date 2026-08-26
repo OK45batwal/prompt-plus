@@ -207,13 +207,19 @@ export const POST = withAuth(
         }
       })();
 
+      const promptScore = calculateDynamicPromptScore(cleanedOutput);
+
       return jsonResponse(
         {
           data: {
             promptId: promptId || null,
             enhanced: cleanedOutput,
+            score: promptScore,
             provider: response.provider,
             model: response.model,
+            tokensIn: response.tokensIn || 0,
+            tokensOut: response.tokensOut || 0,
+            latencyMs,
           },
         },
         { requestId }
@@ -235,14 +241,19 @@ export const POST = withAuth(
 
       // Dynamic algorithmic meta-prompt synthesis
       const fallbackEnhancedText = synthesizeAlgorithmicPrompt(text, level);
+      const fallbackScore = calculateDynamicPromptScore(fallbackEnhancedText);
 
       return jsonResponse(
         {
           data: {
             promptId: promptId || "algorithmic",
             enhanced: fallbackEnhancedText,
+            score: fallbackScore,
             provider: "prompt-architect-engine",
             model: "algorithmic-v2",
+            tokensIn: 0,
+            tokensOut: 0,
+            latencyMs,
           },
         },
         { requestId }
