@@ -168,13 +168,13 @@ export default function DashboardPage() {
               key={action.title}
               href={action.href}
               className={`double-bezel-outer group transition-all duration-200 hover:-translate-y-0.5 ${
-                action.primary ? "ring-1 ring-primary/40" : ""
+                action.primary ? "ring-1 ring-primary/50 shadow-xs" : ""
               }`}
             >
               <div
                 className={`double-bezel-inner p-5 h-full flex flex-col justify-between transition-colors ${
                   action.primary
-                    ? "bg-foreground text-background"
+                    ? "bg-primary/[0.03] border-primary/30"
                     : "hover:border-foreground/20"
                 }`}
               >
@@ -182,25 +182,34 @@ export default function DashboardPage() {
                   <div
                     className={`p-2.5 rounded-xl transition-transform group-hover:scale-105 ${
                       action.primary
-                        ? "bg-background/20 text-background"
+                        ? "bg-primary/10 text-primary border border-primary/25"
                         : "bg-accent text-foreground border border-border/60"
                     }`}
                   >
                     <action.icon className="h-5 w-5" />
                   </div>
                   <div
-                    className={`h-7 w-7 rounded-full flex items-center justify-center transition-transform group-hover:translate-x-0.5 ${
-                      action.primary ? "bg-background/20 text-background" : "bg-muted text-muted-foreground"
+                    className={`h-7 w-7 rounded-full flex items-center justify-center transition-all duration-200 group-hover:translate-x-0.5 ${
+                      action.primary
+                        ? "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground"
+                        : "bg-muted text-muted-foreground group-hover:bg-foreground group-hover:text-background"
                     }`}
                   >
                     <ArrowRight className="h-3.5 w-3.5" />
                   </div>
                 </div>
                 <div className="mt-4">
-                  <h4 className={`font-bold text-sm ${action.primary ? "text-background" : ""}`}>
-                    {action.title}
-                  </h4>
-                  <p className={`text-xs mt-1 leading-relaxed ${action.primary ? "text-background/80" : "text-muted-foreground"}`}>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-bold text-sm text-foreground">
+                      {action.title}
+                    </h4>
+                    {action.primary && (
+                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                        Popular
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs mt-1 leading-relaxed text-muted-foreground">
                     {action.description}
                   </p>
                 </div>
