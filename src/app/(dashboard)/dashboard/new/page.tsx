@@ -535,7 +535,7 @@ export default function PromptBuilderPage() {
       rec.onerror = (e: SpeechRecognitionErrorEvent) => {
         setIsListening(false);
         recognitionRef.current = null;
-        if (e.error === "not-allowed" || e.error === "permission-denied") {
+        if (e.error === "not-allowed" || e.error === "service-not-allowed") {
           setErrorNotice("Microphone permission denied. Click the lock/settings icon in your address bar to enable microphone access.");
           toast("Microphone access denied.", "error");
         } else if (e.error === "no-speech") {
