@@ -8,52 +8,20 @@ import { ChatGptLogo, ClaudeLogo, GeminiLogo, DeepSeekLogo } from "@/components/
 import {
   Sparkles,
   ArrowRight,
+  ArrowUpRight,
   BarChart3,
   Layers,
   Wand2,
-  ArrowUpRight,
   Sliders,
   Puzzle,
   ShieldCheck,
   Lock,
-  Mail,
-  MessageSquare,
-  Copy,
-  Check,
   CheckCircle2,
-  Globe,
   CircleDollarSign,
   MonitorSmartphone,
   Repeat,
   Infinity,
 } from "lucide-react";
-
-const features = [
-  {
-    icon: Wand2,
-    title: "Instant AI Refinement",
-    description:
-      "Transform vague 5-word prompts into structured, production-ready system instructions optimized for top AI models.",
-  },
-  {
-    icon: BarChart3,
-    title: "Precision Quality Scoring",
-    description:
-      "Receive real-time 100-point quality evaluation breakdowns for clarity, role assignment, specificity, and constraints.",
-  },
-  {
-    icon: Sliders,
-    title: "Side-by-Side Model Lab",
-    description:
-      "Compare model responses across OpenAI, Claude, and Gemini simultaneously with version-controlled prompt history.",
-  },
-  {
-    icon: Layers,
-    title: "Team & Personal Collections",
-    description:
-      "Organize prompts into team collections, save reusable variables, and export templates directly to your workspace.",
-  },
-];
 
 const modelBadges = [
   { name: "ChatGPT / GPT-4o", Logo: ChatGptLogo },
@@ -69,7 +37,6 @@ const steps = [
 ];
 
 export default function LandingPage() {
-  const [copiedEmail, setCopiedEmail] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   useEffect(() => {
@@ -105,14 +72,6 @@ export default function LandingPage() {
     { q: "What do you do with my prompts?", a: "Nothing — we never sell, rent, or train on your prompts. Your prompts and API keys (encrypted with AES-256-GCM) belong to you. You can delete your account and data at any time." },
     { q: "Can I bring my own API key?", a: "Yes. Add OpenAI, Anthropic, OpenRouter, or NVIDIA keys in Settings for full model access. Keys are encrypted at rest. If you don't add one, the free server model covers you." },
   ];
-
-  const contactEmail = "promptplus2@gmail.com";
-
-  const handleCopyEmail = () => {
-    navigator.clipboard.writeText(contactEmail);
-    setCopiedEmail(true);
-    setTimeout(() => setCopiedEmail(false), 2000);
-  };
 
   return (
     <div className="relative overflow-hidden selection:bg-primary/20 selection:text-primary">

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
-import { createKeyHint, GET as getApiKeys, POST as postApiKey, DELETE as deleteApiKey } from "@/app/api/v1/api-keys/route";
+import { createKeyHint, GET as getApiKeys, POST as postApiKey } from "@/app/api/v1/api-keys/route";
 import { DELETE as deletePrompts } from "@/app/api/v1/prompts/route";
 import { POST as enhanceAi } from "@/app/api/v1/prompts/enhance-ai/route";
 
@@ -10,8 +10,27 @@ vi.mock("@/lib/auth/config", () => ({
 }));
 
 // Mock DB
-const mockApiKeys: any[] = [];
-const mockPrompts: any[] = [];
+interface MockApiKey {
+  id: string;
+  userId: string;
+  provider: string;
+  keyHint?: string;
+  apiKeyEnc?: string;
+  isActive: boolean;
+  createdAt: Date;
+  [key: string]: unknown;
+}
+
+interface MockPrompt {
+  id: string;
+  userId: string;
+  text?: string;
+  deletedAt: Date | null;
+  [key: string]: unknown;
+}
+
+const mockApiKeys: MockApiKey[] = [];
+const mockPrompts: MockPrompt[] = [];
 
 vi.mock("@/lib/db/prisma", () => ({
   getDb: () => ({

@@ -3,7 +3,6 @@ import { getDb } from "@/lib/db/prisma";
 import { enhancePromptSchema } from "@/lib/validations/prompts";
 import { callLLM } from "@/lib/llm/providers";
 import { decrypt } from "@/lib/crypto";
-import { resolveServerApiKey } from "@/lib/llm/server-api-key";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 import { buildArchitectMetaPrompt, cleanMasterPromptOutput } from "@/lib/llm/meta-prompt";
