@@ -39,19 +39,36 @@ function LoginForm() {
 
     const targetUrl = searchParams.get("callbackUrl") || "/dashboard";
 
-    const formData = new FormData();
-    formData.append("email", email);
-    formData.append("password", password);
-    formData.append("redirectTo", targetUrl);
-
     try {
-      const err = await authenticate(undefined, formData);
-      if (err) {
-        setError(err);
+      const res = await signIn("credentials", {
+        email: email.trim().toLowerCase(),
+        password,
+        redirect: false,
+        callbackUrl: targetUrl,
+      });
+
+      if (res?.error) {
+        setError("Invalid email or password. Please check your credentials.");
         setIsLoading(false);
+      } else {
+        window.location.href = targetUrl;
       }
     } catch {
-      window.location.href = targetUrl;
+      try {
+        const formData = new FormData();
+        formData.append("email", email.trim().toLowerCase());
+        formData.append("password", password);
+        formData.append("redirectTo", targetUrl);
+        const err = await authenticate(undefined, formData);
+        if (err) {
+          setError(err);
+          setIsLoading(false);
+        } else {
+          window.location.href = targetUrl;
+        }
+      } catch {
+        window.location.href = targetUrl;
+      }
     }
   };
 

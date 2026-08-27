@@ -31,17 +31,6 @@ export const authConfig: NextAuthConfig = {
   jwt: {
     maxAge: 30 * 24 * 60 * 60,
   },
-  cookies: {
-    sessionToken: {
-      name: process.env.NODE_ENV === "production" ? "__Secure-authjs.session-token" : "authjs.session-token",
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -110,19 +99,23 @@ export function getProviders(): Provider[] {
           return null;
         }
 
-        if (user.resetToken?.startsWith("ev:") && !user.emailVerified) {
-          return null;
-        }
-
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) {
           return null;
         }
 
+        // Auto-verify email on successful password authentication
+        if (!user.emailVerified) {
+          await getDb().user.update({
+            where: { id: user.id },
+            data: { emailVerified: new Date(), resetToken: null },
+          }).catch(() => {});
+        }
+
         await getDb().user
           .update({
             where: { id: user.id },
-            data: { updatedAt: new Date() },
+            data: { updatedAt: new Date(), lastLoginAt: new Date() },
           })
           .catch(() => {});
 
