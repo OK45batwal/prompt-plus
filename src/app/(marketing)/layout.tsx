@@ -134,7 +134,6 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               <ul className="space-y-2.5 text-muted-foreground">
                 <li><Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
                 <li><Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link></li>
-                <li><Link href="/privacy#cookies" className="hover:text-foreground transition-colors">Cookie Preferences</Link></li>
                 <li><Link href="/contact" className="hover:text-foreground transition-colors">Contact Us</Link></li>
               </ul>
             </div>

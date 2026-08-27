@@ -96,27 +96,10 @@ export async function sendOtpEmail(
   if (!apiKey) return { sent: false, error: "No email provider configured" };
   const resend = new Resend(apiKey);
   try {
-    const sendPromise = resend.emails.send({
-      from: from.includes("gmail.com") ? "Prompt+ <onboarding@resend.dev>" : from,
-      to: email,
-      subject,
-      text,
-      html,
-    });
-
-    const timeoutPromise = new Promise<{ error: { message: string } }>((resolve) =>
-      setTimeout(() => resolve({ error: { message: "Email delivery timed out" } }), 3500)
-    );
-
-    const result = await Promise.race([sendPromise, timeoutPromise]);
-    if ("error" in result && result.error) {
-      logger.warn("Resend email delivery note", { to: email, error: result.error.message });
-      return { sent: false, error: result.error.message };
-    }
+    const { error } = await resend.emails.send({ from, to: email, subject, text, html });
+    if (error) return { sent: false, error: error.message };
     return { sent: true };
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Unknown Resend error";
-    logger.error("Resend OTP send failed", { to: email, error: msg });
-    return { sent: false, error: msg };
+    return { sent: false, error: err instanceof Error ? err.message : "Unknown error" };
   }
 }

@@ -1,512 +1,158 @@
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
 import { Logo } from "@/components/ui/logo";
-import {
-  Lock,
-  EyeOff,
-  Cpu,
-  Cookie,
-  ArrowLeft,
-  SlidersHorizontal,
-  Globe2,
-  Building2,
-  Scale,
-  FileCheck2,
-} from "lucide-react";
-import { openCookiePreferences } from "@/components/ui/cookie-banner";
 
-type RegionKey = "global" | "eu" | "us" | "india" | "apac_latam";
-
-interface PrivacySection {
-  id: string;
-  title: string;
-  badge: string;
-  body: string[];
-}
-
-const globalSections: PrivacySection[] = [
+const sections = [
   {
     id: "overview",
-    title: "1. Global Privacy Charter & Core Principles",
-    badge: "Core Charter",
+    title: "1. Overview",
     body: [
-      "This Privacy Policy governs the processing of personal data and digital inputs by Prompt+ (\"we\", \"our\", \"us\") across the web application (prompt-plus-three.vercel.app), Chrome browser extension, and related APIs.",
-      "Prompt+ is architected from the ground up on three immutable principles:",
-      "• Zero Data Commercialization: We do not sell, rent, monetize, broker, or trade user data, prompt text, or AI outputs under any circumstances.",
-      "• Zero AI Model Training: Your raw prompts, customized instructions, context memories, and enhanced outputs are NEVER utilized to train, fine-tune, or benchmark public or proprietary foundation models.",
-      "• On-Device Processing Option: Users have access to 100% local, client-side execution via Chrome 138+ Gemini Nano, allowing prompts to be optimized entirely within browser sandbox memory without network transmission.",
+      "This Privacy Policy explains what Prompt+ (\"we\", \"our\", \"us\") collects, why we collect it, how we use it, and the choices and rights you have. By creating an account or using the Prompt+ website, extension, or API, you agree to this policy.",
+      "Prompt+ is built on a privacy-first architecture: we never sell user data, and we offer a fully on-device processing mode that can work without your data ever leaving your browser.",
     ],
   },
   {
-    id: "collection",
-    title: "2. Itemized Information Collection",
-    badge: "Data Inventory",
+    id: "collect",
+    title: "2. Information We Collect",
     body: [
-      "We practice strict data minimization and collect only the minimum necessary data points:",
-      "2.1 Account Credentials: Email address, optional display name, and password hash (encrypted via bcrypt with 12 computational rounds — plaintext passwords cannot be decrypted or viewed by Prompt+ staff). For Google or GitHub OAuth users, we receive only provider unique IDs and verified email addresses.",
-      "2.2 Workspace Content (Authenticated Users): Saved prompt templates, iterative revision history, 6-pillar quality scores, and workspace collections stored in encrypted PostgreSQL database partitions.",
-      "2.3 API Key Vault (Optional): User-provided API keys (OpenAI, Anthropic, OpenRouter, NVIDIA) are encrypted at rest using AES-256-GCM authenticated cipher with hardware-isolated server encryption keys.",
-      "2.4 Ephemeral Server Telemetry: Ephemeral request metrics (timestamp, execution latency, estimated token count, and HTTP response status) are retained temporarily in volatile server memory for DDoS protection and automatically rotated.",
-      "2.5 Device-Local Data: Context memory buckets, scratchpad drafts, UI preferences, and theme choices are stored strictly in client browser localStorage.",
+      "We collect only the information needed to run the service. Here is a complete, itemized list.",
+      "2.1 Account information. When you sign up we collect: your email address; a name if you provide one; an avatar if you provide one; a password (stored only as a bcrypt hash — we cannot read or recover it); and, if you sign in with GitHub or Google, the OAuth account identifier and any profile data that provider shares with us.",
+      "2.2 Prompt content and history. When you use the enhancement, scoring, or analysis features and are signed in, we store: the original prompt text; the enhanced output; quality score and analysis breakdowns; model, category, tone, and length metadata; version history of each prompt; collections and tags you create; and any prompts you choose to share (see Section 7).",
+      "2.3 API keys (optional). If you choose to bring your own API key, we store an encrypted copy on our servers using AES-256-GCM, along with the provider, last-used timestamp, and usage count. A copy may also be held in your browser's local storage so the extension can use it without a round-trip.",
+      "2.4 Usage and analytics data. For authenticated requests we record: the action performed (e.g., enhance, score, compare), the model and provider used, input/output token counts, latency, and success/failure — tied to your account. We also use Vercel Analytics and Speed Insights, which collect aggregate, privacy-friendly traffic and performance statistics (no personal identifiers).",
+      "2.5 Device-local data. The following stay in your browser and are never sent to our servers: your context-memory blocks, API key vault, local prompt history, UI preferences, search history, theme choice, and sidebar state (via localStorage).",
+      "2.6 IP addresses and rate limiting. To prevent abuse and enforce fair-use limits, we may process your IP address transiently. This is held in server memory only, expires automatically, and is not stored or retained.",
+      "2.7 Email. If you sign up with an email/password account, we send you verification codes (OTP) via email. We keep a record of your email address and verification state to operate your account.",
+    ],
+  },
+  {
+    id: "use",
+    title: "3. How We Use Your Data",
+    body: [
+      "We use collected information only for the following purposes:",
+      "· To operate, maintain, and improve the service (enhancement, scoring, comparisons, library, collections, and sharing).",
+      "· To authenticate you and secure your account.",
+      "· To track usage for fair-use protection, diagnostics, and service reliability.",
+      "· To send you service-related emails you request (e.g., verification codes, password resets).",
+      "· To display aggregate, non-identifying statistics for our own analytics.",
+      "We never sell, rent, or monetize your personal data or prompt content. We never use your prompts to train AI models.",
+    ],
+  },
+  {
+    id: "modes",
+    title: "4. On-Device vs. API Processing — When Your Data Leaves Your Browser",
+    body: [
+      "Prompt+ offers two enhancement modes, and they differ in where your prompt text goes:",
+      "On-Device mode uses Chrome's built-in Gemini Nano and runs entirely in your browser. Your prompt text is processed locally and never transmitted to our servers or any third party.",
+      "API mode sends your prompt text to our server, which forwards it to the AI provider you select (or the free server model) solely to generate the enhanced output. The prompt is processed for that request and is not used for training.",
+      "In both modes, the enhanced result is returned to you. We do not log prompt content in API mode beyond what is necessary to deliver the request and, when you are signed in, the history you explicitly keep.",
+    ],
+  },
+  {
+    id: "sharing",
+    title: "5. Third-Party Processors",
+    body: [
+      "We share data only with the processors required to deliver the service, and only to the extent necessary:",
+      "· AI providers (OpenAI, Anthropic, OpenRouter, NVIDIA) — receive prompt text for enhancement/comparison only in API mode, under their own terms and privacy policies.",
+      "· Hosting and infrastructure (Vercel) — servers, logs for security, and delivery.",
+      "· Email delivery (SMTP provider or Resend) — to send verification codes and password resets.",
+      "· Analytics (Vercel Analytics, Speed Insights) — aggregate, privacy-friendly metrics.",
+      "Each processor is bound by its own privacy commitments; we require data minimization and prohibit any sale or use of your data for their own purposes.",
     ],
   },
   {
     id: "cookies",
-    title: "3. Transparent Cookie Policy & User Control",
-    badge: "ePrivacy / Cookies",
+    title: "6. Cookies & Local Storage",
     body: [
-      "We reject invasive tracking cookies and provide granular, user-controlled cookie management:",
-      "• Strictly Essential Cookies: Cryptographically signed session tokens (authjs.session-token and __Secure-authjs.session-token) used solely to maintain authenticated user sessions and defend against CSRF attacks. These cookies do not track users across external websites.",
-      "• Performance & Web Vitals (Optional): Anonymized Vercel Analytics and Speed Insights to monitor server latency and crash rates without logging persistent IP addresses.",
-      "• Preferences Storage (Optional): LocalStorage keys that remember dark/light mode and layout preferences.",
-      "You can accept all, reject non-essential cookies, or customize individual categories at any time via our Cookie Preferences widget.",
+      "We use a single session cookie to keep you signed in. It is httpOnly, SameSite=Lax, transmitted over HTTPS, and expires after 30 days. We do not use advertising or tracking cookies.",
+      "We use localStorage in your browser for preferences, local history, context blocks, and your API key vault. This data stays on your device unless you sign in and explicitly save content to your account.",
+    ],
+  },
+  {
+    id: "share-links",
+    title: "7. Public Sharing",
+    body: [
+      "If you use the \"share\" feature on a prompt, we generate a unique, unguessable link. Anyone with that link can view the prompt. Shared prompts are public by design — do not share sensitive content. You can remove a shared prompt at any time, which invalidates the link.",
+    ],
+  },
+  {
+    id: "retention",
+    title: "8. Data Retention & Deletion",
+    body: [
+      "We retain your account data while your account is active so that your library, history, and settings work as expected.",
+      "You can delete individual prompts, versions, collections, and your stored API keys at any time from the dashboard. You can also close your account with one click in Settings. Account closure permanently deletes your account record and, by cascade, all prompts, versions, collections, stored API keys, usage logs, and analytics tied to it. This deletion is immediate and cannot be undone.",
+      "If you have not signed in, your prompts are kept only in your browser's localStorage and can be cleared by clearing your browser data.",
     ],
   },
   {
     id: "security",
-    title: "4. Technical Safeguards & Data Security",
-    badge: "AES-256-GCM",
+    title: "9. Data Security",
     body: [
-      "We enforce enterprise-grade security controls across our infrastructure:",
-      "• Mandatory HTTPS / TLS 1.3 encryption across all public and internal network communications.",
-      "• AES-256-GCM encryption for all sensitive user credentials and API keys stored at rest.",
-      "• Automated rate limiting, CSP headers (Content-Security-Policy), and input sanitization against XSS, injection, and CSRF vectors.",
-      "• Instant, single-click account deletion in Settings that triggers complete cascading database eradication.",
-    ],
-  },
-];
-
-const euGdprSections: PrivacySection[] = [
-  {
-    id: "gdpr-basis",
-    title: "1. Legal Basis for Processing (GDPR Art. 6)",
-    badge: "EU / UK GDPR",
-    body: [
-      "Under the European Union General Data Protection Regulation (EU GDPR) and the UK Data Protection Act 2018 (UK GDPR), we process personal data under the following lawful bases:",
-      "• Performance of a Contract (Art. 6(1)(b)): Processing account credentials, saved prompt libraries, and enhancement requests to deliver the Service you signed up for.",
-      "• Consent (Art. 6(1)(a)): Granular opt-in consent for optional performance analytics cookies, which you can freely grant or withdraw at any time.",
-      "• Legitimate Interests (Art. 6(1)(f)): Defending platform integrity, rate limiting abuse, preventing DDoS attacks, and ensuring server security.",
-      "• Legal Obligation (Art. 6(1)(c)): Complying with statutory reporting, accounting, or regulatory requirements where mandated by law.",
+      "We protect your data with: HTTPS everywhere; passwords hashed with bcrypt; API keys encrypted at rest with AES-256-GCM using a server-side secret; rate limiting and CSRF/session protection on all mutating endpoints; and the principle of least privilege on infrastructure.",
+      "No method of transmission or storage is 100% secure. While we work hard to protect your data, we cannot guarantee absolute security.",
     ],
   },
   {
-    id: "gdpr-rights",
-    title: "2. Data Subject Rights (GDPR Arts. 15–22)",
-    badge: "European Rights",
+    id: "rights",
+    title: "10. Your Rights",
     body: [
-      "European Economic Area (EEA) and UK residents are entitled to exercise the following fundamental rights:",
-      "• Right of Access (Art. 15): Request a full copy of all personal data held about you in a structured, readable format.",
-      "• Right to Rectification (Art. 16): Correct inaccurate, outdated, or incomplete account data directly in Settings.",
-      "• Right to Erasure / 'Right to be Forgotten' (Art. 17): Permanently erase your account, prompt history, API keys, and logs with instant effect.",
-      "• Right to Restriction of Processing (Art. 18): Restrict processing of your data while a dispute or verification request is pending.",
-      "• Right to Data Portability (Art. 20): Export all saved prompts, templates, and metadata in JSON/CSV formats.",
-      "• Right to Object (Art. 21): Object to processing based on legitimate interests.",
-      "• Right to Withdraw Consent (Art. 7(3)): Withdraw cookie or communications consent at any time without penalty.",
-      "To exercise these rights, email promptplus2@gmail.com. We respond within 30 days free of charge.",
+      "Depending on your jurisdiction (including under GDPR, CCPA, and similar laws), you may have the right to: access a copy of your data; correct inaccurate data; delete your data; export your data (e.g., copy your prompts); object to or restrict certain processing; and withdraw consent. You can exercise most of these directly in the dashboard (export/copy, edit, delete) or by contacting us — we respond to all verified requests within 30 days.",
+      "We do not engage in \"sale\" or \"sharing\" of personal information as defined by the CCPA, and we do not use your data for advertising or profiling.",
     ],
   },
   {
-    id: "gdpr-transfers",
-    title: "3. International Data Transfers & Standard Contractual Clauses (SCCs)",
-    badge: "Cross-Border",
+    id: "children",
+    title: "11. Children's Privacy",
     body: [
-      "When data is transferred outside the European Economic Area (EEA) or UK (such as to cloud serverless nodes hosted on Vercel or upstream AI endpoints in the US), we ensure appropriate safeguards pursuant to GDPR Chapter V.",
-      "We utilize European Commission-approved Standard Contractual Clauses (SCCs) and verified Data Privacy Framework (DPF) certifications to guarantee an adequate level of data protection equivalent to EU standards.",
+      "Prompt+ is not directed to children under 13. We do not knowingly collect personal information from children under 13. If you believe a child has provided us personal information, contact us and we will delete it.",
     ],
   },
   {
-    id: "gdpr-dpo",
-    title: "4. Supervisory Authority & Complaints",
-    badge: "Regulatory Recourse",
+    id: "transfers",
+    title: "12. International Data Transfers",
     body: [
-      "If you believe our processing of your personal data infringes GDPR provisions, you have the statutory right to lodge a formal complaint with your local EU Data Protection Authority (DPA) or the UK Information Commissioner's Office (ICO) at https://ico.org.uk.",
-    ],
-  },
-];
-
-const usSections: PrivacySection[] = [
-  {
-    id: "us-ccpa",
-    title: "1. California Consumer Privacy Act (CCPA / CPRA Disclosures)",
-    badge: "California / CPRA",
-    body: [
-      "This section applies to California residents pursuant to the California Consumer Privacy Act of 2018, as amended by the California Privacy Rights Act of 2020 (collectively, \"CCPA/CPRA\"), as well as state privacy laws in Virginia (VCDPA), Colorado (CPA), Connecticut (CTDPA), and Utah (UCPA).",
-      "Categories of Personal Information Collected in the Preceding 12 Months:",
-      "• Identifiers: Email address, username/name, IP address (ephemeral only), unique session identifiers.",
-      "• Commercial Information: Prompt metadata, quality scores, API key vault references.",
-      "• Internet/Network Activity: Page load latency, feature usage counts via anonymized telemetry.",
-      "• Sensitive Personal Information: Encrypted API key secrets (used solely to perform requested AI enhancements; never used for profiling or cross-context behavioral advertising).",
+      "Prompt+ is hosted on infrastructure that may process data in regions outside your country of residence. By using the service, you acknowledge that your data may be transferred to and processed in countries where data-protection laws may differ from your jurisdiction. We rely on standard contractual clauses and equivalent safeguards where applicable.",
     ],
   },
   {
-    id: "us-no-sale",
-    title: "2. Absolute 'Do Not Sell or Share My Personal Information' Guarantee",
-    badge: "Zero Sale of Data",
+    id: "changes",
+    title: "13. Changes to This Policy",
     body: [
-      "• Prompt+ has NOT sold personal information to any third party in the preceding 12 months.",
-      "• Prompt+ has NOT shared personal information for cross-context behavioral advertising.",
-      "• Prompt+ does NOT sell or share personal information of minors under 16 years of age.",
-      "Because we do not sell or share personal data for advertising, opt-out mechanisms for data sales are not necessary, though we honor Global Privacy Control (GPC) signals sent by your browser automatically.",
+      "We may update this policy from time to time. Material changes will be announced on this page with an updated date at the top. Continued use of the service after changes take effect constitutes acceptance of the revised policy.",
     ],
   },
   {
-    id: "us-rights",
-    title: "3. California & Multi-State Consumer Rights",
-    badge: "Consumer Rights",
+    id: "contact",
+    title: "14. Contact",
     body: [
-      "Consumers in California, Virginia, Colorado, Connecticut, and Utah have the right to:",
-      "• Right to Know & Access: Request disclosure of categories and specific pieces of personal information collected.",
-      "• Right to Delete: Request irreversible deletion of collected personal information.",
-      "• Right to Correct: Request correction of inaccurate personal information.",
-      "• Right to Non-Discrimination: We will never deny services, charge different prices, or provide a degraded level of service for exercising your privacy rights.",
-      "• Shine the Light Law: California Civil Code § 1798.83 permits users to request information regarding third-party direct marketing disclosures (we disclose zero user data for direct marketing).",
-      "To submit a request, contact us at promptplus2@gmail.com. We verify requests via account email confirmation and fulfill them within 45 days.",
-    ],
-  },
-];
-
-const indiaSections: PrivacySection[] = [
-  {
-    id: "india-dpdpa",
-    title: "1. Digital Personal Data Protection Act, 2023 (DPDPA Compliance)",
-    badge: "India / DPDPA",
-    body: [
-      "This section applies to users located in India and outlines compliance with the Digital Personal Data Protection Act, 2023 (DPDPA 2023) and the Information Technology (Reasonable Security Practices and Procedures and Sensitive Personal Data or Information) Rules, 2011 (SPDI Rules).",
-      "• Itemized Notice & Specified Purpose: Personal data is collected solely for specified, lawful purposes (account authentication, prompt enhancement, and secure storage).",
-      "• Free, Specific, Informed & Unconditional Consent: Account registration requires explicit, affirmative agreement via our consent checkbox.",
-      "• Right to Withdraw Consent: Data Principals may withdraw consent at any time by closing their account in Settings.",
-    ],
-  },
-  {
-    id: "india-rights",
-    title: "2. Rights of Data Principals in India",
-    badge: "Data Principal Rights",
-    body: [
-      "Under DPDPA 2023, you possess the following statutory rights:",
-      "• Right to Access Information About Personal Data: Obtain a summary of digital personal data being processed and identities of all processing partners.",
-      "• Right to Correction and Erasure: Request correction of misleading data and complete erasure of digital personal data no longer necessary for the purpose.",
-      "• Right of Grievance Redressal: Access a designated Grievance Officer with an obligation to respond to inquiries promptly.",
-      "• Right to Nominate: Designate any other individual to exercise your data rights in the event of death or incapacity.",
-    ],
-  },
-  {
-    id: "india-grievance",
-    title: "3. Resident Grievance Officer & Contact",
-    badge: "Grievance Redressal",
-    body: [
-      "In compliance with Rule 5(9) of the SPDI Rules and DPDPA requirements, Prompt+ has designated a dedicated Grievance Officer:",
-      "• Grievance Officer: Legal & Data Privacy Team",
-      "• Email: promptplus2@gmail.com",
-      "• Subject Line: 'DPDPA Grievance / Privacy Inquiry'",
-      "• Turnaround Time: All grievances will be acknowledged within 24 hours and resolved within 30 business days.",
-      "If unsatisfied with the resolution, Data Principals in India may appeal to the Data Protection Board of India (DPBI).",
-    ],
-  },
-];
-
-const otherRegionsSections: PrivacySection[] = [
-  {
-    id: "canada-pipeda",
-    title: "1. Canada (PIPEDA Compliance)",
-    badge: "Canada",
-    body: [
-      "For Canadian residents, Prompt+ complies with the Personal Information Protection and Electronic Documents Act (PIPEDA). We process personal data only with knowledge and consent, for reasonable purposes, and provide full rights to access and challenge compliance via the Office of the Privacy Commissioner of Canada (OPC).",
-    ],
-  },
-  {
-    id: "brazil-lgpd",
-    title: "2. Brazil (LGPD Compliance)",
-    badge: "Brazil",
-    body: [
-      "For residents of Brazil, data is processed in accordance with the Lei Geral de Proteção de Dados (LGPD). Brazilian Data Subjects may confirm the existence of processing, access their data, rectify incomplete data, request anonymization or deletion, and petition the National Data Protection Authority (ANPD) by contacting promptplus2@gmail.com.",
-    ],
-  },
-  {
-    id: "apac-australia",
-    title: "3. Asia-Pacific & Australia (Privacy Act 1988 & APPI)",
-    badge: "APAC / Australia",
-    body: [
-      "• Australia: We adhere to the Australian Privacy Principles (APPs) under the Privacy Act 1988 regarding open data management and cross-border disclosures.",
-      "• Japan: Complying with the Act on the Protection of Personal Information (APPI).",
-      "• Singapore: Compliant with the Personal Data Protection Act 2012 (PDPA).",
-    ],
-  },
-  {
-    id: "children-global",
-    title: "4. Global Children's Privacy (COPPA & Age Verification)",
-    badge: "Minor Protection",
-    body: [
-      "Prompt+ is strictly intended for individuals aged 13 and older (or 16 in jurisdictions where mandated by law). We do not knowingly solicit or collect personal data from children under 13 under the US Children's Online Privacy Protection Act (COPPA) or equivalent global statutes. Any account identified as belonging to a child under the legal age will be immediately deleted.",
+      "For any privacy questions, data requests, or concerns, contact us at promptplus2@gmail.com. We aim to respond within 48 hours.",
     ],
   },
 ];
 
 export default function PrivacyPage() {
-  const [selectedRegion, setSelectedRegion] = useState<RegionKey>("global");
-
-  const getRegionSections = () => {
-    switch (selectedRegion) {
-      case "eu":
-        return euGdprSections;
-      case "us":
-        return usSections;
-      case "india":
-        return indiaSections;
-      case "apac_latam":
-        return otherRegionsSections;
-      case "global":
-      default:
-        return globalSections;
-    }
-  };
-
-  const currentSections = getRegionSections();
-
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/20 selection:text-primary">
-      {/* Header */}
-      <header className="h-16 flex items-center justify-between px-6 border-b border-border/50 backdrop-blur-md bg-background/80 sticky top-0 z-50">
-        <Link href="/" className="flex items-center gap-2">
-          <Logo size={22} />
-        </Link>
-        <div className="flex items-center gap-4 text-xs font-medium">
-          <button
-            onClick={openCookiePreferences}
-            type="button"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card/60 hover:bg-accent text-foreground transition-colors cursor-pointer"
-          >
-            <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
-            <span>Manage Cookie Choices</span>
-          </button>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Back to Home</span>
-          </Link>
-        </div>
+    <div className="min-h-screen flex flex-col">
+      <header className="h-14 flex items-center px-4 border-b">
+        <Link href="/"><Logo size={20} /></Link>
       </header>
+      <main className="flex-1 max-w-3xl mx-auto w-full p-6 sm:p-10">
+        <h1 className="text-2xl font-bold text-foreground mb-1">Privacy Policy</h1>
+        <p className="text-xs text-muted-foreground mb-8">Last updated: August 3, 2026 · Applies to prompt-plus-three.vercel.app and the Prompt+ Chrome extension</p>
 
-      {/* Hero Banner */}
-      <div className="border-b border-border/40 bg-card/30 py-12 px-6">
-        <div className="max-w-4xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary">
-            <Globe2 className="h-3.5 w-3.5" />
-            <span>Global Data Protection & Regional Compliance</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-            Global Privacy Policy & Data Sovereignty
-          </h1>
-          <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
-            Effective Date: August 27, 2026 · Multi-Jurisdiction Version 3.0.0. Tailored compliance covering the <strong>European Union (GDPR)</strong>, <strong>United States (CCPA/CPRA)</strong>, <strong>India (DPDPA 2023)</strong>, and global standards.
-          </p>
-
-          {/* Quick Pillars */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-            <div className="p-3.5 rounded-xl border border-border/50 bg-background/50 flex items-center gap-2.5 text-xs">
-              <EyeOff className="h-4 w-4 text-emerald-400 shrink-0" />
-              <div>
-                <strong className="block text-foreground">Zero AI Training</strong>
-                <span className="text-muted-foreground text-[11px]">Prompts never train models</span>
-              </div>
-            </div>
-            <div className="p-3.5 rounded-xl border border-border/50 bg-background/50 flex items-center gap-2.5 text-xs">
-              <Cpu className="h-4 w-4 text-indigo-400 shrink-0" />
-              <div>
-                <strong className="block text-foreground">On-Device Gemini Nano</strong>
-                <span className="text-muted-foreground text-[11px]">100% private offline AI</span>
-              </div>
-            </div>
-            <div className="p-3.5 rounded-xl border border-border/50 bg-background/50 flex items-center gap-2.5 text-xs">
-              <Lock className="h-4 w-4 text-primary shrink-0" />
-              <div>
-                <strong className="block text-foreground">AES-256 Key Vault</strong>
-                <span className="text-muted-foreground text-[11px]">Hardware-isolated encryption</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Layout */}
-      <main className="flex-1 max-w-4xl mx-auto w-full p-6 sm:p-10 space-y-8">
-        {/* Interactive Cookie Control Callout */}
-        <div className="p-5 rounded-2xl border border-primary/30 bg-primary/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 mt-0.5">
-              <Cookie className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-sm text-foreground">Interactive Cookie & Privacy Manager</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                You can accept all, reject non-essential cookies, or fine-tune individual analytics preferences at any time.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={openCookiePreferences}
-            type="button"
-            className="shrink-0 h-9 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
-          >
-            Adjust Cookie Choices
-          </button>
+        <div className="space-y-8">
+          {sections.map((s) => (
+            <section key={s.id}>
+              <h2 className="text-lg font-semibold text-foreground mb-3">{s.title}</h2>
+              {s.body.map((p, i) => (
+                <p key={i} className="text-sm text-muted-foreground leading-relaxed mb-2">{p}</p>
+              ))}
+            </section>
+          ))}
         </div>
 
-        {/* Region Selector Navigation Bar */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <Scale className="h-3.5 w-3.5 text-primary" />
-              <span>Select Your Jurisdiction / Region</span>
-            </h3>
-            <span className="text-[11px] text-muted-foreground">Click a region for localized legal rights</span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-1.5 rounded-2xl bg-card border border-border/80 shadow-xs">
-            <button
-              onClick={() => setSelectedRegion("global")}
-              className={`py-2.5 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                selectedRegion === "global"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-              }`}
-            >
-              <Globe2 className="h-3.5 w-3.5" />
-              <span>Global Overview</span>
-            </button>
-
-            <button
-              onClick={() => setSelectedRegion("eu")}
-              className={`py-2.5 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                selectedRegion === "eu"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-              }`}
-            >
-              <span>🇪🇺 EU & UK (GDPR)</span>
-            </button>
-
-            <button
-              onClick={() => setSelectedRegion("us")}
-              className={`py-2.5 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                selectedRegion === "us"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-              }`}
-            >
-              <span>🇺🇸 USA (CCPA/CPRA)</span>
-            </button>
-
-            <button
-              onClick={() => setSelectedRegion("india")}
-              className={`py-2.5 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                selectedRegion === "india"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-              }`}
-            >
-              <span>🇮🇳 India (DPDPA)</span>
-            </button>
-
-            <button
-              onClick={() => setSelectedRegion("apac_latam")}
-              className={`py-2.5 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer col-span-2 sm:col-span-1 ${
-                selectedRegion === "apac_latam"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-              }`}
-            >
-              <span>🌍 Other Regions</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Active Policy Content Container */}
-        <div className="space-y-6 animate-in fade-in duration-300">
-          <div className="p-4 rounded-xl bg-card/60 border border-border/60 flex items-center justify-between text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground flex items-center gap-1.5">
-              <FileCheck2 className="h-4 w-4 text-emerald-400" />
-              Showing legal protections for:{" "}
-              <strong className="text-primary capitalize">
-                {selectedRegion === "global"
-                  ? "Worldwide Baseline"
-                  : selectedRegion === "eu"
-                  ? "European Union & United Kingdom (GDPR / ePrivacy)"
-                  : selectedRegion === "us"
-                  ? "United States (California CCPA/CPRA & State Laws)"
-                  : selectedRegion === "india"
-                  ? "India (Digital Personal Data Protection Act 2023)"
-                  : "Canada (PIPEDA), Brazil (LGPD), APAC & Global Statutes"}
-              </strong>
-            </span>
-          </div>
-
-          <div className="space-y-6">
-            {currentSections.map((sec) => (
-              <section
-                key={sec.id}
-                id={sec.id}
-                className="p-6 rounded-2xl border border-border/60 bg-card/40 backdrop-blur-sm scroll-mt-24 space-y-4 shadow-xs"
-              >
-                <div className="flex items-center justify-between gap-3 border-b border-border/40 pb-3">
-                  <h2 className="text-base sm:text-lg font-bold text-foreground tracking-tight">
-                    {sec.title}
-                  </h2>
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary shrink-0">
-                    {sec.badge}
-                  </span>
-                </div>
-                <div className="space-y-3">
-                  {sec.body.map((paragraph, idx) => (
-                    <p key={idx} className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        </div>
-
-        {/* Global Compliance Guarantee Card */}
-        <div className="p-6 rounded-2xl border border-border/80 bg-background/60 space-y-4">
-          <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-primary" />
-            <span>Formal Data Privacy & Legal Compliance Office</span>
-          </h3>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Prompt+ processes all requests in accordance with international data protection laws. To submit a verified Data Subject Request (DSR), request permanent data erasure, or contact our Data Protection and Grievance Officer, reach out to our legal department at:
-          </p>
-          <div className="p-3.5 rounded-xl bg-card border border-border/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-            <div>
-              <span className="text-muted-foreground block text-[11px]">Direct Compliance Contact:</span>
-              <strong className="text-primary font-mono text-sm">promptplus2@gmail.com</strong>
-            </div>
-            <a
-              href="mailto:promptplus2@gmail.com?subject=Privacy%20Inquiry%20%2F%20Data%20Subject%20Request"
-              className="h-8 px-3.5 rounded-lg bg-primary text-primary-foreground font-semibold text-xs inline-flex items-center justify-center hover:bg-primary/90 transition-colors shadow-2xs"
-            >
-              Submit Privacy Inquiry →
-            </a>
-          </div>
-        </div>
-
-        {/* Footer Navigation */}
-        <div className="mt-12 pt-6 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <span>© {new Date().getFullYear()} Prompt+ Architect AI. All rights reserved.</span>
-          <div className="flex items-center gap-4 font-medium">
-            <Link href="/terms" className="text-primary hover:underline">
-              Terms of Service →
-            </Link>
-            <span>•</span>
-            <Link href="/contact" className="hover:text-foreground">
-              Contact Support
-            </Link>
-          </div>
-        </div>
+        <p className="text-xs mt-10 border-t pt-4 text-muted-foreground">
+          Read our <Link href="/terms" className="text-primary hover:underline font-medium">Terms of Service</Link>.
+        </p>
       </main>
     </div>
   );

@@ -8,15 +8,15 @@ import bcrypt from "bcrypt";
 import { getDb } from "@/lib/db/prisma";
 import { loginSchema, logRejection } from "@/lib/validations/auth";
 
-const secret =
-  process.env.AUTH_SECRET ||
-  process.env.NEXTAUTH_SECRET ||
-  process.env.ENCRYPTION_KEY ||
-  "promptplus-secure-auth-secret-fallback-key-32chars";
+const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "development-secret-fallback-key-32chars";
+if (process.env.NODE_ENV === "production" && (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET)) {
+  throw new Error(
+    "FATAL: AUTH_SECRET or NEXTAUTH_SECRET environment variable is missing for production deployment."
+  );
+}
 
 process.env.AUTH_SECRET = secret;
 process.env.NEXTAUTH_SECRET = secret;
-process.env.AUTH_TRUST_HOST = "true";
 
 export const authConfig: NextAuthConfig = {
   trustHost: true,
@@ -31,6 +31,17 @@ export const authConfig: NextAuthConfig = {
   jwt: {
     maxAge: 30 * 24 * 60 * 60,
   },
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" ? "__Secure-authjs.session-token" : "authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -43,8 +54,8 @@ export const authConfig: NextAuthConfig = {
       return token;
     },
     async session({ session, token }) {
-      const userId = (token.id || token.sub || session.user?.email) as string;
-      if (session.user) {
+      const userId = (token.id || token.sub) as string;
+      if (session.user && userId) {
         session.user.id = userId;
         (session.user as { role?: string }).role = (token.role as string) || "user";
       }
@@ -90,100 +101,30 @@ export function getProviders(): Provider[] {
         }
 
         const { email, password } = parsed.data;
-        const normalizedEmail = email.toLowerCase().trim();
 
-        let user = null;
-        try {
-          user = await getDb().user.findFirst({
-            where: { email: { equals: normalizedEmail, mode: "insensitive" } },
-          });
-          if (!user) {
-            user = await getDb().user.findUnique({
-              where: { email: normalizedEmail },
-            });
-          }
-        } catch {
-          const { fallbackStore } = await import("@/lib/db/fallback-store");
-          user = await fallbackStore.findUserByEmail(normalizedEmail);
+        const user = await getDb().user.findUnique({
+          where: { email },
+        });
+
+        if (!user || !user.passwordHash) {
+          return null;
         }
 
-        if (!user) {
-          const passwordHash = await bcrypt.hash(password, 12);
-          try {
-            const dbUser = await getDb().user.create({
-              data: {
-                name: normalizedEmail.split("@")[0],
-                email: normalizedEmail,
-                passwordHash,
-                provider: "email",
-                emailVerified: new Date(),
-                onboardingCompleted: true,
-              },
-            });
-            user = {
-              id: dbUser.id,
-              email: dbUser.email,
-              name: dbUser.name,
-              avatar: dbUser.avatar,
-              passwordHash: dbUser.passwordHash,
-              emailVerified: dbUser.emailVerified,
-            };
-          } catch {
-            const { fallbackStore } = await import("@/lib/db/fallback-store");
-            const fbUser = await fallbackStore.createUser({
-              name: normalizedEmail.split("@")[0],
-              email: normalizedEmail,
-              passwordHash,
-              provider: "email",
-              emailVerified: new Date(),
-              onboardingCompleted: true,
-            });
-            user = {
-              id: fbUser.id,
-              email: fbUser.email,
-              name: fbUser.name,
-              avatar: fbUser.avatar,
-              passwordHash: fbUser.passwordHash,
-              emailVerified: fbUser.emailVerified,
-            };
-          }
-        } else {
-          if (!user.passwordHash) {
-            const passwordHash = await bcrypt.hash(password, 12);
-            try {
-              await getDb().user.update({
-                where: { id: user.id },
-                data: { passwordHash, emailVerified: new Date() },
-              });
-            } catch {
-              const { fallbackStore } = await import("@/lib/db/fallback-store");
-              await fallbackStore.updateUser({ id: user.id }, { passwordHash, emailVerified: new Date() });
-            }
-          } else {
-            const isValid = await bcrypt.compare(password, user.passwordHash);
-            if (!isValid) {
-              return null;
-            }
-          }
+        if (user.resetToken?.startsWith("ev:") && !user.emailVerified) {
+          return null;
         }
 
-        try {
-          if (!user.emailVerified) {
-            await getDb().user.update({
-              where: { id: user.id },
-              data: { emailVerified: new Date(), resetToken: null },
-            }).catch(() => {});
-          }
-
-          await getDb().user
-            .update({
-              where: { id: user.id },
-              data: { updatedAt: new Date(), lastLoginAt: new Date() },
-            })
-            .catch(() => {});
-        } catch {
-          // Ignore
+        const isValid = await bcrypt.compare(password, user.passwordHash);
+        if (!isValid) {
+          return null;
         }
+
+        await getDb().user
+          .update({
+            where: { id: user.id },
+            data: { updatedAt: new Date() },
+          })
+          .catch(() => {});
 
         return {
           id: user.id,

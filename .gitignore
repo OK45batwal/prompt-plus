@@ -21,9 +21,6 @@
 /build
 /dist
 
-# local data
-.data/
-
 # misc
 .DS_Store
 *.pem

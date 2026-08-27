@@ -9,16 +9,17 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Logo } from "@/components/ui/logo";
 
+import { authenticate } from "./actions";
+
 function LoginForm() {
   const searchParams = useSearchParams();
   const message = searchParams.get("message");
   const errorParam = searchParams.get("error");
-  const emailParam = searchParams.get("email") || "";
 
-  const [email, setEmail] = useState(emailParam);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(errorParam === "CredentialsSignin" ? "Invalid email or password" : null);
-  const [isNewAccount, setIsNewAccount] = useState(false);
+  const initialError = errorParam === "CredentialsSignin" ? "Invalid email or password" : null;
+  const [error, setError] = useState<string | null>(initialError);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [providers, setProviders] = useState<{ google: boolean; github: boolean }>({ google: false, github: false });
@@ -34,92 +35,23 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setIsNewAccount(false);
     setIsLoading(true);
 
-    const rawCallback = searchParams.get("callbackUrl") || "";
-    const targetUrl =
-      rawCallback &&
-      !rawCallback.includes("/login") &&
-      !rawCallback.includes("/signup") &&
-      !rawCallback.includes("/forgot-password")
-        ? rawCallback
-        : "/dashboard";
+    const targetUrl = searchParams.get("callbackUrl") || "/dashboard";
 
-    const normalizedEmail = email.trim().toLowerCase();
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("redirectTo", targetUrl);
 
     try {
-      // 1. Direct API Authentication
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: normalizedEmail,
-          password,
-        }),
-      });
-
-      const data = await res.json().catch(() => null);
-
-      if (res.ok) {
-        window.location.assign(targetUrl);
-        return;
-      }
-
-      if (res.status === 404 || data?.notFound) {
-        setError("No account found with this email. Please check your spelling or create an account.");
-        setIsNewAccount(true);
+      const err = await authenticate(undefined, formData);
+      if (err) {
+        setError(err);
         setIsLoading(false);
-        return;
       }
-
-      if (res.status === 401) {
-        setError(data?.error || "Incorrect password. Please check your password and try again.");
-        setIsLoading(false);
-        return;
-      }
-
-      if (data?.error) {
-        setError(data.error);
-        setIsLoading(false);
-        return;
-      }
-
-      // 2. NextAuth Native Fallback
-      const nextAuthRes = await signIn("credentials", {
-        email: normalizedEmail,
-        password,
-        redirect: false,
-      });
-
-      if (nextAuthRes?.ok) {
-        window.location.assign(targetUrl);
-        return;
-      }
-
-      setError("Login failed. Please check your email and password.");
-      setIsLoading(false);
     } catch {
-      // 3. Resilient Fallback to NextAuth client
-      try {
-        const nextAuthRes = await signIn("credentials", {
-          email: normalizedEmail,
-          password,
-          redirect: false,
-        });
-
-        if (nextAuthRes?.ok) {
-          window.location.assign(targetUrl);
-          return;
-        }
-        setError("Invalid email or password. If you don't have an account, please sign up.");
-        setIsNewAccount(true);
-      } catch (err: unknown) {
-        console.error("Login fallback error:", err);
-        setError("Invalid email or password. Please verify your credentials or create an account.");
-        setIsNewAccount(true);
-      }
-      setIsLoading(false);
+      window.location.href = targetUrl;
     }
   };
 
@@ -150,16 +82,8 @@ function LoginForm() {
       )}
 
       {error && (
-        <div className="mb-5 p-4 rounded-2xl bg-destructive/10 border border-destructive/30 text-destructive text-xs font-medium animate-slide-up flex flex-col gap-2.5 text-center shadow-lg shadow-destructive/5 backdrop-blur-md">
-          <span className="text-foreground/90 font-medium">{error}</span>
-          {(isNewAccount || error.includes("No account found") || error.includes("credentials") || error.includes("account")) && (
-            <Link
-              href={`/signup?email=${encodeURIComponent(email)}`}
-              className="inline-flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs transition-all duration-200 hover:opacity-90 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-            >
-              Create free account with {email || "this email"} →
-            </Link>
-          )}
+        <div className="mb-4 p-3 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs text-center font-medium animate-slide-up">
+          {error}
         </div>
       )}
 
@@ -277,7 +201,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div suppressHydrationWarning className="min-h-[100dvh] flex flex-col relative overflow-hidden bg-background">
+    <div className="min-h-[100dvh] flex flex-col relative overflow-hidden bg-background">
       {/* Background Ambient Mesh Glow Orbs */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] pointer-events-none -z-10 overflow-hidden">
         <div className="absolute top-10 left-1/3 w-[450px] h-[450px] rounded-full bg-primary/10 blur-[130px] animate-pulse" style={{ animationDuration: "7s" }} />
@@ -334,7 +258,7 @@ export default function LoginPage() {
 
           {/* Right Panel: Clean Form Container */}
           <div className="w-full max-w-md mx-auto">
-            <div suppressHydrationWarning className="p-6 sm:p-8 rounded-2xl border border-border/60 bg-card/80 backdrop-blur-xl shadow-xl hover:border-primary/30 transition-all">
+            <div className="p-6 sm:p-8 rounded-2xl border border-border/60 bg-card/80 backdrop-blur-xl shadow-xl hover:border-primary/30 transition-all">
               <Suspense fallback={<div className="text-center py-8 text-sm text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />Loading login form...</div>}>
                 <LoginForm />
               </Suspense>

@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { getDb } from "@/lib/db/prisma";
 import { signupSchema, logRejection } from "@/lib/validations/auth";
+import { generateOtp, hashOtp, buildVerifyToken } from "@/lib/auth/otp";
+import { sendOtpEmail } from "@/lib/email";
+import { logger } from "@/lib/logger";
 import { checkIpRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    const rl = checkIpRateLimit(`signup:${ip}`, 100, 3600000);
+    const rl = checkIpRateLimit(`signup:${ip}`, 3, 3600000);
     if (!rl.allowed) {
       return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
     }
@@ -20,104 +23,43 @@ export async function POST(request: NextRequest) {
     }
 
     const { name, email, password } = parsed.data;
-    const normalizedEmail = email.toLowerCase().trim();
 
-    let existingUser = null;
-    try {
-      existingUser = await getDb().user.findUnique({ where: { email: normalizedEmail } });
-    } catch {
-      const { fallbackStore } = await import("@/lib/db/fallback-store");
-      existingUser = await fallbackStore.findUserByEmail(normalizedEmail);
-    }
+    const existingUser = await getDb().user.findUnique({ where: { email } });
 
     if (existingUser) {
-      return NextResponse.json({ error: "An account with this email already exists" }, { status: 409 });
+      return NextResponse.json({ error: "Invalid input" }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
+    const otp = generateOtp();
+    const otpHash = hashOtp(otp);
+    const expiry = new Date(Date.now() + 600000);
 
-    let createdUser: { id: string; email: string; name: string | null; avatar: string | null } | null = null;
-
-    try {
-      const dbUser = await getDb().user.create({
-        data: {
-          name: name || null,
-          email: normalizedEmail,
-          passwordHash,
-          provider: "email",
-          emailVerified: new Date(),
-          onboardingCompleted: true,
-        },
-      });
-      createdUser = {
-        id: dbUser.id,
-        email: dbUser.email,
-        name: dbUser.name,
-        avatar: dbUser.avatar,
-      };
-    } catch {
-      const { fallbackStore } = await import("@/lib/db/fallback-store");
-      const fbUser = await fallbackStore.createUser({
+    await getDb().user.create({
+      data: {
         name: name || null,
-        email: normalizedEmail,
+        email,
         passwordHash,
         provider: "email",
-        emailVerified: new Date(),
-        onboardingCompleted: true,
-      });
-      createdUser = {
-        id: fbUser.id,
-        email: fbUser.email,
-        name: fbUser.name,
-        avatar: fbUser.avatar,
-      };
+        resetToken: buildVerifyToken(otpHash),
+        resetTokenExpiry: expiry,
+      },
+    });
+
+    const result = await sendOtpEmail(email, otp, "Verify your Prompt+ email", "Welcome to Prompt+!");
+
+    if (!result.sent) {
+      logger.error("Failed to send verification OTP", { email, error: result.error });
     }
 
-    // Construct response & attach session cookies
-    const response = NextResponse.json(
-      {
-        success: true,
-        redirectUrl: "/dashboard",
-        email: normalizedEmail,
-        message: "Account created successfully! Redirecting to dashboard...",
-      },
+    return NextResponse.json(
+      { needsVerification: true, email },
       { status: 201 }
     );
-
-    if (createdUser) {
-      const { attachSessionCookies } = await import("@/lib/auth/session-cookie");
-      await attachSessionCookies(
-        {
-          id: createdUser.id,
-          email: createdUser.email,
-          name: createdUser.name,
-          image: createdUser.avatar,
-        },
-        response
-      );
-    }
-
-    return response;
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Signup error:", error);
-    const msg = error instanceof Error ? error.message : String(error);
-    if (
-      msg.includes("fetch failed") ||
-      msg.includes("connect") ||
-      msg.includes("P1001") ||
-      msg.includes("database") ||
-      msg.includes("Neon")
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Database unreachable. Please ensure your PostgreSQL DATABASE_URL is set in Vercel Environment Variables.",
-        },
-        { status: 503 }
-      );
-    }
     return NextResponse.json(
-      { error: "Signup service error. Please try again." },
+      { error: "An unexpected error occurred during signup" },
       { status: 500 }
     );
   }

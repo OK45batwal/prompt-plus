@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getValidatedSession } from "@/lib/auth/get-session";
+import { auth } from "@/lib/auth/config";
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout";
 
 export default async function DashboardLayoutWrapper({
@@ -7,9 +7,8 @@ export default async function DashboardLayoutWrapper({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getValidatedSession();
-
-  if (!session?.user) {
+  const session = await auth();
+  if (!session?.user?.id) {
     redirect("/login");
   }
 

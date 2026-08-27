@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { auth } from "@/lib/auth/config";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { jsonResponse } from "./response-headers";
 import { logger } from "@/lib/logger";
@@ -34,9 +35,7 @@ export function withAuth<T extends z.ZodTypeAny = z.ZodTypeAny>(
     const requestId = req.headers.get("x-request-id") || crypto.randomUUID();
 
     // 1. Verify Authentication Session or Developer API Key
-    const { getValidatedSession } = await import("@/lib/auth/get-session");
-    let session = await getValidatedSession();
-
+    let session = await auth();
     let userId = session?.user?.id;
 
     if (!userId) {
