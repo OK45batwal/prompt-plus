@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Cookie, Shield, Check, X, SlidersHorizontal, Info } from "lucide-react";
 
@@ -12,14 +12,17 @@ export interface CookiePreferences {
 }
 
 const STORAGE_KEY = "promptplus_cookie_consent_v1";
+const emptySubscribe = () => () => {};
 
 export function CookieBanner() {
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [isOpen, setIsOpen] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [analytics, setAnalytics] = useState(true);
   const [preferences, setPreferences] = useState(true);
 
   useEffect(() => {
+    if (!mounted) return;
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (!saved) {
@@ -30,7 +33,7 @@ export function CookieBanner() {
     } catch {
       // Ignore localStorage access issues
     }
-  }, []);
+  }, [mounted]);
 
   const saveConsent = (analyticsVal: boolean, preferencesVal: boolean) => {
     try {
@@ -61,7 +64,7 @@ export function CookieBanner() {
     saveConsent(analytics, preferences);
   };
 
-  if (!isOpen) return null;
+  if (!mounted || !isOpen) return null;
 
   return (
     <div
