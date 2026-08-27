@@ -16,6 +16,7 @@ const secret =
 
 process.env.AUTH_SECRET = secret;
 process.env.NEXTAUTH_SECRET = secret;
+process.env.AUTH_TRUST_HOST = "true";
 
 export const authConfig: NextAuthConfig = {
   trustHost: true,
