@@ -150,12 +150,12 @@ function LoginForm() {
       )}
 
       {error && (
-        <div className="mb-4 p-3.5 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs font-medium animate-slide-up flex flex-col gap-2 text-center">
-          <span>{error}</span>
-          {(isNewAccount || error.includes("No account found") || error.includes("credentials")) && (
+        <div className="mb-5 p-4 rounded-2xl bg-destructive/10 border border-destructive/30 text-destructive text-xs font-medium animate-slide-up flex flex-col gap-2.5 text-center shadow-lg shadow-destructive/5 backdrop-blur-md">
+          <span className="text-foreground/90 font-medium">{error}</span>
+          {(isNewAccount || error.includes("No account found") || error.includes("credentials") || error.includes("account")) && (
             <Link
               href={`/signup?email=${encodeURIComponent(email)}`}
-              className="inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-xs border border-primary/20 transition-all"
+              className="inline-flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs transition-all duration-200 hover:opacity-90 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
             >
               Create free account with {email || "this email"} →
             </Link>
