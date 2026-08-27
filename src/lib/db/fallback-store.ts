@@ -1,4 +1,6 @@
 import bcrypt from "bcrypt";
+import fs from "fs";
+import path from "path";
 
 export interface MockUser {
   id: string;
@@ -61,37 +63,93 @@ class LocalDatabaseStore {
   private prompts: Map<string, MockPrompt> = new Map();
   private collections: Map<string, MockCollection> = new Map();
   private apiKeys: Map<string, MockApiKey> = new Map();
+  private storageFile: string | null = null;
 
   constructor() {
-    // Seed a default developer account for instant local testing
+    try {
+      const dataDir = path.join(process.cwd(), ".data");
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+      this.storageFile = path.join(dataDir, "local-db.json");
+      this.loadFromDisk();
+    } catch {
+      // In serverless environments, file persistence is optional
+    }
     this.seedDefaultUser();
   }
 
+  private loadFromDisk() {
+    if (!this.storageFile || !fs.existsSync(this.storageFile)) return;
+    try {
+      const content = fs.readFileSync(this.storageFile, "utf-8");
+      const parsed = JSON.parse(content);
+      if (parsed.users && Array.isArray(parsed.users)) {
+        for (const u of parsed.users) {
+          this.users.set(u.email.toLowerCase().trim(), {
+            ...u,
+            createdAt: new Date(u.createdAt),
+            updatedAt: new Date(u.updatedAt),
+            emailVerified: u.emailVerified ? new Date(u.emailVerified) : null,
+            lastLoginAt: u.lastLoginAt ? new Date(u.lastLoginAt) : null,
+          });
+        }
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }
+
+  private saveToDisk() {
+    if (!this.storageFile) return;
+    try {
+      const payload = {
+        users: Array.from(this.users.values()),
+        prompts: Array.from(this.prompts.values()),
+        collections: Array.from(this.collections.values()),
+        apiKeys: Array.from(this.apiKeys.values()),
+      };
+      fs.writeFileSync(this.storageFile, JSON.stringify(payload, null, 2), "utf-8");
+    } catch {
+      // Ignore write errors in serverless
+    }
+  }
+
   private async seedDefaultUser() {
-    const passwordHash = await bcrypt.hash("password123", 10).catch(() => null);
-    const demoUser: MockUser = {
-      id: "usr_developer_default",
-      email: "developer@promptplus.app",
-      name: "Prompt+ Developer",
-      avatar: null,
-      passwordHash: passwordHash,
-      provider: "email",
-      providerId: null,
-      emailVerified: new Date(),
-      onboardingCompleted: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      lastLoginAt: new Date(),
-      deletedAt: null,
-      resetToken: null,
-      resetTokenExpiry: null,
-    };
-    this.users.set(demoUser.email.toLowerCase(), demoUser);
+    const defaultEmail = "developer@promptplus.app";
+    if (!this.users.has(defaultEmail)) {
+      const passwordHash = await bcrypt.hash("password123", 10).catch(() => null);
+      const demoUser: MockUser = {
+        id: "usr_developer_default",
+        email: defaultEmail,
+        name: "Prompt+ Developer",
+        avatar: null,
+        passwordHash: passwordHash,
+        provider: "email",
+        providerId: null,
+        emailVerified: new Date(),
+        onboardingCompleted: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        lastLoginAt: new Date(),
+        deletedAt: null,
+        resetToken: null,
+        resetTokenExpiry: null,
+      };
+      this.users.set(defaultEmail, demoUser);
+      this.saveToDisk();
+    }
   }
 
   // USER REPOSITORY
   async findUserByEmail(email: string): Promise<MockUser | null> {
-    return this.users.get(email.toLowerCase().trim()) || null;
+    const key = email.toLowerCase().trim();
+    for (const [k, u] of this.users.entries()) {
+      if (k === key || u.email.toLowerCase().trim() === key) {
+        return u;
+      }
+    }
+    return null;
   }
 
   async findUserById(id: string): Promise<MockUser | null> {
@@ -111,8 +169,8 @@ class LocalDatabaseStore {
       passwordHash: data.passwordHash || null,
       provider: data.provider || "email",
       providerId: data.providerId || null,
-      emailVerified: data.emailVerified || null,
-      onboardingCompleted: data.onboardingCompleted || false,
+      emailVerified: data.emailVerified || new Date(),
+      onboardingCompleted: data.onboardingCompleted || true,
       createdAt: new Date(),
       updatedAt: new Date(),
       lastLoginAt: data.lastLoginAt || new Date(),
@@ -121,6 +179,7 @@ class LocalDatabaseStore {
       resetTokenExpiry: data.resetTokenExpiry || null,
     };
     this.users.set(emailNorm, newUser);
+    this.saveToDisk();
     return newUser;
   }
 
@@ -141,7 +200,8 @@ class LocalDatabaseStore {
       ...data,
       updatedAt: new Date(),
     };
-    this.users.set(updated.email.toLowerCase(), updated);
+    this.users.set(updated.email.toLowerCase().trim(), updated);
+    this.saveToDisk();
     return updated;
   }
 

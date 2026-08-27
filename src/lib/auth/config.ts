@@ -94,9 +94,14 @@ export function getProviders(): Provider[] {
 
         let user = null;
         try {
-          user = await getDb().user.findUnique({
-            where: { email: normalizedEmail },
+          user = await getDb().user.findFirst({
+            where: { email: { equals: normalizedEmail, mode: "insensitive" } },
           });
+          if (!user) {
+            user = await getDb().user.findUnique({
+              where: { email: normalizedEmail },
+            });
+          }
         } catch {
           const { fallbackStore } = await import("@/lib/db/fallback-store");
           user = await fallbackStore.findUserByEmail(normalizedEmail);

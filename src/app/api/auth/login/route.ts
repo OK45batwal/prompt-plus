@@ -33,12 +33,17 @@ export async function POST(request: NextRequest) {
     const { email, password } = parsed.data;
     const normalizedEmail = email.toLowerCase().trim();
 
-    // 1. Query User from Database with Fallback Store Support
+    // 1. Query User from Database with Case-Insensitive Matching
     let user = null;
     try {
-      user = await getDb().user.findUnique({
-        where: { email: normalizedEmail },
+      user = await getDb().user.findFirst({
+        where: { email: { equals: normalizedEmail, mode: "insensitive" } },
       });
+      if (!user) {
+        user = await getDb().user.findUnique({
+          where: { email: normalizedEmail },
+        });
+      }
     } catch {
       const { fallbackStore } = await import("@/lib/db/fallback-store");
       user = await fallbackStore.findUserByEmail(normalizedEmail);
