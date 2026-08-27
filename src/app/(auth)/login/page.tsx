@@ -62,8 +62,14 @@ function LoginForm() {
 
       // Success: cookies attached in HTTP response headers, navigate straight to target
       window.location.assign(data?.redirectUrl || targetUrl);
-    } catch {
-      setError("Unable to connect to the server. Please check your internet connection.");
+    } catch (err: unknown) {
+      console.error("Login fetch error:", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(
+        msg.includes("fetch") || msg.includes("Failed")
+          ? "Unable to reach server. Please verify your internet connection or check that the server is running."
+          : `Connection error: ${msg}`
+      );
       setIsLoading(false);
     }
   };
