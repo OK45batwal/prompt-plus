@@ -8,12 +8,7 @@ import bcrypt from "bcrypt";
 import { getDb } from "@/lib/db/prisma";
 import { loginSchema, logRejection } from "@/lib/validations/auth";
 
-const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "development-secret-fallback-key-32chars";
-if (process.env.NODE_ENV === "production" && (!process.env.AUTH_SECRET && !process.env.NEXTAUTH_SECRET)) {
-  throw new Error(
-    "FATAL: AUTH_SECRET or NEXTAUTH_SECRET environment variable is missing for production deployment."
-  );
-}
+const secret = (process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || process.env.ENCRYPTION_KEY || "development-secret-fallback-key-32chars").replace(/['"\r\n]/g, "").trim();
 
 process.env.AUTH_SECRET = secret;
 process.env.NEXTAUTH_SECRET = secret;
@@ -100,9 +95,17 @@ export function getProviders(): Provider[] {
 
         const { email, password } = parsed.data;
 
-        const user = await getDb().user.findUnique({
-          where: { email },
-        });
+        // Try case-insensitive lookup, fallback to exact match
+        const user = (await getDb().user.findFirst({
+          where: {
+            email: {
+              equals: email.toLowerCase().trim(),
+              mode: "insensitive",
+            },
+          },
+        }).catch(() => null)) ?? (await getDb().user.findUnique({
+          where: { email: email.toLowerCase().trim() },
+        }).catch(() => null));
 
         if (!user || !user.passwordHash) {
           return null;

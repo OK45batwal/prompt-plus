@@ -20,3 +20,4 @@ export function getDb(): PrismaClient {
 }
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+

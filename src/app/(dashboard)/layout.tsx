@@ -13,7 +13,7 @@ export default async function DashboardLayoutWrapper({
   }
 
   const adminEmail = process.env.ADMIN_EMAIL;
-  const isAdmin = !!(adminEmail && session.user.email === adminEmail);
+  const isAdmin = !!(adminEmail && session?.user?.email === adminEmail);
 
   return <DashboardLayout isAdmin={isAdmin}><div className="animate-fade-in">{children}</div></DashboardLayout>;
 }
