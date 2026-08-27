@@ -92,58 +92,18 @@ export function getProviders(): Provider[] {
         const { email, password } = parsed.data;
         const normalizedEmail = email.toLowerCase().trim();
 
-        // 1. Instant Demo Access Account
-        if (
-          normalizedEmail === "demo@prompt-plus.com" ||
-          normalizedEmail === "demo@example.com" ||
-          normalizedEmail === "guest@prompt-plus.com"
-        ) {
-          try {
-            let demoUser = await getDb().user.findUnique({
-              where: { email: normalizedEmail },
-            });
-            if (!demoUser) {
-              demoUser = await getDb().user.create({
-                data: {
-                  email: normalizedEmail,
-                  name: "Demo Developer",
-                  provider: "credentials",
-                  emailVerified: new Date(),
-                  avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Architect&backgroundColor=6366f1",
-                },
-              });
-            }
-            return {
-              id: demoUser.id,
-              email: demoUser.email,
-              name: demoUser.name,
-              image: demoUser.avatar,
-            };
-          } catch {
-            return {
-              id: "demo-user-session",
-              email: normalizedEmail,
-              name: "Demo Developer",
-              image: "https://api.dicebear.com/7.x/bottts/svg?seed=Architect&backgroundColor=6366f1",
-            };
-          }
-        }
-
-        // 2. Standard User Authentication
         try {
           const user = await getDb().user.findUnique({
             where: { email: normalizedEmail },
           });
 
-          if (!user) {
+          if (!user || !user.passwordHash) {
             return null;
           }
 
-          if (user.passwordHash) {
-            const isValid = await bcrypt.compare(password, user.passwordHash);
-            if (!isValid) {
-              return null;
-            }
+          const isValid = await bcrypt.compare(password, user.passwordHash);
+          if (!isValid) {
+            return null;
           }
 
           // Auto-verify email on successful password authentication
