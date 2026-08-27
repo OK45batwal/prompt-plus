@@ -23,8 +23,31 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
     const { email, otp, password } = parsed.data;
+    const normalizedEmail = email.toLowerCase().trim();
 
-    const user = await getDb().user.findUnique({ where: { email } });
+    let user = null;
+    let isFallback = false;
+    try {
+      user = await getDb().user.findUnique({ where: { email: normalizedEmail } });
+    } catch {
+      try {
+        const { fallbackStore } = await import("@/lib/db/fallback-store");
+        user = await fallbackStore.findUserByEmail(normalizedEmail);
+        isFallback = true;
+      } catch {
+        user = null;
+      }
+    }
+
+    if (!user && !isFallback) {
+      try {
+        const { fallbackStore } = await import("@/lib/db/fallback-store");
+        user = await fallbackStore.findUserByEmail(normalizedEmail);
+        if (user) isFallback = true;
+      } catch {
+        user = null;
+      }
+    }
 
     if (!user || !user.resetToken || !user.resetTokenExpiry || !isResetToken(user.resetToken)) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
@@ -40,10 +63,18 @@ export async function POST(request: NextRequest) {
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    await getDb().user.update({
-      where: { id: user.id },
-      data: { passwordHash, resetToken: null, resetTokenExpiry: null },
-    });
+    if (isFallback) {
+      const { fallbackStore } = await import("@/lib/db/fallback-store");
+      await fallbackStore.updateUser(
+        { email: normalizedEmail },
+        { passwordHash, resetToken: null, resetTokenExpiry: null }
+      );
+    } else {
+      await getDb().user.update({
+        where: { id: user.id },
+        data: { passwordHash, resetToken: null, resetTokenExpiry: null },
+      });
+    }
 
     return NextResponse.json({ message: "Password updated successfully" });
   } catch {

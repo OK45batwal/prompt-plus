@@ -22,21 +22,53 @@ export async function POST(request: NextRequest) {
     }
 
     const { email } = parsed.data;
-    const user = await getDb().user.findUnique({ where: { email } });
+    const normalizedEmail = email.toLowerCase().trim();
+
+    let user = null;
+    let isFallback = false;
+    try {
+      user = await getDb().user.findUnique({ where: { email: normalizedEmail } });
+    } catch {
+      try {
+        const { fallbackStore } = await import("@/lib/db/fallback-store");
+        user = await fallbackStore.findUserByEmail(normalizedEmail);
+        isFallback = true;
+      } catch {
+        user = null;
+      }
+    }
+
+    if (!user && !isFallback) {
+      try {
+        const { fallbackStore } = await import("@/lib/db/fallback-store");
+        user = await fallbackStore.findUserByEmail(normalizedEmail);
+        if (user) isFallback = true;
+      } catch {
+        user = null;
+      }
+    }
 
     if (user && user.passwordHash) {
       const otp = generateOtp();
       const otpHash = hashOtp(otp);
       const expiry = new Date(Date.now() + 600000);
 
-      await getDb().user.update({
-        where: { id: user.id },
-        data: { resetToken: buildResetToken(otpHash), resetTokenExpiry: expiry },
-      });
+      if (isFallback) {
+        const { fallbackStore } = await import("@/lib/db/fallback-store");
+        await fallbackStore.updateUser(
+          { email: normalizedEmail },
+          { resetToken: buildResetToken(otpHash), resetTokenExpiry: expiry }
+        );
+      } else {
+        await getDb().user.update({
+          where: { id: user.id },
+          data: { resetToken: buildResetToken(otpHash), resetTokenExpiry: expiry },
+        });
+      }
 
-      const result = await sendOtpEmail(email, otp, "Reset your Prompt+ password", "You requested a password reset.");
+      const result = await sendOtpEmail(normalizedEmail, otp, "Reset your Prompt+ password", "You requested a password reset.");
       if (!result.sent) {
-        logger.error("Failed to send reset OTP", { email, error: result.error });
+        logger.error("Failed to send reset OTP", { email: normalizedEmail, error: result.error });
       }
     }
 

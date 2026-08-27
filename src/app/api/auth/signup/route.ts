@@ -23,8 +23,19 @@ export async function POST(request: NextRequest) {
     }
 
     const { name, email, password } = parsed.data;
+    const normalizedEmail = email.toLowerCase().trim();
 
-    const existingUser = await getDb().user.findUnique({ where: { email } });
+    let existingUser = null;
+    try {
+      existingUser = await getDb().user.findUnique({ where: { email: normalizedEmail } });
+    } catch {
+      try {
+        const { fallbackStore } = await import("@/lib/db/fallback-store");
+        existingUser = await fallbackStore.findUserByEmail(normalizedEmail);
+      } catch {
+        existingUser = null;
+      }
+    }
 
     if (existingUser) {
       return NextResponse.json({ error: "Invalid input" }, { status: 409 });
@@ -35,25 +46,37 @@ export async function POST(request: NextRequest) {
     const otpHash = hashOtp(otp);
     const expiry = new Date(Date.now() + 600000);
 
-    await getDb().user.create({
-      data: {
+    try {
+      await getDb().user.create({
+        data: {
+          name: name || null,
+          email: normalizedEmail,
+          passwordHash,
+          provider: "email",
+          resetToken: buildVerifyToken(otpHash),
+          resetTokenExpiry: expiry,
+        },
+      });
+    } catch {
+      const { fallbackStore } = await import("@/lib/db/fallback-store");
+      await fallbackStore.createUser({
         name: name || null,
-        email,
+        email: normalizedEmail,
         passwordHash,
         provider: "email",
         resetToken: buildVerifyToken(otpHash),
         resetTokenExpiry: expiry,
-      },
-    });
+      });
+    }
 
-    const result = await sendOtpEmail(email, otp, "Verify your Prompt+ email", "Welcome to Prompt+!");
+    const result = await sendOtpEmail(normalizedEmail, otp, "Verify your Prompt+ email", "Welcome to Prompt+!");
 
     if (!result.sent) {
-      logger.error("Failed to send verification OTP", { email, error: result.error });
+      logger.error("Failed to send verification OTP", { email: normalizedEmail, error: result.error });
     }
 
     return NextResponse.json(
-      { needsVerification: true, email },
+      { needsVerification: true, email: normalizedEmail },
       { status: 201 }
     );
   } catch (error) {

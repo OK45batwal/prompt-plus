@@ -6,6 +6,7 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import { getDb } from "@/lib/db/prisma";
+import { fallbackStore } from "@/lib/db/fallback-store";
 import { loginSchema, logRejection } from "@/lib/validations/auth";
 
 const secret = (process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || process.env.ENCRYPTION_KEY || "development-secret-fallback-key-32chars").replace(/['"\r\n]/g, "").trim();
@@ -33,14 +34,18 @@ export const authConfig: NextAuthConfig = {
         token.role = (user as { role?: string }).role || "user";
         token.email = user.email;
         token.name = user.name;
-        token.picture = (user as { image?: string }).image || (user as { avatar?: string }).avatar;
+        const rawPic = (user as { image?: string }).image || (user as { avatar?: string }).avatar;
+        token.picture = (rawPic && !rawPic.startsWith("data:") && rawPic.length < 500) ? rawPic : undefined;
       }
       if (!token.id && token.sub) {
         token.id = token.sub;
       }
       if (trigger === "update" && session?.user) {
         if (session.user.name) token.name = session.user.name;
-        if (session.user.image) token.picture = session.user.image;
+        if (session.user.image) {
+          const rawPic = session.user.image;
+          token.picture = (rawPic && !rawPic.startsWith("data:") && rawPic.length < 500) ? rawPic : undefined;
+        }
       }
       return token;
     },
@@ -94,18 +99,43 @@ export function getProviders(): Provider[] {
         }
 
         const { email, password } = parsed.data;
+        const normalizedEmail = email.toLowerCase().trim();
 
-        // Try case-insensitive lookup, fallback to exact match
-        const user = (await getDb().user.findFirst({
-          where: {
-            email: {
-              equals: email.toLowerCase().trim(),
-              mode: "insensitive",
+        // 1. Try case-insensitive Prisma DB lookup
+        let user: {
+          id: string;
+          email: string;
+          name: string | null;
+          avatar?: string | null;
+          image?: string | null;
+          passwordHash: string | null;
+          resetToken?: string | null;
+          emailVerified?: Date | null;
+        } | null = null;
+
+        try {
+          user = (await getDb().user.findFirst({
+            where: {
+              email: {
+                equals: normalizedEmail,
+                mode: "insensitive",
+              },
             },
-          },
-        }).catch(() => null)) ?? (await getDb().user.findUnique({
-          where: { email: email.toLowerCase().trim() },
-        }).catch(() => null));
+          })) ?? (await getDb().user.findUnique({
+            where: { email: normalizedEmail },
+          }));
+        } catch {
+          user = null;
+        }
+
+        // 2. If DB is offline / unreachable / empty, check fallbackStore
+        if (!user) {
+          try {
+            user = await fallbackStore.findUserByEmail(normalizedEmail);
+          } catch {
+            user = null;
+          }
+        }
 
         if (!user || !user.passwordHash) {
           return null;
@@ -117,27 +147,34 @@ export function getProviders(): Provider[] {
         }
 
         // Auto-verify email upon valid password login if verification was pending
-        if (user.resetToken?.startsWith("ev:") && !user.emailVerified) {
-          await getDb().user
-            .update({
-              where: { id: user.id },
-              data: { emailVerified: new Date(), resetToken: null, resetTokenExpiry: null, lastLoginAt: new Date() },
-            })
-            .catch(() => {});
-        } else {
-          await getDb().user
-            .update({
-              where: { id: user.id },
-              data: { lastLoginAt: new Date() },
-            })
-            .catch(() => {});
+        try {
+          if (user.resetToken?.startsWith("ev:") && !user.emailVerified) {
+            await getDb().user
+              .update({
+                where: { id: user.id },
+                data: { emailVerified: new Date(), resetToken: null, resetTokenExpiry: null, lastLoginAt: new Date() },
+              })
+              .catch(() => {});
+          } else {
+            await getDb().user
+              .update({
+                where: { id: user.id },
+                data: { lastLoginAt: new Date() },
+              })
+              .catch(() => {});
+          }
+        } catch {
+          // DB update failure non-blocking
         }
+
+        const rawAvatar = user.avatar || user.image || null;
+        const safeAvatar = (rawAvatar && !rawAvatar.startsWith("data:") && rawAvatar.length < 500) ? rawAvatar : null;
 
         return {
           id: user.id,
           email: user.email,
           name: user.name,
-          image: user.avatar,
+          image: safeAvatar,
         };
       },
     })
