@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { ToastProvider } from "@/components/ui/toast";
+import { CookieBanner } from "@/components/ui/cookie-banner";
 import { auth } from "@/lib/auth/config";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -137,6 +138,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
               <ToastProvider>
                 {children}
+                <CookieBanner />
                 <Analytics />
                 <SpeedInsights />
               </ToastProvider>

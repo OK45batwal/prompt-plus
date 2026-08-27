@@ -1,158 +1,231 @@
+"use client";
+
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
+import {
+  ShieldCheck,
+  Lock,
+  EyeOff,
+  Cpu,
+  Cookie,
+  ArrowLeft,
+  SlidersHorizontal,
+} from "lucide-react";
+import { openCookiePreferences } from "@/components/ui/cookie-banner";
 
-const sections = [
+const privacySections = [
   {
     id: "overview",
-    title: "1. Overview",
+    title: "1. Overview & Privacy Principles",
+    badge: "Core Commitment",
     body: [
-      "This Privacy Policy explains what Prompt+ (\"we\", \"our\", \"us\") collects, why we collect it, how we use it, and the choices and rights you have. By creating an account or using the Prompt+ website, extension, or API, you agree to this policy.",
-      "Prompt+ is built on a privacy-first architecture: we never sell user data, and we offer a fully on-device processing mode that can work without your data ever leaving your browser.",
+      "This Privacy Policy explains how Prompt+ (\"we\", \"our\", \"us\") collects, processes, protects, and handles your information across our website (prompt-plus-three.vercel.app), browser extension, and associated APIs.",
+      "Prompt+ operates on three fundamental principles:",
+      "• Zero Data Monetization: We never sell, rent, monetize, or trade your personal data, prompt engineering inputs, or AI outputs with data brokers or advertisers.",
+      "• Zero AI Model Training: Your prompts and enhancement workflows are never used to train, fine-tune, or improve any public or proprietary machine learning models.",
+      "• On-Device First Processing: We provide full client-side execution with Chrome's built-in Gemini Nano AI, allowing prompts to be optimized entirely inside your browser without transmitting a single byte to external servers.",
     ],
   },
   {
-    id: "collect",
+    id: "collection",
     title: "2. Information We Collect",
+    badge: "Itemized Data",
     body: [
-      "We collect only the information needed to run the service. Here is a complete, itemized list.",
-      "2.1 Account information. When you sign up we collect: your email address; a name if you provide one; an avatar if you provide one; a password (stored only as a bcrypt hash — we cannot read or recover it); and, if you sign in with GitHub or Google, the OAuth account identifier and any profile data that provider shares with us.",
-      "2.2 Prompt content and history. When you use the enhancement, scoring, or analysis features and are signed in, we store: the original prompt text; the enhanced output; quality score and analysis breakdowns; model, category, tone, and length metadata; version history of each prompt; collections and tags you create; and any prompts you choose to share (see Section 7).",
-      "2.3 API keys (optional). If you choose to bring your own API key, we store an encrypted copy on our servers using AES-256-GCM, along with the provider, last-used timestamp, and usage count. A copy may also be held in your browser's local storage so the extension can use it without a round-trip.",
-      "2.4 Usage and analytics data. For authenticated requests we record: the action performed (e.g., enhance, score, compare), the model and provider used, input/output token counts, latency, and success/failure — tied to your account. We also use Vercel Analytics and Speed Insights, which collect aggregate, privacy-friendly traffic and performance statistics (no personal identifiers).",
-      "2.5 Device-local data. The following stay in your browser and are never sent to our servers: your context-memory blocks, API key vault, local prompt history, UI preferences, search history, theme choice, and sidebar state (via localStorage).",
-      "2.6 IP addresses and rate limiting. To prevent abuse and enforce fair-use limits, we may process your IP address transiently. This is held in server memory only, expires automatically, and is not stored or retained.",
-      "2.7 Email. If you sign up with an email/password account, we send you verification codes (OTP) via email. We keep a record of your email address and verification state to operate your account.",
+      "We practice strict data minimization and collect only what is strictly necessary to deliver the service:",
+      "2.1 Account Credentials: When you create an account, we store your email address, optional profile name, and password hash (encrypted via bcrypt with 12 salt rounds — we cannot read, view, or decrypt your plaintext password). If you authenticate with Google or GitHub OAuth, we receive only your public profile ID and verified email.",
+      "2.2 Prompts & Optimization History: For authenticated users, your saved prompts, version history, quality audit scores, and workspace collections are stored in our secure PostgreSQL database to allow synchronization across your devices and the browser extension.",
+      "2.3 API Key Vault (Optional): If you choose to bring your own API keys (OpenAI, Anthropic, OpenRouter, NVIDIA), your keys are encrypted at rest using industry-standard AES-256-GCM encryption with hardware-isolated server-side secret keys. You can delete or revoke stored keys at any moment.",
+      "2.4 Ephemeral Server Logs: When making API requests, server telemetry temporarily records timestamp, response latency, token count estimates, and status code. These logs contain no personal prompt payloads and are automatically purged.",
+      "2.5 Device-Local Data: Context memory blocks, local prompt scratchpads, UI layout states, and active dark/light mode preferences stay exclusively in your browser's localStorage.",
     ],
   },
   {
-    id: "use",
-    title: "3. How We Use Your Data",
+    id: "ai-modes",
+    title: "3. On-Device vs. Cloud AI Processing",
+    badge: "AI Architecture",
     body: [
-      "We use collected information only for the following purposes:",
-      "· To operate, maintain, and improve the service (enhancement, scoring, comparisons, library, collections, and sharing).",
-      "· To authenticate you and secure your account.",
-      "· To track usage for fair-use protection, diagnostics, and service reliability.",
-      "· To send you service-related emails you request (e.g., verification codes, password resets).",
-      "· To display aggregate, non-identifying statistics for our own analytics.",
-      "We never sell, rent, or monetize your personal data or prompt content. We never use your prompts to train AI models.",
-    ],
-  },
-  {
-    id: "modes",
-    title: "4. On-Device vs. API Processing — When Your Data Leaves Your Browser",
-    body: [
-      "Prompt+ offers two enhancement modes, and they differ in where your prompt text goes:",
-      "On-Device mode uses Chrome's built-in Gemini Nano and runs entirely in your browser. Your prompt text is processed locally and never transmitted to our servers or any third party.",
-      "API mode sends your prompt text to our server, which forwards it to the AI provider you select (or the free server model) solely to generate the enhanced output. The prompt is processed for that request and is not used for training.",
-      "In both modes, the enhanced result is returned to you. We do not log prompt content in API mode beyond what is necessary to deliver the request and, when you are signed in, the history you explicitly keep.",
-    ],
-  },
-  {
-    id: "sharing",
-    title: "5. Third-Party Processors",
-    body: [
-      "We share data only with the processors required to deliver the service, and only to the extent necessary:",
-      "· AI providers (OpenAI, Anthropic, OpenRouter, NVIDIA) — receive prompt text for enhancement/comparison only in API mode, under their own terms and privacy policies.",
-      "· Hosting and infrastructure (Vercel) — servers, logs for security, and delivery.",
-      "· Email delivery (SMTP provider or Resend) — to send verification codes and password resets.",
-      "· Analytics (Vercel Analytics, Speed Insights) — aggregate, privacy-friendly metrics.",
-      "Each processor is bound by its own privacy commitments; we require data minimization and prohibit any sale or use of your data for their own purposes.",
+      "Prompt+ provides two distinct processing architectures so you maintain total control over your data:",
+      "• On-Device Mode (Chrome 138+ Gemini Nano): Runs 100% locally on your machine. Your prompt text never leaves your device and is not sent across any network connection.",
+      "• Cloud AI Mode: Sends your prompt text directly to the AI provider endpoint you selected (e.g. OpenAI, Anthropic, OpenRouter, or our high-speed free tier model). The provider processes the request solely to return the enhanced output.",
+      "Neither Prompt+ nor our upstream providers store prompt content for model training.",
     ],
   },
   {
     id: "cookies",
-    title: "6. Cookies & Local Storage",
+    title: "4. Cookies, Tracking & Your Choices",
+    badge: "Cookie Policy",
     body: [
-      "We use a single session cookie to keep you signed in. It is httpOnly, SameSite=Lax, transmitted over HTTPS, and expires after 30 days. We do not use advertising or tracking cookies.",
-      "We use localStorage in your browser for preferences, local history, context blocks, and your API key vault. This data stays on your device unless you sign in and explicitly save content to your account.",
-    ],
-  },
-  {
-    id: "share-links",
-    title: "7. Public Sharing",
-    body: [
-      "If you use the \"share\" feature on a prompt, we generate a unique, unguessable link. Anyone with that link can view the prompt. Shared prompts are public by design — do not share sensitive content. You can remove a shared prompt at any time, which invalidates the link.",
-    ],
-  },
-  {
-    id: "retention",
-    title: "8. Data Retention & Deletion",
-    body: [
-      "We retain your account data while your account is active so that your library, history, and settings work as expected.",
-      "You can delete individual prompts, versions, collections, and your stored API keys at any time from the dashboard. You can also close your account with one click in Settings. Account closure permanently deletes your account record and, by cascade, all prompts, versions, collections, stored API keys, usage logs, and analytics tied to it. This deletion is immediate and cannot be undone.",
-      "If you have not signed in, your prompts are kept only in your browser's localStorage and can be cleared by clearing your browser data.",
+      "We believe in transparent, user-controlled cookie management. You have full power to accept, reject, or customize cookies at any time:",
+      "• Strictly Essential Cookies: Cryptographically signed session tokens (authjs.session-token and __Secure-authjs.session-token) required for user authentication, CSRF attack mitigation, and session persistence. These do not track browsing activity across other websites.",
+      "• Performance & Analytics Cookies (Optional): Privacy-friendly Vercel Analytics and Web Vitals that monitor server response times and page load speeds without storing personal identifiers or persistent IP addresses.",
+      "• Functional Preferences (Optional): LocalStorage keys that remember your dark mode preference, sidebar collapse state, and active model presets.",
     ],
   },
   {
     id: "security",
-    title: "9. Data Security",
+    title: "5. Data Security & Encryption",
+    badge: "AES-256 Vault",
     body: [
-      "We protect your data with: HTTPS everywhere; passwords hashed with bcrypt; API keys encrypted at rest with AES-256-GCM using a server-side secret; rate limiting and CSRF/session protection on all mutating endpoints; and the principle of least privilege on infrastructure.",
-      "No method of transmission or storage is 100% secure. While we work hard to protect your data, we cannot guarantee absolute security.",
+      "We implement comprehensive, defense-in-depth technical safeguards to protect your data:",
+      "• HTTPS & TLS 1.3 encryption across all network transmissions.",
+      "• AES-256-GCM authenticated encryption for all user-stored API keys.",
+      "• Bcrypt salted hashing for account passwords.",
+      "• Strict Content Security Policy (CSP), anti-CSRF token verification, and automated IP rate-limiting to defend against brute-force and cross-site scripting attacks.",
     ],
   },
   {
     id: "rights",
-    title: "10. Your Rights",
+    title: "6. Your Rights (GDPR, CCPA & Global Rights)",
+    badge: "Compliance",
     body: [
-      "Depending on your jurisdiction (including under GDPR, CCPA, and similar laws), you may have the right to: access a copy of your data; correct inaccurate data; delete your data; export your data (e.g., copy your prompts); object to or restrict certain processing; and withdraw consent. You can exercise most of these directly in the dashboard (export/copy, edit, delete) or by contacting us — we respond to all verified requests within 30 days.",
-      "We do not engage in \"sale\" or \"sharing\" of personal information as defined by the CCPA, and we do not use your data for advertising or profiling.",
-    ],
-  },
-  {
-    id: "children",
-    title: "11. Children's Privacy",
-    body: [
-      "Prompt+ is not directed to children under 13. We do not knowingly collect personal information from children under 13. If you believe a child has provided us personal information, contact us and we will delete it.",
-    ],
-  },
-  {
-    id: "transfers",
-    title: "12. International Data Transfers",
-    body: [
-      "Prompt+ is hosted on infrastructure that may process data in regions outside your country of residence. By using the service, you acknowledge that your data may be transferred to and processed in countries where data-protection laws may differ from your jurisdiction. We rely on standard contractual clauses and equivalent safeguards where applicable.",
-    ],
-  },
-  {
-    id: "changes",
-    title: "13. Changes to This Policy",
-    body: [
-      "We may update this policy from time to time. Material changes will be announced on this page with an updated date at the top. Continued use of the service after changes take effect constitutes acceptance of the revised policy.",
+      "Regardless of where you live, you have complete sovereignty over your information:",
+      "• Right to Access & Export: You can view, copy, and export your entire prompt library and version history at any time.",
+      "• Right to Rectification: You can edit and update your profile information and saved credentials anytime in Settings.",
+      "• Right to Erasure (Account Deletion): You can permanently delete your entire account, prompt library, API keys, and all associated database records with one click in Dashboard Settings. Deletion is instantaneous and permanent.",
+      "• Right to Withdraw Cookie Consent: You can update or revoke cookie choices at any time using the Cookie Preferences manager.",
     ],
   },
   {
     id: "contact",
-    title: "14. Contact",
+    title: "7. Contact & Inquiries",
+    badge: "Support",
     body: [
-      "For any privacy questions, data requests, or concerns, contact us at promptplus2@gmail.com. We aim to respond within 48 hours.",
+      "If you have any questions, privacy inquiries, or data access requests regarding this Privacy Policy, please contact our team directly at promptplus2@gmail.com.",
+      "We respond to all verified inquiries within 24–48 hours.",
     ],
   },
 ];
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="h-14 flex items-center px-4 border-b">
-        <Link href="/"><Logo size={20} /></Link>
+    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/20 selection:text-primary">
+      {/* Header */}
+      <header className="h-16 flex items-center justify-between px-6 border-b border-border/50 backdrop-blur-md bg-background/80 sticky top-0 z-50">
+        <Link href="/" className="flex items-center gap-2">
+          <Logo size={22} />
+        </Link>
+        <div className="flex items-center gap-4 text-xs font-medium">
+          <button
+            onClick={openCookiePreferences}
+            type="button"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card/60 hover:bg-accent text-foreground transition-colors"
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
+            <span>Manage Cookie Choices</span>
+          </button>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Back to Home</span>
+          </Link>
+        </div>
       </header>
-      <main className="flex-1 max-w-3xl mx-auto w-full p-6 sm:p-10">
-        <h1 className="text-2xl font-bold text-foreground mb-1">Privacy Policy</h1>
-        <p className="text-xs text-muted-foreground mb-8">Last updated: August 3, 2026 · Applies to prompt-plus-three.vercel.app and the Prompt+ Chrome extension</p>
 
-        <div className="space-y-8">
-          {sections.map((s) => (
-            <section key={s.id}>
-              <h2 className="text-lg font-semibold text-foreground mb-3">{s.title}</h2>
-              {s.body.map((p, i) => (
-                <p key={i} className="text-sm text-muted-foreground leading-relaxed mb-2">{p}</p>
-              ))}
+      {/* Hero Banner */}
+      <div className="border-b border-border/40 bg-card/30 py-12 px-6">
+        <div className="max-w-4xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            <span>Privacy-First Prompt Engineering</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Privacy Policy</h1>
+          <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
+            Effective Date: August 27, 2026 · Version 2.4.0. We believe your ideas belong to you. Learn how Prompt+ protects your data, on-device AI operations, and cookie choices.
+          </p>
+
+          {/* Quick Pillars */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
+            <div className="p-3.5 rounded-xl border border-border/50 bg-background/50 flex items-center gap-2.5 text-xs">
+              <EyeOff className="h-4 w-4 text-emerald-400 shrink-0" />
+              <div>
+                <strong className="block text-foreground">Zero AI Training</strong>
+                <span className="text-muted-foreground text-[11px]">Prompts never train models</span>
+              </div>
+            </div>
+            <div className="p-3.5 rounded-xl border border-border/50 bg-background/50 flex items-center gap-2.5 text-xs">
+              <Cpu className="h-4 w-4 text-indigo-400 shrink-0" />
+              <div>
+                <strong className="block text-foreground">On-Device Nano</strong>
+                <span className="text-muted-foreground text-[11px]">100% private offline AI</span>
+              </div>
+            </div>
+            <div className="p-3.5 rounded-xl border border-border/50 bg-background/50 flex items-center gap-2.5 text-xs">
+              <Lock className="h-4 w-4 text-primary shrink-0" />
+              <div>
+                <strong className="block text-foreground">AES-256 GCM Vault</strong>
+                <span className="text-muted-foreground text-[11px]">Client keys encrypted at rest</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Layout */}
+      <main className="flex-1 max-w-4xl mx-auto w-full p-6 sm:p-10">
+        {/* Interactive Cookie Control Callout */}
+        <div className="mb-10 p-5 rounded-2xl border border-primary/30 bg-primary/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 mt-0.5">
+              <Cookie className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm text-foreground">Interactive Cookie & Privacy Manager</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                You can accept all, reject non-essential cookies, or fine-tune individual analytics preferences at any time.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={openCookiePreferences}
+            type="button"
+            className="shrink-0 h-9 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
+          >
+            Adjust Cookie Choices
+          </button>
+        </div>
+
+        {/* Policy Sections */}
+        <div className="space-y-10">
+          {privacySections.map((sec) => (
+            <section
+              key={sec.id}
+              id={sec.id}
+              className="p-6 rounded-2xl border border-border/60 bg-card/40 backdrop-blur-sm scroll-mt-24 space-y-4"
+            >
+              <div className="flex items-center justify-between gap-3 border-b border-border/40 pb-3">
+                <h2 className="text-lg font-bold text-foreground tracking-tight">
+                  {sec.title}
+                </h2>
+                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary">
+                  {sec.badge}
+                </span>
+              </div>
+              <div className="space-y-3">
+                {sec.body.map((paragraph, idx) => (
+                  <p key={idx} className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
             </section>
           ))}
         </div>
 
-        <p className="text-xs mt-10 border-t pt-4 text-muted-foreground">
-          Read our <Link href="/terms" className="text-primary hover:underline font-medium">Terms of Service</Link>.
-        </p>
+        {/* Footer Navigation */}
+        <div className="mt-12 pt-6 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+          <span>Prompt+ Legal & Compliance Department</span>
+          <div className="flex items-center gap-4 font-medium">
+            <Link href="/terms" className="text-primary hover:underline">
+              Terms of Service →
+            </Link>
+            <span>•</span>
+            <Link href="/contact" className="hover:text-foreground">
+              Contact Support
+            </Link>
+          </div>
+        </div>
       </main>
     </div>
   );

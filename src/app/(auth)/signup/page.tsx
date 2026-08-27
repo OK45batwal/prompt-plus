@@ -16,6 +16,7 @@ function SignupForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState(emailParam);
   const [password, setPassword] = useState("");
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -34,6 +35,12 @@ function SignupForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (!agreeTerms) {
+      setError("Please accept the Terms of Service and Privacy Policy to create your account.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -281,10 +288,33 @@ function SignupForm() {
               </div>
             )}
 
+            {/* Explicit Consent Checkbox for Terms, Privacy & Cookie Policy */}
+            <div className="flex items-start gap-2.5 pt-1 text-left">
+              <input
+                id="agreeTerms"
+                type="checkbox"
+                checked={agreeTerms}
+                onChange={(e) => setAgreeTerms(e.target.checked)}
+                required
+                className="mt-0.5 h-4 w-4 rounded border-input bg-background/50 accent-primary text-primary focus:ring-primary/20 cursor-pointer shrink-0"
+              />
+              <label htmlFor="agreeTerms" className="text-xs text-muted-foreground leading-snug cursor-pointer select-none">
+                I agree to the{" "}
+                <Link href="/terms" target="_blank" className="text-primary font-medium hover:underline">
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link href="/privacy" target="_blank" className="text-primary font-medium hover:underline">
+                  Privacy Policy
+                </Link>
+                , and consent to essential cookie processing.
+              </label>
+            </div>
+
             <button
               type="submit"
-              disabled={isLoading}
-              className="h-10 w-full inline-flex items-center justify-center rounded-xl bg-foreground text-background px-4 text-sm font-semibold hover:bg-foreground/90 transition-all duration-200 disabled:opacity-50 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 group"
+              disabled={isLoading || !agreeTerms}
+              className="h-10 w-full inline-flex items-center justify-center rounded-xl bg-foreground text-background px-4 text-sm font-semibold hover:bg-foreground/90 transition-all duration-200 disabled:opacity-50 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 group cursor-pointer disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>

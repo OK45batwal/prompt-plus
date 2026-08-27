@@ -1,171 +1,212 @@
+"use client";
+
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
+import {
+  Scale,
+  Sparkles,
+  ArrowLeft,
+  CheckCircle2,
+  Lock,
+} from "lucide-react";
 
-const sections = [
+const termsSections = [
   {
     id: "acceptance",
-    title: "1. Acceptance of These Terms",
+    title: "1. Acceptance of Terms & Eligibility",
+    badge: "Agreement",
     body: [
-      "These Terms of Service (\"Terms\") govern your access to and use of Prompt+ (the \"Service\"), including the website, the Chrome extension, and the API. By creating an account, installing the extension, or using any part of the Service, you agree to be bound by these Terms. If you do not agree, do not use the Service.",
-      "If you use the Service on behalf of an organization, you represent that you have authority to bind that organization and agree to these Terms on its behalf.",
+      "These Terms of Service (\"Terms\") constitute a legally binding agreement between you (\"User\", \"you\") and Prompt+ (\"we\", \"our\", \"us\"), governing your access to and use of our prompt engineering platform, web application (prompt-plus-three.vercel.app), browser extension, APIs, and associated tools (collectively, the \"Service\").",
+      "By creating an account, selecting 'I agree', installing our Chrome extension, or accessing the Service, you acknowledge that you have read, understood, and agreed to be bound by these Terms and our Privacy Policy. If you do not agree to these Terms, you must immediately discontinue use of the Service.",
+      "You represent that you are at least 13 years of age (or the minimum legal age required in your country) to enter into a binding contract.",
     ],
   },
   {
-    id: "service",
-    title: "2. Description of the Service",
+    id: "services",
+    title: "2. Description of Service & AI Architectures",
+    badge: "Platform Scope",
     body: [
-      "Prompt+ is an AI prompt-engineering tool that helps you write, enhance, score, compare, organize, and reuse prompts for third-party AI models. Depending on the mode you choose, enhancement may run on-device in your browser (using Chrome's built-in Gemini Nano) or through our servers and third-party AI providers.",
+      "Prompt+ provides advanced prompt engineering, meta-compilation, automated scoring, side-by-side model comparisons, context memory management, and cross-AI synchronization across platforms like ChatGPT, Claude, Gemini, and DeepSeek.",
+      "The Service operates across two primary technical architectures:",
+      "• On-Device Mode: Executes client-side prompt optimization locally in your browser using Chrome's built-in Gemini Nano model without transmitting prompt data to external servers.",
+      "• Cloud AI Mode: Dispatches prompt payloads to your configured third-party AI provider API or our standard serverless models to generate enhanced specifications.",
+    ],
+  },
+  {
+    id: "ownership",
+    title: "3. User Prompt Ownership & Commercial Rights",
+    badge: "100% Your IP",
+    body: [
+      "• Full Ownership of Your Prompts: You retain 100% ownership, copyright, and intellectual property rights to all raw prompts, customized instructions, context memories, and system templates that you input into Prompt+ (\"Your Content\").",
+      "• Full Commercial Rights to Outputs: You hold complete rights to use, modify, publish, integrate, monetize, and commercially exploit any prompt specifications and AI outputs generated through Prompt+.",
+      "• Limited Operational License: You grant Prompt+ only a narrow, non-exclusive, royalty-free license to transmit, format, and display your prompts solely as necessary to provide the Service to you (e.g. generating enhanced versions or creating shareable links when requested).",
+      "• Zero Model Training: We will never use your prompts or outputs to train or fine-tune public or private AI models.",
     ],
   },
   {
     id: "accounts",
-    title: "3. Accounts",
+    title: "4. Account Security & Verification",
+    badge: "Authentication",
     body: [
-      "You may use certain features without an account. To use the full service, you must create an account with a valid email address and agree to these Terms.",
-      "You are responsible for maintaining the confidentiality of your credentials and for all activity that occurs under your account. You must notify us immediately at promptplus2@gmail.com if you suspect unauthorized use of your account.",
-      "You may close your account at any time. Closure permanently deletes your account and all associated data, as described in our Privacy Policy.",
+      "To access persistent workspaces and library sync, you must register with a valid email address and verify ownership via our 6-digit cryptographic OTP system.",
+      "You are responsible for maintaining the confidentiality of your login credentials and for all activities that occur under your account. You must notify us immediately at promptplus2@gmail.com upon discovering any unauthorized account access.",
+      "You can permanently close your account at any time in Settings, which initiates immediate, irreversible deletion of all stored prompts, API keys, and account metadata.",
     ],
   },
   {
-    id: "acceptance-use",
-    title: "4. Acceptable Use",
+    id: "acceptable-use",
+    title: "5. Acceptable Use Policy",
+    badge: "Prohibited Actions",
     body: [
-      "You agree not to use the Service to:",
-      "· Violate any applicable law or regulation, or the rights of any third party (including intellectual property and privacy rights).",
-      "· Generate, store, share, or solicit content that is unlawful, harmful, hateful, harassing, defamatory, obscene, or that promotes violence, discrimination, or exploitation of minors.",
-      "· Misuse AI outputs to deceive, defraud, spread misinformation, create malware, or otherwise cause harm.",
-      "· Attempt to gain unauthorized access to the Service, other users' accounts or data, or our systems, or to bypass rate limits, security controls, or fair-use protections.",
-      "· Reverse engineer, decompile, or scrape the Service beyond what is necessary for normal use, or resell access to the Service without our written permission.",
-      "· Interfere with or disrupt the Service or the servers and networks connected to it.",
-      "We may suspend or terminate accounts that violate these rules. We also apply automated rate limiting to protect the free Service; deliberate attempts to evade it are a violation of these Terms.",
+      "You agree to use Prompt+ ethically, lawfully, and responsibly. You expressly agree not to:",
+      "• Use the Service to generate, promote, or distribute illegal material, child exploitation, malware, phishing exploits, hate speech, violent extremism, or targeted harassment.",
+      "• Interfere with, overload, or attempt to bypass platform rate-limits, anti-CSRF protections, or database connection safeguards.",
+      "• Reverse engineer, decompile, or harvest proprietary application source code or scraping endpoints without explicit written authorization.",
+      "• Use automated scripts or bots to exhaust free-tier server resources or disrupt service availability for other users.",
     ],
   },
   {
-    id: "content",
-    title: "5. Your Content and Your Prompts",
+    id: "ai-disclaimer",
+    title: "6. AI Output Disclaimer & Verification",
+    badge: "Important Notice",
     body: [
-      "You retain all rights to the prompts and other content you submit to the Service (\"Your Content\"). You grant us a limited, non-exclusive, worldwide, royalty-free license to process, store, and display Your Content solely to provide and operate the Service (for example, to generate enhanced output or power a shared link).",
-      "You represent and warrant that you own or have the necessary rights to Your Content, and that Your Content does not violate any law or any third party's rights.",
-      "When you enable the \"share\" feature, the shared prompt becomes accessible to anyone with the link. Do not share content you expect to remain private.",
-      "We do not claim ownership of AI-generated output, but you are solely responsible for how you use it.",
+      "AI models are probabilistic systems that can occasionally generate inaccurate, outdated, incomplete, or biased information. Prompt+ provides prompt optimization tools, but does not guarantee the accuracy, truthfulness, or legal fitness of any AI-generated response.",
+      "You are solely responsible for independently reviewing and validating any AI output before deploying it in critical commercial, financial, medical, legal, or production environments.",
     ],
   },
   {
-    id: "ai-output",
-    title: "6. AI Output Disclaimer",
+    id: "api-vault",
+    title: "7. Third-Party API Keys & Encryption",
+    badge: "AES-256 Vault",
     body: [
-      "AI-generated outputs can be inaccurate, incomplete, biased, or outdated. AI models may \"hallucinate\" facts. The Service does not guarantee the correctness, safety, or fitness of any output for any purpose.",
-      "You are solely responsible for verifying AI output before relying on it, especially for professional, medical, legal, financial, security, or other consequential decisions. You must not use the Service to provide professional advice in regulated fields.",
-    ],
-  },
-  {
-    id: "third-party",
-    title: "7. Third-Party Models, API Keys, and Services",
-    body: [
-      "The Service integrates with third-party AI providers (including OpenAI, Anthropic, OpenRouter, and NVIDIA) and third-party platforms (including ChatGPT, Claude, Gemini, and others). These providers and platforms are not affiliated with us, and their use is governed by their own terms and privacy policies, not ours.",
-      "If you provide your own API key, you are responsible for managing that key and for any usage or cost incurred through it. Keys are encrypted at rest on our servers and may also be stored in your browser. You may revoke or delete a stored key at any time. You must keep keys secret and must not share them with third parties through the Service.",
-      "We are not responsible for the availability, behavior, or output of any third-party service you use with Prompt+.",
-    ],
-  },
-  {
-    id: "ip",
-    title: "8. Intellectual Property",
-    body: [
-      "The Prompt+ software, trademarks, branding, and visual design are proprietary property owned by Prompt+ and may not be copied, reproduced, or distributed without our prior written consent.",
-      "Nothing in these Terms transfers ownership of any of our intellectual property to you. The Service, its content, and its code remain our property (or that of our licensors).",
-    ],
-  },
-  {
-    id: "privacy",
-    title: "9. Privacy",
-    body: [
-      "Our data practices, including exactly what information we collect and how to delete it, are described in our Privacy Policy, which is incorporated into these Terms by reference.",
-    ],
-  },
-  {
-    id: "warranties",
-    title: "10. Disclaimer of Warranties",
-    body: [
-      "THE SERVICE IS PROVIDED \"AS IS\" AND \"AS AVAILABLE\", WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, ERROR-FREE, OR SECURE, OR THAT AI OUTPUTS WILL BE ACCURATE OR RELIABLE.",
+      "Prompt+ allows you to bring your own API keys (OpenAI, Anthropic, OpenRouter, NVIDIA). When stored, your keys are encrypted at rest with AES-256-GCM. We never expose your plaintext keys in client bundles.",
+      "You are responsible for managing your third-party API provider accounts, quotas, and any associated costs incurred by your keys.",
     ],
   },
   {
     id: "liability",
-    title: "11. Limitation of Liability",
+    title: "8. Limitation of Liability & Warranty Disclaimers",
+    badge: "Legal Limitations",
     body: [
-      "TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL PROMPT+ OR ITS OPERATORS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR FOR ANY LOSS OF PROFITS, DATA, REVENUE, OR GOODWILL, ARISING OUT OF OR RELATED TO YOUR USE OF THE SERVICE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.",
-      "OUR TOTAL AGGREGATE LIABILITY ARISING OUT OF OR RELATED TO THESE TERMS OR THE SERVICE SHALL NOT EXCEED THE GREATER OF ONE HUNDRED US DOLLARS ($100) OR THE AMOUNT YOU PAID US IN THE 12 MONTHS PRECEDING THE CLAIM. SOME JURISDICTIONS DO NOT ALLOW THE EXCLUSION OR LIMITATION OF CERTAIN LIABILITIES, SO SOME OF THE ABOVE LIMITATIONS MAY NOT APPLY TO YOU.",
+      "THE SERVICE IS PROVIDED ON AN \"AS IS\" AND \"AS AVAILABLE\" BASIS WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. TO THE MAXIMUM EXTENT PERMITTED BY LAW, PROMPT+ AND ITS OPERATORS DISCLAIM ALL WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.",
+      "IN NO EVENT SHALL PROMPT+ BE LIABLE FOR ANY INDIRECT, INCIDENTAL, CONSEQUENTIAL, SPECIAL, OR PUNITIVE DAMAGES, OR FOR ANY LOSS OF REVENUE, PROFITS, OR DATA ARISING OUT OF OR RELATING TO YOUR USE OF THE SERVICE.",
     ],
   },
   {
-    id: "indemnification",
-    title: "12. Indemnification",
+    id: "governing-law",
+    title: "9. Governing Law & Dispute Resolution",
+    badge: "Jurisdiction",
     body: [
-      "You agree to defend, indemnify, and hold harmless Prompt+ and its operators, contributors, and affiliates from and against any claims, damages, liabilities, and expenses (including reasonable attorneys' fees) arising out of or related to your use of the Service, your violation of these Terms, your violation of any law, or your infringement of any third-party rights.",
-    ],
-  },
-  {
-    id: "termination",
-    title: "13. Termination",
-    body: [
-      "You may stop using the Service and close your account at any time. We may suspend or terminate your access to the Service at any time, with or without notice, if you violate these Terms, if we suspect fraud or abuse, or as required by law.",
-      "Sections that by their nature should survive termination (including Sections 6, 8, 10, 11, and 12) will survive any termination of these Terms.",
-    ],
-  },
-  {
-    id: "changes",
-    title: "14. Changes to These Terms",
-    body: [
-      "We may revise these Terms from time to time. We will post the updated Terms on this page and update the date above. Material changes take effect 14 days after posting for existing users, unless required sooner by law. Your continued use of the Service after changes take effect constitutes acceptance of the revised Terms.",
-    ],
-  },
-  {
-    id: "law",
-    title: "15. Governing Law and Disputes",
-    body: [
-      "These Terms are governed by the laws of India, without regard to conflict-of-law principles. You agree that any dispute arising out of or relating to these Terms or the Service will be resolved in the competent courts of India. Where required by law, nothing in this section limits rights you cannot contractually waive, including consumer protections.",
-    ],
-  },
-  {
-    id: "severability",
-    title: "16. Severability",
-    body: [
-      "If any provision of these Terms is held to be invalid or unenforceable, that provision will be limited or eliminated to the minimum extent necessary, and the remaining provisions will remain in full force and effect.",
+      "These Terms shall be governed by and construed in accordance with the laws of India, without regard to its conflict of law principles. Any dispute arising out of or relating to these Terms shall be subject to the exclusive jurisdiction of the competent courts in India.",
     ],
   },
   {
     id: "contact",
-    title: "17. Contact",
+    title: "10. Contact & Support",
+    badge: "Contact",
     body: [
-      "Questions about these Terms? Contact us at promptplus2@gmail.com. We aim to respond within 48 hours.",
+      "For questions regarding these Terms or legal inquiries, reach out to our team at promptplus2@gmail.com. We are committed to responding promptly to all inquiries.",
     ],
   },
 ];
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="h-14 flex items-center px-4 border-b">
-        <Link href="/"><Logo size={20} /></Link>
+    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/20 selection:text-primary">
+      {/* Header */}
+      <header className="h-16 flex items-center justify-between px-6 border-b border-border/50 backdrop-blur-md bg-background/80 sticky top-0 z-50">
+        <Link href="/" className="flex items-center gap-2">
+          <Logo size={22} />
+        </Link>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>Back to Home</span>
+        </Link>
       </header>
-      <main className="flex-1 max-w-3xl mx-auto w-full p-6 sm:p-10">
-        <h1 className="text-2xl font-bold text-foreground mb-1">Terms of Service</h1>
-        <p className="text-xs text-muted-foreground mb-8">Last updated: August 3, 2026 · Applies to prompt-plus-three.vercel.app and the Prompt+ Chrome extension</p>
 
-        <div className="space-y-8">
-          {sections.map((s) => (
-            <section key={s.id}>
-              <h2 className="text-lg font-semibold text-foreground mb-3">{s.title}</h2>
-              {s.body.map((p, i) => (
-                <p key={i} className="text-sm text-muted-foreground leading-relaxed mb-2">{p}</p>
-              ))}
+      {/* Hero Banner */}
+      <div className="border-b border-border/40 bg-card/30 py-12 px-6">
+        <div className="max-w-4xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary">
+            <Scale className="h-3.5 w-3.5" />
+            <span>Fair & Transparent Terms</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Terms of Service</h1>
+          <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
+            Effective Date: August 27, 2026 · Version 2.4.0. Clear rules, 100% intellectual property ownership of your prompts, and transparent usage guidelines.
+          </p>
+
+          {/* Quick Pillars */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
+            <div className="p-3.5 rounded-xl border border-border/50 bg-background/50 flex items-center gap-2.5 text-xs">
+              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+              <div>
+                <strong className="block text-foreground">100% Your IP</strong>
+                <span className="text-muted-foreground text-[11px]">Full commercial rights to prompts</span>
+              </div>
+            </div>
+            <div className="p-3.5 rounded-xl border border-border/50 bg-background/50 flex items-center gap-2.5 text-xs">
+              <Sparkles className="h-4 w-4 text-primary shrink-0" />
+              <div>
+                <strong className="block text-foreground">Zero Model Training</strong>
+                <span className="text-muted-foreground text-[11px]">Your data is never exploited</span>
+              </div>
+            </div>
+            <div className="p-3.5 rounded-xl border border-border/50 bg-background/50 flex items-center gap-2.5 text-xs">
+              <Lock className="h-4 w-4 text-indigo-400 shrink-0" />
+              <div>
+                <strong className="block text-foreground">Encrypted API Vault</strong>
+                <span className="text-muted-foreground text-[11px]">AES-256 protected credentials</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="flex-1 max-w-4xl mx-auto w-full p-6 sm:p-10">
+        <div className="space-y-10">
+          {termsSections.map((sec) => (
+            <section
+              key={sec.id}
+              id={sec.id}
+              className="p-6 rounded-2xl border border-border/60 bg-card/40 backdrop-blur-sm scroll-mt-24 space-y-4"
+            >
+              <div className="flex items-center justify-between gap-3 border-b border-border/40 pb-3">
+                <h2 className="text-lg font-bold text-foreground tracking-tight">
+                  {sec.title}
+                </h2>
+                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary">
+                  {sec.badge}
+                </span>
+              </div>
+              <div className="space-y-3">
+                {sec.body.map((paragraph, idx) => (
+                  <p key={idx} className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
             </section>
           ))}
         </div>
 
-        <p className="text-xs mt-10 border-t pt-4 text-muted-foreground">
-          Read our <Link href="/privacy" className="text-primary hover:underline font-medium">Privacy Policy</Link>.
-        </p>
+        {/* Footer Navigation */}
+        <div className="mt-12 pt-6 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+          <span>Prompt+ Legal Department</span>
+          <div className="flex items-center gap-4 font-medium">
+            <Link href="/privacy" className="text-primary hover:underline">
+              Privacy Policy →
+            </Link>
+            <span>•</span>
+            <Link href="/contact" className="hover:text-foreground">
+              Contact Support
+            </Link>
+          </div>
+        </div>
       </main>
     </div>
   );
