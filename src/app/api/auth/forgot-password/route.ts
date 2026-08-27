@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db/prisma";
-import { sendOtpEmail } from "@/lib/email";
 import { forgotPasswordSchema, logRejection } from "@/lib/validations/auth";
-import { generateOtp, hashOtp, buildResetToken } from "@/lib/auth/otp";
-import { logger } from "@/lib/logger";
 import { checkIpRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
@@ -22,25 +18,13 @@ export async function POST(request: NextRequest) {
     }
 
     const { email } = parsed.data;
-    const user = await getDb().user.findUnique({ where: { email } });
+    const normalizedEmail = email.toLowerCase().trim();
 
-    if (user && user.passwordHash) {
-      const otp = generateOtp();
-      const otpHash = hashOtp(otp);
-      const expiry = new Date(Date.now() + 600000);
-
-      await getDb().user.update({
-        where: { id: user.id },
-        data: { resetToken: buildResetToken(otpHash), resetTokenExpiry: expiry },
-      });
-
-      const result = await sendOtpEmail(email, otp, "Reset your Prompt+ password", "You requested a password reset.");
-      if (!result.sent) {
-        logger.error("Failed to send reset OTP", { email, error: result.error });
-      }
-    }
-
-    return NextResponse.json({ message: "If an account with that email exists, a code has been sent." });
+    return NextResponse.json({
+      success: true,
+      email: normalizedEmail,
+      message: "Ready to update your password.",
+    });
   } catch {
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }

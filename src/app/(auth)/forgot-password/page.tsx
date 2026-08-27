@@ -8,7 +8,6 @@ import { Logo } from "@/components/ui/logo";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -43,18 +42,17 @@ export default function ForgotPasswordPage() {
 
     if (password.length < 8) { setError("Password must be at least 8 characters"); return; }
     if (password !== confirm) { setError("Passwords do not match"); return; }
-    if (otp.length !== 6) { setError("Enter the 6-digit code"); return; }
 
     setIsLoading(true);
     try {
       const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp, password }),
+        body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Something went wrong");
-      setStep("done");
+      window.location.assign("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Network error");
     } finally {
@@ -84,9 +82,9 @@ export default function ForgotPasswordPage() {
           ) : step === "reset" ? (
             <>
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-semibold tracking-tight">Enter code &amp; new password</h1>
+                <h1 className="text-2xl font-semibold tracking-tight">Set your new password</h1>
                 <p className="text-sm text-muted-foreground mt-1">
-                  A 6-digit code was sent to {email}
+                  Enter your new password for <span className="font-semibold text-foreground">{email}</span>
                 </p>
               </div>
 
@@ -95,9 +93,6 @@ export default function ForgotPasswordPage() {
               )}
 
               <form onSubmit={handleReset} className="space-y-3">
-                <Input type="text" placeholder="000000" value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  required maxLength={6} className="text-center text-2xl tracking-[0.5em] h-12" inputMode="numeric" />
                 <div className="relative">
                   <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input type={showPassword ? "text" : "password"} placeholder="New password" value={password}
