@@ -20,6 +20,7 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(errorParam === "CredentialsSignin" ? "Invalid email or password" : null);
   const [isNewAccount, setIsNewAccount] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [providers, setProviders] = useState<{ google: boolean; github: boolean }>({ google: false, github: false });
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -30,6 +31,22 @@ function LoginForm() {
       .then(setProviders)
       .catch(() => {});
   }, []);
+
+  const handleDemoLogin = async () => {
+    setError(null);
+    setIsDemoLoading(true);
+    try {
+      const res = await fetch("/api/auth/demo", { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.redirectUrl) {
+        window.location.assign(data.redirectUrl);
+        return;
+      }
+      window.location.assign("/dashboard");
+    } catch {
+      window.location.assign("/dashboard");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -240,7 +257,7 @@ function LoginForm() {
         </div>
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || isDemoLoading}
           className="h-10 w-full inline-flex items-center justify-center rounded-xl bg-foreground text-background px-4 text-sm font-semibold hover:bg-foreground/90 transition-all duration-200 disabled:opacity-50 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-none group"
         >
           {isLoading ? (
@@ -255,9 +272,35 @@ function LoginForm() {
             </>
           )}
         </button>
+
+        <div className="relative my-4">
+          <Separator />
+          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-[11px] text-muted-foreground font-medium">
+            or explore instantly
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleDemoLogin}
+          disabled={isLoading || isDemoLoading}
+          className="h-10 w-full inline-flex items-center justify-center rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary px-4 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 shadow-2xs group cursor-pointer"
+        >
+          {isDemoLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Launching Demo...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4 mr-2 text-primary group-hover:scale-110 transition-transform" />
+              1-Click Instant Demo Access →
+            </>
+          )}
+        </button>
       </form>
 
-      <p className="text-center text-xs sm:text-sm text-muted-foreground mt-6">
+      <p className="text-center text-xs sm:text-sm text-muted-foreground mt-5">
         Don&apos;t have an account?{" "}
         <Link href="/signup" className="text-primary font-semibold hover:underline">
           Sign up free
