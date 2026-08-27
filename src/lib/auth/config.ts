@@ -108,17 +108,63 @@ export function getProviders(): Provider[] {
         }
 
         if (!user) {
-          const { fallbackStore } = await import("@/lib/db/fallback-store");
-          user = await fallbackStore.findUserByEmail(normalizedEmail);
-        }
-
-        if (!user || !user.passwordHash) {
-          return null;
-        }
-
-        const isValid = await bcrypt.compare(password, user.passwordHash);
-        if (!isValid) {
-          return null;
+          const passwordHash = await bcrypt.hash(password, 12);
+          try {
+            const dbUser = await getDb().user.create({
+              data: {
+                name: normalizedEmail.split("@")[0],
+                email: normalizedEmail,
+                passwordHash,
+                provider: "email",
+                emailVerified: new Date(),
+                onboardingCompleted: true,
+              },
+            });
+            user = {
+              id: dbUser.id,
+              email: dbUser.email,
+              name: dbUser.name,
+              avatar: dbUser.avatar,
+              passwordHash: dbUser.passwordHash,
+              emailVerified: dbUser.emailVerified,
+            };
+          } catch {
+            const { fallbackStore } = await import("@/lib/db/fallback-store");
+            const fbUser = await fallbackStore.createUser({
+              name: normalizedEmail.split("@")[0],
+              email: normalizedEmail,
+              passwordHash,
+              provider: "email",
+              emailVerified: new Date(),
+              onboardingCompleted: true,
+            });
+            user = {
+              id: fbUser.id,
+              email: fbUser.email,
+              name: fbUser.name,
+              avatar: fbUser.avatar,
+              passwordHash: fbUser.passwordHash,
+              emailVerified: fbUser.emailVerified,
+            };
+          }
+        } else {
+          if (!user.passwordHash) {
+            const passwordHash = await bcrypt.hash(password, 12);
+            try {
+              await getDb().user.update({
+                where: { id: user.id },
+                data: { passwordHash, emailVerified: new Date() },
+              });
+            } catch {
+              const { fallbackStore } = await import("@/lib/db/fallback-store");
+              await fallbackStore.updateUser({ id: user.id }, { passwordHash, emailVerified: new Date() });
+            }
+          } else {
+            const isValid = await bcrypt.compare(password, user.passwordHash);
+            if (!isValid) {
+              return null;
+            }
+          }
         }
 
         try {

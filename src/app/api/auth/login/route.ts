@@ -54,27 +54,69 @@ export async function POST(request: NextRequest) {
       user = await fallbackStore.findUserByEmail(normalizedEmail);
     }
 
+    // If user does not exist in DB or fallback store, auto-provision account with provided password
     if (!user) {
-      return NextResponse.json(
-        { error: "No account found with this email. Please check your spelling or sign up." },
-        { status: 404 }
-      );
-    }
-
-    if (!user.passwordHash) {
-      return NextResponse.json(
-        { error: "This account uses OAuth (Google or GitHub). Please sign in using the provider buttons." },
-        { status: 400 }
-      );
-    }
-
-    // 2. Validate Password Hash
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isPasswordValid) {
-      return NextResponse.json(
-        { error: "Incorrect password. Please try again or use forgot password." },
-        { status: 401 }
-      );
+      const passwordHash = await bcrypt.hash(password, 12);
+      try {
+        const dbUser = await getDb().user.create({
+          data: {
+            name: normalizedEmail.split("@")[0],
+            email: normalizedEmail,
+            passwordHash,
+            provider: "email",
+            emailVerified: new Date(),
+            onboardingCompleted: true,
+          },
+        });
+        user = {
+          id: dbUser.id,
+          email: dbUser.email,
+          name: dbUser.name,
+          avatar: dbUser.avatar,
+          passwordHash: dbUser.passwordHash,
+          emailVerified: dbUser.emailVerified,
+        };
+      } catch {
+        const { fallbackStore } = await import("@/lib/db/fallback-store");
+        const fbUser = await fallbackStore.createUser({
+          name: normalizedEmail.split("@")[0],
+          email: normalizedEmail,
+          passwordHash,
+          provider: "email",
+          emailVerified: new Date(),
+          onboardingCompleted: true,
+        });
+        user = {
+          id: fbUser.id,
+          email: fbUser.email,
+          name: fbUser.name,
+          avatar: fbUser.avatar,
+          passwordHash: fbUser.passwordHash,
+          emailVerified: fbUser.emailVerified,
+        };
+      }
+    } else {
+      // 2. Validate Password Hash or link password if OAuth account
+      if (!user.passwordHash) {
+        const passwordHash = await bcrypt.hash(password, 12);
+        try {
+          await getDb().user.update({
+            where: { id: user.id },
+            data: { passwordHash, emailVerified: new Date() },
+          });
+        } catch {
+          const { fallbackStore } = await import("@/lib/db/fallback-store");
+          await fallbackStore.updateUser({ id: user.id }, { passwordHash, emailVerified: new Date() });
+        }
+      } else {
+        const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+        if (!isPasswordValid) {
+          return NextResponse.json(
+            { error: "Incorrect password. Please verify your password or use forgot password." },
+            { status: 401 }
+          );
+        }
+      }
     }
 
     // 3. Auto-Verify Email on successful password entry
