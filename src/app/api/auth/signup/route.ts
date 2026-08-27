@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { getDb } from "@/lib/db/prisma";
 import { signupSchema, logRejection } from "@/lib/validations/auth";
-import { generateOtp, hashOtp, buildVerifyToken } from "@/lib/auth/otp";
-import { sendOtpEmail } from "@/lib/email";
-import { logger } from "@/lib/logger";
 import { checkIpRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
@@ -38,55 +35,69 @@ export async function POST(request: NextRequest) {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const otp = generateOtp();
-    const otpHash = hashOtp(otp);
-    const expiry = new Date(Date.now() + 600000);
+
+    let createdUser: { id: string; email: string; name: string | null; avatar: string | null } | null = null;
 
     try {
-      await getDb().user.create({
+      const dbUser = await getDb().user.create({
         data: {
           name: name || null,
           email: normalizedEmail,
           passwordHash,
           provider: "email",
-          emailVerified: null,
-          resetToken: buildVerifyToken(otpHash),
-          resetTokenExpiry: expiry,
+          emailVerified: new Date(),
+          onboardingCompleted: true,
         },
       });
+      createdUser = {
+        id: dbUser.id,
+        email: dbUser.email,
+        name: dbUser.name,
+        avatar: dbUser.avatar,
+      };
     } catch {
       const { fallbackStore } = await import("@/lib/db/fallback-store");
-      await fallbackStore.createUser({
+      const fbUser = await fallbackStore.createUser({
         name: name || null,
         email: normalizedEmail,
         passwordHash,
         provider: "email",
-        emailVerified: null,
-        resetToken: buildVerifyToken(otpHash),
-        resetTokenExpiry: expiry,
+        emailVerified: new Date(),
+        onboardingCompleted: true,
       });
+      createdUser = {
+        id: fbUser.id,
+        email: fbUser.email,
+        name: fbUser.name,
+        avatar: fbUser.avatar,
+      };
     }
 
-    const result = await sendOtpEmail(
-      normalizedEmail,
-      otp,
-      "Verify your Prompt+ email",
-      "Welcome to Prompt+! Please enter the 6-digit verification code below to activate your account."
-    ).catch((err) => ({ sent: false, error: err instanceof Error ? err.message : "Email error" }));
-
-    if (!result.sent) {
-      logger.error("Failed to send verification OTP", { email: normalizedEmail, error: result.error });
-    }
-
-    return NextResponse.json(
+    // Construct response & attach session cookies
+    const response = NextResponse.json(
       {
         success: true,
-        needsVerification: true,
+        redirectUrl: "/dashboard",
         email: normalizedEmail,
-        message: "Verification code sent to your email.",
+        message: "Account created successfully! Redirecting to dashboard...",
       },
       { status: 201 }
     );
+
+    if (createdUser) {
+      const { attachSessionCookies } = await import("@/lib/auth/session-cookie");
+      await attachSessionCookies(
+        {
+          id: createdUser.id,
+          email: createdUser.email,
+          name: createdUser.name,
+          image: createdUser.avatar,
+        },
+        response
+      );
+    }
+
+    return response;
   } catch (error: unknown) {
     console.error("Signup error:", error);
     const msg = error instanceof Error ? error.message : String(error);
