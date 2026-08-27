@@ -20,7 +20,6 @@ export interface SessionUser {
  * to the response cookies. Works universally across HTTP and HTTPS.
  */
 export async function attachSessionCookies(user: SessionUser, res: NextResponse): Promise<NextResponse> {
-  const isProd = process.env.NODE_ENV === "production";
   const maxAge = 30 * 24 * 60 * 60; // 30 days
 
   const tokenPayload = {
@@ -32,12 +31,21 @@ export async function attachSessionCookies(user: SessionUser, res: NextResponse)
     role: user.role || "user",
   };
 
-  const cookieConfigs = [
-    { name: "authjs.session-token", secure: false },
-    { name: "__Secure-authjs.session-token", secure: isProd },
-    { name: "next-auth.session-token", secure: false },
-    { name: "__Secure-next-auth.session-token", secure: isProd },
-  ];
+  const isHttps =
+    process.env.NODE_ENV === "production" &&
+    !process.env.NEXTAUTH_URL?.startsWith("http://localhost");
+
+  const cookieConfigs = isHttps
+    ? [
+        { name: "__Secure-authjs.session-token", secure: true },
+        { name: "authjs.session-token", secure: false },
+        { name: "__Secure-next-auth.session-token", secure: true },
+        { name: "next-auth.session-token", secure: false },
+      ]
+    : [
+        { name: "authjs.session-token", secure: false },
+        { name: "next-auth.session-token", secure: false },
+      ];
 
   for (const config of cookieConfigs) {
     try {
