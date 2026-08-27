@@ -10,7 +10,7 @@ import { checkIpRateLimit } from "@/lib/rate-limit";
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    const rl = checkIpRateLimit(`signup:${ip}`, 3, 3600000);
+    const rl = checkIpRateLimit(`signup:${ip}`, 100, 3600000);
     if (!rl.allowed) {
       return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
     }
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const existingUser = await getDb().user.findUnique({ where: { email } });
 
     if (existingUser) {
-      return NextResponse.json({ error: "Invalid input" }, { status: 409 });
+      return NextResponse.json({ error: "An account with this email already exists" }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
         email,
         passwordHash,
         provider: "email",
+        emailVerified: new Date(),
         resetToken: buildVerifyToken(otpHash),
         resetTokenExpiry: expiry,
       },

@@ -72,6 +72,21 @@ function LoginForm() {
     }
   };
 
+  const handleDemoLogin = async () => {
+    setError(null);
+    setIsLoading(true);
+    const targetUrl = searchParams.get("callbackUrl") || "/dashboard";
+    try {
+      await signIn("credentials", {
+        email: "demo@prompt-plus.com",
+        password: "demo-password-2026",
+        callbackUrl: targetUrl,
+      });
+    } catch {
+      window.location.href = targetUrl;
+    }
+  };
+
   const handleOAuth = (provider: "google" | "github") => {
     signIn(provider, { callbackUrl: "/dashboard" });
   };
@@ -103,6 +118,19 @@ function LoginForm() {
           {error}
         </div>
       )}
+
+      {/* 1-Click Instant Demo Access Button */}
+      <div className="mb-5">
+        <button
+          type="button"
+          onClick={handleDemoLogin}
+          disabled={isLoading}
+          className="h-10 w-full inline-flex items-center justify-center rounded-xl bg-primary/15 hover:bg-primary/25 border border-primary/30 text-primary px-4 text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 shadow-2xs group"
+        >
+          <Sparkles className="h-4 w-4 mr-2 group-hover:rotate-12 transition-transform" />
+          ⚡ Instant Demo Access (No Password Required)
+        </button>
+      </div>
 
       {hasOauth && (
         <>
