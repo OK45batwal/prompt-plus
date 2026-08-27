@@ -50,8 +50,18 @@ function LoginForm() {
         setError(err);
         setIsLoading(false);
       }
-    } catch {
-      // Next.js Server Action redirect signal (NEXT_REDIRECT)
+    } catch (catchErr: unknown) {
+      if (
+        catchErr &&
+        typeof catchErr === "object" &&
+        "digest" in catchErr &&
+        typeof (catchErr as { digest: string }).digest === "string" &&
+        (catchErr as { digest: string }).digest.startsWith("NEXT_REDIRECT")
+      ) {
+        return;
+      }
+      setError("An unexpected error occurred during login. Please try again.");
+      setIsLoading(false);
     }
   };
 
