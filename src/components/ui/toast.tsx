@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useSyncExternalStore } from "react";
 import { X, CheckCircle2, AlertCircle, Info } from "lucide-react";
 
 export type ToastType = "success" | "error" | "info";
@@ -32,8 +32,11 @@ declare global {
   }
 }
 
+const emptySubscribe = () => () => {};
+
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const toast = useCallback((message: string, type: ToastType = "info") => {
     const id = Date.now() + Math.random();
@@ -52,7 +55,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastCtx.Provider value={{ toast }}>
       {children}
-      <div className="fixed bottom-5 right-5 z-[9999999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0">
+      {mounted && (
+        <div
+          suppressHydrationWarning
+          className="fixed bottom-5 right-5 z-[9999999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"
+        >
         {toasts.map((t) => {
           const Icon = icons[t.type];
           return (
@@ -88,7 +95,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </ToastCtx.Provider>
   );
 }

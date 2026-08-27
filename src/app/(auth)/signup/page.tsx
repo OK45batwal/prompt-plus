@@ -47,10 +47,14 @@ export default function SignupPage() {
         throw new Error(data.error || "Failed to create account");
       }
 
+      if (data.redirectUrl) {
+        window.location.assign(data.redirectUrl);
+        return;
+      }
+
       setShowOtp(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
       setIsLoading(false);
     }
   };
