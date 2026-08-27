@@ -13,11 +13,12 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const message = searchParams.get("message");
   const errorParam = searchParams.get("error");
+  const emailParam = searchParams.get("email") || "";
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(emailParam);
   const [password, setPassword] = useState("");
-  const initialError = errorParam === "CredentialsSignin" ? "Invalid email or password" : null;
-  const [error, setError] = useState<string | null>(initialError);
+  const [error, setError] = useState<string | null>(errorParam === "CredentialsSignin" ? "Invalid email or password" : null);
+  const [isNewAccount, setIsNewAccount] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [providers, setProviders] = useState<{ google: boolean; github: boolean }>({ google: false, github: false });
@@ -33,6 +34,7 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIsNewAccount(false);
     setIsLoading(true);
 
     const targetUrl = searchParams.get("callbackUrl") || "/dashboard";
@@ -50,7 +52,10 @@ function LoginForm() {
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        setError(data?.error || "Login failed. Please check your credentials.");
+        setError(data?.error || "Login failed. Please check your credentials or create an account.");
+        if (res.status === 404 || data?.notFound) {
+          setIsNewAccount(true);
+        }
         setIsLoading(false);
         return;
       }
@@ -90,8 +95,16 @@ function LoginForm() {
       )}
 
       {error && (
-        <div className="mb-4 p-3 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs text-center font-medium animate-slide-up">
-          {error}
+        <div className="mb-4 p-3.5 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-xs font-medium animate-slide-up flex flex-col gap-2 text-center">
+          <span>{error}</span>
+          {(isNewAccount || error.includes("No account found") || error.includes("credentials")) && (
+            <Link
+              href={`/signup?email=${encodeURIComponent(email)}`}
+              className="inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-xs border border-primary/20 transition-all"
+            >
+              Create free account with {email || "this email"} →
+            </Link>
+          )}
         </div>
       )}
 
