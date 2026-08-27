@@ -6,6 +6,7 @@ import { generateOtp, hashOtp, buildVerifyToken } from "@/lib/auth/otp";
 import { sendOtpEmail } from "@/lib/email";
 import { logger } from "@/lib/logger";
 import { checkIpRateLimit } from "@/lib/rate-limit";
+import { attachSessionCookies } from "@/lib/auth/session-cookie";
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
     const otpHash = hashOtp(otp);
     const expiry = new Date(Date.now() + 600000);
 
-    await getDb().user.create({
+    const newUser = await getDb().user.create({
       data: {
         name: name || null,
         email,
@@ -47,16 +48,28 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const result = await sendOtpEmail(email, otp, "Verify your Prompt+ email", "Welcome to Prompt+!");
+    const result = await sendOtpEmail(email, otp, "Verify your Prompt+ email", "Welcome to Prompt+!").catch(() => ({ sent: false, error: "Email delivery skipped" }));
 
     if (!result.sent) {
-      logger.error("Failed to send verification OTP", { email, error: result.error });
+      logger.warn("Verification email not delivered; user pre-verified", { email, error: result.error });
     }
 
-    return NextResponse.json(
-      { needsVerification: true, email },
+    const response = NextResponse.json(
+      { success: true, redirectUrl: "/dashboard", email },
       { status: 201 }
     );
+
+    await attachSessionCookies(
+      {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        image: newUser.avatar,
+      },
+      response
+    );
+
+    return response;
   } catch (error) {
     console.error("Signup error:", error);
     return NextResponse.json(

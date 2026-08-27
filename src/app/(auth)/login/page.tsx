@@ -9,8 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Logo } from "@/components/ui/logo";
 
-import { authenticate } from "./actions";
-
 function LoginForm() {
   const searchParams = useSearchParams();
   const message = searchParams.get("message");
@@ -40,27 +38,27 @@ function LoginForm() {
     const targetUrl = searchParams.get("callbackUrl") || "/dashboard";
 
     try {
-      const formData = new FormData();
-      formData.append("email", email.trim().toLowerCase());
-      formData.append("password", password);
-      formData.append("redirectTo", targetUrl);
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+        }),
+      });
 
-      const err = await authenticate(undefined, formData);
-      if (err) {
-        setError(err);
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setError(data?.error || "Login failed. Please check your credentials.");
         setIsLoading(false);
-      }
-    } catch (catchErr: unknown) {
-      if (
-        catchErr &&
-        typeof catchErr === "object" &&
-        "digest" in catchErr &&
-        typeof (catchErr as { digest: string }).digest === "string" &&
-        (catchErr as { digest: string }).digest.startsWith("NEXT_REDIRECT")
-      ) {
         return;
       }
-      setError("An unexpected error occurred during login. Please try again.");
+
+      // Success: cookies attached in HTTP response headers, navigate straight to target
+      window.location.assign(data?.redirectUrl || targetUrl);
+    } catch {
+      setError("Unable to connect to the server. Please check your internet connection.");
       setIsLoading(false);
     }
   };
