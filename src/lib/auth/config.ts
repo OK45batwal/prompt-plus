@@ -90,41 +90,47 @@ export function getProviders(): Provider[] {
         }
 
         const { email, password } = parsed.data;
+        const normalizedEmail = email.toLowerCase().trim();
 
-        const user = await getDb().user.findUnique({
-          where: { email },
-        });
+        try {
+          const user = await getDb().user.findUnique({
+            where: { email: normalizedEmail },
+          });
 
-        if (!user || !user.passwordHash) {
+          if (!user || !user.passwordHash) {
+            return null;
+          }
+
+          const isValid = await bcrypt.compare(password, user.passwordHash);
+          if (!isValid) {
+            return null;
+          }
+
+          // Auto-verify email on successful password authentication
+          if (!user.emailVerified) {
+            await getDb().user.update({
+              where: { id: user.id },
+              data: { emailVerified: new Date(), resetToken: null },
+            }).catch(() => {});
+          }
+
+          await getDb().user
+            .update({
+              where: { id: user.id },
+              data: { updatedAt: new Date(), lastLoginAt: new Date() },
+            })
+            .catch(() => {});
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.avatar,
+          };
+        } catch (dbError) {
+          console.error("Authorize database error:", dbError);
           return null;
         }
-
-        const isValid = await bcrypt.compare(password, user.passwordHash);
-        if (!isValid) {
-          return null;
-        }
-
-        // Auto-verify email on successful password authentication
-        if (!user.emailVerified) {
-          await getDb().user.update({
-            where: { id: user.id },
-            data: { emailVerified: new Date(), resetToken: null },
-          }).catch(() => {});
-        }
-
-        await getDb().user
-          .update({
-            where: { id: user.id },
-            data: { updatedAt: new Date(), lastLoginAt: new Date() },
-          })
-          .catch(() => {});
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.avatar,
-        };
       },
     })
   );
