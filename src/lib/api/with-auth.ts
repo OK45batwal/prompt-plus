@@ -1,5 +1,4 @@
 import { NextRequest } from "next/server";
-import { auth } from "@/lib/auth/config";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { jsonResponse } from "./response-headers";
 import { logger } from "@/lib/logger";
@@ -35,54 +34,8 @@ export function withAuth<T extends z.ZodTypeAny = z.ZodTypeAny>(
     const requestId = req.headers.get("x-request-id") || crypto.randomUUID();
 
     // 1. Verify Authentication Session or Developer API Key
-    let session = await auth().catch(() => null);
-
-    if (!session?.user) {
-      const { decode } = await import("next-auth/jwt");
-      const { authSecret } = await import("@/lib/auth/session-cookie");
-      const tokenNames = [
-        "__Secure-authjs.session-token",
-        "authjs.session-token",
-        "__Secure-next-auth.session-token",
-        "next-auth.session-token",
-      ];
-      const salts = [
-        "__Secure-authjs.session-token",
-        "authjs.session-token",
-        "__Secure-next-auth.session-token",
-        "next-auth.session-token",
-        "",
-      ];
-      for (const name of tokenNames) {
-        const cookieVal = req.cookies.get(name)?.value;
-        if (cookieVal) {
-          for (const salt of salts) {
-            try {
-              const decoded = await decode({
-                token: cookieVal,
-                secret: authSecret,
-                salt,
-              });
-              if (decoded && (decoded.email || decoded.id || decoded.sub)) {
-                session = {
-                  user: {
-                    id: (decoded.id || decoded.sub || decoded.email) as string,
-                    email: (decoded.email || "") as string,
-                    name: (decoded.name || "") as string,
-                    image: (decoded.picture || null) as string | null,
-                  },
-                  expires: new Date(Date.now() + 30 * 86400000).toISOString(),
-                } as unknown as Session;
-                break;
-              }
-            } catch {
-              // try next salt
-            }
-          }
-          if (session?.user) break;
-        }
-      }
-    }
+    const { getValidatedSession } = await import("@/lib/auth/get-session");
+    let session = await getValidatedSession();
 
     let userId = session?.user?.id;
 
