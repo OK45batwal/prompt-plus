@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Mail, Lock, User, ArrowRight, Loader2, Eye, EyeOff, Check, Sparkles, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,6 @@ import { Separator } from "@/components/ui/separator";
 import { Logo } from "@/components/ui/logo";
 
 function SignupForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const emailParam = searchParams.get("email") || "";
 
@@ -74,16 +73,16 @@ function SignupForm() {
         body: JSON.stringify({ email, otp }),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const data = await res.json();
         throw new Error(data.error || "Invalid code");
       }
 
       setVerified(true);
-      router.push("/login?message=Email verified. Please log in.");
+      window.location.assign(data.redirectUrl || "/dashboard");
     } catch (err) {
       setOtpError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
       setOtpLoading(false);
     }
   };

@@ -41,7 +41,24 @@ export async function POST(request: NextRequest) {
       data: { emailVerified: new Date(), resetToken: null, resetTokenExpiry: null },
     });
 
-    return NextResponse.json({ message: "Email verified successfully" });
+    const response = NextResponse.json({
+      success: true,
+      message: "Email verified successfully",
+      redirectUrl: "/dashboard",
+    });
+
+    const { attachSessionCookies } = await import("@/lib/auth/session-cookie");
+    await attachSessionCookies(
+      {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        image: user.avatar,
+      },
+      response
+    );
+
+    return response;
   } catch {
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }

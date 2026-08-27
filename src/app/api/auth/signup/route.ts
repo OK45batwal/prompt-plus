@@ -6,7 +6,6 @@ import { generateOtp, hashOtp, buildVerifyToken } from "@/lib/auth/otp";
 import { sendOtpEmail } from "@/lib/email";
 import { logger } from "@/lib/logger";
 import { checkIpRateLimit } from "@/lib/rate-limit";
-import { attachSessionCookies } from "@/lib/auth/session-cookie";
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,40 +35,38 @@ export async function POST(request: NextRequest) {
     const otpHash = hashOtp(otp);
     const expiry = new Date(Date.now() + 600000);
 
-    const newUser = await getDb().user.create({
+    await getDb().user.create({
       data: {
         name: name || null,
         email,
         passwordHash,
         provider: "email",
-        emailVerified: new Date(),
+        emailVerified: null,
         resetToken: buildVerifyToken(otpHash),
         resetTokenExpiry: expiry,
       },
     });
 
-    const result = await sendOtpEmail(email, otp, "Verify your Prompt+ email", "Welcome to Prompt+!").catch(() => ({ sent: false, error: "Email delivery skipped" }));
+    const result = await sendOtpEmail(
+      email,
+      otp,
+      "Verify your Prompt+ email",
+      "Welcome to Prompt+! Please enter the 6-digit verification code below to activate your account."
+    ).catch((err) => ({ sent: false, error: err instanceof Error ? err.message : "Email error" }));
 
     if (!result.sent) {
-      logger.warn("Verification email not delivered; user pre-verified", { email, error: result.error });
+      logger.error("Failed to send verification OTP", { email, error: result.error });
     }
 
-    const response = NextResponse.json(
-      { success: true, redirectUrl: "/dashboard", email },
+    return NextResponse.json(
+      {
+        success: true,
+        needsVerification: true,
+        email,
+        message: "Verification code sent to your email.",
+      },
       { status: 201 }
     );
-
-    await attachSessionCookies(
-      {
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.name,
-        image: newUser.avatar,
-      },
-      response
-    );
-
-    return response;
   } catch (error: unknown) {
     console.error("Signup error:", error);
     const msg = error instanceof Error ? error.message : String(error);
