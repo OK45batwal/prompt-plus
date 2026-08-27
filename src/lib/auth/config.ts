@@ -43,8 +43,8 @@ export const authConfig: NextAuthConfig = {
       return token;
     },
     async session({ session, token }) {
-      const userId = (token.id || token.sub) as string;
-      if (session.user && userId) {
+      const userId = (token.id || token.sub || session.user?.email) as string;
+      if (session.user) {
         session.user.id = userId;
         (session.user as { role?: string }).role = (token.role as string) || "user";
       }

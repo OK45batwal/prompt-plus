@@ -40,35 +40,18 @@ function LoginForm() {
     const targetUrl = searchParams.get("callbackUrl") || "/dashboard";
 
     try {
-      const res = await signIn("credentials", {
-        email: email.trim().toLowerCase(),
-        password,
-        redirect: false,
-        callbackUrl: targetUrl,
-      });
+      const formData = new FormData();
+      formData.append("email", email.trim().toLowerCase());
+      formData.append("password", password);
+      formData.append("redirectTo", targetUrl);
 
-      if (res?.error) {
-        setError("Invalid email or password. Please check your credentials.");
+      const err = await authenticate(undefined, formData);
+      if (err) {
+        setError(err);
         setIsLoading(false);
-      } else {
-        window.location.href = targetUrl;
       }
     } catch {
-      try {
-        const formData = new FormData();
-        formData.append("email", email.trim().toLowerCase());
-        formData.append("password", password);
-        formData.append("redirectTo", targetUrl);
-        const err = await authenticate(undefined, formData);
-        if (err) {
-          setError(err);
-          setIsLoading(false);
-        } else {
-          window.location.href = targetUrl;
-        }
-      } catch {
-        window.location.href = targetUrl;
-      }
+      // Next.js Server Action redirect signal (NEXT_REDIRECT)
     }
   };
 
