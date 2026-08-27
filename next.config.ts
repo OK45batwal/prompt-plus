@@ -9,7 +9,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://openrouter.ai https://api.openai.com https://api.anthropic.com https://integrate.api.nvidia.com https://*.vercel-storage.com",
+      "connect-src 'self' https: wss: data: blob:",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

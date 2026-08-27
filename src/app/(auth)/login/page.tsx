@@ -38,38 +38,79 @@ function LoginForm() {
     setIsLoading(true);
 
     const targetUrl = searchParams.get("callbackUrl") || "/dashboard";
+    const normalizedEmail = email.trim().toLowerCase();
 
     try {
+      // 1. Direct API Authentication
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: email.trim().toLowerCase(),
+          email: normalizedEmail,
           password,
         }),
       });
 
       const data = await res.json().catch(() => null);
 
-      if (!res.ok) {
-        setError(data?.error || "Login failed. Please check your credentials or create an account.");
-        if (res.status === 404 || data?.notFound) {
-          setIsNewAccount(true);
-        }
+      if (res.ok) {
+        window.location.assign(data?.redirectUrl || targetUrl);
+        return;
+      }
+
+      if (res.status === 404 || data?.notFound) {
+        setError("No account found with this email. Please check your spelling or create an account.");
+        setIsNewAccount(true);
         setIsLoading(false);
         return;
       }
 
-      // Success: cookies attached in HTTP response headers, navigate straight to target
-      window.location.assign(data?.redirectUrl || targetUrl);
-    } catch (err: unknown) {
-      console.error("Login fetch error:", err);
-      const msg = err instanceof Error ? err.message : String(err);
-      setError(
-        msg.includes("fetch") || msg.includes("Failed")
-          ? "Unable to reach server. Please verify your internet connection or check that the server is running."
-          : `Connection error: ${msg}`
-      );
+      if (res.status === 401) {
+        setError(data?.error || "Incorrect password. Please check your password and try again.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (data?.error) {
+        setError(data.error);
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. NextAuth Native Fallback
+      const nextAuthRes = await signIn("credentials", {
+        email: normalizedEmail,
+        password,
+        redirect: false,
+      });
+
+      if (nextAuthRes?.ok) {
+        window.location.assign(targetUrl);
+        return;
+      }
+
+      setError("Login failed. Please check your email and password.");
+      setIsLoading(false);
+    } catch {
+      // 3. Resilient Fallback to NextAuth client
+      try {
+        const nextAuthRes = await signIn("credentials", {
+          email: normalizedEmail,
+          password,
+          redirect: false,
+        });
+
+        if (nextAuthRes?.ok) {
+          window.location.assign(targetUrl);
+          return;
+        }
+        setError("Invalid email or password. If you don't have an account, please sign up.");
+        setIsNewAccount(true);
+      } catch (err: unknown) {
+        console.error("Login fallback error:", err);
+        setError("Invalid email or password. Please verify your credentials or create an account.");
+        setIsNewAccount(true);
+      }
       setIsLoading(false);
     }
   };
