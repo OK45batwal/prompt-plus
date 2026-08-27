@@ -26,37 +26,35 @@ export const authConfig: NextAuthConfig = {
   },
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   jwt: {
     maxAge: 30 * 24 * 60 * 60,
   },
-  cookies: {
-    sessionToken: {
-      name: process.env.NODE_ENV === "production" ? "__Secure-authjs.session-token" : "authjs.session-token",
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-  },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: string }).role || "user";
+        token.email = user.email;
+        token.name = user.name;
+        token.picture = (user as { image?: string }).image || (user as { avatar?: string }).avatar;
       }
       if (!token.id && token.sub) {
         token.id = token.sub;
       }
+      if (trigger === "update" && session?.user) {
+        if (session.user.name) token.name = session.user.name;
+        if (session.user.image) token.picture = session.user.image;
+      }
       return token;
     },
     async session({ session, token }) {
-      const userId = (token.id || token.sub) as string;
-      if (session.user && userId) {
-        session.user.id = userId;
+      if (session.user) {
+        session.user.id = (token.id || token.sub || "") as string;
+        session.user.email = (token.email || session.user.email || "") as string;
+        session.user.name = (token.name || session.user.name || "") as string;
+        session.user.image = (token.picture || session.user.image || "") as string;
         (session.user as { role?: string }).role = (token.role as string) || "user";
       }
       return session;

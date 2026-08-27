@@ -8,7 +8,7 @@ export default async function DashboardLayoutWrapper({
   children: React.ReactNode;
 }) {
   const session = await auth();
-  if (!session?.user?.id) {
+  if (!session?.user?.id && !session?.user?.email) {
     redirect("/login");
   }
 
