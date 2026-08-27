@@ -110,21 +110,27 @@ export function getProviders(): Provider[] {
           return null;
         }
 
-        if (user.resetToken?.startsWith("ev:") && !user.emailVerified) {
-          return null;
-        }
-
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) {
           return null;
         }
 
-        await getDb().user
-          .update({
-            where: { id: user.id },
-            data: { updatedAt: new Date() },
-          })
-          .catch(() => {});
+        // Auto-verify email upon valid password login if verification was pending
+        if (user.resetToken?.startsWith("ev:") && !user.emailVerified) {
+          await getDb().user
+            .update({
+              where: { id: user.id },
+              data: { emailVerified: new Date(), resetToken: null, resetTokenExpiry: null, lastLoginAt: new Date() },
+            })
+            .catch(() => {});
+        } else {
+          await getDb().user
+            .update({
+              where: { id: user.id },
+              data: { lastLoginAt: new Date() },
+            })
+            .catch(() => {});
+        }
 
         return {
           id: user.id,

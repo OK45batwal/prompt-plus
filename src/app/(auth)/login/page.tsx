@@ -9,8 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Logo } from "@/components/ui/logo";
 
-import { authenticate } from "./actions";
-
 function LoginForm() {
   const searchParams = useSearchParams();
   const message = searchParams.get("message");
@@ -39,16 +37,19 @@ function LoginForm() {
 
     const targetUrl = searchParams.get("callbackUrl") || "/dashboard";
 
-    const formData = new FormData();
-    formData.append("email", email);
-    formData.append("password", password);
-    formData.append("redirectTo", targetUrl);
-
     try {
-      const err = await authenticate(undefined, formData);
-      if (err) {
-        setError(err);
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl: targetUrl,
+      });
+
+      if (res?.error) {
+        setError("Invalid email or password");
         setIsLoading(false);
+      } else {
+        window.location.href = targetUrl;
       }
     } catch {
       window.location.href = targetUrl;
