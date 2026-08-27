@@ -22,30 +22,41 @@ export default async function DashboardLayoutWrapper({
       "next-auth.session-token",
     ];
 
+    const salts = [
+      "__Secure-authjs.session-token",
+      "authjs.session-token",
+      "__Secure-next-auth.session-token",
+      "next-auth.session-token",
+      "",
+    ];
+
     for (const name of tokenNames) {
       const cookieVal = cookieStore.get(name)?.value;
       if (cookieVal) {
-        try {
-          const decoded = await decode({
-            token: cookieVal,
-            secret: authSecret,
-            salt: name,
-          });
-          if (decoded && (decoded.email || decoded.id || decoded.sub)) {
-            session = {
-              user: {
-                id: (decoded.id || decoded.sub || decoded.email) as string,
-                email: (decoded.email || "") as string,
-                name: (decoded.name || "") as string,
-                image: (decoded.picture || null) as string | null,
-              },
-              expires: new Date(Date.now() + 30 * 86400000).toISOString(),
-            };
-            break;
+        for (const salt of salts) {
+          try {
+            const decoded = await decode({
+              token: cookieVal,
+              secret: authSecret,
+              salt,
+            });
+            if (decoded && (decoded.email || decoded.id || decoded.sub)) {
+              session = {
+                user: {
+                  id: (decoded.id || decoded.sub || decoded.email) as string,
+                  email: (decoded.email || "") as string,
+                  name: (decoded.name || "") as string,
+                  image: (decoded.picture || null) as string | null,
+                },
+                expires: new Date(Date.now() + 30 * 86400000).toISOString(),
+              };
+              break;
+            }
+          } catch {
+            // try next salt
           }
-        } catch {
-          // try next token name
         }
+        if (session?.user) break;
       }
     }
   }
