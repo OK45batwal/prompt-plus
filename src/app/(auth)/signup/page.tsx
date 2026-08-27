@@ -102,7 +102,7 @@ export default function SignupPage() {
   const hasOauth = providers.google || providers.github;
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden bg-background">
+    <div suppressHydrationWarning className="min-h-screen flex flex-col relative overflow-hidden bg-background">
       {/* Background Ambient Mesh Glow Orbs */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] pointer-events-none -z-10 overflow-hidden">
         <div className="absolute top-10 left-1/3 w-[450px] h-[450px] rounded-full bg-blue-500/15 dark:bg-blue-500/20 blur-[130px] animate-pulse" style={{ animationDuration: "7s" }} />

@@ -209,7 +209,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-[100dvh] flex flex-col relative overflow-hidden bg-background">
+    <div suppressHydrationWarning className="min-h-[100dvh] flex flex-col relative overflow-hidden bg-background">
       {/* Background Ambient Mesh Glow Orbs */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] pointer-events-none -z-10 overflow-hidden">
         <div className="absolute top-10 left-1/3 w-[450px] h-[450px] rounded-full bg-primary/10 blur-[130px] animate-pulse" style={{ animationDuration: "7s" }} />
@@ -266,7 +266,7 @@ export default function LoginPage() {
 
           {/* Right Panel: Clean Form Container */}
           <div className="w-full max-w-md mx-auto">
-            <div className="p-6 sm:p-8 rounded-2xl border border-border/60 bg-card/80 backdrop-blur-xl shadow-xl hover:border-primary/30 transition-all">
+            <div suppressHydrationWarning className="p-6 sm:p-8 rounded-2xl border border-border/60 bg-card/80 backdrop-blur-xl shadow-xl hover:border-primary/30 transition-all">
               <Suspense fallback={<div className="text-center py-8 text-sm text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />Loading login form...</div>}>
                 <LoginForm />
               </Suspense>
