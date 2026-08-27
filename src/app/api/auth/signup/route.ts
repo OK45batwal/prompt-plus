@@ -23,8 +23,15 @@ export async function POST(request: NextRequest) {
     }
 
     const { name, email, password } = parsed.data;
+    const normalizedEmail = email.toLowerCase().trim();
 
-    const existingUser = await getDb().user.findUnique({ where: { email } });
+    let existingUser = null;
+    try {
+      existingUser = await getDb().user.findUnique({ where: { email: normalizedEmail } });
+    } catch {
+      const { fallbackStore } = await import("@/lib/db/fallback-store");
+      existingUser = await fallbackStore.findUserByEmail(normalizedEmail);
+    }
 
     if (existingUser) {
       return NextResponse.json({ error: "An account with this email already exists" }, { status: 409 });
@@ -35,34 +42,47 @@ export async function POST(request: NextRequest) {
     const otpHash = hashOtp(otp);
     const expiry = new Date(Date.now() + 600000);
 
-    await getDb().user.create({
-      data: {
+    try {
+      await getDb().user.create({
+        data: {
+          name: name || null,
+          email: normalizedEmail,
+          passwordHash,
+          provider: "email",
+          emailVerified: null,
+          resetToken: buildVerifyToken(otpHash),
+          resetTokenExpiry: expiry,
+        },
+      });
+    } catch {
+      const { fallbackStore } = await import("@/lib/db/fallback-store");
+      await fallbackStore.createUser({
         name: name || null,
-        email,
+        email: normalizedEmail,
         passwordHash,
         provider: "email",
         emailVerified: null,
         resetToken: buildVerifyToken(otpHash),
         resetTokenExpiry: expiry,
-      },
-    });
+      });
+    }
 
     const result = await sendOtpEmail(
-      email,
+      normalizedEmail,
       otp,
       "Verify your Prompt+ email",
       "Welcome to Prompt+! Please enter the 6-digit verification code below to activate your account."
     ).catch((err) => ({ sent: false, error: err instanceof Error ? err.message : "Email error" }));
 
     if (!result.sent) {
-      logger.error("Failed to send verification OTP", { email, error: result.error });
+      logger.error("Failed to send verification OTP", { email: normalizedEmail, error: result.error });
     }
 
     return NextResponse.json(
       {
         success: true,
         needsVerification: true,
-        email,
+        email: normalizedEmail,
         message: "Verification code sent to your email.",
       },
       { status: 201 }

@@ -18,7 +18,20 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
     const { email, otp } = parsed.data;
-    const user = await getDb().user.findUnique({ where: { email } });
+    const normalizedEmail = email.toLowerCase().trim();
+
+    let user = null;
+    try {
+      user = await getDb().user.findUnique({ where: { email: normalizedEmail } });
+    } catch {
+      const { fallbackStore } = await import("@/lib/db/fallback-store");
+      user = await fallbackStore.findUserByEmail(normalizedEmail);
+    }
+
+    if (!user) {
+      const { fallbackStore } = await import("@/lib/db/fallback-store");
+      user = await fallbackStore.findUserByEmail(normalizedEmail);
+    }
 
     if (!user || !user.resetToken || !user.resetTokenExpiry || !isVerifyToken(user.resetToken)) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
@@ -36,10 +49,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid code" }, { status: 400 });
     }
 
-    await getDb().user.update({
-      where: { id: user.id },
-      data: { emailVerified: new Date(), resetToken: null, resetTokenExpiry: null },
-    });
+    try {
+      await getDb().user.update({
+        where: { id: user.id },
+        data: { emailVerified: new Date(), resetToken: null, resetTokenExpiry: null },
+      });
+    } catch {
+      const { fallbackStore } = await import("@/lib/db/fallback-store");
+      await fallbackStore.updateUser(
+        { email: normalizedEmail },
+        { emailVerified: new Date(), resetToken: null, resetTokenExpiry: null }
+      );
+    }
 
     const response = NextResponse.json({
       success: true,

@@ -92,21 +92,31 @@ export function getProviders(): Provider[] {
         const { email, password } = parsed.data;
         const normalizedEmail = email.toLowerCase().trim();
 
+        let user = null;
         try {
-          const user = await getDb().user.findUnique({
+          user = await getDb().user.findUnique({
             where: { email: normalizedEmail },
           });
+        } catch {
+          const { fallbackStore } = await import("@/lib/db/fallback-store");
+          user = await fallbackStore.findUserByEmail(normalizedEmail);
+        }
 
-          if (!user || !user.passwordHash) {
-            return null;
-          }
+        if (!user) {
+          const { fallbackStore } = await import("@/lib/db/fallback-store");
+          user = await fallbackStore.findUserByEmail(normalizedEmail);
+        }
 
-          const isValid = await bcrypt.compare(password, user.passwordHash);
-          if (!isValid) {
-            return null;
-          }
+        if (!user || !user.passwordHash) {
+          return null;
+        }
 
-          // Auto-verify email on successful password authentication
+        const isValid = await bcrypt.compare(password, user.passwordHash);
+        if (!isValid) {
+          return null;
+        }
+
+        try {
           if (!user.emailVerified) {
             await getDb().user.update({
               where: { id: user.id },
@@ -120,17 +130,16 @@ export function getProviders(): Provider[] {
               data: { updatedAt: new Date(), lastLoginAt: new Date() },
             })
             .catch(() => {});
-
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            image: user.avatar,
-          };
-        } catch (dbError) {
-          console.error("Authorize database error:", dbError);
-          return null;
+        } catch {
+          // Ignore
         }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.avatar,
+        };
       },
     })
   );

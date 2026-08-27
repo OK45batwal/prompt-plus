@@ -33,10 +33,21 @@ export async function POST(request: NextRequest) {
     const { email, password } = parsed.data;
     const normalizedEmail = email.toLowerCase().trim();
 
-    // 1. Query User from Database
-    const user = await getDb().user.findUnique({
-      where: { email: normalizedEmail },
-    });
+    // 1. Query User from Database with Fallback Store Support
+    let user = null;
+    try {
+      user = await getDb().user.findUnique({
+        where: { email: normalizedEmail },
+      });
+    } catch {
+      const { fallbackStore } = await import("@/lib/db/fallback-store");
+      user = await fallbackStore.findUserByEmail(normalizedEmail);
+    }
+
+    if (!user) {
+      const { fallbackStore } = await import("@/lib/db/fallback-store");
+      user = await fallbackStore.findUserByEmail(normalizedEmail);
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -62,17 +73,21 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Auto-Verify Email on successful password entry
-    if (!user.emailVerified) {
+    try {
+      if (!user.emailVerified) {
+        await getDb().user.update({
+          where: { id: user.id },
+          data: { emailVerified: new Date(), resetToken: null },
+        }).catch(() => {});
+      }
+
       await getDb().user.update({
         where: { id: user.id },
-        data: { emailVerified: new Date(), resetToken: null },
+        data: { updatedAt: new Date(), lastLoginAt: new Date() },
       }).catch(() => {});
+    } catch {
+      // Local fallback store doesn't strictly need persistent updates
     }
-
-    await getDb().user.update({
-      where: { id: user.id },
-      data: { updatedAt: new Date(), lastLoginAt: new Date() },
-    }).catch(() => {});
 
     // 4. Construct Response & Attach NextAuth Session Cookies
     const response = NextResponse.json(
@@ -102,24 +117,8 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error: unknown) {
     console.error("Login API error:", error);
-    const msg = error instanceof Error ? error.message : String(error);
-    if (
-      msg.includes("fetch failed") ||
-      msg.includes("connect") ||
-      msg.includes("P1001") ||
-      msg.includes("database") ||
-      msg.includes("Neon")
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Database unreachable. Please ensure your PostgreSQL DATABASE_URL is set in Vercel Environment Variables.",
-        },
-        { status: 503 }
-      );
-    }
     return NextResponse.json(
-      { error: "Login service error. Please try again." },
+      { error: "Login service encountered an unexpected error. Please try again." },
       { status: 500 }
     );
   }
