@@ -70,10 +70,26 @@ export async function POST(request: NextRequest) {
     );
 
     return response;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Signup error:", error);
+    const msg = error instanceof Error ? error.message : String(error);
+    if (
+      msg.includes("fetch failed") ||
+      msg.includes("connect") ||
+      msg.includes("P1001") ||
+      msg.includes("database") ||
+      msg.includes("Neon")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Database unreachable. Please ensure your PostgreSQL DATABASE_URL is set in Vercel Environment Variables.",
+        },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(
-      { error: "An unexpected error occurred during signup" },
+      { error: "Signup service error. Please try again." },
       { status: 500 }
     );
   }
