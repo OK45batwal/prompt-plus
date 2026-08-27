@@ -37,7 +37,15 @@ function LoginForm() {
     setIsNewAccount(false);
     setIsLoading(true);
 
-    const targetUrl = searchParams.get("callbackUrl") || "/dashboard";
+    const rawCallback = searchParams.get("callbackUrl") || "";
+    const targetUrl =
+      rawCallback &&
+      !rawCallback.includes("/login") &&
+      !rawCallback.includes("/signup") &&
+      !rawCallback.includes("/forgot-password")
+        ? rawCallback
+        : "/dashboard";
+
     const normalizedEmail = email.trim().toLowerCase();
 
     try {
@@ -54,7 +62,7 @@ function LoginForm() {
       const data = await res.json().catch(() => null);
 
       if (res.ok) {
-        window.location.assign(data?.redirectUrl || targetUrl);
+        window.location.assign(targetUrl);
         return;
       }
 
