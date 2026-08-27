@@ -21,57 +21,43 @@ export interface SessionUser {
  */
 export async function attachSessionCookies(user: SessionUser, res: NextResponse): Promise<NextResponse> {
   const isProd = process.env.NODE_ENV === "production";
-  const primaryCookieName = isProd ? "__Secure-authjs.session-token" : "authjs.session-token";
   const maxAge = 30 * 24 * 60 * 60; // 30 days
 
-  // 1. Primary Encrypted Token
-  const primaryToken = await encode({
-    token: {
-      id: user.id,
-      sub: user.id,
-      name: user.name || null,
-      email: user.email,
-      picture: user.image || null,
-      role: user.role || "user",
-    },
-    secret: authSecret,
-    salt: primaryCookieName,
-    maxAge,
-  });
+  const tokenPayload = {
+    id: user.id,
+    sub: user.id,
+    name: user.name || null,
+    email: user.email,
+    picture: user.image || null,
+    role: user.role || "user",
+  };
 
-  // 2. Fallback Encrypted Token for non-secure / proxy routing
-  const fallbackToken = await encode({
-    token: {
-      id: user.id,
-      sub: user.id,
-      name: user.name || null,
-      email: user.email,
-      picture: user.image || null,
-      role: user.role || "user",
-    },
-    secret: authSecret,
-    salt: "authjs.session-token",
-    maxAge,
-  });
+  const cookieConfigs = [
+    { name: "authjs.session-token", secure: false },
+    { name: "__Secure-authjs.session-token", secure: isProd },
+    { name: "next-auth.session-token", secure: false },
+    { name: "__Secure-next-auth.session-token", secure: isProd },
+  ];
 
-  // Set primary cookie
-  res.cookies.set(primaryCookieName, primaryToken, {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    secure: isProd,
-    maxAge,
-  });
+  for (const config of cookieConfigs) {
+    try {
+      const token = await encode({
+        token: tokenPayload,
+        secret: authSecret,
+        salt: config.name,
+        maxAge,
+      });
 
-  // Set universal fallback cookie
-  if (isProd) {
-    res.cookies.set("authjs.session-token", fallbackToken, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      secure: false,
-      maxAge,
-    });
+      res.cookies.set(config.name, token, {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: config.secure,
+        maxAge,
+      });
+    } catch {
+      // Ignore individual cookie encoding failure
+    }
   }
 
   return res;
