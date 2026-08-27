@@ -26,7 +26,12 @@ function LoginForm() {
   useEffect(() => {
     fetch("/api/auth/providers")
       .then((r) => r.json())
-      .then(setProviders)
+      .then((data) => {
+        setProviders({
+          google: Boolean(data?.google),
+          github: Boolean(data?.github),
+        });
+      })
       .catch(() => {});
   }, []);
 
@@ -48,11 +53,15 @@ function LoginForm() {
       if (res?.error) {
         setError("Invalid email or password");
         setIsLoading(false);
-      } else {
+      } else if (res?.ok || res?.url) {
         window.location.href = targetUrl;
+      } else {
+        setError("Failed to sign in. Please check your credentials.");
+        setIsLoading(false);
       }
     } catch {
-      window.location.href = targetUrl;
+      setError("An unexpected error occurred during login. Please try again.");
+      setIsLoading(false);
     }
   };
 

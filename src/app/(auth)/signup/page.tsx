@@ -26,7 +26,15 @@ export default function SignupPage() {
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/auth/providers").then(r => r.json()).then(setProviders).catch(() => {});
+    fetch("/api/auth/providers")
+      .then((r) => r.json())
+      .then((data) => {
+        setProviders({
+          google: Boolean(data?.google),
+          github: Boolean(data?.github),
+        });
+      })
+      .catch(() => {});
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
