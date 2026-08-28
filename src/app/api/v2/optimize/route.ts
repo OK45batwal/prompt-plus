@@ -21,6 +21,8 @@ const optimizeSchema = z.object({
   privacyPreference: z.enum(["public", "private_cloud", "local_only"]).optional(),
 });
 
+export const maxDuration = 60;
+
 export const POST = withAuth(
   async (request: NextRequest, { requestId }) => {
     const clientIp = extractClientIp(request);

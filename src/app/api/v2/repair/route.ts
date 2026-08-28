@@ -9,6 +9,8 @@ const repairSchema = z.object({
   failureOutputs: z.array(z.string()).min(1, "At least one failure output required"),
 });
 
+export const maxDuration = 60;
+
 export const POST = withAuth(
   async (request: NextRequest, { requestId }) => {
     let body: unknown;

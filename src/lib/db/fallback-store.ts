@@ -1,6 +1,7 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import fs from "fs";
 import path from "path";
+import os from "os";
 
 export interface MockUser {
   id: string;
@@ -43,14 +44,15 @@ class LocalDatabaseStore {
 
   constructor() {
     try {
-      const dataDir = path.join(process.cwd(), ".data");
+      const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+      const dataDir = isServerless ? path.join(os.tmpdir(), "promptplus-data") : path.join(process.cwd(), ".data");
       if (!fs.existsSync(dataDir)) {
         fs.mkdirSync(dataDir, { recursive: true });
       }
       this.storageFile = path.join(dataDir, "local-db.json");
       this.loadFromDisk();
     } catch {
-      // In serverless environments, file persistence is optional
+      // In restricted serverless environments, file persistence is optional and safely falls back to in-memory
     }
     this.seedDefaultUser();
   }

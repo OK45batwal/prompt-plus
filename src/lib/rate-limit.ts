@@ -95,6 +95,17 @@ export function checkIpRateLimit(
     })();
   }
 
+  // Passive memory cleanup when bucket map exceeds threshold
+  if (ipBuckets.size > 5000) {
+    const expiredKeys: string[] = [];
+    for (const [k, b] of ipBuckets) {
+      if (now >= b.resetAt) expiredKeys.push(k);
+    }
+    for (const k of expiredKeys) {
+      ipBuckets.delete(k);
+    }
+  }
+
   return result;
 }
 
@@ -154,14 +165,4 @@ export async function checkIpRateLimitAsync(
   }
 
   return checkIpRateLimit(key, limit, windowMs);
-}
-
-const cleanupInterval = setInterval(() => {
-  const now = Date.now();
-  for (const [key, bucket] of ipBuckets) {
-    if (now >= bucket.resetAt) ipBuckets.delete(key);
-  }
-}, 60000);
-if (typeof cleanupInterval === "object" && typeof (cleanupInterval as { unref?: () => void }).unref === "function") {
-  (cleanupInterval as { unref: () => void }).unref();
 }

@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "Learn research-backed prompt engineering techniques: Chain-of-Thought (CoT), Few-Shot conditioning, and structural boundary constraints.",
 };
 
+export const revalidate = 3600;
+
 export default function PromptEngineeringGuidePage() {
   return (
     <div className="min-h-screen pt-24 pb-16 px-4 max-w-3xl mx-auto prose dark:prose-invert">

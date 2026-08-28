@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { getDb } from "@/lib/db/prisma";
 import { signupSchema, logRejection } from "@/lib/validations/auth";
 import { generateOtp, hashOtp, buildVerifyToken } from "@/lib/auth/otp";

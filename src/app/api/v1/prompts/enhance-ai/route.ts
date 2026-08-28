@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { getDb } from "@/lib/db/prisma";
 import { enhancePromptSchema } from "@/lib/validations/prompts";
 import { callLLM } from "@/lib/llm/providers";
@@ -9,6 +9,8 @@ import { buildArchitectMetaPrompt, cleanMasterPromptOutput } from "@/lib/llm/met
 import { calculateDynamicPromptScore } from "@/lib/scoring";
 import { synthesizeAlgorithmicPrompt } from "@/lib/llm/algorithmic-enhancers";
 import { enhancementCache } from "@/lib/llm/cache";
+
+export const maxDuration = 60;
 
 export const POST = withAuth(
   async (request: NextRequest, { userId, requestId }) => {
@@ -132,8 +134,8 @@ export const POST = withAuth(
 
       const latencyMs = Date.now() - startTime;
 
-      // Non-blocking background DB sync
-      void (async () => {
+      // Reliable background DB sync via Next.js after() (survives Vercel Lambda response lifecycle)
+      after(async () => {
         try {
           if (userApiKeyRow) {
             await getDb().apiKey.update({
@@ -205,7 +207,7 @@ export const POST = withAuth(
         } catch {
           // DB fail-safe
         }
-      })();
+      });
 
       const promptScore = calculateDynamicPromptScore(cleanedOutput);
 

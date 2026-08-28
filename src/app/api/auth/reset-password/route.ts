@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { getDb } from "@/lib/db/prisma";
 import { verifyOtp, stripPrefix, isResetToken } from "@/lib/auth/otp";
 import { checkIpRateLimit } from "@/lib/rate-limit";

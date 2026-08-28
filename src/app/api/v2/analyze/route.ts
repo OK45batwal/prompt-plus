@@ -8,6 +8,8 @@ const analyzeSchema = z.object({
   text: z.string().min(1, "Text is required"),
 });
 
+export const maxDuration = 60;
+
 export const POST = withAuth(
   async (request: NextRequest, { requestId }) => {
     let body: unknown;

@@ -10,6 +10,8 @@ const evaluateSchema = z.object({
   targetModel: z.string().optional(),
 });
 
+export const maxDuration = 60;
+
 export const POST = withAuth(
   async (request: NextRequest, { requestId }) => {
     let body: unknown;

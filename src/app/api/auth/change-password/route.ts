@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { getDb } from "@/lib/db/prisma";
 import { changePasswordSchema } from "@/lib/validations/auth";
 import { withAuth } from "@/lib/api/with-auth";

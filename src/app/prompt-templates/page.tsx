@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "Browse curated, production-grade prompt templates for Coding, Marketing, Writing, and Data Analysis.",
 };
 
+export const revalidate = 3600;
+
 const TEMPLATES = [
   {
     category: "Coding & Architecture",
