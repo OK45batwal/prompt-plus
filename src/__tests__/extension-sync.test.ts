@@ -3,8 +3,18 @@ import { NextRequest } from "next/server";
 import { POST as savePromptRoute } from "../app/api/v1/extension/save-prompt/route";
 import { GET as extensionSyncRoute } from "../app/api/v1/auth/extension-sync/route";
 
+interface MockUserSession {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+let mockSession: MockUserSession | null = null;
+
 vi.mock("@/lib/auth/config", () => ({
-  auth: vi.fn(),
+  auth: vi.fn(() => Promise.resolve(mockSession)),
 }));
 
 vi.mock("@/lib/db/prisma", () => ({
@@ -45,11 +55,11 @@ vi.mock("@/lib/db/prisma", () => ({
 describe("Extension Web Sync & Save Endpoints (v2.1.3.1)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSession = null;
   });
 
   it("POST /api/v1/extension/save-prompt should reject unauthenticated requests", async () => {
-    const { auth } = await import("@/lib/auth/config");
-    vi.mocked(auth).mockResolvedValue(null);
+    mockSession = null;
 
     const req = new NextRequest("http://localhost:3000/api/v1/extension/save-prompt", {
       method: "POST",
@@ -63,11 +73,9 @@ describe("Extension Web Sync & Save Endpoints (v2.1.3.1)", () => {
   });
 
   it("POST /api/v1/extension/save-prompt should save compiled prompt for authenticated session", async () => {
-    const { auth } = await import("@/lib/auth/config");
-    vi.mocked(auth).mockResolvedValue({
+    mockSession = {
       user: { id: "user-123", name: "Test User", email: "test@example.com" },
-      expires: "2099-01-01",
-    });
+    };
 
     const req = new NextRequest("http://localhost:3000/api/v1/extension/save-prompt", {
       method: "POST",
@@ -89,11 +97,9 @@ describe("Extension Web Sync & Save Endpoints (v2.1.3.1)", () => {
   });
 
   it("GET /api/v1/auth/extension-sync should return authenticated user state and quota", async () => {
-    const { auth } = await import("@/lib/auth/config");
-    vi.mocked(auth).mockResolvedValue({
+    mockSession = {
       user: { id: "user-123", name: "Test User", email: "test@example.com" },
-      expires: "2099-01-01",
-    });
+    };
 
     const req = new NextRequest("http://localhost:3000/api/v1/auth/extension-sync");
     const res = await extensionSyncRoute(req);
