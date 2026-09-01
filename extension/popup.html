@@ -4,13 +4,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prompt+ Architect AI v2.1.3</title>
+  <title>Prompt+ Architect AI v2.1.3.1</title>
   <style>
     :root {
       --bg: #09090b;
-      --surface-1: rgba(18, 18, 23, 0.88);
-      --surface-2: rgba(26, 26, 34, 0.95);
-      --surface-inner: rgba(0, 0, 0, 0.4);
+      --surface-1: rgba(18, 18, 23, 0.92);
+      --surface-2: rgba(26, 26, 34, 0.96);
+      --surface-inner: rgba(0, 0, 0, 0.5);
       --border-subtle: rgba(255, 255, 255, 0.08);
       --border-highlight: rgba(255, 255, 255, 0.16);
       --border-active: rgba(99, 102, 241, 0.5);
@@ -53,11 +53,11 @@
 
     html, body {
       width: 420px;
-      height: 580px;
-      max-height: 580px;
+      height: 585px;
+      max-height: 585px;
       background: radial-gradient(550px 300px at 50% -30px, rgba(99, 102, 241, 0.22), transparent 70%), var(--bg);
       color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Plus Jakarta Sans", "Inter", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable", "Inter", sans-serif;
       font-size: 13px;
       line-height: 1.4;
       overflow: hidden;
@@ -97,7 +97,7 @@
       justify-content: center;
       color: #fff;
       font-weight: 800;
-      font-size: 13.5px;
+      font-size: 14px;
       box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 3px 10px var(--primary-glow);
     }
 
@@ -195,7 +195,7 @@
     .nav-tabs-bar {
       display: flex;
       padding: 6px 14px 0 14px;
-      gap: 6px;
+      gap: 4px;
       background: rgba(18, 18, 23, 0.5);
       border-bottom: 1px solid var(--border-subtle);
       flex-shrink: 0;
@@ -588,7 +588,7 @@
     .result-view-panel {
       display: none;
       flex-direction: column;
-      gap: 9px;
+      gap: 8px;
     }
 
     .result-header-bar {
@@ -617,31 +617,37 @@
     }
 
     .result-body-card {
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.55);
       border: 1px solid rgba(99, 102, 241, 0.35);
       border-radius: 12px;
       padding: 12px;
-      font-size: 12px;
+      font-size: 11.5px;
       line-height: 1.5;
       color: #e4e4e7;
-      max-height: 330px;
+      max-height: 290px;
       overflow-y: auto;
       white-space: pre-wrap;
       font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
       user-select: text;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.4);
     }
 
     .result-bottom-actions {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .result-secondary-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 6px;
     }
 
     .action-btn {
-      flex: 1;
-      height: 36px;
+      height: 34px;
       border-radius: 8px;
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       display: flex;
@@ -669,6 +675,27 @@
 
     .btn-inject:hover {
       background: rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-save-cloud {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      color: #c7d2fe;
+    }
+
+    .btn-save-cloud:hover {
+      background: rgba(99, 102, 241, 0.25);
+    }
+
+    .btn-studio {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: #d4d4d8;
+    }
+
+    .btn-studio:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
     }
 
     /* ---------- Library Tab View ---------- */
@@ -750,6 +777,46 @@
       line-height: 1.35;
     }
 
+    /* ---------- Settings & Sync Tab View ---------- */
+    .sync-card-box {
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: 11px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sync-card-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+
+    .sync-card-btn {
+      width: 100%;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #c7d2fe;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.15s var(--ease-spring);
+    }
+
+    .sync-card-btn:hover {
+      background: rgba(99, 102, 241, 0.3);
+      color: #fff;
+    }
+
     /* Toast Notification */
     .toast-msg {
       display: none;
@@ -758,6 +825,12 @@
       border-radius: 8px;
       text-align: center;
       font-weight: 600;
+      animation: toastIn 0.2s ease;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-3px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .toast-msg.ok {
@@ -782,7 +855,7 @@
       <div class="header-title-group">
         <div class="header-title-row">
           <span class="header-title">Prompt+ Architect</span>
-          <span class="v2-pill">v2.1.3</span>
+          <span class="v2-pill">v2.1.3.1</span>
         </div>
         <div class="header-sync-row">
           <span class="sync-indicator-dot" id="sync-dot"></span>
@@ -804,6 +877,7 @@
     <button type="button" class="nav-tab-btn active" id="tab-btn-enhance">⚡ Optimizer</button>
     <button type="button" class="nav-tab-btn" id="tab-btn-library">📚 Library</button>
     <button type="button" class="nav-tab-btn" id="tab-btn-context">📦 Context Vault</button>
+    <button type="button" class="nav-tab-btn" id="tab-btn-settings">⚙️ Sync</button>
   </nav>
 
   <!-- Main Viewport -->
@@ -859,7 +933,7 @@
 
       <!-- Button-in-Button Master Enhance Action -->
       <button type="button" class="master-enhance-btn" id="enhance-btn">
-        <span id="btn-text">⚡ Compile Master Prompt</span>
+        <span id="btn-text">⚡ Compile Master Prompt (⌘↵)</span>
         <span class="btn-nested-icon">↗</span>
       </button>
 
@@ -905,8 +979,8 @@
           <span>← Back to Edit</span>
         </button>
         <div style="display: flex; gap: 5px; align-items: center;">
-          <span class="score-badge" id="quality-score-badge" style="font-size:10px; font-weight:800; padding:2px 6px; border-radius:5px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); color:#34d399;">Score: 94/100</span>
-          <span class="loop-badge" id="loop-telemetry-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); color:#a5b4fc;">⚡ &lt;30ms</span>
+          <span class="score-badge" id="quality-score-badge" style="font-size:10px; font-weight:800; padding:2px 6px; border-radius:5px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); color:#34d399;">Score: 96/100</span>
+          <span class="loop-badge" id="loop-telemetry-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); color:#a5b4fc;">⚡ &lt;25ms</span>
         </div>
       </div>
 
@@ -915,6 +989,11 @@
       <div class="result-bottom-actions">
         <button type="button" class="action-btn btn-copy" id="copy-btn">📋 Copy Prompt</button>
         <button type="button" class="action-btn btn-inject" id="use-btn">🚀 Use in Active Tab</button>
+      </div>
+
+      <div class="result-secondary-actions">
+        <button type="button" class="action-btn btn-save-cloud" id="save-cloud-btn">💾 Save to Cloud Library</button>
+        <button type="button" class="action-btn btn-studio" id="open-studio-btn">↗️ Open in Web Studio</button>
       </div>
     </div>
 
@@ -937,6 +1016,28 @@
       </div>
       <div id="context-vault-list" style="display: flex; flex-direction: column; gap: 6px;">
         <!-- Injected via JS -->
+      </div>
+    </div>
+
+    <!-- PANEL 4: SETTINGS & WEB SYNC -->
+    <div class="tab-content-panel" id="panel-settings" style="display: none;">
+      <div class="sync-card-box">
+        <div class="sync-card-row">
+          <span style="font-weight: 700; color: #fff;">Web Platform Account</span>
+          <span id="settings-auth-status" style="font-weight: 700; color: #10b981;">Connected</span>
+        </div>
+        <div class="sync-card-row" style="color: #a1a1aa;">
+          <span>User: <strong id="settings-user-name" style="color: #fff;">Studio</strong></span>
+          <span>Quota: <strong id="settings-quota-txt" style="color: #10b981;">88 / 100</strong></span>
+        </div>
+        <button type="button" class="sync-card-btn" id="manual-sync-btn">🔄 Force Sync with Web Account</button>
+      </div>
+
+      <div class="sync-card-box">
+        <div style="font-weight: 700; font-size: 11px; color: #fff;">Bring Your Own API Key (AES-256 Encrypted)</div>
+        <div style="font-size: 10px; color: #a1a1aa;">Optional: Custom key bypasses all monthly free tier rate limits.</div>
+        <input type="password" id="custom-api-key-input" placeholder="sk-... / AIza... / nvapi-..." style="width: 100%; height: 32px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 7px; padding: 0 8px; color: #fff; font-size: 11px; outline: none;" />
+        <button type="button" class="sync-card-btn" id="save-key-btn">🔒 Save Encrypted Key</button>
       </div>
     </div>
   </main>

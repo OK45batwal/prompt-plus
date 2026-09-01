@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Prompt+ Architect AI - Enterprise Prompt Compiler & Context Bridge",
-  "version": "2.1.3",
+  "version": "2.1.3.1",
   "description": "Enterprise-grade AI Prompt Compiler, Context Memory Bridge & Sub-30ms Optimizer for ChatGPT, Claude, Gemini & DeepSeek.",
   "icons": {
     "16": "icons/icon16.png",
@@ -54,6 +54,8 @@
     "https://groq.com/*",
     "https://v0.dev/*",
     "http://localhost:3000/*",
+    "http://localhost:*/*",
+    "http://127.0.0.1:*/*",
     "https://prompt-plus-three.vercel.app/*"
   ],
   "content_scripts": [
@@ -81,6 +83,16 @@
         "https://v0.dev/*"
       ],
       "js": ["content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "http://localhost:3000/*",
+        "http://localhost:*/*",
+        "http://127.0.0.1:*/*",
+        "https://prompt-plus-three.vercel.app/*"
+      ],
+      "js": ["web-bridge.js"],
       "run_at": "document_idle"
     }
   ]

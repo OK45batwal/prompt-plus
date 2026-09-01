@@ -52,8 +52,8 @@
         background: rgba(14, 14, 18, 0.94) !important;
         border: 1px solid rgba(99, 102, 241, 0.45) !important;
         box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 14px rgba(99, 102, 241, 0.25) !important;
-        backdrop-filter: blur(16px) !important;
-        -webkit-backdrop-filter: blur(16px) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif !important;
         z-index: 99999999 !important;
         cursor: pointer !important;
@@ -63,7 +63,7 @@
       }
       .pp-floating-trigger:hover {
         transform: translateY(-2px) scale(1.02) !important;
-        border-color: rgba(99, 102, 241, 0.7) !important;
+        border-color: rgba(99, 102, 241, 0.75) !important;
         box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(99, 102, 241, 0.45) !important;
       }
       .pp-floating-trigger:active {

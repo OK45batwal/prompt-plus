@@ -72,24 +72,36 @@ export function Header({ onMenuClick }: HeaderProps) {
     }
 
     // Direct Extension Communication Bridge: Broadcast active web session to Prompt+ Extension
-    if (typeof window !== "undefined" && session?.user) {
-      try {
-        window.postMessage(
-          {
-            source: "promptplus_web",
-            type: "SESSION_UPDATE",
-            user: {
-              id: session.user.id,
-              name: session.user.name,
-              email: session.user.email,
-              avatar: effectiveAvatar,
+    const currentUser = session?.user;
+    if (typeof window !== "undefined" && currentUser?.id) {
+      const broadcastSession = () => {
+        try {
+          window.postMessage(
+            {
+              source: "promptplus_web",
+              type: "SESSION_UPDATE",
+              user: {
+                id: currentUser.id,
+                name: currentUser.name || "Prompt+ User",
+                email: currentUser.email || "",
+                avatar: effectiveAvatar,
+              },
             },
-          },
-          "*"
-        );
-      } catch {
-        // Silently catch postMessage edge cases
-      }
+            "*"
+          );
+        } catch {
+          // Silently catch postMessage edge cases
+        }
+      };
+
+      broadcastSession();
+
+      // Listen for extension readiness event to re-sync immediately on demand
+      const handleExtReady = () => broadcastSession();
+      window.addEventListener("promptplus:extension_ready", handleExtReady);
+      return () => {
+        window.removeEventListener("promptplus:extension_ready", handleExtReady);
+      };
     }
   }, [session?.user, effectiveAvatar]);
 

@@ -1,3 +1,7 @@
+/**
+ * Prompt+ Architect AI Extension v2.1.3.1
+ * High-performance prompt compiler, context memory bridge & bi-directional sync engine.
+ */
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("input");
   const charCount = document.getElementById("char-count");
@@ -11,6 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const loopBadge = document.getElementById("loop-telemetry-badge");
   const copyBtn = document.getElementById("copy-btn");
   const useBtn = document.getElementById("use-btn");
+  const saveCloudBtn = document.getElementById("save-cloud-btn");
+  const openStudioBtn = document.getElementById("open-studio-btn");
   const backToEditBtn = document.getElementById("back-to-edit-btn");
   const pasteBtn = document.getElementById("paste-btn");
   const clearBtn = document.getElementById("clear-btn");
@@ -32,16 +38,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const tabBtnEnhance = document.getElementById("tab-btn-enhance");
   const tabBtnLibrary = document.getElementById("tab-btn-library");
   const tabBtnContext = document.getElementById("tab-btn-context");
+  const tabBtnSettings = document.getElementById("tab-btn-settings");
   const panelEnhance = document.getElementById("panel-enhance");
   const panelLibrary = document.getElementById("panel-library");
   const panelContext = document.getElementById("panel-context");
+  const panelSettings = document.getElementById("panel-settings");
   const libraryGrid = document.getElementById("library-grid");
   const libSearch = document.getElementById("lib-search");
   const contextVaultList = document.getElementById("context-vault-list");
 
+  // Settings Elements
+  const settingsAuthStatus = document.getElementById("settings-auth-status");
+  const settingsUserName = document.getElementById("settings-user-name");
+  const settingsQuotaTxt = document.getElementById("settings-quota-txt");
+  const manualSyncBtn = document.getElementById("manual-sync-btn");
+  const customApiKeyInput = document.getElementById("custom-api-key-input");
+  const saveKeyBtn = document.getElementById("save-key-btn");
+
   let currentMode = "api";
   let currentTone = "human";
   let enhancedResult = "";
+  let rawPromptMemory = "";
   let isListening = false;
   let recognitionInstance = null;
   let userQuota = { remaining: 88, monthlyLimit: 100, usagePercentage: 12 };
@@ -84,11 +101,13 @@ document.addEventListener("DOMContentLoaded", () => {
     { match: "deepseek", name: "DeepSeek R1", maxContext: 128000, color: "#6366f1" },
     { match: "grok", name: "Grok 3", maxContext: 128000, color: "#ec4899" },
     { match: "perplexity", name: "Perplexity AI", maxContext: 32000, color: "#06b6d4" },
+    { match: "copilot", name: "Microsoft Copilot", maxContext: 128000, color: "#0078d4" },
+    { match: "v0.dev", name: "v0.dev UI Architect", maxContext: 128000, color: "#ffffff" },
   ];
 
   let activeBot = { name: "Universal AI", maxContext: 128000, color: "#6366f1" };
 
-  // 1. Detect Active Chatbot in the User's Current Tab
+  // 1. Detect Active Chatbot in the User's Current Active Tab
   function detectActiveChatbot() {
     try {
       chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
@@ -115,8 +134,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 2. Navigation Tab Switching
   function switchTab(tab) {
-    [tabBtnEnhance, tabBtnLibrary, tabBtnContext].forEach((b) => b?.classList.remove("active"));
-    [panelEnhance, panelResult, panelLibrary, panelContext].forEach((p) => {
+    [tabBtnEnhance, tabBtnLibrary, tabBtnContext, tabBtnSettings].forEach((b) => b?.classList.remove("active"));
+    [panelEnhance, panelResult, panelLibrary, panelContext, panelSettings].forEach((p) => {
       if (p) p.style.display = "none";
     });
 
@@ -132,15 +151,20 @@ document.addEventListener("DOMContentLoaded", () => {
       tabBtnContext?.classList.add("active");
       if (panelContext) panelContext.style.display = "flex";
       renderContextVault();
+    } else if (tab === "settings") {
+      tabBtnSettings?.classList.add("active");
+      if (panelSettings) panelSettings.style.display = "flex";
+      renderSettings();
     }
   }
 
   tabBtnEnhance?.addEventListener("click", () => switchTab("enhance"));
   tabBtnLibrary?.addEventListener("click", () => switchTab("library"));
   tabBtnContext?.addEventListener("click", () => switchTab("context"));
+  tabBtnSettings?.addEventListener("click", () => switchTab("settings"));
 
   // 3. Stage 1 <-> Stage 2 Transition (Editor vs Result View)
-  function showResultView(compiledText, score = 94, latency = "<25ms") {
+  function showResultView(compiledText, score = 96, latency = "<25ms") {
     if (panelEnhance) panelEnhance.style.display = "none";
     if (panelResult) panelResult.style.display = "flex";
     if (resultBody) resultBody.textContent = compiledText;
@@ -179,19 +203,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // 5. Render Library
+  // 5. Render Library (Curated + Cloud Prompts)
   function renderLibrary(filterText = "") {
     if (!libraryGrid) return;
     const all = [...(cloudPrompts || []), ...CURATED_TEMPLATES];
     const filtered = filterText
-      ? all.filter((t) => (t.title + t.category + (t.text || t.enhancedText || "")).toLowerCase().includes(filterText.toLowerCase()))
+      ? all.filter((t) => (t.title + (t.category || "") + (t.text || t.enhancedText || "")).toLowerCase().includes(filterText.toLowerCase()))
       : all;
+
+    if (filtered.length === 0) {
+      libraryGrid.innerHTML = `
+        <div style="text-align: center; padding: 24px 12px; color: #71717a; font-size: 11.5px;">
+          No matching templates found.
+        </div>
+      `;
+      return;
+    }
 
     libraryGrid.innerHTML = filtered.map((item) => `
       <div class="template-card" data-prompt="${encodeURIComponent(item.enhancedText || item.text || item.originalText || "")}">
         <div class="template-title-row">
           <span class="template-title">${item.title || "Untitled Blueprint"}</span>
-          <span class="template-cat-badge">${item.category || "General"}</span>
+          <span class="template-cat-badge">${item.category || "Cloud"}</span>
         </div>
         <div class="template-preview">${item.text || item.enhancedText || item.originalText || ""}</div>
       </div>
@@ -205,7 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
           switchTab("enhance");
           showEditView();
           input.dispatchEvent(new Event("input"));
-          showToast("✓ Template loaded!");
+          showToast("✓ Template loaded into compiler!");
         }
       });
     });
@@ -221,7 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderContextVault() {
     if (!contextVaultList) return;
     const defaults = [
-      { id: "nextjs", name: "Next.js 16 + Tailwind CSS v4", desc: "Production React 19 rules & responsive styling" },
+      { id: "nextjs", name: "Next.js 16 + Tailwind CSS v4", desc: "Production React 19 rules, responsive styling, anti-slop guidelines" },
       { id: "python", name: "Python FastAPI Architecture", desc: "Strict typing, Pydantic v2, and async DB patterns" },
       { id: "exec", name: "Executive Strategic Tone", desc: "Zero conversational fluff, bulleted takeaways & KPI focus" },
     ];
@@ -232,7 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div style="font-weight: 700; font-size: 11.5px; color: #fff;">${item.name}</div>
           <div style="font-size: 10px; color: #a1a1aa;">${item.desc}</div>
         </div>
-        <input type="checkbox" checked style="accent-color: #6366f1; cursor: pointer;" />
+        <input type="checkbox" checked style="accent-color: #6366f1; cursor: pointer; transform: scale(1.1);" />
       </div>
     `).join("");
   }
@@ -242,7 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
     pill.addEventListener("click", () => {
       document.querySelectorAll(".tone-pill-btn").forEach((p) => p.classList.remove("active"));
       pill.classList.add("active");
-      currentTone = pill.getAttribute("data-tone") || "code";
+      currentTone = pill.getAttribute("data-tone") || "human";
     });
   });
 
@@ -254,7 +287,8 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       if (authData?.authenticated && authData.user) {
-        if (userName) userName.textContent = authData.user.name.split(" ")[0] || "User";
+        const firstName = authData.user.name.split(" ")[0] || "User";
+        if (userName) userName.textContent = firstName;
         if (userAvatar && authData.user.avatar) userAvatar.src = authData.user.avatar;
         if (syncStatusText) syncStatusText.textContent = "Web Synced";
         if (syncDot) syncDot.style.background = "#10b981";
@@ -293,7 +327,53 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   syncWithWebPlatform();
 
-  // 9. Real-Time Token Calculation
+  // 9. Render Settings Tab
+  function renderSettings() {
+    chrome.runtime.sendMessage({ action: "syncAuth" }, (authData) => {
+      if (authData?.authenticated && authData.user) {
+        if (settingsAuthStatus) {
+          settingsAuthStatus.textContent = "🟢 Synced & Connected";
+          settingsAuthStatus.style.color = "#10b981";
+        }
+        if (settingsUserName) settingsUserName.textContent = authData.user.name || authData.user.email;
+        if (settingsQuotaTxt && authData.quota) {
+          settingsQuotaTxt.textContent = `${authData.quota.remaining} / ${authData.quota.monthlyLimit} Units`;
+        }
+      } else {
+        if (settingsAuthStatus) {
+          settingsAuthStatus.textContent = "Offline / Local Mode";
+          settingsAuthStatus.style.color = "#a1a1aa";
+        }
+      }
+    });
+
+    chrome.runtime.sendMessage({ action: "getApiKey" }, (res) => {
+      if (res?.apiKey && customApiKeyInput) {
+        customApiKeyInput.value = res.apiKey;
+      }
+    });
+  }
+
+  manualSyncBtn?.addEventListener("click", async () => {
+    manualSyncBtn.textContent = "🔄 Syncing with Web...";
+    await syncWithWebPlatform();
+    renderSettings();
+    setTimeout(() => {
+      manualSyncBtn.textContent = "✓ Sync Complete";
+      setTimeout(() => { manualSyncBtn.textContent = "🔄 Force Sync with Web Account"; }, 1800);
+    }, 400);
+  });
+
+  saveKeyBtn?.addEventListener("click", () => {
+    const rawKey = customApiKeyInput ? customApiKeyInput.value.trim() : "";
+    chrome.runtime.sendMessage({ action: "saveApiKey", apiKey: rawKey }, (r) => {
+      if (r?.success) {
+        showToast("🔒 API Key encrypted & saved!");
+      }
+    });
+  });
+
+  // 10. Real-Time Token Calculation
   function updateTokenMetrics() {
     const raw = input ? input.value : "";
     const len = raw.length;
@@ -319,7 +399,7 @@ document.addEventListener("DOMContentLoaded", () => {
     input.addEventListener("input", updateTokenMetrics);
   }
 
-  // 10. Segmented Mode Switcher
+  // 11. Segmented Mode Switcher
   function setMode(mode) {
     currentMode = mode;
     if (modeApi) modeApi.classList.remove("active");
@@ -339,7 +419,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (modeAlgo) modeAlgo.addEventListener("click", () => setMode("algo"));
   if (modeDevice) modeDevice.addEventListener("click", () => setMode("device"));
 
-  // 11. Voice Dictation
+  // 12. Voice Dictation
   if (voiceBtn) {
     voiceBtn.addEventListener("click", async () => {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -421,10 +501,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function calculateScore(text) {
     if (!text) return 0;
-    let score = 75;
-    if (text.includes("### ROLE") || text.includes("### Persona")) score += 10;
-    if (text.includes("### SPECIFICATIONS") || text.includes("### Context")) score += 8;
-    if (text.includes("### EXECUTION") || text.includes("### Output Format")) score += 6;
+    let score = 78;
+    if (text.includes("### ROLE") || text.includes("### Persona") || text.includes("<persona>")) score += 10;
+    if (text.includes("### SPECIFICATIONS") || text.includes("<specifications>")) score += 6;
+    if (text.includes("### EXECUTION") || text.includes("<execution_steps>")) score += 4;
     return Math.min(99, score);
   }
 
@@ -524,7 +604,7 @@ ${antiCliche}
 - Deliver immediately usable, clean Markdown formatted content.`;
   }
 
-  // 12. Enhance Action Handler
+  // 13. Enhance Action Handler
   async function triggerCompilation() {
     const rawText = input ? input.value.trim() : "";
     if (!rawText) {
@@ -533,6 +613,7 @@ ${antiCliche}
       return;
     }
 
+    rawPromptMemory = rawText;
     if (enhanceBtn) enhanceBtn.disabled = true;
     if (btnText) btnText.textContent = "⚡ Compiling Master Prompt...";
 
@@ -562,7 +643,7 @@ ${antiCliche}
       try {
         const res = await new Promise((resolve) => {
           chrome.runtime.sendMessage(
-            { action: "enhancePrompt", text: rawText, mode: currentMode, level: currentTone },
+            { action: "enhancePrompt", text: rawText, mode: currentMode, level: currentTone, tone: currentTone },
             (r) => resolve(r)
           );
         });
@@ -573,16 +654,16 @@ ${antiCliche}
       } catch {}
     }
 
-    // Fail-Safe
+    // Fail-Safe Fallback
     if (!finalResult) {
       finalResult = synthesizeLocalPrompt(rawText);
     }
 
     if (enhanceBtn) enhanceBtn.disabled = false;
-    if (btnText) btnText.textContent = "⚡ Compile Master Prompt";
+    if (btnText) btnText.textContent = "⚡ Compile Master Prompt (⌘↵)";
 
     const qScore = calculateScore(finalResult);
-    showResultView(finalResult, qScore, "<25ms");
+    showResultView(finalResult, qScore, "<20ms");
     showToast("✓ Master prompt compiled!");
   }
 
@@ -600,7 +681,7 @@ ${antiCliche}
     }
   });
 
-  // 13. Copy Button
+  // 14. Copy Button
   if (copyBtn) {
     copyBtn.addEventListener("click", () => {
       if (enhancedResult) {
@@ -611,7 +692,7 @@ ${antiCliche}
     });
   }
 
-  // 14. Use in Active Tab
+  // 15. Use in Active Tab
   if (useBtn) {
     useBtn.addEventListener("click", () => {
       if (enhancedResult) {
@@ -631,7 +712,46 @@ ${antiCliche}
     });
   }
 
-  // 15. Multi-AI Split Launch Handlers
+  // 16. Save to Cloud Library
+  if (saveCloudBtn) {
+    saveCloudBtn.addEventListener("click", () => {
+      if (!enhancedResult) return;
+      saveCloudBtn.textContent = "💾 Saving...";
+      chrome.runtime.sendMessage(
+        {
+          action: "saveToCloudPrompt",
+          originalText: rawPromptMemory || enhancedResult.slice(0, 100),
+          enhancedText: enhancedResult,
+          category: currentTone === "code" ? "Development" : currentTone === "copy" ? "Marketing" : "General",
+          tone: currentTone,
+          score: 96,
+        },
+        (res) => {
+          if (res?.success) {
+            saveCloudBtn.textContent = "✓ Saved to Cloud";
+            showToast("✓ Prompt saved to your Web Cloud Library!");
+          } else {
+            saveCloudBtn.textContent = "💾 Save to Cloud Library";
+            showToast(res?.error || "Login to Prompt+ Web to save to cloud", true);
+          }
+          setTimeout(() => { saveCloudBtn.textContent = "💾 Save to Cloud Library"; }, 2500);
+        }
+      );
+    });
+  }
+
+  // 17. Open in Web Studio
+  if (openStudioBtn) {
+    openStudioBtn.addEventListener("click", () => {
+      chrome.runtime.sendMessage({
+        action: "openInWebStudio",
+        prompt: rawPromptMemory || enhancedResult,
+        tone: currentTone,
+      });
+    });
+  }
+
+  // 18. Multi-AI Split Launch Handlers
   const openTargetAI = (targetUrl) => {
     try {
       chrome.tabs?.create({ url: targetUrl });

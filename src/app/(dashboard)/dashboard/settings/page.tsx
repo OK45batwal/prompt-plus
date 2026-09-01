@@ -733,19 +733,39 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* Cross-AI Extension Handoff Card */}
-              <div className="p-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/5 space-y-2.5 text-xs shadow-xs">
+              {/* Cross-AI Extension Handoff & Sync Hub Card */}
+              <div className="p-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/5 space-y-3 text-xs shadow-xs">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-indigo-500 flex items-center gap-1.5">
-                    <Zap className="h-4 w-4" /> Cross-AI Context Bridge Active
+                    <Zap className="h-4 w-4" /> Cross-AI Context Bridge & Cloud Sync Active
                   </span>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold">
-                    Extension v1.3.2
+                    Extension v2.1.3.1
                   </span>
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
-                  Carry active chat memory between ChatGPT, Claude 3.5 Sonnet, Gemini 2.0, and DeepSeek seamlessly. Use the <strong>📦 Capture Memory</strong> floating bar in the Chrome extension.
+                  Carry active chat memory between ChatGPT, Claude 3.5 Sonnet, Gemini 2.0 Flash, and DeepSeek R1 seamlessly. Prompts optimized in the browser extension are automatically synchronized with your Cloud Library.
                 </p>
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <a
+                    href="/api/v1/extension/download"
+                    className="h-8 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs inline-flex items-center gap-1.5 transition-colors shadow-xs"
+                  >
+                    <UploadCloud className="h-3.5 w-3.5" /> Download Extension v2.1.3.1 (.zip)
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        window.dispatchEvent(new CustomEvent("promptplus:request_sync"));
+                        toast("Broadcasted sync trigger to Chrome Extension!", "success");
+                      }
+                    }}
+                    className="h-8 px-3 rounded-lg border border-indigo-500/30 hover:bg-indigo-500/10 text-indigo-400 font-medium text-xs inline-flex items-center gap-1.5 transition-colors"
+                  >
+                    <Zap className="h-3.5 w-3.5" /> Force Sync Extension
+                  </button>
+                </div>
               </div>
 
               <hr className="border-border/60" />

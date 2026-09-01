@@ -84,19 +84,23 @@ chrome.commands.onCommand.addListener((command) => {
   }
 });
 
-// ---------- Web Auth Session Detection ----------
+// ---------- Web Auth Session Detection & Sync ----------
 async function checkWebAuth() {
   for (const baseUrl of API_URLS) {
     try {
       const res = await fetch(`${baseUrl}/api/v1/auth/extension-sync`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-PromptPlus-Client": "chrome-extension",
+          "X-Requested-With": "XMLHttpRequest",
+        },
         credentials: "include",
       });
       if (res.ok) {
         const data = await res.json();
         if (data.authenticated) {
-          chrome.storage.local.set({ pp_web_session: data });
+          await new Promise((resolve) => chrome.storage.local.set({ pp_web_session: data }, resolve));
         }
         return data;
       }
@@ -137,46 +141,53 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           model: request.model || settings.model || undefined,
           tokenSaver: request.tokenSaver || settings.tokenSaver || false,
           level: request.level || "deep",
+          tone: request.tone || undefined,
         };
 
         const targetUrls = cachedWorkingUrl ? [cachedWorkingUrl, ...API_URLS.filter((u) => u !== cachedWorkingUrl)] : API_URLS;
         let lastErr = "";
 
         for (const baseUrl of targetUrls) {
-          const url = `${baseUrl}/api/v2/extension/optimize`;
-          try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 12000);
-            const res = await fetch(url, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "X-PromptPlus-Client": "chrome-extension",
-                "X-Requested-With": "XMLHttpRequest",
-              },
-              body: JSON.stringify(payload),
-              signal: controller.signal,
-            });
-            clearTimeout(timeout);
+          const endpoints = [
+            `${baseUrl}/api/v2/extension/optimize`,
+            `${baseUrl}/api/v1/extension/enhance`
+          ];
 
-            const resData = await res.json().catch(() => ({}));
+          for (const url of endpoints) {
+            try {
+              const controller = new AbortController();
+              const timeout = setTimeout(() => controller.abort(), 12000);
+              const res = await fetch(url, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-PromptPlus-Client": "chrome-extension",
+                  "X-Requested-With": "XMLHttpRequest",
+                },
+                body: JSON.stringify(payload),
+                signal: controller.signal,
+              });
+              clearTimeout(timeout);
 
-            if (!res.ok) {
-              if (res.status === 429) {
-                const retryAfter = res.headers.get("Retry-After");
-                sendResponse({ success: false, error: `Too many requests. Retry in ${retryAfter || 5}s.` });
-                return;
+              const resData = await res.json().catch(() => ({}));
+
+              if (!res.ok) {
+                if (res.status === 429) {
+                  const retryAfter = res.headers.get("Retry-After");
+                  sendResponse({ success: false, error: `Rate limited. Retry in ${retryAfter || 5}s.` });
+                  return;
+                }
+                lastErr = resData.error || `Server error (${res.status})`;
+                continue;
               }
-              lastErr = resData.error || `Server error (${res.status})`;
+
+              cachedWorkingUrl = baseUrl;
+              sendResponse({ success: true, data: resData });
+              return;
+            } catch (err) {
+              lastErr = err.message || "Connection failed";
               continue;
             }
-
-            cachedWorkingUrl = baseUrl;
-            sendResponse({ success: true, data: resData });
-            return;
-          } catch (err) {
-            lastErr = err.message || "Connection failed";
-            continue;
           }
         }
 
@@ -186,6 +197,48 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
       } catch (err) {
         sendResponse({ success: false, error: err.message || "Enhancement failed." });
+      }
+    })();
+    return true;
+  }
+
+  if (request.action === "saveToCloudPrompt") {
+    (async () => {
+      try {
+        const { originalText, enhancedText, category, tone, score } = request;
+        const targetUrls = cachedWorkingUrl ? [cachedWorkingUrl, ...API_URLS.filter((u) => u !== cachedWorkingUrl)] : API_URLS;
+
+        for (const baseUrl of targetUrls) {
+          try {
+            const res = await fetch(`${baseUrl}/api/v1/extension/save-prompt`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-PromptPlus-Client": "chrome-extension",
+                "X-Requested-With": "XMLHttpRequest",
+              },
+              credentials: "include",
+              body: JSON.stringify({
+                originalText,
+                enhancedText,
+                category: category || "General",
+                tone: tone || "code",
+                score: score || 95,
+              }),
+            });
+
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.success) {
+              sendResponse({ success: true, data: data.data });
+              return;
+            }
+          } catch {
+            // Try next
+          }
+        }
+        sendResponse({ success: false, error: "Please log in to Prompt+ Web to save prompts to Cloud." });
+      } catch (err) {
+        sendResponse({ success: false, error: err.message || "Save failed." });
       }
     })();
     return true;
@@ -251,6 +304,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         user: request.user,
         quota: request.quota || { remaining: 88, monthlyLimit: 100, usagePercentage: 12 },
         savedBlocks: request.savedBlocks || [],
+        recentPrompts: request.recentPrompts || [],
         syncedAt: new Date().toISOString(),
       },
     }, () => sendResponse({ success: true }));
@@ -258,7 +312,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.action === "openInWebStudio") {
-    const targetUrl = (cachedWorkingUrl || API_URLS[0]) + "/dashboard/new";
+    const promptText = encodeURIComponent(request.prompt || "");
+    const toneVal = encodeURIComponent(request.tone || "");
+    let targetUrl = (cachedWorkingUrl || API_URLS[0]) + "/dashboard/new";
+    if (promptText) {
+      targetUrl += `?prompt=${promptText}&tone=${toneVal}`;
+    }
     chrome.tabs.create({ url: targetUrl }, () => sendResponse({ success: true }));
     return true;
   }
