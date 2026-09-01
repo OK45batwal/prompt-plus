@@ -53,9 +53,10 @@
     "https://huggingface.co/chat/*",
     "https://groq.com/*",
     "https://v0.dev/*",
+    "http://localhost/*",
     "http://localhost:3000/*",
-    "http://localhost:*/*",
-    "http://127.0.0.1:*/*",
+    "http://127.0.0.1/*",
+    "http://127.0.0.1:3000/*",
     "https://prompt-plus-three.vercel.app/*"
   ],
   "content_scripts": [
@@ -87,9 +88,10 @@
     },
     {
       "matches": [
+        "http://localhost/*",
         "http://localhost:3000/*",
-        "http://localhost:*/*",
-        "http://127.0.0.1:*/*",
+        "http://127.0.0.1/*",
+        "http://127.0.0.1:3000/*",
         "https://prompt-plus-three.vercel.app/*"
       ],
       "js": ["web-bridge.js"],
