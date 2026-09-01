@@ -49,7 +49,7 @@ describe("Extension Web Sync & Save Endpoints (v2.1.3.1)", () => {
 
   it("POST /api/v1/extension/save-prompt should reject unauthenticated requests", async () => {
     const { auth } = await import("@/lib/auth/config");
-    vi.mocked(auth).mockResolvedValue(null as any);
+    vi.mocked(auth).mockResolvedValue(null);
 
     const req = new NextRequest("http://localhost:3000/api/v1/extension/save-prompt", {
       method: "POST",
@@ -66,7 +66,8 @@ describe("Extension Web Sync & Save Endpoints (v2.1.3.1)", () => {
     const { auth } = await import("@/lib/auth/config");
     vi.mocked(auth).mockResolvedValue({
       user: { id: "user-123", name: "Test User", email: "test@example.com" },
-    } as any);
+      expires: "2099-01-01",
+    });
 
     const req = new NextRequest("http://localhost:3000/api/v1/extension/save-prompt", {
       method: "POST",
@@ -91,7 +92,8 @@ describe("Extension Web Sync & Save Endpoints (v2.1.3.1)", () => {
     const { auth } = await import("@/lib/auth/config");
     vi.mocked(auth).mockResolvedValue({
       user: { id: "user-123", name: "Test User", email: "test@example.com" },
-    } as any);
+      expires: "2099-01-01",
+    });
 
     const req = new NextRequest("http://localhost:3000/api/v1/auth/extension-sync");
     const res = await extensionSyncRoute(req);
