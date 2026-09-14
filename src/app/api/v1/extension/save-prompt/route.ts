@@ -42,9 +42,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (originalText.length > 50000 || enhancedText.length > 50000) {
+      return jsonResponse(
+        { success: false, error: "Prompt text exceeds maximum allowed length of 50,000 characters." },
+        { status: 400, requestId }
+      );
+    }
+
     const title = originalText.length > 50
       ? originalText.slice(0, 50).trim() + "…"
       : originalText || "Extension Prompt";
+
+    const rawScore = typeof body.score === "number" ? body.score : 95;
+    const clampedScore = Math.min(100, Math.max(0, Math.round(rawScore)));
 
     const savedPrompt = await getDb().prompt.create({
       data: {
@@ -55,7 +65,7 @@ export async function POST(request: NextRequest) {
         category: body.category || "General",
         tone: body.tone || "code",
         model: body.model || "promptplus-v2",
-        score: body.score ? Math.round(body.score) : 95,
+        score: clampedScore,
       },
       select: {
         id: true,
@@ -78,7 +88,9 @@ export async function POST(request: NextRequest) {
         model: body.model || "promptplus-v2",
         tokensOut: Math.round(enhancedText.length / 4),
       },
-    }).catch(() => {});
+    }).catch((err) => {
+      console.error("[save-prompt] Failed to record usage log:", err);
+    });
 
     return jsonResponse(
       {

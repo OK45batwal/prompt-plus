@@ -9,7 +9,22 @@ import { getDb } from "@/lib/db/prisma";
 import { fallbackStore } from "@/lib/db/fallback-store";
 import { loginSchema, logRejection } from "@/lib/validations/auth";
 
-const secret = (process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || process.env.ENCRYPTION_KEY || "development-secret-fallback-key-32chars").replace(/['"\r\n]/g, "").trim();
+const configuredSecret = (
+  process.env.AUTH_SECRET ||
+  process.env.NEXTAUTH_SECRET ||
+  process.env.ENCRYPTION_KEY ||
+  ""
+).replace(/['"\r\n]/g, "").trim();
+
+if (process.env.NODE_ENV === "production" && !configuredSecret) {
+  throw new Error("CRITICAL SECURITY ERROR: AUTH_SECRET or NEXTAUTH_SECRET must be configured in production.");
+}
+
+const secret = configuredSecret || "development-secret-fallback-key-32chars";
+
+if (!configuredSecret && process.env.NODE_ENV !== "test") {
+  console.warn("⚠️ [AUTH] Running with insecure default development auth secret. Set AUTH_SECRET in your environment.");
+}
 
 process.env.AUTH_SECRET = secret;
 process.env.NEXTAUTH_SECRET = secret;

@@ -1,11 +1,11 @@
 /**
- * Prompt+ Web Platform <-> Extension Sync Bridge (v2.1.3.1)
+ * Prompt+ Web Platform <-> Extension Sync Bridge (v2.1.3.2)
  * Enables zero-friction, bi-directional synchronization between the Prompt+ Web Platform and Extension.
  */
 (function () {
   "use strict";
 
-  const EXTENSION_VERSION = "2.1.3.1";
+  const EXTENSION_VERSION = "2.1.3.2";
 
   // 1. Declare extension availability in the web page window context
   try {

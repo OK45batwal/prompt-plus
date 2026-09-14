@@ -148,15 +148,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         let lastErr = "";
 
         for (const baseUrl of targetUrls) {
-          const endpoints = [
-            `${baseUrl}/api/v2/extension/optimize`,
-            `${baseUrl}/api/v1/extension/enhance`
-          ];
+          // Route based on user selected mode:
+          // "algo": Sub-30ms offline algorithmic IR endpoint
+          // "api" or default: Multi-model LLM enhancement engine, with fallback to algorithmic if offline
+          const endpoints = request.mode === "algo"
+            ? [`${baseUrl}/api/v2/extension/optimize`]
+            : [`${baseUrl}/api/v1/extension/enhance`, `${baseUrl}/api/v2/extension/optimize`];
 
           for (const url of endpoints) {
             try {
               const controller = new AbortController();
-              const timeout = setTimeout(() => controller.abort(), 12000);
+              const timeout = setTimeout(() => controller.abort(), 15000);
               const res = await fetch(url, {
                 method: "POST",
                 headers: {
@@ -182,7 +184,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               }
 
               cachedWorkingUrl = baseUrl;
-              sendResponse({ success: true, data: resData });
+              const enhancedText = resData.data?.enhanced || resData.enhanced || "";
+              const modelUsed = resData.data?.model || resData.model || "promptplus-v2";
+              const providerUsed = resData.data?.provider || resData.provider || "cloud";
+              const scoreUsed = resData.data?.score || resData.score || 96;
+
+              sendResponse({
+                success: true,
+                data: {
+                  enhanced: enhancedText,
+                  model: modelUsed,
+                  provider: providerUsed,
+                  score: scoreUsed,
+                  ...resData.data,
+                },
+              });
               return;
             } catch (err) {
               lastErr = err.message || "Connection failed";
@@ -198,6 +214,42 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       } catch (err) {
         sendResponse({ success: false, error: err.message || "Enhancement failed." });
       }
+    })();
+    return true;
+  }
+
+  if (request.action === "getTemplates") {
+    (async () => {
+      const targetUrls = cachedWorkingUrl ? [cachedWorkingUrl, ...API_URLS.filter((u) => u !== cachedWorkingUrl)] : API_URLS;
+      for (const baseUrl of targetUrls) {
+        try {
+          const res = await fetch(`${baseUrl}/api/v1/extension/templates`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "X-PromptPlus-Client": "chrome-extension",
+              "X-Requested-With": "XMLHttpRequest",
+            },
+            credentials: "include",
+          });
+          if (res.ok) {
+            const json = await res.json();
+            if (json.success && json.data) {
+              cachedWorkingUrl = baseUrl;
+              chrome.storage.local.set({ pp_cached_blueprints: json.data });
+              sendResponse({ success: true, data: json.data });
+              return;
+            }
+          }
+        } catch {
+          // try next
+        }
+      }
+
+      // Check cached blueprints if offline
+      chrome.storage.local.get("pp_cached_blueprints", (data) => {
+        sendResponse({ success: Boolean(data?.pp_cached_blueprints), data: data?.pp_cached_blueprints || null });
+      });
     })();
     return true;
   }
@@ -291,7 +343,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "saveSettings") {
     chrome.storage.local.get(STORAGE_KEY, (data) => {
       const cur = data[STORAGE_KEY] || {};
-      Object.assign(cur, request.settings);
+      const allowedKeys = ["tone", "model", "autoEnhance", "shortcut", "cloudSync", "theme", "contextVault"];
+      if (request.settings && typeof request.settings === "object") {
+        for (const key of allowedKeys) {
+          if (key in request.settings) {
+            cur[key] = request.settings[key];
+          }
+        }
+      }
       chrome.storage.local.set({ [STORAGE_KEY]: cur }, () => sendResponse({ success: true }));
     });
     return true;

@@ -740,7 +740,7 @@ export default function SettingsPage() {
                     <Zap className="h-4 w-4" /> Cross-AI Context Bridge & Cloud Sync Active
                   </span>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold">
-                    Extension v2.1.3.1
+                    Extension v2.1.3.2
                   </span>
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
@@ -751,7 +751,7 @@ export default function SettingsPage() {
                     href="/api/v1/extension/download"
                     className="h-8 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs inline-flex items-center gap-1.5 transition-colors shadow-xs"
                   >
-                    <UploadCloud className="h-3.5 w-3.5" /> Download Extension v2.1.3.1 (.zip)
+                    <UploadCloud className="h-3.5 w-3.5" /> Download Extension v2.1.3.2 (.zip)
                   </a>
                   <button
                     type="button"

@@ -1,5 +1,5 @@
 /**
- * Prompt+ Architect AI Extension v2.1.3.1
+ * Prompt+ Architect AI Extension v2.1.3.2
  * High-performance prompt compiler, context memory bridge & bi-directional sync engine.
  */
 document.addEventListener("DOMContentLoaded", () => {
@@ -61,12 +61,17 @@ document.addEventListener("DOMContentLoaded", () => {
   let rawPromptMemory = "";
   let isListening = false;
   let recognitionInstance = null;
-  let userQuota = { remaining: 88, monthlyLimit: 100, usagePercentage: 12 };
+  let userQuota = { remaining: 100, monthlyLimit: 100, usagePercentage: 0 };
   let cloudPrompts = [];
-  const activeContextBlocks = ["Next.js 16 + Tailwind v4"];
+  let contextRules = [
+    { id: "react_tailwind", name: "Next.js 16 + Tailwind CSS v4", desc: "Production React 19 rules, responsive styling, anti-slop guidelines", active: true },
+    { id: "fastapi", name: "Python FastAPI Architecture", desc: "Strict typing, Pydantic v2, and async DB patterns", active: true },
+    { id: "exec_tone", name: "Executive Strategic Tone", desc: "Zero conversational fluff, bulleted takeaways & KPI focus", active: false },
+    { id: "security", name: "OWASP & Input Validation", desc: "Strict input sanitization, rate limiting, and defensive bounds", active: true },
+  ];
 
-  // Curated Blueprints
-  const CURATED_TEMPLATES = [
+  // Default Blueprints
+  const DEFAULT_TEMPLATES = [
     {
       id: "code-architect",
       title: "Senior Full-Stack Code Architect",
@@ -82,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
     {
       id: "executive-brief",
       title: "C-Level Executive Strategy Memo",
-      category: "Business",
+      category: "Strategy",
       text: "Act as a Senior Management Consultant. Create an executive summary memo for {{initiative}}, with strategic objectives, ROI impact, and a 90-day phased roadmap.",
     },
     {
@@ -107,7 +112,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let activeBot = { name: "Universal AI", maxContext: 128000, color: "#6366f1" };
 
-  // 1. Detect Active Chatbot in the User's Current Active Tab
+  // HTML Entity Escaping Utility
+  function escapeHtml(str) {
+    if (str == null) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  // 1. Detect Active Chatbot in the Current Tab
   function detectActiveChatbot() {
     try {
       chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
@@ -120,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         }
         if (activeBotPill) {
-          activeBotPill.textContent = `🟢 ${activeBot.name}`;
+          activeBotPill.textContent = activeBot.name;
           activeBotPill.style.borderColor = activeBot.color;
           activeBotPill.style.color = "#ffffff";
         }
@@ -146,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (tab === "library") {
       tabBtnLibrary?.classList.add("active");
       if (panelLibrary) panelLibrary.style.display = "flex";
-      renderLibrary();
+      loadBlueprints();
     } else if (tab === "context") {
       tabBtnContext?.classList.add("active");
       if (panelContext) panelContext.style.display = "flex";
@@ -164,12 +180,12 @@ document.addEventListener("DOMContentLoaded", () => {
   tabBtnSettings?.addEventListener("click", () => switchTab("settings"));
 
   // 3. Stage 1 <-> Stage 2 Transition (Editor vs Result View)
-  function showResultView(compiledText, score = 96, latency = "<25ms") {
+  function showResultView(compiledText, score = 96, latency = "<20ms") {
     if (panelEnhance) panelEnhance.style.display = "none";
     if (panelResult) panelResult.style.display = "flex";
     if (resultBody) resultBody.textContent = compiledText;
     if (scoreBadge) scoreBadge.textContent = `Score: ${score}/100`;
-    if (loopBadge) loopBadge.textContent = `⚡ Loop: ${latency}`;
+    if (loopBadge) loopBadge.textContent = `⚡ ${latency}`;
     enhancedResult = compiledText;
   }
 
@@ -188,7 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (text && input) {
         input.value = text;
         input.dispatchEvent(new Event("input"));
-        showToast("✓ Text pasted from clipboard!");
+        showToast("Text pasted from clipboard!");
       }
     } catch {
       showToast("Clipboard access denied.", true);
@@ -203,10 +219,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // 5. Render Library (Curated + Cloud Prompts)
+  // 5. Load & Render Blueprints
+  function loadBlueprints() {
+    chrome.runtime.sendMessage({ action: "getTemplates" }, (res) => {
+      if (res?.success && res.data) {
+        const curated = res.data.curated || [];
+        const userP = res.data.userPrompts || [];
+        cloudPrompts = [...userP, ...curated];
+      }
+      renderLibrary(libSearch?.value.trim() || "");
+    });
+  }
+
   function renderLibrary(filterText = "") {
     if (!libraryGrid) return;
-    const all = [...(cloudPrompts || []), ...CURATED_TEMPLATES];
+    const all = cloudPrompts.length > 0 ? cloudPrompts : DEFAULT_TEMPLATES;
     const filtered = filterText
       ? all.filter((t) => (t.title + (t.category || "") + (t.text || t.enhancedText || "")).toLowerCase().includes(filterText.toLowerCase()))
       : all;
@@ -223,10 +250,10 @@ document.addEventListener("DOMContentLoaded", () => {
     libraryGrid.innerHTML = filtered.map((item) => `
       <div class="template-card" data-prompt="${encodeURIComponent(item.enhancedText || item.text || item.originalText || "")}">
         <div class="template-title-row">
-          <span class="template-title">${item.title || "Untitled Blueprint"}</span>
-          <span class="template-cat-badge">${item.category || "Cloud"}</span>
+          <span class="template-title">${escapeHtml(item.title || "Untitled Blueprint")}</span>
+          <span class="template-cat-badge">${escapeHtml(item.category || "Cloud")}</span>
         </div>
-        <div class="template-preview">${item.text || item.enhancedText || item.originalText || ""}</div>
+        <div class="template-preview">${escapeHtml(item.text || item.enhancedText || item.originalText || "")}</div>
       </div>
     `).join("");
 
@@ -238,7 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
           switchTab("enhance");
           showEditView();
           input.dispatchEvent(new Event("input"));
-          showToast("✓ Template loaded into compiler!");
+          showToast("Template loaded into compiler!");
         }
       });
     });
@@ -250,27 +277,51 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 6. Render Context Vault
-  function renderContextVault() {
-    if (!contextVaultList) return;
-    const defaults = [
-      { id: "nextjs", name: "Next.js 16 + Tailwind CSS v4", desc: "Production React 19 rules, responsive styling, anti-slop guidelines" },
-      { id: "python", name: "Python FastAPI Architecture", desc: "Strict typing, Pydantic v2, and async DB patterns" },
-      { id: "exec", name: "Executive Strategic Tone", desc: "Zero conversational fluff, bulleted takeaways & KPI focus" },
-    ];
-
-    contextVaultList.innerHTML = defaults.map((item) => `
-      <div style="background: rgba(18,18,23,0.7); border: 1px solid rgba(255,255,255,0.08); padding: 9px 12px; border-radius: 9px; display: flex; align-items: center; justify-content: space-between;">
-        <div>
-          <div style="font-weight: 700; font-size: 11.5px; color: #fff;">${item.name}</div>
-          <div style="font-size: 10px; color: #a1a1aa;">${item.desc}</div>
-        </div>
-        <input type="checkbox" checked style="accent-color: #6366f1; cursor: pointer; transform: scale(1.1);" />
-      </div>
-    `).join("");
+  // 6. Interactive Context Vault
+  function loadContextRules(cb) {
+    chrome.storage.local.get("pp_context_rules", (data) => {
+      if (data?.pp_context_rules && Array.isArray(data.pp_context_rules)) {
+        contextRules = data.pp_context_rules;
+      }
+      if (cb) cb();
+    });
   }
 
-  // 7. Tone Pill Handlers
+  function saveContextRules() {
+    chrome.storage.local.set({ pp_context_rules: contextRules });
+  }
+
+  function getActiveContextNames() {
+    return contextRules.filter((r) => r.active).map((r) => r.name);
+  }
+
+  function renderContextVault() {
+    if (!contextVaultList) return;
+    loadContextRules(() => {
+      contextVaultList.innerHTML = contextRules.map((item, idx) => `
+        <div class="vault-card">
+          <div class="vault-card-info">
+            <div class="vault-card-title">${escapeHtml(item.name)}</div>
+            <div class="vault-card-desc">${escapeHtml(item.desc)}</div>
+          </div>
+          <input type="checkbox" class="vault-checkbox" data-idx="${idx}" ${item.active ? "checked" : ""} />
+        </div>
+      `).join("");
+
+      contextVaultList.querySelectorAll(".vault-checkbox").forEach((cb) => {
+        cb.addEventListener("change", (e) => {
+          const idx = parseInt(e.target.getAttribute("data-idx"), 10);
+          if (!isNaN(idx) && contextRules[idx]) {
+            contextRules[idx].active = e.target.checked;
+            saveContextRules();
+            showToast(`Rule "${contextRules[idx].name}" ${contextRules[idx].active ? "enabled" : "disabled"}`);
+          }
+        });
+      });
+    });
+  }
+
+  // 7. Tone Selector Handlers
   document.querySelectorAll(".tone-pill-btn").forEach((pill) => {
     pill.addEventListener("click", () => {
       document.querySelectorAll(".tone-pill-btn").forEach((p) => p.classList.remove("active"));
@@ -279,60 +330,62 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // 8. Bi-Directional Web Account Sync
-  async function syncWithWebPlatform() {
-    try {
-      const authData = await new Promise((resolve) => {
-        chrome.runtime.sendMessage({ action: "syncAuth" }, (res) => resolve(res));
-      });
-
-      if (authData?.authenticated && authData.user) {
-        const firstName = authData.user.name.split(" ")[0] || "User";
-        if (userName) userName.textContent = firstName;
-        if (userAvatar && authData.user.avatar) userAvatar.src = authData.user.avatar;
-        if (syncStatusText) syncStatusText.textContent = "Web Synced";
-        if (syncDot) syncDot.style.background = "#10b981";
-
-        if (Array.isArray(authData.recentPrompts)) {
-          cloudPrompts = authData.recentPrompts;
-        }
-
-        // Update Quota Bar
-        if (authData.quota) {
-          userQuota = authData.quota;
-          const { remaining, monthlyLimit, usagePercentage } = authData.quota;
-          if (tokenRemainingBadge) {
-            tokenRemainingBadge.textContent = `${remaining} / ${monthlyLimit} Free Units`;
-            if (remaining < 15) {
-              tokenRemainingBadge.style.color = "#ef4444";
-              tokenRemainingBadge.style.borderColor = "rgba(239, 68, 68, 0.4)";
-              tokenRemainingBadge.style.background = "rgba(239, 68, 68, 0.12)";
-            }
-          }
-          if (tokenMeterFill) {
-            const fillPct = Math.max(8, Math.min(100, 100 - usagePercentage));
-            tokenMeterFill.style.width = `${fillPct}%`;
-            if (remaining < 15) {
-              tokenMeterFill.style.background = "linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)";
-            }
-          }
-        }
-      } else {
-        if (syncStatusText) syncStatusText.textContent = "Local Mode";
-        if (syncDot) syncDot.style.background = "#a1a1aa";
-      }
-    } catch {
-      // Sync failover
+  // 8. Multi-AI Split Launcher
+  function openMultiAITab(platform) {
+    const text = input ? input.value.trim() : "";
+    const encoded = encodeURIComponent(text);
+    let target = "";
+    if (platform === "chatgpt") target = `https://chatgpt.com/?q=${encoded}`;
+    else if (platform === "claude") target = `https://claude.ai/new?q=${encoded}`;
+    else if (platform === "gemini") target = `https://gemini.google.com/app?prompt=${encoded}`;
+    else if (platform === "deepseek") target = `https://chat.deepseek.com/?prompt=${encoded}`;
+    if (target) {
+      chrome.tabs.create({ url: target });
     }
+  }
+
+  document.getElementById("bridge-chatgpt")?.addEventListener("click", () => openMultiAITab("chatgpt"));
+  document.getElementById("bridge-claude")?.addEventListener("click", () => openMultiAITab("claude"));
+  document.getElementById("bridge-gemini")?.addEventListener("click", () => openMultiAITab("gemini"));
+  document.getElementById("bridge-deepseek")?.addEventListener("click", () => openMultiAITab("deepseek"));
+
+  // 9. Web Account Sync & BYOK Key Storage
+  async function syncWithWebPlatform() {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({ action: "syncAuth" }, (authData) => {
+        if (authData?.authenticated && authData.user) {
+          if (syncStatusText) syncStatusText.textContent = "Cloud Synced";
+          if (syncDot) syncDot.classList.remove("offline");
+          if (userName) userName.textContent = authData.user.name ? authData.user.name.split(" ")[0] : "Studio";
+          if (userAvatar && authData.user.avatar) userAvatar.src = authData.user.avatar;
+
+          if (authData.quota) {
+            userQuota = authData.quota;
+            if (tokenRemainingBadge) {
+              tokenRemainingBadge.textContent = `${userQuota.remaining} / ${userQuota.monthlyLimit} Free Units`;
+            }
+          }
+          if (authData.savedBlocks && authData.savedBlocks.length > 0) {
+            cloudPrompts = authData.savedBlocks;
+          }
+        } else {
+          if (syncStatusText) syncStatusText.textContent = "Local Mode";
+          if (syncDot) syncDot.classList.add("offline");
+          if (userName) userName.textContent = "Guest";
+        }
+        updateTokenMetrics();
+        resolve(authData);
+      });
+    });
   }
   syncWithWebPlatform();
 
-  // 9. Render Settings Tab
   function renderSettings() {
-    chrome.runtime.sendMessage({ action: "syncAuth" }, (authData) => {
+    chrome.storage.local.get("pp_web_session", (data) => {
+      const authData = data?.pp_web_session;
       if (authData?.authenticated && authData.user) {
         if (settingsAuthStatus) {
-          settingsAuthStatus.textContent = "🟢 Synced & Connected";
+          settingsAuthStatus.textContent = "Connected";
           settingsAuthStatus.style.color = "#10b981";
         }
         if (settingsUserName) settingsUserName.textContent = authData.user.name || authData.user.email;
@@ -341,7 +394,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       } else {
         if (settingsAuthStatus) {
-          settingsAuthStatus.textContent = "Offline / Local Mode";
+          settingsAuthStatus.textContent = "Local Mode";
           settingsAuthStatus.style.color = "#a1a1aa";
         }
       }
@@ -355,12 +408,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   manualSyncBtn?.addEventListener("click", async () => {
-    manualSyncBtn.textContent = "🔄 Syncing with Web...";
+    manualSyncBtn.textContent = "Syncing with Web...";
     await syncWithWebPlatform();
     renderSettings();
     setTimeout(() => {
-      manualSyncBtn.textContent = "✓ Sync Complete";
-      setTimeout(() => { manualSyncBtn.textContent = "🔄 Force Sync with Web Account"; }, 1800);
+      manualSyncBtn.textContent = "Sync Complete";
+      setTimeout(() => { manualSyncBtn.textContent = "Force Sync with Web Account"; }, 1800);
     }, 400);
   });
 
@@ -368,7 +421,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const rawKey = customApiKeyInput ? customApiKeyInput.value.trim() : "";
     chrome.runtime.sendMessage({ action: "saveApiKey", apiKey: rawKey }, (r) => {
       if (r?.success) {
-        showToast("🔒 API Key encrypted & saved!");
+        showToast("API Key encrypted & saved!");
       }
     });
   });
@@ -383,14 +436,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (charCount) charCount.textContent = `${len} char${len === 1 ? "" : "s"}`;
     if (tokenEstimate) tokenEstimate.textContent = `~${estTokens} Tokens`;
-    if (tokenNeededTxt) tokenNeededTxt.textContent = `⚡ ~${estTokens} tok needed`;
+    if (tokenNeededTxt) tokenNeededTxt.textContent = `~${estTokens} tok`;
     if (contextCapacityTxt) {
       contextCapacityTxt.textContent = `${availableK}K free in ${activeBot.name.split(" ")[0]}`;
     }
 
     if (tokenMeterFill && userQuota) {
-      const dynamicRemaining = Math.max(0, userQuota.remaining - (estTokens > 50 ? 1 : 0));
-      const fillPct = Math.max(8, Math.min(100, Math.round((dynamicRemaining / (userQuota.monthlyLimit || 100)) * 100)));
+      const fillPct = Math.max(8, Math.min(100, Math.round((userQuota.remaining / (userQuota.monthlyLimit || 100)) * 100)));
       tokenMeterFill.style.width = `${fillPct}%`;
     }
   }
@@ -399,20 +451,14 @@ document.addEventListener("DOMContentLoaded", () => {
     input.addEventListener("input", updateTokenMetrics);
   }
 
-  // 11. Segmented Mode Switcher
+  // 11. Mode Switcher
   function setMode(mode) {
     currentMode = mode;
-    if (modeApi) modeApi.classList.remove("active");
-    if (modeAlgo) modeAlgo.classList.remove("active");
-    if (modeDevice) modeDevice.classList.remove("active");
+    [modeApi, modeAlgo, modeDevice].forEach((b) => b?.classList.remove("active"));
 
-    if (mode === "api") {
-      if (modeApi) modeApi.classList.add("active");
-    } else if (mode === "algo") {
-      if (modeAlgo) modeAlgo.classList.add("active");
-    } else {
-      if (modeDevice) modeDevice.classList.add("active");
-    }
+    if (mode === "api" && modeApi) modeApi.classList.add("active");
+    else if (mode === "algo" && modeAlgo) modeAlgo.classList.add("active");
+    else if (mode === "device" && modeDevice) modeDevice.classList.add("active");
   }
 
   if (modeApi) modeApi.addEventListener("click", () => setMode("api"));
@@ -424,7 +470,7 @@ document.addEventListener("DOMContentLoaded", () => {
     voiceBtn.addEventListener("click", async () => {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
-        showToast("Speech recognition not supported in this browser.", true);
+        showToast("Speech recognition not supported.", true);
         return;
       }
 
@@ -434,16 +480,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         isListening = false;
         voiceBtn.classList.remove("recording");
-        voiceBtn.innerHTML = "<span>🎙️ Voice</span>";
         return;
       }
 
       try {
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          stream.getTracks().forEach((t) => t.stop());
-        }
-
         const rec = new SpeechRecognition();
         rec.continuous = true;
         rec.interimResults = true;
@@ -452,19 +492,16 @@ document.addEventListener("DOMContentLoaded", () => {
         rec.onstart = () => {
           isListening = true;
           voiceBtn.classList.add("recording");
-          voiceBtn.innerHTML = "<span>🔴 Listening</span>";
-          showToast("🎙️ Listening... Speak your prompt idea.");
+          showToast("Listening... speak now");
         };
 
-        rec.onresult = (event) => {
-          let finalTranscript = "";
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript;
-            }
+        rec.onresult = (e) => {
+          let transcript = "";
+          for (let i = e.resultIndex; i < e.results.length; i++) {
+            transcript += e.results[i][0].transcript;
           }
-          if (finalTranscript && input) {
-            input.value = (input.value ? input.value + " " : "") + finalTranscript;
+          if (input) {
+            input.value = (input.value + " " + transcript).trim();
             input.dispatchEvent(new Event("input"));
           }
         };
@@ -472,13 +509,11 @@ document.addEventListener("DOMContentLoaded", () => {
         rec.onerror = () => {
           isListening = false;
           voiceBtn.classList.remove("recording");
-          voiceBtn.innerHTML = "<span>🎙️ Voice</span>";
         };
 
         rec.onend = () => {
           isListening = false;
           voiceBtn.classList.remove("recording");
-          voiceBtn.innerHTML = "<span>🎙️ Voice</span>";
         };
 
         rec.start();
@@ -496,104 +531,64 @@ document.addEventListener("DOMContentLoaded", () => {
     toastMsg.style.display = "block";
     setTimeout(() => {
       toastMsg.style.display = "none";
-    }, 4000);
+    }, 3500);
   }
 
   function calculateScore(text) {
     if (!text) return 0;
-    let score = 78;
-    if (text.includes("### ROLE") || text.includes("### Persona") || text.includes("<persona>")) score += 10;
+    let score = 80;
+    if (text.includes("### ROLE") || text.includes("### Persona") || text.includes("<persona>")) score += 8;
     if (text.includes("### SPECIFICATIONS") || text.includes("<specifications>")) score += 6;
     if (text.includes("### EXECUTION") || text.includes("<execution_steps>")) score += 4;
     return Math.min(99, score);
   }
 
-  const TYPO_REPLACEMENTS = {
-    imrpove: "improve", improev: "improve", ehance: "enhance", enhace: "enhance",
-    respons: "response", systemm: "system", systeam: "system", scrpaer: "scraper",
-    functon: "function", compnent: "component", reac: "react", typocrift: "typescript",
-    pyton: "python", tailwid: "tailwind", databse: "database", endpoin: "endpoint",
-    secutiy: "security", framwork: "framework", copywritng: "copywriting",
-  };
-
-  function normalizeExtensionTypos(text) {
-    if (!text) return text;
-    return text.replace(/\b[a-zA-Z]+\b/g, (match) => {
-      const lower = match.toLowerCase();
-      const rep = TYPO_REPLACEMENTS[lower];
-      if (rep) {
-        if (match === match.toUpperCase()) return rep.toUpperCase();
-        if (match[0] === match[0].toUpperCase()) return rep.charAt(0).toUpperCase() + rep.slice(1);
-        return rep;
-      }
-      return match;
-    });
-  }
-
+  // 13. Offline Algorithmic Synthesis Fallback
   function synthesizeLocalPrompt(userInput) {
-    const text = normalizeExtensionTypos((userInput || "").trim());
+    const text = (userInput || "").trim();
     if (!text) return "";
     const cleanInput = text.replace(/^(please|can you|help me|i want to|i need to|how to|write|create|build|fix|generate|make)\s+/i, "");
     const subject = cleanInput.length > 0 ? cleanInput : text;
+    const activeBlocks = getActiveContextNames();
 
     let role = "Principal Technical Architect & Systems Engineer";
     let toneStr = "Technically Rigorous, Production-Ready";
     let sec1 = "SPECIFICATIONS & ARCHITECTURE";
     let sec2 = "IMPLEMENTATION PROTOCOL";
-    let antiCliche = "- **STRICT ANTI-CLICHÉ PROTOCOL**: Never use robotic AI buzzwords ('delve into', 'tapestry', 'testament', 'in conclusion', 'as an AI', 'game changer', 'unleash', 'seamlessly').";
 
     if (currentTone === "human") {
       role = "Experienced Senior Peer & Pragmatic Thought Partner";
       toneStr = "Authentic, Human-Sounding, Natural Cadence & Zero Fluff";
-      sec1 = "CORE GOAL & AUTHENTIC HUMAN CONTEXT";
+      sec1 = "CORE GOAL & CONTEXT";
       sec2 = "PRAGMATIC EXECUTION STEPS";
-      antiCliche = "- **STRICT HUMAN VOICE MANDATE**: Write naturally like an experienced human peer. Vary sentence length for organic rhythm. Eliminate preamble ('Certainly! Here is...') and concluding summaries. Explicitly avoid all AI buzzwords and corporate fluff.";
     } else if (currentTone === "copy") {
-      role = "Elite Conversion Copywriter & Brand Strategist";
-      toneStr = "High-Conversion, Punchy & Action-Oriented";
-      sec1 = "AUDIENCE HOOK & VALUE DIRECTIVES";
-      sec2 = "NARRATIVE EXECUTION STEPS";
+      role = "Elite SaaS Conversion Copywriter & Brand Strategist";
+      toneStr = "High-Converting, Punchy, Benefit-Driven & Psychologically Grounded";
+      sec1 = "AUDIENCE, HOOK & VALUE PROPOSITION";
+      sec2 = "CONVERSION FRAMEWORK & COPY PROTOCOL";
     } else if (currentTone === "exec") {
-      role = "Senior Management Consultant & Executive Director";
-      toneStr = "Concise, Strategic & Metric-Driven";
-      sec1 = "STRATEGIC OBJECTIVES & CONSTRAINTS";
-      sec2 = "ACTIONABLE ROADMAP & DECISION STEPS";
+      role = "Senior Management Consultant & Enterprise Strategist";
+      toneStr = "Board-Level Strategic Clarity, Executive Synthesis & Quantitative";
+      sec1 = "EXECUTIVE SUMMARY & BUSINESS OBJECTIVES";
+      sec2 = "STRATEGIC EXECUTION PHASES & ROI";
     } else if (currentTone === "deep") {
-      role = "Lead AI Research Scientist & Deep Logic Reasoner";
-      toneStr = "Exhaustive, First-Principles Reasoning";
-      sec1 = "CORE HYPOTHESES & LOGICAL CONSTRAINTS";
-      sec2 = "STEP-BY-STEP DEDUCTION & VALIDATION";
-    }
-
-    if (activeBot.name.toLowerCase().includes("claude")) {
-      return `<role_and_objective>
-  <persona>${role}</persona>
-  <task>${text}</task>
-</role_and_objective>
-
-<specifications>
-  <subject>${subject}</subject>
-  <tone_profile>${toneStr}</tone_profile>
-  <active_project_context>${activeContextBlocks.join(", ")}</active_project_context>
-  <anti_cliche_mandate>${antiCliche.replace("- **STRICT ANTI-CLICHÉ PROTOCOL**: ", "").replace("- **STRICT HUMAN VOICE MANDATE**: ", "")}</anti_cliche_mandate>
-</specifications>
-
-<execution_steps>
-  <step>1. Analyze objective from first principles.</step>
-  <step>2. Provide direct, production-grade output formatted cleanly without meta commentary.</step>
-</execution_steps>`;
+      role = "First-Principles Researcher & Systems Thinker";
+      toneStr = "Exhaustive Analytical Depth, Formal Decomposition & Edge-Testing";
+      sec1 = "PROBLEM DECOMPOSITION & CONSTRAINTS";
+      sec2 = "SYSTEMATIC ANALYSIS & PROOF";
     }
 
     return `### ROLE & PERSONA
-You are an authoritative ${role}. Execute this task with highest precision:
+Act as an expert ${role}. You are addressing a high-priority problem with high precision.
+
+### USER OBJECTIVE
 "${text}"
 
 ### ${sec1}
 - **Subject**: "${subject}"
 - **Tone Profile**: ${toneStr}
-- **Active Project Context**: ${activeContextBlocks.join(", ")}
-${antiCliche}
-- **Constraints**: Deliver complete, production-grade output without omissions, placeholders, or conversational fluff.
+- **Active Project Context**: ${activeBlocks.length > 0 ? activeBlocks.join(", ") : "Standard Production Guidelines"}
+- **Quality Standard**: Deliver complete, production-grade output without omissions, placeholders, or conversational fluff.
 
 ### ${sec2}
 1. Analyze the core requirements for "${subject}" and anticipate implicit edge cases.
@@ -604,7 +599,7 @@ ${antiCliche}
 - Deliver immediately usable, clean Markdown formatted content.`;
   }
 
-  // 13. Enhance Action Handler
+  // 14. Enhance Action Trigger
   async function triggerCompilation() {
     const rawText = input ? input.value.trim() : "";
     if (!rawText) {
@@ -615,16 +610,16 @@ ${antiCliche}
 
     rawPromptMemory = rawText;
     if (enhanceBtn) enhanceBtn.disabled = true;
-    if (btnText) btnText.textContent = "⚡ Compiling Master Prompt...";
+    if (btnText) btnText.textContent = "Compiling Master Prompt...";
 
     let finalResult = "";
 
-    // Mode 1: No-API Offline Engine
+    // Mode 1: No-API Offline Turbo Engine
     if (currentMode === "algo") {
       finalResult = synthesizeLocalPrompt(rawText);
     }
 
-    // Mode 2: On-Device Gemini Nano
+    // Mode 2: Chrome On-Device Gemini Nano
     if (!finalResult && currentMode === "device") {
       try {
         const w = window;
@@ -638,12 +633,12 @@ ${antiCliche}
       } catch {}
     }
 
-    // Mode 3: Cloud API
+    // Mode 3: Cloud AI Multi-Model Router
     if (!finalResult) {
       try {
         const res = await new Promise((resolve) => {
           chrome.runtime.sendMessage(
-            { action: "enhancePrompt", text: rawText, mode: currentMode, level: currentTone, tone: currentTone },
+            { action: "enhancePrompt", text: rawText, mode: currentMode, tone: currentTone },
             (r) => resolve(r)
           );
         });
@@ -660,18 +655,18 @@ ${antiCliche}
     }
 
     if (enhanceBtn) enhanceBtn.disabled = false;
-    if (btnText) btnText.textContent = "⚡ Compile Master Prompt (⌘↵)";
+    if (btnText) btnText.textContent = "Compile Master Prompt (⌘↵)";
 
     const qScore = calculateScore(finalResult);
-    showResultView(finalResult, qScore, "<20ms");
-    showToast("✓ Master prompt compiled!");
+    showResultView(finalResult, qScore, currentMode === "algo" ? "<15ms" : "<600ms");
+    showToast("Master prompt compiled!");
   }
 
   if (enhanceBtn) {
     enhanceBtn.addEventListener("click", triggerCompilation);
   }
 
-  // Keyboard Shortcuts: Cmd+Enter to compile, Esc to go back
+  // Keyboard Shortcuts: Cmd+Enter to compile, Esc to edit
   document.addEventListener("keydown", (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
       e.preventDefault();
@@ -681,18 +676,17 @@ ${antiCliche}
     }
   });
 
-  // 14. Copy Button
+  // 15. Action Buttons
   if (copyBtn) {
     copyBtn.addEventListener("click", () => {
       if (enhancedResult) {
         navigator.clipboard.writeText(enhancedResult);
-        copyBtn.textContent = "✓ Copied!";
-        setTimeout(() => { copyBtn.textContent = "📋 Copy Prompt"; }, 2000);
+        copyBtn.textContent = "Copied!";
+        setTimeout(() => { copyBtn.textContent = "Copy Prompt"; }, 2000);
       }
     });
   }
 
-  // 15. Use in Active Tab
   if (useBtn) {
     useBtn.addEventListener("click", () => {
       if (enhancedResult) {
@@ -700,8 +694,8 @@ ${antiCliche}
           if (tabs?.[0]?.id) {
             chrome.tabs.sendMessage(tabs[0].id, { action: "injectEnhanced", enhanced: enhancedResult }, (r) => {
               if (r?.success) {
-                useBtn.textContent = "✓ Injected";
-                setTimeout(() => { useBtn.textContent = "🚀 Use in Active Tab"; }, 2000);
+                useBtn.textContent = "Injected!";
+                setTimeout(() => { useBtn.textContent = "Use in Active Tab"; }, 2000);
               } else {
                 showToast("Open ChatGPT / Claude / Gemini to inject directly!", true);
               }
@@ -712,35 +706,33 @@ ${antiCliche}
     });
   }
 
-  // 16. Save to Cloud Library
   if (saveCloudBtn) {
     saveCloudBtn.addEventListener("click", () => {
       if (!enhancedResult) return;
-      saveCloudBtn.textContent = "💾 Saving...";
+      saveCloudBtn.textContent = "Saving...";
       chrome.runtime.sendMessage(
         {
           action: "saveToCloudPrompt",
           originalText: rawPromptMemory || enhancedResult.slice(0, 100),
           enhancedText: enhancedResult,
-          category: currentTone === "code" ? "Development" : currentTone === "copy" ? "Marketing" : "General",
+          category: "Extension v2.1.3.2",
           tone: currentTone,
-          score: 96,
+          score: calculateScore(enhancedResult),
         },
-        (res) => {
-          if (res?.success) {
-            saveCloudBtn.textContent = "✓ Saved to Cloud";
-            showToast("✓ Prompt saved to your Web Cloud Library!");
+        (r) => {
+          if (r?.success) {
+            saveCloudBtn.textContent = "Saved!";
+            showToast("Saved to Prompt+ Cloud Library!");
           } else {
-            saveCloudBtn.textContent = "💾 Save to Cloud Library";
-            showToast(res?.error || "Login to Prompt+ Web to save to cloud", true);
+            saveCloudBtn.textContent = "Save to Cloud";
+            showToast(r?.error || "Login to Prompt+ Web required to sync cloud.", true);
           }
-          setTimeout(() => { saveCloudBtn.textContent = "💾 Save to Cloud Library"; }, 2500);
+          setTimeout(() => { saveCloudBtn.textContent = "Save to Cloud"; }, 2500);
         }
       );
     });
   }
 
-  // 17. Open in Web Studio
   if (openStudioBtn) {
     openStudioBtn.addEventListener("click", () => {
       chrome.runtime.sendMessage({
@@ -750,18 +742,4 @@ ${antiCliche}
       });
     });
   }
-
-  // 18. Multi-AI Split Launch Handlers
-  const openTargetAI = (targetUrl) => {
-    try {
-      chrome.tabs?.create({ url: targetUrl });
-    } catch {
-      window.open(targetUrl, "_blank");
-    }
-  };
-
-  document.getElementById("bridge-chatgpt")?.addEventListener("click", () => openTargetAI("https://chatgpt.com/"));
-  document.getElementById("bridge-claude")?.addEventListener("click", () => openTargetAI("https://claude.ai/new"));
-  document.getElementById("bridge-gemini")?.addEventListener("click", () => openTargetAI("https://gemini.google.com/app"));
-  document.getElementById("bridge-deepseek")?.addEventListener("click", () => openTargetAI("https://chat.deepseek.com/"));
 });

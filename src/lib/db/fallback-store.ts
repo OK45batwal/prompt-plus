@@ -36,7 +36,7 @@ export interface MockPrompt {
   updatedAt: Date;
 }
 
-class LocalDatabaseStore {
+export class LocalDatabaseStore {
   private users: Map<string, MockUser> = new Map();
   private prompts: Map<string, MockPrompt> = new Map();
   private storageFile: string | null = null;
@@ -63,6 +63,9 @@ class LocalDatabaseStore {
       const parsed = JSON.parse(content);
       if (parsed.users && Array.isArray(parsed.users)) {
         for (const u of parsed.users) {
+          if (process.env.NODE_ENV === "production" && u.email?.toLowerCase().trim() === "developer@promptplus.app") {
+            continue;
+          }
           this.users.set(u.email.toLowerCase().trim(), {
             ...u,
             createdAt: new Date(u.createdAt),
@@ -92,6 +95,9 @@ class LocalDatabaseStore {
   }
 
   private seedDefaultUser() {
+    if (process.env.NODE_ENV === "production") {
+      return;
+    }
     const defaultEmail = "developer@promptplus.app";
     if (!this.users.has(defaultEmail)) {
       // Precomputed bcrypt hash of "password123"

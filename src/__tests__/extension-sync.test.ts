@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 import { POST as savePromptRoute } from "../app/api/v1/extension/save-prompt/route";
 import { GET as extensionSyncRoute } from "../app/api/v1/auth/extension-sync/route";
+import { GET as extensionTemplatesRoute } from "../app/api/v1/extension/templates/route";
 
 interface MockUserSession {
   user: {
@@ -52,7 +53,7 @@ vi.mock("@/lib/db/prisma", () => ({
   })),
 }));
 
-describe("Extension Web Sync & Save Endpoints (v2.1.3.1)", () => {
+describe("Extension Web Sync & Save Endpoints (v2.1.3.2)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSession = null;
@@ -108,5 +109,19 @@ describe("Extension Web Sync & Save Endpoints (v2.1.3.1)", () => {
     expect(json.authenticated).toBe(true);
     expect(json.user.name).toBe("Test User");
     expect(json.quota.monthlyLimit).toBe(100);
+  });
+
+  it("GET /api/v1/extension/templates should return curated blueprints with version v2.1.3.2", async () => {
+    const req = new NextRequest("http://localhost:3000/api/v1/extension/templates");
+    const res = await extensionTemplatesRoute(req);
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.success).toBe(true);
+    expect(json.version).toBe("2.1.3.2");
+    expect(Array.isArray(json.data.curated)).toBe(true);
+    expect(json.data.curated.length).toBeGreaterThanOrEqual(4);
+    expect(json.data.curated[0]).toHaveProperty("title");
+    expect(json.data.curated[0]).toHaveProperty("category");
+    expect(json.data.curated[0]).toHaveProperty("text");
   });
 });

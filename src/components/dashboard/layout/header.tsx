@@ -74,8 +74,21 @@ export function Header({ onMenuClick }: HeaderProps) {
     // Direct Extension Communication Bridge: Broadcast active web session to Prompt+ Extension
     const currentUser = session?.user;
     if (typeof window !== "undefined" && currentUser?.id) {
-      const broadcastSession = () => {
+      const broadcastSession = async () => {
         try {
+          let quota = undefined;
+          let savedBlocks = undefined;
+          let recentPrompts = undefined;
+          try {
+            const res = await fetch("/api/v1/auth/extension-sync");
+            if (res.ok) {
+              const data = await res.json();
+              if (data.quota) quota = data.quota;
+              if (data.savedBlocks) savedBlocks = data.savedBlocks;
+              if (data.recentPrompts) recentPrompts = data.recentPrompts;
+            }
+          } catch {}
+
           window.postMessage(
             {
               source: "promptplus_web",
@@ -86,6 +99,9 @@ export function Header({ onMenuClick }: HeaderProps) {
                 email: currentUser.email || "",
                 avatar: effectiveAvatar,
               },
+              quota,
+              savedBlocks,
+              recentPrompts,
             },
             "*"
           );

@@ -1,6 +1,7 @@
 (function () {
   let modalEl = null;
   let selectedTone = "code";
+  let userQuota = null;
 
   // Web Platform Session Bridge: Listen for authenticated sessions broadcast by Prompt+ Web Platform
   if (
@@ -1011,13 +1012,26 @@ ${antiCliche}
     }
   });
 
-  // Observe DOM changes to re-inject when new chat views render
-  setInterval(() => {
-    const input = getInput();
-    if (input && !document.querySelector(".pp-floating-trigger")) {
-      injectFloatingButton();
-    }
-  }, 1000);
+  // Observe DOM changes with debounced MutationObserver to re-inject efficiently when new chat views render
+  let reinjectTimer = null;
+  const domObserver = new MutationObserver(() => {
+    if (reinjectTimer) return;
+    reinjectTimer = setTimeout(() => {
+      reinjectTimer = null;
+      const input = getInput();
+      if (input && !document.querySelector(".pp-floating-trigger")) {
+        injectFloatingButton();
+      }
+    }, 400);
+  });
+
+  if (document.body) {
+    domObserver.observe(document.body, { childList: true, subtree: true });
+  } else {
+    document.addEventListener("DOMContentLoaded", () => {
+      domObserver.observe(document.body, { childList: true, subtree: true });
+    });
+  }
 
   window.addEventListener("focus", () => {
     const input = getInput();
