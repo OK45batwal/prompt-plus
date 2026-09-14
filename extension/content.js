@@ -3,6 +3,17 @@
   let selectedTone = "code";
   let userQuota = null;
 
+  const isMac = typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+  const kbdShortcut = isMac ? "⌘↵" : "Ctrl+↵";
+
+  const ICONS = {
+    sparkle: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>`,
+    chevron: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>`,
+    zap: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+    copy: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`,
+    close: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
+  };
+
   // Web Platform Session Bridge: Listen for authenticated sessions broadcast by Prompt+ Web Platform
   if (
     location.hostname.includes("prompt-plus-three.vercel.app") ||
@@ -47,26 +58,49 @@
         position: fixed !important;
         display: inline-flex !important;
         align-items: center !important;
-        gap: 6px !important;
-        padding: 5px 12px 5px 8px !important;
+        box-sizing: border-box !important;
+        height: 28px !important;
         border-radius: 9999px !important;
-        background: rgba(14, 14, 18, 0.94) !important;
-        border: 1px solid rgba(99, 102, 241, 0.45) !important;
-        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 14px rgba(99, 102, 241, 0.25) !important;
-        backdrop-filter: blur(20px) !important;
-        -webkit-backdrop-filter: blur(20px) !important;
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif !important;
+        background: rgba(12, 12, 16, 0.94) !important;
+        border: 1px solid rgba(99, 102, 241, 0.38) !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), 0 0 12px rgba(99, 102, 241, 0.22) !important;
+        backdrop-filter: blur(20px) saturate(160%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif !important;
         z-index: 99999999 !important;
         cursor: pointer !important;
         user-select: none !important;
-        transition: top 0.12s cubic-bezier(0.16, 1, 0.3, 1), left 0.12s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease !important;
+        transition: width 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+                    padding 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+                    border-color 0.2s ease,
+                    box-shadow 0.2s ease,
+                    transform 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
         color: #ffffff !important;
+        padding: 3px 6px 3px 4px !important;
+        overflow: hidden !important;
       }
+
+      .pp-floating-trigger.pp-idle {
+        width: 28px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        border-color: rgba(99, 102, 241, 0.28) !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), 0 0 8px rgba(99, 102, 241, 0.16) !important;
+      }
+
+      .pp-floating-trigger.pp-idle:hover {
+        width: auto !important;
+        padding: 3px 6px 3px 4px !important;
+        border-color: rgba(99, 102, 241, 0.65) !important;
+        box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55), 0 0 16px rgba(99, 102, 241, 0.35) !important;
+      }
+
       .pp-floating-trigger:hover {
-        transform: translateY(-2px) scale(1.02) !important;
-        border-color: rgba(99, 102, 241, 0.75) !important;
-        box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(99, 102, 241, 0.45) !important;
+        transform: translateY(-1px) scale(1.01) !important;
+        border-color: rgba(99, 102, 241, 0.7) !important;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6), 0 0 18px rgba(99, 102, 241, 0.35) !important;
       }
+
       .pp-floating-trigger:active {
         transform: translateY(0) scale(0.98) !important;
       }
@@ -74,35 +108,106 @@
       .pp-trigger-icon {
         width: 20px !important;
         height: 20px !important;
+        min-width: 20px !important;
         border-radius: 50% !important;
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        font-size: 11px !important;
-        font-weight: 800 !important;
         color: #ffffff !important;
-        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+        flex-shrink: 0 !important;
       }
 
-      .pp-trigger-text {
-        font-size: 11.5px !important;
+      .pp-trigger-content {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        margin-left: 5px !important;
+        white-space: nowrap !important;
+        transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        max-width: 320px !important;
+        opacity: 1 !important;
+      }
+
+      .pp-floating-trigger.pp-idle .pp-trigger-content {
+        opacity: 0 !important;
+        max-width: 0 !important;
+        margin-left: 0 !important;
+        pointer-events: none !important;
+      }
+
+      .pp-floating-trigger.pp-idle:hover .pp-trigger-content {
+        opacity: 1 !important;
+        max-width: 320px !important;
+        margin-left: 5px !important;
+        pointer-events: auto !important;
+      }
+
+      .pp-trigger-primary {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        cursor: pointer !important;
+        color: #ffffff !important;
+      }
+      .pp-trigger-primary:hover .pp-trigger-label {
+        color: #e0e7ff !important;
+      }
+
+      .pp-trigger-label {
+        font-size: 11px !important;
         font-weight: 700 !important;
         letter-spacing: -0.01em !important;
         color: #ffffff !important;
-        display: flex !important;
-        align-items: center !important;
-        gap: 5px !important;
+        transition: color 0.15s ease !important;
+      }
+
+      .pp-trigger-kbd {
+        font-size: 8.5px !important;
+        font-family: inherit !important;
+        color: #a1a1aa !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        padding: 1px 4px !important;
+        border-radius: 3px !important;
+        line-height: 1 !important;
+      }
+
+      .pp-trigger-sep {
+        width: 1px !important;
+        height: 12px !important;
+        background: rgba(255, 255, 255, 0.14) !important;
+        margin: 0 1px !important;
       }
 
       .pp-trigger-token-badge {
-        font-size: 9.5px !important;
+        font-size: 9px !important;
         font-weight: 600 !important;
-        padding: 2px 6px !important;
+        padding: 1.5px 5px !important;
         border-radius: 9999px !important;
-        background: rgba(255, 255, 255, 0.08) !important;
+        background: rgba(255, 255, 255, 0.06) !important;
         color: #a1a1aa !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        letter-spacing: -0.01em !important;
+      }
+
+      .pp-trigger-more {
+        background: transparent !important;
+        border: none !important;
+        padding: 2px 4px !important;
+        border-radius: 4px !important;
+        color: #a1a1aa !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        transition: all 0.15s ease !important;
+      }
+
+      .pp-trigger-more:hover {
+        color: #ffffff !important;
+        background: rgba(255, 255, 255, 0.12) !important;
       }
 
       /* Floating Modal Studio */
@@ -111,17 +216,17 @@
         z-index: 100000000 !important;
         width: 380px !important;
         max-width: calc(100vw - 32px) !important;
-        background: rgba(14, 14, 18, 0.96) !important;
+        background: rgba(12, 12, 16, 0.96) !important;
         border: 1px solid rgba(99, 102, 241, 0.45) !important;
         box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 24px rgba(99, 102, 241, 0.25) !important;
-        backdrop-filter: blur(24px) !important;
-        -webkit-backdrop-filter: blur(24px) !important;
+        backdrop-filter: blur(24px) saturate(160%) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
         border-radius: 14px !important;
         padding: 12px 14px !important;
         display: flex !important;
         flex-direction: column !important;
         gap: 10px !important;
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif !important;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif !important;
         color: #f4f4f5 !important;
         user-select: none !important;
         animation: ppModalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
@@ -142,20 +247,42 @@
         display: flex !important;
         align-items: center !important;
         gap: 7px !important;
-        font-size: 12.5px !important;
+        font-size: 12px !important;
         font-weight: 700 !important;
         color: #ffffff !important;
+      }
+
+      .pp-model-badge {
+        font-size: 9px !important;
+        font-weight: 700 !important;
+        padding: 2px 7px !important;
+        border-radius: 4px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+      }
+
+      .pp-status-dot {
+        width: 5px !important;
+        height: 5px !important;
+        border-radius: 50% !important;
+        display: inline-block !important;
       }
 
       .pp-modal-close-btn {
         background: transparent !important;
         border: none !important;
         color: #71717a !important;
-        font-size: 14px !important;
+        font-size: 12px !important;
         cursor: pointer !important;
-        padding: 2px 6px !important;
+        padding: 4px 6px !important;
         border-radius: 6px !important;
-        transition: color 0.15s ease !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.15s ease !important;
       }
       .pp-modal-close-btn:hover {
         color: #ffffff !important;
@@ -166,15 +293,16 @@
         display: flex !important;
         gap: 4px !important;
         overflow-x: auto !important;
+        padding-bottom: 2px !important;
       }
 
       .pp-tone-chip {
         font-size: 10px !important;
         font-weight: 600 !important;
-        padding: 3px 8px !important;
+        padding: 4px 9px !important;
         border-radius: 6px !important;
         background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.09) !important;
         color: #a1a1aa !important;
         cursor: pointer !important;
         white-space: nowrap !important;
@@ -183,15 +311,17 @@
       .pp-tone-chip:hover {
         color: #ffffff !important;
         background: rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(255, 255, 255, 0.18) !important;
       }
       .pp-tone-chip.active {
         background: rgba(99, 102, 241, 0.25) !important;
-        border-color: rgba(99, 102, 241, 0.6) !important;
+        border-color: rgba(99, 102, 241, 0.65) !important;
         color: #c7d2fe !important;
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.25) !important;
       }
 
       .pp-modal-preview {
-        background: rgba(0, 0, 0, 0.45) !important;
+        background: rgba(0, 0, 0, 0.5) !important;
         border: 1px solid rgba(255, 255, 255, 0.08) !important;
         border-radius: 9px !important;
         padding: 8px 10px !important;
@@ -222,13 +352,16 @@
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        gap: 5px !important;
+        gap: 6px !important;
         box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
         transition: all 0.15s ease !important;
       }
       .pp-modal-btn-primary:hover {
         filter: brightness(1.08) !important;
         transform: translateY(-1px) !important;
+      }
+      .pp-modal-btn-primary:active {
+        transform: translateY(0) !important;
       }
 
       .pp-modal-btn-sub {
@@ -244,7 +377,7 @@
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        gap: 4px !important;
+        gap: 5px !important;
         transition: all 0.15s ease !important;
       }
       .pp-modal-btn-sub:hover {
@@ -651,18 +784,21 @@ ${antiCliche}
     modalEl.innerHTML = `
       <div class="pp-modal-header">
         <div class="pp-modal-title">
-          <span style="color:#6366f1;font-size:14px;">✦</span>
-          <span>Prompt+ Instant Optimizer</span>
-          <span style="font-size:9.5px;color:${modelInfo.color};font-weight:800;padding:1px 6px;border-radius:4px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);">🟢 ${modelInfo.name}</span>
+          <span class="pp-trigger-icon" style="width:18px;height:18px;min-width:18px;font-size:10px;">${ICONS.sparkle}</span>
+          <span>Prompt+ Studio</span>
+          <span class="pp-model-badge" style="color:${modelInfo.color};">
+            <span class="pp-status-dot" style="background:${modelInfo.color};"></span>
+            ${modelInfo.name}
+          </span>
         </div>
-        <button type="button" class="pp-modal-close-btn" id="pp-modal-close">✕</button>
+        <button type="button" class="pp-modal-close-btn" id="pp-modal-close" aria-label="Close">${ICONS.close}</button>
       </div>
 
       <!-- Real-Time Token Context Remaining Telemetry Card -->
-      <div style="background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:7px 10px;display:flex;flex-direction:column;gap:4px;">
+      <div style="background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:7px 10px;display:flex;flex-direction:column;gap:5px;">
         <div style="display:flex;align-items:center;justify-content:space-between;font-size:10.5px;">
-          <span style="font-weight:700;color:#ffffff;">Remaining Context</span>
-          <span style="font-weight:800;color:#10b981;background:rgba(16,185,129,0.15);padding:1px 6px;border-radius:4px;border:1px solid rgba(16,185,129,0.3);">${freeK}K tokens free (${freePct}%)</span>
+          <span style="font-weight:700;color:#ffffff;letter-spacing:-0.01em;">Remaining Context</span>
+          <span style="font-weight:700;color:#10b981;background:rgba(16,185,129,0.14);padding:1.5px 7px;border-radius:4px;border:1px solid rgba(16,185,129,0.28);">${freeK}K tokens free (${freePct}%)</span>
         </div>
         <div style="width:100%;height:4.5px;border-radius:9999px;background:rgba(255,255,255,0.1);overflow:hidden;">
           <div style="height:100%;border-radius:9999px;background:linear-gradient(90deg,#6366f1 0%,#10b981 100%);width:${Math.max(8, freePct)}%;box-shadow:0 0 8px rgba(16,185,129,0.4);"></div>
@@ -674,11 +810,11 @@ ${antiCliche}
       </div>
 
       <div class="pp-tone-row">
-        <div class="pp-tone-chip ${selectedTone === "human" ? "active" : ""}" data-tone="human">🗣️ Human Voice</div>
-        <div class="pp-tone-chip ${selectedTone === "code" ? "active" : ""}" data-tone="code">💻 Tech</div>
-        <div class="pp-tone-chip ${selectedTone === "copy" ? "active" : ""}" data-tone="copy">📈 Copy</div>
-        <div class="pp-tone-chip ${selectedTone === "exec" ? "active" : ""}" data-tone="exec">👔 Executive</div>
-        <div class="pp-tone-chip ${selectedTone === "deep" ? "active" : ""}" data-tone="deep">🔬 Deep Logic</div>
+        <div class="pp-tone-chip ${selectedTone === "human" ? "active" : ""}" data-tone="human">Natural Human</div>
+        <div class="pp-tone-chip ${selectedTone === "code" ? "active" : ""}" data-tone="code">Tech Architect</div>
+        <div class="pp-tone-chip ${selectedTone === "copy" ? "active" : ""}" data-tone="copy">Conversion Copy</div>
+        <div class="pp-tone-chip ${selectedTone === "exec" ? "active" : ""}" data-tone="exec">Executive Brief</div>
+        <div class="pp-tone-chip ${selectedTone === "deep" ? "active" : ""}" data-tone="deep">Deep Reasoner</div>
       </div>
 
       <div class="pp-modal-preview" id="pp-modal-preview">
@@ -687,10 +823,13 @@ ${antiCliche}
 
       <div class="pp-modal-actions">
         <button type="button" class="pp-modal-btn-primary" id="pp-modal-replace-btn">
-          <span>⚡ Optimize & Replace in Chat</span>
+          ${ICONS.zap}
+          <span>Optimize & Replace</span>
+          <kbd class="pp-trigger-kbd" style="margin-left: 4px; background: rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.2); color: #ffffff;">${kbdShortcut}</kbd>
         </button>
-        <button type="button" class="pp-modal-btn-sub" id="pp-modal-copy-btn" title="Copy to clipboard">
-          <span>📋</span>
+        <button type="button" class="pp-modal-btn-sub" id="pp-modal-copy-btn" title="Copy Master Prompt">
+          ${ICONS.copy}
+          <span>Copy</span>
         </button>
       </div>
     `;
@@ -711,11 +850,45 @@ ${antiCliche}
     modalEl.style.top = `${Math.round(top)}px`;
     modalEl.style.left = `${Math.round(left)}px`;
 
+    const closeModal = () => {
+      if (modalEl) {
+        document.removeEventListener("keydown", handleModalKeydown, true);
+        document.removeEventListener("click", handleOutsideClick);
+        modalEl.remove();
+        modalEl = null;
+      }
+    };
+
+    const handleModalKeydown = (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        closeModal();
+        if (inputEl) inputEl.focus();
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        modalEl.querySelector("#pp-modal-replace-btn")?.click();
+      }
+    };
+
+    const handleOutsideClick = (e) => {
+      if (modalEl && !modalEl.contains(e.target) && !e.target.closest(".pp-floating-trigger")) {
+        closeModal();
+      }
+    };
+
+    document.addEventListener("keydown", handleModalKeydown, true);
+    setTimeout(() => {
+      document.addEventListener("click", handleOutsideClick);
+    }, 50);
+
     // Event handlers with stopPropagation to prevent host page cancellation
     modalEl.querySelector("#pp-modal-close")?.addEventListener("click", (e) => {
       e.stopPropagation();
-      modalEl.remove();
-      modalEl = null;
+      closeModal();
     });
 
     modalEl.querySelectorAll(".pp-tone-chip").forEach((chip) => {
@@ -737,8 +910,7 @@ ${antiCliche}
       const masterPrompt = synthesizeLocalPrompt(raw, selectedTone);
       setText(inputEl, masterPrompt);
       showToast("✓ Master prompt compiled & replaced in chat!");
-      modalEl.remove();
-      modalEl = null;
+      closeModal();
     });
 
     modalEl.querySelector("#pp-modal-copy-btn")?.addEventListener("click", (e) => {
@@ -809,18 +981,31 @@ ${antiCliche}
     const initialFreeK = Math.max(0, (model.maxContext - initialTokens) / 1000).toFixed(0);
     const badgeLabel = initialTokens > 0 ? `${initialFreeK}K free · ~${initialTokens} tok` : `${initialFreeK}K free`;
 
+    if (initialTokens === 0) {
+      trigger.classList.add("pp-idle");
+    }
+
     trigger.innerHTML = `
-      <div class="pp-trigger-icon">✦</div>
-      <div class="pp-trigger-text">
-        <span>Enhance</span>
+      <div class="pp-trigger-icon" title="Prompt+ (Click to enhance or expand)">
+        ${ICONS.sparkle}
+      </div>
+      <div class="pp-trigger-content">
+        <div class="pp-trigger-primary" id="pp-trigger-primary" title="Click to enhance prompt in-place">
+          <span class="pp-trigger-label">Enhance</span>
+          <kbd class="pp-trigger-kbd">${kbdShortcut}</kbd>
+        </div>
+        <div class="pp-trigger-sep"></div>
         <span class="pp-trigger-token-badge" id="pp-trigger-tok">${badgeLabel}</span>
+        <button type="button" class="pp-trigger-more" id="pp-trigger-more" title="Open Studio Modal" aria-label="Open Studio">
+          ${ICONS.chevron}
+        </button>
       </div>
     `;
 
     document.body.appendChild(trigger);
     positionFloatingButton(trigger, input);
 
-    // Live typing token count
+    // Live typing token count & morph state
     const updateTokens = () => {
       const val = getText(input).trim();
       const tokens = val.length > 0 ? Math.ceil(val.length / 3.8) : 0;
@@ -830,18 +1015,52 @@ ${antiCliche}
       if (tokBadge) {
         tokBadge.textContent = tokens > 0 ? `${freeK}K free · ~${tokens} tok` : `${freeK}K free`;
       }
+      if (tokens === 0) {
+        trigger.classList.add("pp-idle");
+      } else {
+        trigger.classList.remove("pp-idle");
+      }
     };
     input.addEventListener("input", updateTokens);
     updateTokens();
 
     setupDraggable(trigger);
 
-    // Reliable click handler
-    trigger.addEventListener("click", (e) => {
+    // Reliable click handlers
+    trigger.querySelector("#pp-trigger-more")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openFloatingModal(input);
+    });
+
+    trigger.querySelector("#pp-trigger-primary")?.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       if (trigger._hasMoved && trigger._hasMoved()) return;
-      openFloatingModal(input);
+      const raw = getText(input).trim();
+      if (raw) {
+        const masterPrompt = synthesizeLocalPrompt(raw, selectedTone);
+        setText(input, masterPrompt);
+        showToast("✓ Prompt enhanced in-place!");
+      } else {
+        openFloatingModal(input);
+      }
+    });
+
+    // Outer trigger click fallback (e.g. clicking the icon or when idle)
+    trigger.addEventListener("click", (e) => {
+      if (e.target.closest("#pp-trigger-more") || e.target.closest("#pp-trigger-primary")) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (trigger._hasMoved && trigger._hasMoved()) return;
+      const raw = getText(input).trim();
+      if (trigger.classList.contains("pp-idle") || !raw) {
+        openFloatingModal(input);
+      } else {
+        const masterPrompt = synthesizeLocalPrompt(raw, selectedTone);
+        setText(input, masterPrompt);
+        showToast("✓ Prompt enhanced in-place!");
+      }
     });
 
     let rafPending = false;
@@ -891,6 +1110,7 @@ ${antiCliche}
         if (typeof pos.top === "number" && typeof pos.left === "number") {
           const clampedTop = Math.max(8, Math.min(window.innerHeight - 40, pos.top));
           const clampedLeft = Math.max(8, Math.min(window.innerWidth - 140, pos.left));
+          trigger.style.removeProperty("right");
           trigger.style.setProperty("top", `${clampedTop}px`, "important");
           trigger.style.setProperty("left", `${clampedLeft}px`, "important");
           trigger.style.setProperty("display", "inline-flex", "important");
@@ -907,31 +1127,27 @@ ${antiCliche}
       return;
     }
 
-    const triggerHeight = trigger.offsetHeight || 32;
-    const triggerWidth = trigger.offsetWidth || 155;
+    const triggerHeight = 28;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    // Ergonometric vertical placement with clean 14px separation
+    // Ergonomic vertical placement with clean 12px separation
     let top = 0;
-    if (rect.bottom + triggerHeight + 20 < viewportHeight) {
-      top = rect.bottom + 14;
+    if (rect.bottom + triggerHeight + 18 < viewportHeight) {
+      top = rect.bottom + 12;
     } else {
-      top = rect.top - triggerHeight - 14;
+      top = rect.top - triggerHeight - 12;
     }
 
     if (top < 10) top = 10;
     if (top + triggerHeight > viewportHeight - 10) top = viewportHeight - triggerHeight - 10;
 
-    // Align right with outer chat capsule
-    let left = rect.right - triggerWidth - 6;
-    if (left < 16) left = 16;
-    if (left + triggerWidth > viewportWidth - 16) {
-      left = Math.max(16, viewportWidth - triggerWidth - 16);
-    }
+    // Anchor to right edge of capsule so morph expansions expand naturally to the left
+    const rightOffset = Math.max(16, Math.min(viewportWidth - 36, viewportWidth - rect.right + 6));
 
+    trigger.style.removeProperty("left");
+    trigger.style.setProperty("right", `${Math.round(rightOffset)}px`, "important");
     trigger.style.setProperty("top", `${Math.round(top)}px`, "important");
-    trigger.style.setProperty("left", `${Math.round(left)}px`, "important");
     trigger.style.setProperty("display", "inline-flex", "important");
   }
 
@@ -965,6 +1181,7 @@ ${antiCliche}
       }
       const newLeft = Math.max(8, Math.min(window.innerWidth - trigger.offsetWidth - 8, initialLeft + dx));
       const newTop = Math.max(8, Math.min(window.innerHeight - trigger.offsetHeight - 8, initialTop + dy));
+      trigger.style.removeProperty("right");
       trigger.style.setProperty("left", `${newLeft}px`, "important");
       trigger.style.setProperty("top", `${newTop}px`, "important");
     });
@@ -984,6 +1201,7 @@ ${antiCliche}
       e.preventDefault();
       e.stopPropagation();
       localStorage.removeItem("pp_btn_custom_pos");
+      trigger.style.removeProperty("left");
       showToast("✓ Button position reset to default");
       if (trigger._targetInput) {
         positionFloatingButton(trigger, trigger._targetInput);
