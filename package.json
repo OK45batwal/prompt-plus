@@ -10,6 +10,7 @@
     "lint": "eslint",
     "check-routes": "node scripts/check-api-routes.mjs",
     "build:extension": "node scripts/package-extension.mjs",
+    "screenshots": "node scripts/generate-chrome-screenshots.mjs",
     "test": "node scripts/check-api-routes.mjs && vitest run",
     "test:e2e": "playwright test",
     "postinstall": "prisma generate",

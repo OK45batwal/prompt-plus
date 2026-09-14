@@ -1,0 +1,202 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <defs>
+    <!-- Gradients -->
+    <radialGradient id="bgGlow" cx="50%" cy="0%" r="85%">
+      <stop offset="0%" stop-color="#1e1b4b" stop-opacity="0.65"/>
+      <stop offset="50%" stop-color="#09090b" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#09090b" stop-opacity="1"/>
+    </radialGradient>
+    <radialGradient id="purpleAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#a5b4fc"/>
+      <stop offset="50%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+    <linearGradient id="telemetryGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <!-- Window Border Gradient -->
+    <linearGradient id="windowBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
+      <stop offset="50%" stop-color="rgba(99,102,241,0.3)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.08)"/>
+    </linearGradient>
+
+    <!-- Grid Pattern -->
+    <pattern id="gridDots" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#ffffff" fill-opacity="0.05"/>
+    </pattern>
+
+    <!-- Drop Shadows -->
+    <filter id="windowShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="24" stdDeviation="32" flood-color="#000000" flood-opacity="0.8"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#6366f1" flood-opacity="0.2"/>
+    </filter>
+    <filter id="pillShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.6"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#6366f1" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <style>
+    .font-title { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif; font-weight: 800; }
+    .font-body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", sans-serif; }
+    .font-mono { font-family: "SF Mono", "Fira Code", Menlo, monospace; }
+  </style>
+
+  <!-- Background Base -->
+  <rect width="1280" height="800" fill="#09090b"/>
+  <rect width="1280" height="800" fill="url(#bgGlow)"/>
+  <rect width="1280" height="800" fill="url(#gridDots)"/>
+  <circle cx="640" cy="500" r="450" fill="url(#purpleAura)"/>
+
+  <!-- Top Marketing Header -->
+  <g transform="translate(640, 56)" text-anchor="middle">
+    <!-- Category Pill Badge -->
+    <rect x="-110" y="0" width="220" height="26" rx="13" fill="rgba(99, 102, 241, 0.12)" stroke="rgba(99, 102, 241, 0.4)" stroke-width="1"/>
+    <text x="0" y="17" class="font-title" font-size="10.5" fill="#a5b4fc" letter-spacing="1.5">PROMPT+ STUDIO POPOVER</text>
+
+    <!-- Main Headline -->
+    <text x="0" y="60" class="font-title" font-size="33" fill="url(#textGrad)" letter-spacing="-0.5">Five Tailored Engineering Personas at Your Fingertips</text>
+
+    <!-- Subheadline -->
+    <text x="0" y="88" class="font-body" font-size="14.5" fill="#94a3b8" letter-spacing="-0.2">Switch effortlessly between Natural Human, Tech Architect, Conversion Copy, and Deep Reasoner.</text>
+  </g>
+
+  <!-- Illustration Viewport (Y: 170 to 760) -->
+  <g id="main-content">
+    
+  <g transform="translate(110, 166)" filter="url(#windowShadow)">
+    <rect width="1060" height="580" rx="16" fill="#0d0e15" stroke="url(#windowBorder)" stroke-width="1"/>
+
+    <!-- Mac Window Bar -->
+    <rect width="1060" height="42" rx="16" fill="#14151f"/>
+    <circle cx="24" cy="21" r="5.5" fill="#ef4444"/>
+    <circle cx="42" cy="21" r="5.5" fill="#eab308"/>
+    <circle cx="60" cy="21" r="5.5" fill="#22c55e"/>
+    <rect x="360" y="9" width="340" height="24" rx="6" fill="rgba(255,255,255,0.06)"/>
+    <text x="530" y="25" text-anchor="middle" class="font-mono" font-size="11" fill="#94a3b8">claude.ai / chatgpt.com</text>
+
+    <!-- Faded Background Chat Elements -->
+    <rect x="60" y="440" width="940" height="90" rx="12" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.08)"/>
+    <text x="80" y="480" class="font-body" font-size="13" fill="#475569">Type your raw prompt idea here...</text>
+
+    <!-- PROMPT+ STUDIO MODAL (Centered Showcase) -->
+    <g transform="translate(300, 70)" filter="url(#windowShadow)">
+      <rect width="460" height="420" rx="16" fill="rgba(12,12,16,0.98)" stroke="rgba(99,102,241,0.5)" stroke-width="1.2"/>
+
+      <!-- Modal Header -->
+      <g transform="translate(20, 22)">
+        <circle cx="11" cy="11" r="11" fill="url(#primaryGrad)"/>
+        <path d="m11 6 -1 2.5 a1 1 0 0 1 -.6 .6 L6.9 10.1 a1 1 0 0 1 0 1.6 l2.5 1 a1 1 0 0 1 .6 .6 L11 16 l1 -2.5 a1 1 0 0 1 .6 -.6 l2.5 -1 a1 1 0 0 1 0 -1.6 l-2.5 -1 a1 1 0 0 1 -.6 -.6 Z" fill="#ffffff"/>
+        <text x="32" y="15" class="font-title" font-size="14.5" fill="#ffffff">Prompt+ Studio</text>
+
+        <!-- Model Badge -->
+        <rect x="156" y="2" width="138" height="20" rx="4" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+        <circle cx="166" cy="12" r="3" fill="#d97706"/>
+        <text x="175" y="16" class="font-title" font-size="9.5" fill="#fbbf24">Claude 3.5 Sonnet</text>
+
+        <!-- Close X -->
+        <line x1="410" y1="6" x2="418" y2="14" stroke="#71717a" stroke-width="1.8" stroke-linecap="round"/>
+        <line x1="418" y1="6" x2="410" y2="14" stroke="#71717a" stroke-width="1.8" stroke-linecap="round"/>
+      </g>
+
+      <!-- Real-Time Telemetry Card -->
+      <g transform="translate(20, 64)">
+        <rect width="420" height="60" rx="10" fill="rgba(0,0,0,0.5)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+        <text x="14" y="20" class="font-title" font-size="11" fill="#ffffff">Context Window Capacity</text>
+        <rect x="250" y="9" width="156" height="18" rx="4" fill="rgba(16,185,129,0.15)" stroke="rgba(16,185,129,0.3)" stroke-width="1"/>
+        <text x="328" y="22" text-anchor="middle" class="font-body" font-size="9.5" font-weight="bold" fill="#10b981">198.2K free (99.1%)</text>
+
+        <!-- Progress Bar -->
+        <rect x="14" y="33" width="392" height="5.5" rx="3" fill="rgba(255,255,255,0.08)"/>
+        <rect x="14" y="33" width="370" height="5.5" rx="3" fill="url(#telemetryGrad)"/>
+
+        <text x="14" y="51" class="font-body" font-size="9" fill="#71717a">Prompt Load: ~28 tokens</text>
+        <text x="406" y="51" text-anchor="end" class="font-body" font-size="9" fill="#71717a">Max: 200K tokens</text>
+      </g>
+
+      <!-- 5 Precision Persona Chips (Zero Emojis, Pure Typography) -->
+      <g transform="translate(20, 140)">
+        <text x="0" y="0" class="font-title" font-size="10" fill="#71717a" letter-spacing="0.5">SELECT PERSONA ARCHITECTURE</text>
+
+        <!-- Natural Human -->
+        <rect x="0" y="10" width="90" height="26" rx="6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        <text x="45" y="27" text-anchor="middle" class="font-body" font-size="9.5" font-weight="600" fill="#cbd5e1">Natural Human</text>
+
+        <!-- Tech Architect (Active) -->
+        <rect x="96" y="10" width="94" height="26" rx="6" fill="rgba(99,102,241,0.25)" stroke="rgba(99,102,241,0.7)" stroke-width="1.2"/>
+        <text x="143" y="27" text-anchor="middle" class="font-title" font-size="9.5" fill="#e0e7ff">Tech Architect</text>
+
+        <!-- Conversion Copy -->
+        <rect x="196" y="10" width="102" height="26" rx="6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        <text x="247" y="27" text-anchor="middle" class="font-body" font-size="9.5" font-weight="600" fill="#cbd5e1">Conversion Copy</text>
+
+        <!-- Executive Brief -->
+        <rect x="304" y="10" width="98" height="26" rx="6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        <text x="353" y="27" text-anchor="middle" class="font-body" font-size="9.5" font-weight="600" fill="#cbd5e1">Executive Brief</text>
+
+        <!-- Deep Reasoner (Next line) -->
+        <rect x="0" y="42" width="98" height="26" rx="6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        <text x="49" y="59" text-anchor="middle" class="font-body" font-size="9.5" font-weight="600" fill="#cbd5e1">Deep Reasoner</text>
+      </g>
+
+      <!-- Live Preview Area -->
+      <g transform="translate(20, 222)">
+        <rect width="420" height="116" rx="9" fill="rgba(0,0,0,0.55)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+        <g class="font-mono" font-size="10.5">
+          <text x="14" y="20" fill="#818cf8">&lt;role_and_objective&gt;</text>
+          <text x="14" y="38" fill="#e2e8f0">  &lt;persona&gt;Senior Staff Distributed Systems Architect&lt;/persona&gt;</text>
+          <text x="14" y="56" fill="#e2e8f0">  &lt;task&gt;Design fault-tolerant event streams with Kafka&lt;/task&gt;</text>
+          <text x="14" y="74" fill="#818cf8">&lt;/role_and_objective&gt;</text>
+          <text x="14" y="94" fill="#94a3b8">&lt;anti_cliche_mandate&gt;Zero preamble, direct execution&lt;/anti_cliche_mandate&gt;</text>
+        </g>
+      </g>
+
+      <!-- Action Buttons -->
+      <g transform="translate(20, 354)">
+        <!-- Primary Action -->
+        <rect width="310" height="42" rx="8" fill="url(#primaryGrad)"/>
+        <polygon points="26,14 16,26 25,26 24,34 34,22 25,22" fill="#ffffff"/>
+        <text x="135" y="26" class="font-title" font-size="12" fill="#ffffff">Optimize &amp; Replace in Chat</text>
+        <rect x="252" y="12" width="34" height="18" rx="4" fill="rgba(0,0,0,0.25)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+        <text x="269" y="25" text-anchor="middle" class="font-body" font-size="9.5" font-weight="bold" fill="#ffffff">⌘↵</text>
+
+        <!-- Secondary Copy Button -->
+        <rect x="320" y="0" width="100" height="42" rx="8" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+        <rect x="340" y="14" width="12" height="12" rx="2" fill="none" stroke="#ffffff" stroke-width="1.6"/>
+        <path d="M336 21 L336 11 A 2 2 0 0 1 338 9 L348 9" fill="none" stroke="#ffffff" stroke-width="1.6"/>
+        <text x="360" y="26" class="font-title" font-size="12" fill="#ffffff">Copy</text>
+      </g>
+    </g>
+
+    <!-- Side Highlights -->
+    <g transform="translate(60, 160)">
+      <rect width="180" height="90" rx="10" fill="rgba(20,20,30,0.8)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+      <text x="16" y="24" class="font-title" font-size="11" fill="#a5b4fc">ANTI-CLICHÉ ENGINE</text>
+      <text x="16" y="46" class="font-body" font-size="10.5" fill="#94a3b8">Bans generic AI slop:</text>
+      <text x="16" y="64" class="font-mono" font-size="9.5" fill="#f87171">"delve into, tapestry..."</text>
+    </g>
+
+    <g transform="translate(820, 160)">
+      <rect width="180" height="90" rx="10" fill="rgba(20,20,30,0.8)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+      <text x="16" y="24" class="font-title" font-size="11" fill="#34d399">KEYBOARD FIRST</text>
+      <text x="16" y="46" class="font-body" font-size="10.5" fill="#94a3b8">Press ⌘↵ to replace</text>
+      <text x="16" y="64" class="font-body" font-size="10.5" fill="#94a3b8">Press Esc to dismiss</text>
+    </g>
+  </g>
+
+  </g>
+</svg>

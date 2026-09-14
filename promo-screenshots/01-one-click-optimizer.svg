@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <defs>
+    <!-- Gradients -->
+    <radialGradient id="bgGlow" cx="50%" cy="0%" r="85%">
+      <stop offset="0%" stop-color="#1e1b4b" stop-opacity="0.65"/>
+      <stop offset="50%" stop-color="#09090b" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#09090b" stop-opacity="1"/>
+    </radialGradient>
+    <radialGradient id="purpleAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#a5b4fc"/>
+      <stop offset="50%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+    <linearGradient id="telemetryGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <!-- Window Border Gradient -->
+    <linearGradient id="windowBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
+      <stop offset="50%" stop-color="rgba(99,102,241,0.3)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0.08)"/>
+    </linearGradient>
+
+    <!-- Grid Pattern -->
+    <pattern id="gridDots" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#ffffff" fill-opacity="0.05"/>
+    </pattern>
+
+    <!-- Drop Shadows -->
+    <filter id="windowShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="24" stdDeviation="32" flood-color="#000000" flood-opacity="0.8"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#6366f1" flood-opacity="0.2"/>
+    </filter>
+    <filter id="pillShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.6"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#6366f1" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <style>
+    .font-title { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif; font-weight: 800; }
+    .font-body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", sans-serif; }
+    .font-mono { font-family: "SF Mono", "Fira Code", Menlo, monospace; }
+  </style>
+
+  <!-- Background Base -->
+  <rect width="1280" height="800" fill="#09090b"/>
+  <rect width="1280" height="800" fill="url(#bgGlow)"/>
+  <rect width="1280" height="800" fill="url(#gridDots)"/>
+  <circle cx="640" cy="500" r="450" fill="url(#purpleAura)"/>
+
+  <!-- Top Marketing Header -->
+  <g transform="translate(640, 56)" text-anchor="middle">
+    <!-- Category Pill Badge -->
+    <rect x="-110" y="0" width="220" height="26" rx="13" fill="rgba(99, 102, 241, 0.12)" stroke="rgba(99, 102, 241, 0.4)" stroke-width="1"/>
+    <text x="0" y="17" class="font-title" font-size="10.5" fill="#a5b4fc" letter-spacing="1.5">1-CLICK PROMPT OPTIMIZER</text>
+
+    <!-- Main Headline -->
+    <text x="0" y="60" class="font-title" font-size="33" fill="url(#textGrad)" letter-spacing="-0.5">Turn Raw Thoughts into Production-Grade Prompts in 1 Click</text>
+
+    <!-- Subheadline -->
+    <text x="0" y="88" class="font-body" font-size="14.5" fill="#94a3b8" letter-spacing="-0.2">Floating native accelerator embedded directly inside ChatGPT, Claude, Gemini, and DeepSeek.</text>
+  </g>
+
+  <!-- Illustration Viewport (Y: 170 to 760) -->
+  <g id="main-content">
+    
+  <!-- Browser Frame -->
+  <g transform="translate(110, 166)" filter="url(#windowShadow)">
+    <rect width="1060" height="580" rx="16" fill="#0d0e15" stroke="url(#windowBorder)" stroke-width="1"/>
+
+    <!-- Mac Window Bar -->
+    <rect width="1060" height="42" rx="16" fill="#14151f"/>
+    <rect y="36" width="1060" height="6" fill="#14151f"/>
+    <circle cx="24" cy="21" r="5.5" fill="#ef4444"/>
+    <circle cx="42" cy="21" r="5.5" fill="#eab308"/>
+    <circle cx="60" cy="21" r="5.5" fill="#22c55e"/>
+
+    <!-- Browser Address Capsule -->
+    <rect x="360" y="9" width="340" height="24" rx="6" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <text x="530" y="25" text-anchor="middle" class="font-mono" font-size="11" fill="#94a3b8">chatgpt.com / claude.ai</text>
+
+    <!-- Chat Message Container -->
+    <!-- Bot Greeting -->
+    <g transform="translate(50, 75)">
+      <circle cx="16" cy="16" r="16" fill="#10a37f"/>
+      <text x="16" y="21" text-anchor="middle" class="font-body" font-size="14" font-weight="bold" fill="#ffffff">AI</text>
+      <rect x="46" y="2" width="460" height="40" rx="10" fill="rgba(255,255,255,0.04)"/>
+      <text x="62" y="26" class="font-body" font-size="13" fill="#cbd5e1">What engineering challenge are we solving today?</text>
+    </g>
+
+    <!-- Raw Prompt Input Box -->
+    <g transform="translate(50, 150)">
+      <rect width="960" height="110" rx="14" fill="rgba(0,0,0,0.5)" stroke="rgba(99,102,241,0.35)" stroke-width="1.5"/>
+      <text x="20" y="32" class="font-mono" font-size="13" fill="#e2e8f0">build a resilient payment webhook handler with stripe, postgres, and nextjs</text>
+      <text x="20" y="55" class="font-mono" font-size="12" fill="#64748b">make sure it handles idempotency and replay attacks</text>
+
+      <!-- Bottom Chat Controls -->
+      <text x="20" y="94" class="font-body" font-size="11" fill="#475569">Shift + Return to add a new line</text>
+      <circle cx="935" cy="85" r="14" fill="rgba(255,255,255,0.1)"/>
+      <path d="M935 77 L935 91 M930 83 L935 77 L940 83" stroke="#94a3b8" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+      <!-- NEW PROMPT+ FLOATING POP BUTTON (Active Expanded) -->
+      <g transform="translate(710, -18)" filter="url(#pillShadow)">
+        <rect width="236" height="34" rx="17" fill="rgba(12,12,16,0.95)" stroke="rgba(99,102,241,0.6)" stroke-width="1.2"/>
+
+        <!-- Sparkle Circle Icon -->
+        <circle cx="17" cy="17" r="11" fill="url(#primaryGrad)"/>
+        <path d="m17 11 -1 3.5 a1 1 0 0 1 -.7 .7 L11.8 16.2 a1 1 0 0 1 0 1.6 l3.5 1 a1 1 0 0 1 .7 .7 L17 23 l1 -3.5 a1 1 0 0 1 .7 -.7 l3.5 -1 a1 1 0 0 1 0 -1.6 l-3.5 -1 a1 1 0 0 1 -.7 -.7 Z" fill="#ffffff" transform="translate(0,-1) scale(0.9)"/>
+
+        <!-- Enhance Label & Shortcut -->
+        <text x="36" y="21" class="font-title" font-size="11.5" fill="#ffffff">Enhance</text>
+        <rect x="88" y="10" width="26" height="15" rx="3" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)" stroke-width="0.8"/>
+        <text x="101" y="21" text-anchor="middle" class="font-body" font-size="9" font-weight="bold" fill="#a1a1aa">⌘↵</text>
+
+        <!-- Divider -->
+        <line x1="122" y1="10" x2="122" y2="24" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+
+        <!-- Token Telemetry Badge -->
+        <rect x="130" y="9" width="80" height="16" rx="8" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" stroke-width="0.8"/>
+        <text x="170" y="21" text-anchor="middle" class="font-body" font-size="9.5" font-weight="600" fill="#a1a1aa">128K · ~18 tok</text>
+
+        <!-- Chevron Launcher -->
+        <path d="M218 19 L222 15 L226 19" fill="none" stroke="#a1a1aa" stroke-width="1.6" stroke-linecap="round"/>
+      </g>
+    </g>
+
+    <!-- Transformed Output Card (Below Input) -->
+    <g transform="translate(50, 290)">
+      <!-- Transformation Banner Indicator -->
+      <rect width="960" height="255" rx="14" fill="rgba(16,18,27,0.9)" stroke="rgba(99,102,241,0.4)" stroke-width="1"/>
+
+      <!-- Output Header Tag -->
+      <rect x="20" y="16" width="168" height="24" rx="6" fill="rgba(16,185,129,0.15)" stroke="rgba(16,185,129,0.3)" stroke-width="1"/>
+      <circle cx="32" cy="28" r="4" fill="#10b981"/>
+      <text x="42" y="32" class="font-title" font-size="10.5" fill="#34d399">COMPILED MASTER PROMPT</text>
+
+      <text x="200" y="32" class="font-body" font-size="11" fill="#94a3b8">Optimized in 12ms via Prompt+ Local Synthesis Engine</text>
+
+      <!-- Markdown Output Display -->
+      <g transform="translate(20, 52)" class="font-mono">
+        <text x="0" y="16" font-size="11.5" fill="#818cf8" font-weight="bold">### ROLE &amp; PERSONA</text>
+        <text x="0" y="34" font-size="11" fill="#e2e8f0">You are a Principal Distributed Systems &amp; FinTech Security Architect.</text>
+
+        <text x="0" y="62" font-size="11.5" fill="#818cf8" font-weight="bold">### SPECIFICATIONS &amp; ARCHITECTURAL CONSTRAINTS</text>
+        <text x="0" y="80" font-size="11" fill="#94a3b8">• Subject: Stripe Webhook Pipeline with PostgreSQL Idempotency</text>
+        <text x="0" y="98" font-size="11" fill="#94a3b8">• Tone: Technically Rigorous, Production-Grade, Zero Robotic Buzzwords</text>
+        <text x="0" y="116" font-size="11" fill="#94a3b8">• Security: Replay attack prevention via signature verification &amp; timestamp drift checks</text>
+
+        <text x="0" y="144" font-size="11.5" fill="#818cf8" font-weight="bold">### IMPLEMENTATION PROTOCOL</text>
+        <text x="0" y="162" font-size="11" fill="#e2e8f0">1. Raw-body validation using standard Web Crypto / Stripe SDK without intermediate parser corruption.</text>
+        <text x="0" y="180" font-size="11" fill="#e2e8f0">2. Atomic SQL transaction with SELECT FOR UPDATE on event idempotency ledger table.</text>
+      </g>
+    </g>
+  </g>
+
+  </g>
+</svg>
