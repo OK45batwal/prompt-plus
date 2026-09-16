@@ -5,12 +5,12 @@ import { signupSchema, logRejection } from "@/lib/validations/auth";
 import { generateOtp, hashOtp, buildVerifyToken } from "@/lib/auth/otp";
 import { sendOtpEmail } from "@/lib/email";
 import { logger } from "@/lib/logger";
-import { checkIpRateLimit } from "@/lib/rate-limit";
+import { checkIpRateLimit, extractClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    const rl = checkIpRateLimit(`signup:${ip}`, 3, 3600000);
+    const ip = extractClientIp(request);
+    const rl = checkIpRateLimit(`signup:${ip}`, 5, 3600000);
     if (!rl.allowed) {
       return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
     }

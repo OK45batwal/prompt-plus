@@ -22,7 +22,7 @@ export const GET = withAuth(async (req: NextRequest, { requestId }) => {
   return jsonResponse({ data: template }, { requestId });
 });
 
-export const DELETE = withAuth(async (req: NextRequest, { requestId }) => {
+export const DELETE = withAuth(async (req: NextRequest, { session, requestId }) => {
   const url = new URL(req.url);
   const id = url.pathname.split("/").pop();
 
@@ -40,6 +40,11 @@ export const DELETE = withAuth(async (req: NextRequest, { requestId }) => {
 
   if (existing.isOfficial) {
     return jsonResponse({ error: "Cannot delete official system templates" }, { status: 403, requestId });
+  }
+
+  const isAdmin = Boolean(session?.user?.email && process.env.ADMIN_EMAIL && session.user.email === process.env.ADMIN_EMAIL);
+  if (!isAdmin) {
+    return jsonResponse({ error: "Forbidden: Only administrators can delete community templates" }, { status: 403, requestId });
   }
 
   await getDb().template.delete({

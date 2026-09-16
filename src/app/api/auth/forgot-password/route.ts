@@ -4,12 +4,12 @@ import { sendOtpEmail } from "@/lib/email";
 import { forgotPasswordSchema, logRejection } from "@/lib/validations/auth";
 import { generateOtp, hashOtp, buildResetToken } from "@/lib/auth/otp";
 import { logger } from "@/lib/logger";
-import { checkIpRateLimit } from "@/lib/rate-limit";
+import { checkIpRateLimit, extractClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    const rl = checkIpRateLimit(`forgot:${ip}`, 3, 3600000);
+    const ip = extractClientIp(request);
+    const rl = checkIpRateLimit(`forgot:${ip}`, 5, 3600000);
     if (!rl.allowed) {
       return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
     }
@@ -23,6 +23,11 @@ export async function POST(request: NextRequest) {
 
     const { email } = parsed.data;
     const normalizedEmail = email.toLowerCase().trim();
+
+    const emailRl = checkIpRateLimit(`forgot_email:${normalizedEmail}`, 3, 3600000);
+    if (!emailRl.allowed) {
+      return NextResponse.json({ error: "Too many attempts for this account. Try again later." }, { status: 429 });
+    }
 
     let user = null;
     let isFallback = false;

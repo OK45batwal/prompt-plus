@@ -42,17 +42,21 @@ export function withAuth<T extends z.ZodTypeAny = z.ZodTypeAny>(
       const authHeader = req.headers.get("authorization") || req.headers.get("x-promptplus-api-key");
       if (authHeader) {
         const submittedKey = authHeader.replace(/^Bearer\s+/i, "").trim();
-        if (submittedKey.startsWith("pp_live_")) {
+        if (submittedKey.startsWith("pp_live_") && submittedKey.length >= 20) {
           try {
             const { getDb } = await import("@/lib/db/prisma");
             const { decrypt } = await import("@/lib/crypto");
             const activeKeys = await getDb().apiKey.findMany({
-              where: { isActive: true },
+              where: { provider: "promptplus", isActive: true },
+              take: 50,
             });
             for (const keyRow of activeKeys) {
               try {
                 const decryptedStoredKey = decrypt(keyRow.apiKeyEnc);
-                if (decryptedStoredKey === submittedKey) {
+                if (
+                  decryptedStoredKey.length === submittedKey.length &&
+                  crypto.timingSafeEqual(Buffer.from(decryptedStoredKey), Buffer.from(submittedKey))
+                ) {
                   userId = keyRow.userId;
                   const userObj = await getDb().user.findUnique({
                     where: { id: userId },

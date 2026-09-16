@@ -8,6 +8,7 @@ import { checkIpRateLimitAsync, extractClientIp } from "@/lib/rate-limit";
 import { calculateDynamicPromptScore } from "@/lib/scoring";
 import { synthesizeAlgorithmicPrompt } from "@/lib/llm/algorithmic-enhancers";
 import { enhancementCache } from "@/lib/llm/cache";
+import { auth } from "@/lib/auth/config";
 
 const extensionEnhanceSchema = z.object({
   text: z.string().min(1).max(10000),
@@ -81,10 +82,13 @@ export async function POST(request: NextRequest) {
   let effectiveProvider = resolvedProvider;
 
   if (!effectiveKey) {
-    const serverKey = resolveServerApiKey(resolvedProvider);
-    if (serverKey) {
-      effectiveKey = serverKey.apiKey;
-      effectiveProvider = serverKey.provider;
+    const session = await auth().catch(() => null);
+    if (session?.user) {
+      const serverKey = resolveServerApiKey(resolvedProvider);
+      if (serverKey) {
+        effectiveKey = serverKey.apiKey;
+        effectiveProvider = serverKey.provider;
+      }
     } else {
       effectiveProvider = "openrouter";
       effectiveKey = "";

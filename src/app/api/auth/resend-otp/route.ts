@@ -4,14 +4,14 @@ import { getDb } from "@/lib/db/prisma";
 import { generateOtp, hashOtp, buildVerifyToken } from "@/lib/auth/otp";
 import { sendOtpEmail } from "@/lib/email";
 import { logger } from "@/lib/logger";
-import { checkIpRateLimit } from "@/lib/rate-limit";
+import { checkIpRateLimit, extractClientIp } from "@/lib/rate-limit";
 
 const schema = z.object({ email: z.string().email() });
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    const rl = checkIpRateLimit(`resendotp:${ip}`, 3, 3600000);
+    const ip = extractClientIp(request);
+    const rl = checkIpRateLimit(`resendotp:${ip}`, 5, 3600000);
     if (!rl.allowed) {
       return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
     }
@@ -20,7 +20,14 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
     const { email } = parsed.data;
-    const user = await getDb().user.findUnique({ where: { email } });
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const emailRl = checkIpRateLimit(`resendotp_email:${normalizedEmail}`, 3, 3600000);
+    if (!emailRl.allowed) {
+      return NextResponse.json({ error: "Too many attempts for this account. Try again later." }, { status: 429 });
+    }
+
+    const user = await getDb().user.findUnique({ where: { email: normalizedEmail } });
     if (!user || user.emailVerified) {
       return NextResponse.json({ message: "If the account exists, a code has been sent." });
     }

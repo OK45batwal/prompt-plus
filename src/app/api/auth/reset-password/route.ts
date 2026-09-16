@@ -3,7 +3,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { getDb } from "@/lib/db/prisma";
 import { verifyOtp, stripPrefix, isResetToken } from "@/lib/auth/otp";
-import { checkIpRateLimit } from "@/lib/rate-limit";
+import { checkIpRateLimit, extractClientIp } from "@/lib/rate-limit";
 
 const schema = z.object({
   email: z.string().email(),
@@ -13,7 +13,7 @@ const schema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const ip = extractClientIp(request);
     const rl = checkIpRateLimit(`resetpw:${ip}`, 5, 3600000);
     if (!rl.allowed) {
       return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
@@ -24,6 +24,11 @@ export async function POST(request: NextRequest) {
 
     const { email, otp, password } = parsed.data;
     const normalizedEmail = email.toLowerCase().trim();
+
+    const emailRl = checkIpRateLimit(`resetpw_email:${normalizedEmail}`, 5, 3600000);
+    if (!emailRl.allowed) {
+      return NextResponse.json({ error: "Too many attempts for this account. Try again later." }, { status: 429 });
+    }
 
     let user = null;
     let isFallback = false;
@@ -58,7 +63,19 @@ export async function POST(request: NextRequest) {
     }
 
     if (!verifyOtp(otp, stripPrefix(user.resetToken))) {
-      return NextResponse.json({ error: "Invalid code" }, { status: 400 });
+      if (isFallback) {
+        const { fallbackStore } = await import("@/lib/db/fallback-store");
+        await fallbackStore.updateUser(
+          { email: normalizedEmail },
+          { resetToken: null, resetTokenExpiry: null }
+        );
+      } else {
+        await getDb().user.update({
+          where: { id: user.id },
+          data: { resetToken: null, resetTokenExpiry: null },
+        });
+      }
+      return NextResponse.json({ error: "Invalid code. For security, this code has expired. Please request a new one." }, { status: 400 });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);

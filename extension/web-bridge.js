@@ -27,8 +27,15 @@
     console.debug("[Prompt+ Bridge] Context injection note:", err);
   }
 
+  const ALLOWED_ORIGINS = new Set([
+    "https://prompt-plus-three.vercel.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+  ]);
+
   // 2. Listen for window postMessage broadcasts from Next.js Web Platform
   window.addEventListener("message", (event) => {
+    if (!ALLOWED_ORIGINS.has(event.origin)) return;
     if (!event.data || typeof event.data !== "object") return;
 
     if (event.data.source === "promptplus_web") {
@@ -57,7 +64,7 @@
                       version: EXTENSION_VERSION,
                       synced: true,
                     },
-                    "*"
+                    event.origin
                   );
                 }
               }

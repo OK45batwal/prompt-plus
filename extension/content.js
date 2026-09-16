@@ -14,13 +14,31 @@
     close: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
   };
 
+  function escapeHtml(str) {
+    if (!str) return "";
+    return String(str).replace(/[&<>'"]/g, (c) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "'": "&#39;",
+      '"': "&quot;",
+    }[c]));
+  }
+
+  const TRUSTED_BRIDGE_ORIGINS = new Set([
+    "https://prompt-plus-three.vercel.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+  ]);
+
   // Web Platform Session Bridge: Listen for authenticated sessions broadcast by Prompt+ Web Platform
   if (
-    location.hostname.includes("prompt-plus-three.vercel.app") ||
-    location.hostname.includes("localhost") ||
-    location.hostname.includes("prompt-plus")
+    location.hostname === "prompt-plus-three.vercel.app" ||
+    location.hostname === "localhost" ||
+    location.hostname === "127.0.0.1"
   ) {
     window.addEventListener("message", (event) => {
+      if (!TRUSTED_BRIDGE_ORIGINS.has(event.origin)) return;
       if (event.data && event.data.source === "promptplus_web" && event.data.type === "SESSION_UPDATE") {
         try {
           if (chrome?.runtime?.sendMessage) {
@@ -818,7 +836,7 @@ ${antiCliche}
       </div>
 
       <div class="pp-modal-preview" id="pp-modal-preview">
-        ${currentVal || "Type your prompt idea in the chatbox below..."}
+        ${escapeHtml(currentVal) || "Type your prompt idea in the chatbox below..."}
       </div>
 
       <div class="pp-modal-actions">
