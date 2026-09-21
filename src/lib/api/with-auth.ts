@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import crypto from "crypto";
 import { auth } from "@/lib/auth/config";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { jsonResponse } from "./response-headers";
