@@ -66,13 +66,20 @@ export function executeLoopEngineering(
   const security = scanPromptSecurity(sanitizedText);
   const intent = extractIntent(sanitizedText);
 
-  // Parse Base IR & Generate 4 Candidates
+  // Parse Base IR & Generate Candidates
   const baseIR = parseTextToPromptIR(sanitizedText);
   let candidates = generateCandidates(baseIR, intent.taskType, intent.complexity);
 
-  // Pick top initial candidate (Structured Candidate B or Concise A)
-  let activeCandidate = candidates[1] || candidates[0];
-  let currentScore = calculateHybridScore(sanitizedText, activeCandidate);
+  // Score all generated candidates and select the highest-scoring candidate
+  let activeCandidate = candidates[0];
+  let currentScore = calculateHybridScore(sanitizedText, candidates[0]);
+  for (let i = 1; i < candidates.length; i++) {
+    const candidateScore = calculateHybridScore(sanitizedText, candidates[i]);
+    if (candidateScore.totalScore > currentScore.totalScore) {
+      activeCandidate = candidates[i];
+      currentScore = candidateScore;
+    }
+  }
   const initialScore = currentScore.totalScore;
 
   let cyclesRun = 1;
@@ -86,14 +93,22 @@ export function executeLoopEngineering(
     const failureDiagnoses = diagnosePromptFailures(activeCandidate, ["Output needs production guardrails"]);
     const repairedIR = repairPromptIR(activeCandidate.ir, failureDiagnoses);
 
-    // Re-generate candidates with repaired IR
+    // Re-generate candidates with repaired IR and evaluate best candidate
     const repairedCandidates = generateCandidates(repairedIR, intent.taskType, intent.complexity);
-    const newCandidate = repairedCandidates[1] || repairedCandidates[0];
-    const newScore = calculateHybridScore(sanitizedText, newCandidate);
+    let bestRepaired = repairedCandidates[0];
+    let bestRepairedScore = calculateHybridScore(sanitizedText, repairedCandidates[0]);
 
-    if (newScore.totalScore > currentScore.totalScore) {
-      activeCandidate = newCandidate;
-      currentScore = newScore;
+    for (let i = 1; i < repairedCandidates.length; i++) {
+      const cScore = calculateHybridScore(sanitizedText, repairedCandidates[i]);
+      if (cScore.totalScore > bestRepairedScore.totalScore) {
+        bestRepaired = repairedCandidates[i];
+        bestRepairedScore = cScore;
+      }
+    }
+
+    if (bestRepairedScore.totalScore >= currentScore.totalScore) {
+      activeCandidate = bestRepaired;
+      currentScore = bestRepairedScore;
       candidates = repairedCandidates;
       improvementsApplied.push(`Injected operational guardrails & format contracts (Cycle ${cyclesRun})`);
     }

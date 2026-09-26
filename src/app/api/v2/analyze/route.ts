@@ -5,7 +5,10 @@ import { extractIntent, detectContextGaps, generateAdaptiveQuestions, scanPrompt
 import { z } from "zod";
 
 const analyzeSchema = z.object({
-  text: z.string().min(1, "Text is required"),
+  text: z
+    .string()
+    .min(1, "Text is required")
+    .max(50000, "Text is too long (max 50,000 characters)"),
 });
 
 export const maxDuration = 60;

@@ -184,14 +184,6 @@ export type FailureType =
   | "SECURITY_RISK"
   | "INSTRUCTION_CONFLICT";
 
-export interface EvaluationCase {
-  id: string;
-  datasetId: string;
-  input: string;
-  expectedOutput?: string;
-  criteria?: EvaluationCriteria[];
-}
-
 export interface EvaluationResult {
   caseId: string;
   promptVersionId: string;
@@ -200,23 +192,6 @@ export interface EvaluationResult {
   failures: FailureType[];
   latencyMs: number;
   tokenUsage: number;
-}
-
-export interface OptimizationRun {
-  id: string;
-  promptId: string;
-  originalPrompt: string;
-  taskType: TaskType;
-  targetModel?: string;
-  strategies: StrategyId[];
-  candidates: PromptCandidate[];
-  selectedCandidate?: PromptCandidate;
-  baselineScore?: number;
-  finalScore?: number;
-  iterations: number;
-  tokensUsed: number;
-  estimatedCost?: number;
-  status: "pending" | "running" | "completed" | "failed";
 }
 
 export interface SecurityScanResult {

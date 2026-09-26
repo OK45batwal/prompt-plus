@@ -22,13 +22,17 @@ export const StrategyRegistry: Record<StrategyId, Strategy> = {
     risks: ["May add slight verbosity"],
     estimatedTokenCost: 40,
     apply(input: PromptIR): PromptIR {
-      if (input.objective && !input.objective.includes("Clear, specific objective:")) {
-        return {
-          ...input,
-          objective: `Clear, specific objective: ${input.objective}`,
-        };
+      if (!input.objective) return input;
+      let obj = input.objective.trim();
+      // Remove conversational prefix fluff
+      obj = obj.replace(/^(?:please\s+|can\s+you\s+|help\s+me\s+|i\s+want\s+to\s+|i\s+need\s+to\s+|how\s+to\s+|kindly\s+)+/i, "");
+      if (obj.length > 0) {
+        obj = obj.charAt(0).toUpperCase() + obj.slice(1);
       }
-      return input;
+      return {
+        ...input,
+        objective: obj,
+      };
     },
   },
 
@@ -43,7 +47,20 @@ export const StrategyRegistry: Record<StrategyId, Strategy> = {
     apply(input: PromptIR): PromptIR {
       let role = input.role;
       if (!role) {
-        role = "Senior Technical Expert & AI Systems Architect";
+        const text = (input.objective || "").toLowerCase();
+        if (/\b(code|python|typescript|javascript|react|nextjs|api|sql|database|bug|refactor|function|class|backend|frontend)\b/i.test(text)) {
+          role = "Principal Software Architect & Lead Full-Stack Engineer";
+        } else if (/\b(research|paper|study|evidence|literature|analyze|analysis|scientific|hypothesis)\b/i.test(text)) {
+          role = "Senior Research Scientist & Quantitative Methodology Lead";
+        } else if (/\b(marketing|sales|copy|headline|pitch|campaign|growth|conversion|ad|audience)\b/i.test(text)) {
+          role = "Direct-Response Copywriter & Conversion Rate Optimization Lead";
+        } else if (/\b(business|strategy|executive|roadmap|kpi|roi|okr|plan|proposal|budget)\b/i.test(text)) {
+          role = "Executive Strategy Consultant & Enterprise Operations Director";
+        } else if (/\b(write|story|essay|blog|narrative|article|editorial|voice)\b/i.test(text)) {
+          role = "Master Editorial Director & Investigative Journalist";
+        } else {
+          role = "Senior Subject Matter Expert & Systems Architect";
+        }
       }
       return {
         ...input,
@@ -96,15 +113,22 @@ export const StrategyRegistry: Record<StrategyId, Strategy> = {
     estimatedTokenCost: 150,
     apply(input: PromptIR): PromptIR {
       if (input.examples.length === 0) {
+        const text = (input.objective || "").toLowerCase();
+        let example = {
+          input: "Analyze quarterly user retention trends.",
+          output: "### Executive Summary\n- 90-day retention increased to 68% (+4% YoY).\n\n### Primary Drivers\n1. In-app onboarding activation rate improved by 12%.\n2. Push notification re-engagement campaign reached 45% CTR.",
+          explanation: "Demonstrates required concise, data-driven executive summary structure.",
+        };
+        if (/\b(code|python|typescript|javascript|api|sql|bug|function)\b/i.test(text)) {
+          example = {
+            input: "Implement an idempotent token bucket rate limiter in TypeScript.",
+            output: "```typescript\ninterface TokenBucket {\n  tokens: number;\n  lastRefill: number;\n}\n\nexport class RateLimiter {\n  // Production-ready thread-safe sliding window implementation\n}\n```",
+            explanation: "Demonstrates production-grade TypeScript syntax with zero conversational preamble.",
+          };
+        }
         return {
           ...input,
-          examples: [
-            {
-              input: "Analyze user churn for Q3.",
-              output: "### Executive Summary\n- Total Churn: 4.2%\n\n### Primary Root Causes\n1. Onboarding friction in step 2.",
-              explanation: "Demonstrates required structured summary format.",
-            },
-          ],
+          examples: [example],
         };
       }
       return input;

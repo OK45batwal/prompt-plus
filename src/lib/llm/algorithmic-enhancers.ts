@@ -1,7 +1,7 @@
 // Algorithmic Meta-Prompt Synthesizer Engine for production-grade, zero-filler prompt enhancement
-import { detectImplicitTone } from "./meta-prompt";
+import { detectImplicitTone, type EnhanceLevel } from "./meta-prompt";
 
-export type EnhanceLevel = "quick" | "deep" | "expert";
+export type { EnhanceLevel };
 
 export function synthesizeAlgorithmicPrompt(userInput: string, level: EnhanceLevel = "deep"): string {
   const text = (userInput || "").trim();

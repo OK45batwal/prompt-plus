@@ -170,11 +170,47 @@ describe("Prompt+ 2.0 Engine Suite", () => {
       expect(scan.privacyRecommendedAction).toBe("local_only");
     });
 
+    it("detects multiple independent secrets concurrently (AWS, Stripe, Database)", () => {
+      const input = "AWS: AKIAIOSFODNN7EXAMPLE and Stripe: sk_test_51MzXYZ123456789012345678 and DB: postgres://user:pass@localhost:5432/db";
+      const scan = scanPromptSecurity(input);
+      expect(scan.hasSecrets).toBe(true);
+      expect(scan.secretsDetected).toContain("AWS Access Key ID");
+      expect(scan.secretsDetected).toContain("Stripe API Key");
+      expect(scan.secretsDetected).toContain("Database Connection String");
+    });
+
     it("sanitizes sensitive data", () => {
       const input = "Key: sk-proj-123456789012345678901234567890, Email: dev@app.com";
       const sanitized = sanitizePromptSecurity(input);
       expect(sanitized).toContain("[REDACTED_API_KEY]");
       expect(sanitized).toContain("[REDACTED_EMAIL]");
+    });
+  });
+
+  describe("Real Output Evaluation & Quality Grading", () => {
+    it("grades rich, structured, fluff-free output higher than conversational fluff", async () => {
+      const { evaluateOutputQuality } = await import("../lib/prompt-engine/evaluation-engine");
+      const highQualityOutput = `### Architecture Overview
+This module implements a token bucket rate limiter with sliding window logs.
+
+### Core Implementation
+\`\`\`typescript
+export class RateLimiter {
+  constructor(private capacity: number) {}
+}
+\`\`\`
+
+- Zero conversational filler
+- Strictly typed production code`;
+
+      const lowQualityFluff = "Sure! As an AI language model, here is your answer: feel free to ask me anything else!";
+
+      const highScore = evaluateOutputQuality(highQualityOutput);
+      const lowScore = evaluateOutputQuality(lowQualityFluff);
+
+      expect(highScore).toBeGreaterThan(lowScore);
+      expect(highScore).toBeGreaterThanOrEqual(80);
+      expect(lowScore).toBeLessThan(60);
     });
   });
 });

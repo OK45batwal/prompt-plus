@@ -1,6 +1,7 @@
 import { PromptIR, FailureType, PromptCandidate } from "./types";
 import { addConstraint, setOutputContract, updateReasoning } from "./prompt-ir";
 import { renderPromptIRToString } from "./prompt-ir";
+import { calculateHybridScore } from "./evaluation-engine";
 
 export interface RepairDiagnosis {
   failureType: FailureType;
@@ -94,34 +95,36 @@ export function executeAutomaticPromptRepairLoop(
   isRepaired: boolean;
 } {
   let currentIR = { ...initialCandidate.ir };
+  let latestCandidate: PromptCandidate = initialCandidate;
 
   for (let i = 1; i <= maxIterations; i++) {
     currentIR = repairPromptIR(currentIR, diagnoses);
     const rendered = renderPromptIRToString(currentIR);
+    const hybrid = calculateHybridScore(initialCandidate.renderedText, {
+      ...initialCandidate,
+      ir: currentIR,
+      renderedText: rendered,
+    });
+
+    latestCandidate = {
+      ...initialCandidate,
+      id: `${initialCandidate.id}_repaired_v${i}`,
+      ir: currentIR,
+      renderedText: rendered,
+      score: hybrid.totalScore,
+    };
 
     if (rendered.includes("ZERO ANNOUNCEMENT FILLER") && rendered.includes("REASONING REQUIREMENT")) {
       return {
-        repairedCandidate: {
-          ...initialCandidate,
-          id: `${initialCandidate.id}_repaired_v${i}`,
-          ir: currentIR,
-          renderedText: rendered,
-          score: 92,
-        },
+        repairedCandidate: latestCandidate,
         iterationsRun: i,
         isRepaired: true,
       };
     }
   }
 
-  const finalRendered = renderPromptIRToString(currentIR);
   return {
-    repairedCandidate: {
-      ...initialCandidate,
-      ir: currentIR,
-      renderedText: finalRendered,
-      score: 88,
-    },
+    repairedCandidate: latestCandidate,
     iterationsRun: maxIterations,
     isRepaired: true,
   };

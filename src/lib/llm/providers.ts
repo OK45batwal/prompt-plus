@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 export interface LLMOptions {
   provider?: "openai" | "anthropic" | "openrouter" | "nvidia" | "google";
   apiKey?: string;
@@ -7,6 +9,7 @@ export interface LLMOptions {
   temperature?: number;
   maxTokens?: number;
   responseFormatJson?: boolean;
+  _retryDepth?: number;
 }
 
 export interface LLMResponse {
@@ -152,7 +155,11 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
 
   // Cache check for instant <5ms responses on repeated prompts
   const keyIdentity = apiKey ? apiKey.slice(-8) : "server";
-  const cacheKey = `${keyIdentity}:${provider}:${model}:${userPrompt.slice(0, 300)}:${systemPrompt.slice(0, 100)}`;
+  const promptHash = crypto
+    .createHash("sha256")
+    .update(`${userPrompt}:::${systemPrompt}`)
+    .digest("hex");
+  const cacheKey = `${keyIdentity}:${provider}:${model}:${promptHash}`;
   const cached = llmResponseCache.get(cacheKey);
   if (cached && Date.now() < cached.expiresAt) {
     return cached.response;
@@ -227,9 +234,12 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
       throw new LLMError(hint, provider, 401);
     }
 
-    // Automatic Failover: If primary provider/model returns 404/400 ("No endpoints found"), try active free OpenRouter models in sequence
-    for (const fallbackModel of OPENROUTER_FREE_MODELS) {
-      if (fallbackModel !== model) {
+    // Automatic Failover: Only attempt on depth 0 to avoid runaway cascade timeouts.
+    // Try at most 2 alternative free OpenRouter models in sequence.
+    const retryDepth = options._retryDepth || 0;
+    if (retryDepth === 0) {
+      const fallbackCandidates = OPENROUTER_FREE_MODELS.filter((m) => m !== model).slice(0, 2);
+      for (const fallbackModel of fallbackCandidates) {
         try {
           return await callLLM({
             userPrompt,
@@ -239,9 +249,10 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
             provider: "openrouter",
             apiKey: "",
             model: fallbackModel,
+            _retryDepth: retryDepth + 1,
           });
         } catch {
-          // Try next free model in list
+          // Try next fallback model in list
         }
       }
     }

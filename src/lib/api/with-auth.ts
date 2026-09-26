@@ -23,6 +23,18 @@ export type AuthenticatedRouteHandler<T = unknown> = (
   context: AuthApiContext<T>
 ) => Promise<Response> | Response;
 
+interface ApiKeyCacheEntry {
+  userId: string;
+  email: string;
+  expiresAt: number;
+}
+
+const validatedApiKeyCache = new Map<string, ApiKeyCacheEntry>();
+
+export function clearApiKeyAuthCache() {
+  validatedApiKeyCache.clear();
+}
+
 /**
  * Higher-Order Function wrapper for API v1 route handlers.
  * Enforces session authentication, CSRF validation on mutating methods,
@@ -44,37 +56,54 @@ export function withAuth<T extends z.ZodTypeAny = z.ZodTypeAny>(
       if (authHeader) {
         const submittedKey = authHeader.replace(/^Bearer\s+/i, "").trim();
         if (submittedKey.startsWith("pp_live_") && submittedKey.length >= 20) {
-          try {
-            const { getDb } = await import("@/lib/db/prisma");
-            const { decrypt } = await import("@/lib/crypto");
-            const activeKeys = await getDb().apiKey.findMany({
-              where: { provider: "promptplus", isActive: true },
-              take: 50,
-            });
-            for (const keyRow of activeKeys) {
-              try {
-                const decryptedStoredKey = decrypt(keyRow.apiKeyEnc);
-                if (
-                  decryptedStoredKey.length === submittedKey.length &&
-                  crypto.timingSafeEqual(Buffer.from(decryptedStoredKey), Buffer.from(submittedKey))
-                ) {
-                  userId = keyRow.userId;
-                  const userObj = await getDb().user.findUnique({
-                    where: { id: userId },
-                    select: { email: true },
-                  });
-                  session = {
-                    user: { id: userId, email: userObj?.email || "developer@promptplus.app" },
-                    expires: new Date(Date.now() + 86400000).toISOString(),
-                  } as Session;
-                  break;
+          const keyHash = crypto.createHash("sha256").update(submittedKey).digest("hex");
+          const cachedAuth = validatedApiKeyCache.get(keyHash);
+          if (cachedAuth && Date.now() < cachedAuth.expiresAt) {
+            userId = cachedAuth.userId;
+            session = {
+              user: { id: userId, email: cachedAuth.email },
+              expires: new Date(Date.now() + 86400000).toISOString(),
+            } as Session;
+          } else {
+            try {
+              const { getDb } = await import("@/lib/db/prisma");
+              const { decrypt } = await import("@/lib/crypto");
+              const activeKeys = await getDb().apiKey.findMany({
+                where: { provider: "promptplus", isActive: true },
+                take: 50,
+              });
+              for (const keyRow of activeKeys) {
+                try {
+                  const decryptedStoredKey = decrypt(keyRow.apiKeyEnc);
+                  if (
+                    decryptedStoredKey.length === submittedKey.length &&
+                    crypto.timingSafeEqual(Buffer.from(decryptedStoredKey), Buffer.from(submittedKey))
+                  ) {
+                    userId = keyRow.userId;
+                    const userObj = await getDb().user.findUnique({
+                      where: { id: userId },
+                      select: { email: true },
+                    });
+                    const email = userObj?.email || "developer@promptplus.app";
+                    session = {
+                      user: { id: userId, email },
+                      expires: new Date(Date.now() + 86400000).toISOString(),
+                    } as Session;
+                    // Cache verified key for 5 minutes
+                    validatedApiKeyCache.set(keyHash, {
+                      userId,
+                      email,
+                      expiresAt: Date.now() + 5 * 60 * 1000,
+                    });
+                    break;
+                  }
+                } catch {
+                  // Ignore decrypt error for unmatching key row
                 }
-              } catch {
-                // Ignore decrypt error for unmatching key row
               }
+            } catch {
+              // ignore DB error
             }
-          } catch {
-            // ignore DB error
           }
         }
       }

@@ -65,6 +65,31 @@ export function calculateHybridScore(
   };
 }
 
+export function evaluateOutputQuality(output: string): number {
+  if (!output || output.startsWith("Execution failed")) return 25;
+
+  let score = 55;
+  const clean = output.trim();
+  const wordCount = clean.split(/\s+/).filter(Boolean).length;
+
+  // Substance factor (up to 20 pts)
+  if (wordCount >= 40 && wordCount <= 800) {
+    score += 20;
+  } else if (wordCount >= 15) {
+    score += 10;
+  }
+
+  // Formatting & structure factor (markdown headers, code blocks, lists)
+  const hasFormatting = /```|###|\n- |\n\d+\. /m.test(clean);
+  if (hasFormatting) score += 15;
+
+  // Fluff penalty
+  const hasFluff = /\b(as an ai|here is the|sure!|certainly!|i hope this helps|feel free to ask)\b/i.test(clean);
+  if (hasFluff) score -= 15;
+
+  return Math.min(98, Math.max(25, score));
+}
+
 /**
  * Executes Real Prompt Evaluation by running Original vs Optimized Prompts on a target LLM model.
  */
@@ -107,12 +132,8 @@ export async function runRealPromptEvaluation(
     optimizedOutput = "Execution failed on optimized prompt.";
   }
 
-  // Evaluate output completeness & length
-  const origLength = originalOutput.length;
-  const optLength = optimizedOutput.length;
-
-  const baselineScore = Math.min(95, Math.max(50, 60 + (origLength > 100 ? 20 : 0)));
-  const optimizedScore = Math.min(98, Math.max(65, 75 + (optLength > 150 ? 20 : 5)));
+  const baselineScore = evaluateOutputQuality(originalOutput);
+  const optimizedScore = evaluateOutputQuality(optimizedOutput);
   const improvementDelta = optimizedScore - baselineScore;
 
   return {

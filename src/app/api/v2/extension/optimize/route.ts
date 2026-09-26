@@ -24,14 +24,26 @@ export async function POST(request: NextRequest) {
   if (!text) {
     return jsonResponse({ error: "Text prompt is required" }, { status: 400, requestId });
   }
+  if (text.length > 50000) {
+    return jsonResponse({ error: "Text is too long (max 50,000 characters)" }, { status: 400, requestId });
+  }
 
   const security = scanPromptSecurity(text);
   const intent = extractIntent(text);
   const baseIR = parseTextToPromptIR(text);
   const candidates = generateCandidates(baseIR, intent.taskType, intent.complexity);
 
-  const selectedCandidate = candidates[1] || candidates[0]; // Production-grade candidate
-  const score = calculateHybridScore(text, selectedCandidate);
+  // Dynamically select the highest scoring candidate
+  let selectedCandidate = candidates[0];
+  let bestScore = calculateHybridScore(text, candidates[0]);
+  for (let i = 1; i < candidates.length; i++) {
+    const cScore = calculateHybridScore(text, candidates[i]);
+    if (cScore.totalScore > bestScore.totalScore) {
+      selectedCandidate = candidates[i];
+      bestScore = cScore;
+    }
+  }
+  const score = bestScore;
 
   // Apply zero-fluff cleaning for fast, high-density responses
   const cleanedText = cleanPromptResponse(selectedCandidate.renderedText, {
