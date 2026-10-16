@@ -1,11 +1,11 @@
 // @public-route: Chrome extension enhancement endpoint with multi-provider retry loop & free model auto-routing
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { callLLM } from "@/lib/llm/providers";
+import { callLLM, createLLMCacheKey } from "@/lib/llm/providers";
 import { buildArchitectMetaPrompt, cleanMasterPromptOutput } from "@/lib/llm/meta-prompt";
 import { resolveServerApiKey } from "@/lib/llm/server-api-key";
-import { checkIpRateLimitAsync, extractClientIp } from "@/lib/rate-limit";
-import { calculateDynamicPromptScore } from "@/lib/scoring";
+import { checkIpRateLimitAsync, extractClientIp, getRateLimitHeaders, rateLimitStatus, rateLimitMessage } from "@/lib/rate-limit";
+import { calculateStructuralScore } from "@/lib/scoring";
 import { synthesizeAlgorithmicPrompt } from "@/lib/llm/algorithmic-enhancers";
 import { enhancementCache } from "@/lib/llm/cache";
 import { auth } from "@/lib/auth/config";
@@ -43,8 +43,8 @@ export async function POST(request: NextRequest) {
   const rateCheck = await checkIpRateLimitAsync(`ext:${ip}`, 120, 60 * 60 * 1000);
   if (!rateCheck.allowed) {
     return NextResponse.json(
-      { error: "Too many requests from this address. Try again in a few minutes." },
-      { status: 429, headers: { ...corsHeaders, "Retry-After": String(Math.ceil(rateCheck.resetMs / 1000)) } }
+      { error: rateLimitMessage(rateCheck) },
+      { status: rateLimitStatus(rateCheck), headers: { ...corsHeaders, ...getRateLimitHeaders(rateCheck) } }
     );
   }
 
@@ -81,8 +81,9 @@ export async function POST(request: NextRequest) {
   let effectiveKey = apiKey || "";
   let effectiveProvider = resolvedProvider;
 
+  const session = await auth().catch(() => null);
+  const tenantId = session?.user?.id;
   if (!effectiveKey) {
-    const session = await auth().catch(() => null);
     if (session?.user) {
       const serverKey = resolveServerApiKey(resolvedProvider);
       if (serverKey) {
@@ -96,8 +97,8 @@ export async function POST(request: NextRequest) {
   }
 
   const reqModel = model || (effectiveKey ? "gpt-4o-mini" : "google/gemini-2.0-flash-exp:free");
-  const cacheKey = `ext:${text}:${reqModel}:${category || ""}:${tone || ""}:${length || ""}:${level || ""}`;
-  const cached = enhancementCache.get(cacheKey);
+  const cacheKey = createLLMCacheKey({ tenantId, apiKey: effectiveKey, provider: effectiveProvider, text, model: reqModel, category, tone, length, level });
+  const cached = tenantId ? enhancementCache.get(cacheKey) : null;
   if (cached) {
     const cleanCachedText = cleanMasterPromptOutput(cached.enhancedText);
     return NextResponse.json(
@@ -132,6 +133,7 @@ export async function POST(request: NextRequest) {
   for (const candidate of modelCandidates) {
     try {
       const response = await callLLM({
+        tenantId,
         provider: candidate.provider,
         apiKey: candidate.key,
         model: candidate.model,
@@ -143,7 +145,7 @@ export async function POST(request: NextRequest) {
 
       const cleanedOutput = cleanMasterPromptOutput(response.content);
 
-      enhancementCache.set(cacheKey, {
+      if (tenantId) enhancementCache.set(cacheKey, {
         enhancedText: cleanedOutput,
         model: response.model,
         tokensIn: response.tokensIn,
@@ -167,7 +169,7 @@ export async function POST(request: NextRequest) {
                 enhancedText: response.content,
                 model: response.model,
                 category: category || "general",
-                score: JSON.parse(JSON.stringify(calculateDynamicPromptScore(response.content))),
+                score: JSON.parse(JSON.stringify(calculateStructuralScore(response.content))),
               },
             }).catch(() => null);
 

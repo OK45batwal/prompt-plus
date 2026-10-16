@@ -29,7 +29,7 @@ vi.mock("@/lib/db/prisma", () => ({
         category: "Development",
         tone: "code",
         model: "promptplus-v2",
-        score: 96,
+        score: { total: 60, measuredBy: "structural", measuredTotal: null },
         createdAt: new Date(),
       }),
       findMany: vi.fn().mockResolvedValue([]),
@@ -64,6 +64,7 @@ describe("Extension Web Sync & Save Endpoints (v2.1.3.2)", () => {
 
     const req = new NextRequest("http://localhost:3000/api/v1/extension/save-prompt", {
       method: "POST",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({ originalText: "hello", enhancedText: "hello world" }),
     });
 
@@ -80,6 +81,7 @@ describe("Extension Web Sync & Save Endpoints (v2.1.3.2)", () => {
 
     const req = new NextRequest("http://localhost:3000/api/v1/extension/save-prompt", {
       method: "POST",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({
         originalText: "Build auth middleware",
         enhancedText: "### ROLE & PERSONA\nSenior Engineer...",
@@ -94,7 +96,8 @@ describe("Extension Web Sync & Save Endpoints (v2.1.3.2)", () => {
     const json = await res.json();
     expect(json.success).toBe(true);
     expect(json.data.id).toBe("prompt-sync-123");
-    expect(json.data.score).toBe(96);
+    expect(json.data.score.measuredBy).toBe("structural");
+    expect(json.data.score.measuredTotal).toBeNull();
   });
 
   it("GET /api/v1/auth/extension-sync should return authenticated user state and quota", async () => {

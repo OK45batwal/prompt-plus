@@ -78,6 +78,7 @@ export const POST = withAuth(
         }
 
         const response = await callLLM({
+        tenantId: userId,
           provider,
           apiKey,
           model: resolvedModel,

@@ -4,16 +4,12 @@ export interface ModelPricing {
   provider: string;
   inputCostPer1M: number; // in USD
   outputCostPer1M: number; // in USD
+  verifiedAt?: string;
+  sourceUrl?: string;
 }
 
-export const MODEL_PRICING: ModelPricing[] = [
-  { id: "openrouter-free", name: "OpenRouter Free Models", provider: "OpenRouter", inputCostPer1M: 0.00, outputCostPer1M: 0.00 },
-  { id: "gpt-4o-mini", name: "GPT-4o Mini", provider: "OpenAI", inputCostPer1M: 0.15, outputCostPer1M: 0.60 },
-  { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI", inputCostPer1M: 2.50, outputCostPer1M: 10.00 },
-  { id: "claude-3-5-sonnet", name: "Claude 3.5 Sonnet", provider: "Anthropic", inputCostPer1M: 3.00, outputCostPer1M: 15.00 },
-  { id: "gemini-1-5-pro", name: "Gemini 1.5 Pro", provider: "Google", inputCostPer1M: 1.25, outputCostPer1M: 5.00 },
-  { id: "nvidia-free", name: "NVIDIA Free Models", provider: "NVIDIA", inputCostPer1M: 0.00, outputCostPer1M: 0.00 },
-];
+export { MODEL_PRICING } from "./model-pricing";
+import { MODEL_PRICING } from "./model-pricing";
 
 /**
  * Estimates token count for raw input text using standard ~4 chars per token rule of thumb.
@@ -33,8 +29,9 @@ export interface CostEstimate {
   modelName: string;
   provider: string;
   estimatedInputTokens: number;
-  estimatedCostUSD: number;
+  estimatedCostUSD: number | null;
   formattedCost: string;
+  pricingStatus: "verified" | "unverified";
 }
 
 export function calculateCostEstimates(text: string, expectedOutputRatio = 1.5): CostEstimate[] {
@@ -46,6 +43,9 @@ export function calculateCostEstimates(text: string, expectedOutputRatio = 1.5):
     const outputCost = (outputTokens / 1_000_000) * model.outputCostPer1M;
     const totalCost = inputCost + outputCost;
 
+    // Legacy prices remain historical reference data, never a current quote.
+    const verifiedAt = model.verifiedAt ? Date.parse(model.verifiedAt) : NaN;
+    const verified = Number.isFinite(verifiedAt) && Date.now() >= verifiedAt && Date.now() - verifiedAt < 30 * 86400000;
     let formattedCost = "$0.0000";
     if (totalCost === 0 && model.inputCostPer1M === 0) {
       formattedCost = "$0.00 (FREE)";
@@ -58,8 +58,9 @@ export function calculateCostEstimates(text: string, expectedOutputRatio = 1.5):
       modelName: model.name,
       provider: model.provider,
       estimatedInputTokens: inputTokens,
-      estimatedCostUSD: totalCost,
-      formattedCost,
+      estimatedCostUSD: verified ? totalCost : null,
+      formattedCost: verified ? formattedCost : "Price unverified",
+      pricingStatus: verified ? "verified" : "unverified",
     };
   });
 }

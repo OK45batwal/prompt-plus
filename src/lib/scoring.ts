@@ -1,4 +1,5 @@
 export interface PromptScoreResult {
+  kind: "structural";
   total: number;
   dimensions: {
     clarity: number;
@@ -13,7 +14,8 @@ export interface PromptScoreResult {
   recommendations: string[];
 }
 
-export function calculateDynamicPromptScore(text: string): PromptScoreResult {
+/** Keyword/regex heuristic; not a measurement of model output quality. */
+export function calculateStructuralScore(text: string): PromptScoreResult {
   const clean = text ? text.trim() : "";
   const wordCount = clean ? clean.split(/\s+/).filter(Boolean).length : 0;
 
@@ -42,6 +44,7 @@ export function calculateDynamicPromptScore(text: string): PromptScoreResult {
   );
 
   return {
+    kind: "structural",
     total,
     dimensions: {
       clarity: Math.round(clarity),

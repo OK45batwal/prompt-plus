@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { getDb } from "@/lib/db/prisma";
 import { withAuth } from "@/lib/api/with-auth";
@@ -48,7 +49,8 @@ export const PATCH = withAuth(async (req: NextRequest, { userId, requestId }) =>
 
   const data: Record<string, unknown> = {};
   if (typeof body.enhancedText === "string") data.enhancedText = body.enhancedText;
-  if (body.score !== undefined) data.score = body.score;
+  // Assessments are written by the scoring route, never trusted from a client.
+  if (typeof body.enhancedText === "string" && body.enhancedText !== existing.enhancedText) data.score = Prisma.DbNull;
   if (body.analysis !== undefined) data.analysis = body.analysis;
   if (typeof body.title === "string") data.title = body.title;
 

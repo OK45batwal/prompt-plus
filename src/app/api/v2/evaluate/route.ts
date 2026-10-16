@@ -1,19 +1,25 @@
+import { getDb } from "@/lib/db/prisma";
 import { NextRequest } from "next/server";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 import { runRealPromptEvaluation } from "@/lib/prompt-engine";
+import { checkIpRateLimitAsync, getRateLimitHeaders, rateLimitMessage, rateLimitStatus } from "@/lib/rate-limit";
+import { resolveServerApiKey } from "@/lib/llm/server-api-key";
 import { z } from "zod";
 
 const evaluateSchema = z.object({
-  originalPrompt: z.string().min(1, "Original prompt required"),
-  candidateText: z.string().min(1, "Candidate text required"),
+  promptId: z.string().optional(),
+  originalPrompt: z.string().min(1, "Original prompt required").max(10000),
+  candidateText: z.string().min(1, "Candidate text required").max(10000),
+  confirmLiveEvaluation: z.literal(true),
+  rubric: z.object({ exact: z.string().max(10000).optional(), required: z.array(z.string().min(1).max(1000)).max(20).optional(), forbidden: z.array(z.string().min(1).max(1000)).max(20).optional() }).optional(),
   targetModel: z.string().optional(),
 });
 
 export const maxDuration = 60;
 
 export const POST = withAuth(
-  async (request: NextRequest, { requestId }) => {
+  async (request: NextRequest, { requestId, userId }) => {
     let body: unknown;
     try {
       body = await request.json();
@@ -26,13 +32,29 @@ export const POST = withAuth(
       return jsonResponse({ error: "Validation failed", details: parseResult.error.flatten() }, { status: 400, requestId });
     }
 
-    const { originalPrompt, candidateText, targetModel } = parseResult.data;
+    const { originalPrompt, candidateText, targetModel, promptId } = parseResult.data;
 
+    if (promptId) {
+      const saved = await getDb().prompt.findFirst({ where: { id: promptId, userId, deletedAt: null, originalText: originalPrompt, enhancedText: candidateText }, select: { id: true } });
+      if (!saved) return jsonResponse({ error: "Saved prompt changed or was not found. Enhance again before verifying." }, { status: 409, requestId });
+    }
+    const budget = await checkIpRateLimitAsync(`evaluation:${userId}`, 5, 3600000);
+    if (!budget.allowed) return jsonResponse({ error: rateLimitMessage(budget) }, { status: rateLimitStatus(budget), headers: getRateLimitHeaders(budget), requestId });
+    const key = resolveServerApiKey();
     const evaluation = await runRealPromptEvaluation(
       originalPrompt,
       candidateText,
-      targetModel || "google/gemini-2.0-flash-exp:free"
+      targetModel || "google/gemini-2.0-flash-exp:free",
+      { rubric: parseResult.data.rubric, tenantId: userId, ...key }
     );
+
+    for (const run of evaluation.runs) {
+      await getDb().usageLog.create({ data: { userId, promptId: promptId ?? null,
+        action: "evaluate", model: run.model, provider: run.provider, tokensIn: run.tokensIn,
+        tokensOut: run.tokensOut, latencyMs: run.latencyMs, success: !run.error } });
+    }
+    await getDb().analytics.create({ data: { userId, promptId: promptId ?? null, action: "evaluate",
+      metadata: JSON.parse(JSON.stringify({ ...evaluation, rubric: parseResult.data.rubric })) } });
 
     return jsonResponse(
       {

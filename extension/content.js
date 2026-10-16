@@ -1,7 +1,6 @@
 (function () {
   let modalEl = null;
   let selectedTone = "code";
-  let userQuota = null;
 
   const isMac = typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
   const kbdShortcut = isMac ? "⌘↵" : "Ctrl+↵";
@@ -25,207 +24,196 @@
     }[c]));
   }
 
-  const TRUSTED_BRIDGE_ORIGINS = new Set([
-    "https://prompt-plus-three.vercel.app",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000"
-  ]);
 
-  // Web Platform Session Bridge: Listen for authenticated sessions broadcast by Prompt+ Web Platform
-  if (
-    location.hostname === "prompt-plus-three.vercel.app" ||
-    location.hostname === "localhost" ||
-    location.hostname === "127.0.0.1"
-  ) {
-    window.addEventListener("message", (event) => {
-      if (!TRUSTED_BRIDGE_ORIGINS.has(event.origin)) return;
-      if (event.data && event.data.source === "promptplus_web" && event.data.type === "SESSION_UPDATE") {
-        try {
-          if (chrome?.runtime?.sendMessage) {
-            chrome.runtime.sendMessage({
-              action: "saveSessionFromWeb",
-              user: event.data.user,
-              quota: event.data.quota,
-              savedBlocks: event.data.savedBlocks,
-            });
-          }
-        } catch {
-          // Ignore background disconnection
-        }
-      }
-    });
-  }
-
-  // Fetch initial cached quota
-  try {
-    if (chrome?.storage?.local) {
-      chrome.storage.local.get("pp_web_session", (d) => {
-        if (d?.pp_web_session?.quota) {
-          userQuota = d.pp_web_session.quota;
-        }
-      });
-    }
-  } catch { /* ignore */ }
 
   function ensureStylesInjected() {
     if (document.getElementById("pp-styles-v2")) return;
     const style = document.createElement("style");
     style.id = "pp-styles-v2";
     style.textContent = `
+      .pp-unified-dock,
       .pp-floating-trigger {
         position: fixed !important;
         display: inline-flex !important;
         align-items: center !important;
         box-sizing: border-box !important;
-        height: 28px !important;
+        height: 30px !important;
         border-radius: 9999px !important;
-        background: rgba(12, 12, 16, 0.94) !important;
-        border: 1px solid rgba(99, 102, 241, 0.38) !important;
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), 0 0 12px rgba(99, 102, 241, 0.22) !important;
-        backdrop-filter: blur(20px) saturate(160%) !important;
-        -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+        background: rgba(13, 14, 22, 0.94) !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04) !important;
+        backdrop-filter: blur(24px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif !important;
         z-index: 99999999 !important;
-        cursor: pointer !important;
         user-select: none !important;
-        transition: width 0.24s cubic-bezier(0.16, 1, 0.3, 1),
-                    padding 0.24s cubic-bezier(0.16, 1, 0.3, 1),
-                    border-color 0.2s ease,
+        color: #ffffff !important;
+        padding: 3px 5px 3px 4px !important;
+        gap: 5px !important;
+        font-size: 11px !important;
+        letter-spacing: -0.01em !important;
+        transition: border-color 0.2s ease,
                     box-shadow 0.2s ease,
                     transform 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
-        color: #ffffff !important;
-        padding: 3px 6px 3px 4px !important;
-        overflow: hidden !important;
       }
 
-      .pp-floating-trigger.pp-idle {
-        width: 28px !important;
-        padding: 0 !important;
-        justify-content: center !important;
-        border-color: rgba(99, 102, 241, 0.28) !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), 0 0 8px rgba(99, 102, 241, 0.16) !important;
-      }
-
-      .pp-floating-trigger.pp-idle:hover {
-        width: auto !important;
-        padding: 3px 6px 3px 4px !important;
-        border-color: rgba(99, 102, 241, 0.65) !important;
-        box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55), 0 0 16px rgba(99, 102, 241, 0.35) !important;
-      }
-
+      .pp-unified-dock:hover,
       .pp-floating-trigger:hover {
-        transform: translateY(-1px) scale(1.01) !important;
-        border-color: rgba(99, 102, 241, 0.7) !important;
-        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6), 0 0 18px rgba(99, 102, 241, 0.35) !important;
+        border-color: rgba(99, 102, 241, 0.55) !important;
+        box-shadow: 0 6px 26px rgba(0, 0, 0, 0.6), 0 0 16px rgba(99, 102, 241, 0.25) !important;
       }
 
-      .pp-floating-trigger:active {
-        transform: translateY(0) scale(0.98) !important;
-      }
-
-      .pp-trigger-icon {
-        width: 20px !important;
-        height: 20px !important;
-        min-width: 20px !important;
-        border-radius: 50% !important;
-        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-        display: flex !important;
+      .pp-dock-btn {
+        display: inline-flex !important;
         align-items: center !important;
-        justify-content: center !important;
+        gap: 5px !important;
+        height: 22px !important;
+        padding: 0 7px 0 5px !important;
+        border-radius: 9999px !important;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(79, 70, 229, 0.9) 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
         color: #ffffff !important;
-        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+        cursor: pointer !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35) !important;
+        transition: all 0.15s ease !important;
         flex-shrink: 0 !important;
       }
 
-      .pp-trigger-content {
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 5px !important;
-        margin-left: 5px !important;
-        white-space: nowrap !important;
-        transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
-        max-width: 320px !important;
-        opacity: 1 !important;
+      .pp-dock-btn:hover {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+        box-shadow: 0 3px 12px rgba(99, 102, 241, 0.5) !important;
+        transform: translateY(-0.5px) !important;
       }
 
-      .pp-floating-trigger.pp-idle .pp-trigger-content {
-        opacity: 0 !important;
-        max-width: 0 !important;
-        margin-left: 0 !important;
-        pointer-events: none !important;
+      .pp-dock-btn:active {
+        transform: translateY(0.5px) !important;
       }
 
-      .pp-floating-trigger.pp-idle:hover .pp-trigger-content {
-        opacity: 1 !important;
-        max-width: 320px !important;
-        margin-left: 5px !important;
-        pointer-events: auto !important;
-      }
-
-      .pp-trigger-primary {
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 5px !important;
-        cursor: pointer !important;
-        color: #ffffff !important;
-      }
-      .pp-trigger-primary:hover .pp-trigger-label {
-        color: #e0e7ff !important;
-      }
-
-      .pp-trigger-label {
-        font-size: 11px !important;
-        font-weight: 700 !important;
-        letter-spacing: -0.01em !important;
-        color: #ffffff !important;
-        transition: color 0.15s ease !important;
-      }
-
-      .pp-trigger-kbd {
-        font-size: 8.5px !important;
-        font-family: inherit !important;
-        color: #a1a1aa !important;
-        background: rgba(255, 255, 255, 0.08) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        padding: 1px 4px !important;
-        border-radius: 3px !important;
-        line-height: 1 !important;
-      }
-
-      .pp-trigger-sep {
-        width: 1px !important;
-        height: 12px !important;
-        background: rgba(255, 255, 255, 0.14) !important;
-        margin: 0 1px !important;
-      }
-
-      .pp-trigger-token-badge {
-        font-size: 9px !important;
-        font-weight: 600 !important;
-        padding: 1.5px 5px !important;
-        border-radius: 9999px !important;
-        background: rgba(255, 255, 255, 0.06) !important;
-        color: #a1a1aa !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        letter-spacing: -0.01em !important;
-      }
-
-      .pp-trigger-more {
-        background: transparent !important;
-        border: none !important;
-        padding: 2px 4px !important;
-        border-radius: 4px !important;
-        color: #a1a1aa !important;
+      .pp-dock-icon {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        cursor: pointer !important;
-        transition: all 0.15s ease !important;
+        width: 13px !important;
+        height: 13px !important;
       }
 
-      .pp-trigger-more:hover {
+      .pp-dock-kbd {
+        font-size: 8.5px !important;
+        padding: 1px 3.5px !important;
+        border-radius: 3px !important;
+        background: rgba(0, 0, 0, 0.28) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: #e0e7ff !important;
+        line-height: 1 !important;
+        font-weight: 600 !important;
+      }
+
+      .pp-dock-sep {
+        width: 1px !important;
+        height: 14px !important;
+        background: rgba(255, 255, 255, 0.14) !important;
+        flex-shrink: 0 !important;
+      }
+
+      .pp-dock-runway {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        padding: 0 7px !important;
+        height: 22px !important;
+        border-radius: 9999px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        cursor: pointer !important;
+        transition: all 0.15s ease !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+      }
+
+      .pp-dock-runway:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(255, 255, 255, 0.18) !important;
+      }
+
+      .pp-runway-dot {
+        width: 6px !important;
+        height: 6px !important;
+        border-radius: 50% !important;
+        background: #10b981 !important;
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.6) !important;
+        flex-shrink: 0 !important;
+      }
+
+      .pp-runway-model {
+        font-size: 10.5px !important;
+        font-weight: 700 !important;
+        color: #f1f5f9 !important;
+      }
+
+      .pp-runway-tokens {
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        color: #34d399 !important;
+      }
+
+      .pp-runway-pct {
+        font-size: 9.5px !important;
+        font-weight: 700 !important;
+        color: #94a3b8 !important;
+      }
+
+      .pp-dock-tones {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 2px !important;
+        flex-shrink: 0 !important;
+      }
+
+      .pp-dock-tone {
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        color: #94a3b8 !important;
+        font-size: 9.5px !important;
+        font-weight: 600 !important;
+        padding: 1.5px 5px !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        transition: all 0.12s ease !important;
+      }
+
+      .pp-dock-tone:hover {
+        background: rgba(255, 255, 255, 0.08) !important;
         color: #ffffff !important;
-        background: rgba(255, 255, 255, 0.12) !important;
+      }
+
+      .pp-dock-tone.active {
+        background: rgba(99, 102, 241, 0.25) !important;
+        border-color: rgba(99, 102, 241, 0.45) !important;
+        color: #c7d2fe !important;
+      }
+
+      .pp-dock-studio-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 3px !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 2px 5px !important;
+        border-radius: 4px !important;
+        color: #94a3b8 !important;
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: all 0.12s ease !important;
+        flex-shrink: 0 !important;
+      }
+
+      .pp-dock-studio-btn:hover {
+        color: #ffffff !important;
+        background: rgba(255, 255, 255, 0.08) !important;
       }
 
       /* Floating Modal Studio */
@@ -408,15 +396,17 @@
   ensureStylesInjected();
 
   function detectChatbot() {
-    const host = location.hostname.toLowerCase();
+    const loc = typeof window !== "undefined" && window.location ? window.location : (typeof location !== "undefined" ? location : { hostname: "", pathname: "" });
+    const host = (loc.hostname || "").toLowerCase();
+    const path = (loc.pathname || "").toLowerCase();
     if (host.includes("chatgpt") || host.includes("chat.openai") || host.includes("oaistatic")) return "chatgpt";
     if (host.includes("claude.ai") || host.includes("anthropic")) return "claude";
     if (host.includes("gemini.google") || host.includes("bard.google")) return "gemini";
     if (host.includes("aistudio.google")) return "aistudio";
     if (host.includes("deepseek")) return "deepseek";
-    if (host.includes("grok") || host.includes("x.ai") || (host.includes("x.com") && location.pathname.includes("grok"))) return "grok";
+    if (host.includes("grok") || host.includes("x.ai") || (host.includes("x.com") && path.includes("grok"))) return "grok";
     if (host.includes("perplexity")) return "perplexity";
-    if (host.includes("copilot.microsoft") || (host.includes("bing.com") && location.pathname.includes("chat"))) return "copilot";
+    if (host.includes("copilot.microsoft") || (host.includes("bing.com") && path.includes("chat"))) return "copilot";
     if (host.includes("meta.ai")) return "meta";
     if (host.includes("poe.com")) return "poe";
     if (host.includes("mistral.ai")) return "mistral";
@@ -426,23 +416,30 @@
   }
 
   function isSidebarElement(el) {
-    if (!el) return false;
-    return Boolean(
-      el.closest("aside, nav, [role='navigation'], #sidebar, .sidebar, header, [aria-label*='Search' i], [placeholder*='Search' i], [aria-label*='Notebook' i]")
-    );
+    if (!el || typeof el.closest !== "function") return false;
+    try {
+      return Boolean(
+        el.closest("aside, nav, [role='navigation'], #sidebar, .sidebar, header, [aria-label*='Search' i], [placeholder*='Search' i], [aria-label*='Notebook' i]")
+      );
+    } catch {
+      return false;
+    }
   }
 
   function isVisible(el) {
     if (!el) return false;
-    const style = window.getComputedStyle(el);
-    const rect = el.getBoundingClientRect();
-    return (
-      style.display !== "none" &&
-      style.visibility !== "hidden" &&
-      style.opacity !== "0" &&
-      rect.width > 0 &&
-      rect.height > 0
-    );
+    try {
+      const style = typeof window !== "undefined" && typeof window.getComputedStyle === "function" ? window.getComputedStyle(el) : (el.style || {});
+      const rect = typeof el.getBoundingClientRect === "function" ? el.getBoundingClientRect() : null;
+      return (
+        style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        style.opacity !== "0" &&
+        (!rect || (rect.width > 0 && rect.height > 0))
+      );
+    } catch {
+      return true;
+    }
   }
 
   function getInput() {
@@ -532,7 +529,10 @@
       const perplexitySelectors = [
         "textarea[placeholder*='Ask anything']",
         "textarea[placeholder*='Ask follow-up']",
+        "textarea[placeholder*='Ask']",
+        "div[data-lexical-editor='true']",
         "div[contenteditable='true'][role='textbox']",
+        "div[contenteditable='true']",
         "textarea"
       ];
       for (const s of perplexitySelectors) {
@@ -604,10 +604,16 @@
     el.focus();
 
     if (el.tagName === "TEXTAREA" || el.tagName === "INPUT") {
-      el.value = val;
+      const proto = el.tagName === "TEXTAREA" ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
+      const descriptor = Object.getOwnPropertyDescriptor(proto, "value");
+      if (descriptor && descriptor.set) {
+        descriptor.set.call(el, val);
+      } else {
+        el.value = val;
+      }
       el.dispatchEvent(new Event("input", { bubbles: true }));
       el.dispatchEvent(new Event("change", { bubbles: true }));
-    } else if (el.isContentEditable) {
+    } else if (el.isContentEditable || el.getAttribute("contenteditable") === "true") {
       try {
         // Multi-strategy rich-text injection (Quill, ProseMirror, Slate, Lexical)
         document.execCommand("selectAll", false, null);
@@ -630,28 +636,13 @@
     }
   }
 
-  function getChatContainer(input) {
-    let parent = input.parentElement;
-    for (let i = 0; i < 6 && parent; i++) {
-      const style = window.getComputedStyle(parent);
-      if (
-        (parent.tagName === "FORM" ||
-          parent.classList.contains("relative") ||
-          parent.classList.contains("input-area") ||
-          parent.classList.contains("input-area-v2") ||
-          style.position === "relative" ||
-          style.position === "sticky") &&
-        parent.offsetWidth > 280
-      ) {
-        return parent;
-      }
-      parent = parent.parentElement;
-    }
-    return input;
-  }
-
   function showToast(msg) {
+    const existing = document.getElementById("pp-inpage-toast");
+    if (existing) {
+      try { existing.remove(); } catch {}
+    }
     const t = document.createElement("div");
+    t.id = "pp-inpage-toast";
     t.textContent = msg;
     Object.assign(t.style, {
       position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
@@ -663,81 +654,46 @@
     setTimeout(() => {
       t.style.opacity = "0";
       t.style.transform = "translate(-50%, 10px)";
-      setTimeout(() => t.remove(), 300);
+      setTimeout(() => { try { t.remove(); } catch {} }, 300);
     }, 2800);
   }
 
-  function synthesizeLocalPrompt(userInput, tone = "code") {
-    const text = (userInput || "").trim();
-    if (!text) return "";
-    const cleanInput = text.replace(/^(please|can you|help me|i want to|i need to|how to|write|create|build|fix|generate|make)\s+/i, "");
-    const subject = cleanInput.length > 0 ? cleanInput : text;
-    const bot = detectChatbot();
+  function synthesizeLocalPrompt(text, tone) {
+    return globalThis.PromptPlusSynthesis.synthesizeLocalPrompt(text, { tone });
+  }
 
-    let role = "Senior Subject Matter Expert & Principal Architect";
-    let toneStr = "Technically Rigorous, Production-Grade";
-    let sec1 = "SPECIFICATIONS & ARCHITECTURAL CONSTRAINTS";
-    let sec2 = "IMPLEMENTATION PROTOCOL";
-    let antiCliche = "- **STRICT ANTI-CLICHÉ PROTOCOL**: Never use robotic AI buzzwords ('delve into', 'tapestry', 'testament', 'in conclusion', 'as an AI', 'game changer', 'unleash', 'seamlessly').";
+  let enhancementPending = false;
+  async function enhanceText(text, tone) {
+    try {
+      const response = await new Promise((resolve) => {
+        const timer = setTimeout(() => resolve(null), 55000);
+        chrome.runtime.sendMessage({ action: "enhancePrompt", text, tone, mode: "api" }, (result) => {
+          clearTimeout(timer);
+          if (chrome.runtime.lastError) resolve(null);
+          else resolve(result);
+        });
+      });
+      if (response?.success && response.data?.enhanced) {
+        return { text: response.data.enhanced, source: response.data.source === "local-template" ? "Local template (offline)" : "Cloud model" };
+      }
+    } catch { /* Explicit local fallback below. */ }
+    return { text: synthesizeLocalPrompt(text, tone), source: "Local template (offline)" };
+  }
 
-    if (tone === "human") {
-      role = "Experienced Senior Peer & Pragmatic Thought Partner";
-      toneStr = "Authentic, Human-Sounding, Natural Cadence & Zero Fluff";
-      sec1 = "CORE GOAL & AUTHENTIC HUMAN CONTEXT";
-      sec2 = "PRAGMATIC EXECUTION STEPS";
-      antiCliche = "- **STRICT HUMAN VOICE MANDATE**: Write naturally like an experienced human peer. Vary sentence length for organic rhythm. Eliminate preamble ('Certainly! Here is...') and concluding summaries. Explicitly avoid all AI buzzwords and corporate fluff.";
-    } else if (tone === "copy") {
-      role = "Elite Conversion Copywriter & Brand Strategist";
-      toneStr = "High-Conversion, Punchy & Action-Oriented";
-      sec1 = "AUDIENCE HOOK & VALUE DIRECTIVES";
-      sec2 = "NARRATIVE EXECUTION STEPS";
-    } else if (tone === "exec") {
-      role = "Senior Management Consultant & Executive Director";
-      toneStr = "Concise, Strategic & Metric-Driven";
-      sec1 = "STRATEGIC OBJECTIVES & CONSTRAINTS";
-      sec2 = "ACTIONABLE ROADMAP & DECISION STEPS";
-    } else if (tone === "deep") {
-      role = "Lead AI Research Scientist & Deep Logic Reasoner";
-      toneStr = "Exhaustive, First-Principles Reasoning";
-      sec1 = "CORE HYPOTHESES & LOGICAL CONSTRAINTS";
-      sec2 = "STEP-BY-STEP DEDUCTION & VALIDATION";
-    }
-
-    if (bot === "claude") {
-      return `<role_and_objective>
-  <persona>${role}</persona>
-  <task>${text}</task>
-</role_and_objective>
-
-<specifications>
-  <subject>${subject}</subject>
-  <tone_profile>${toneStr}</tone_profile>
-  <anti_cliche_mandate>${antiCliche.replace("- **STRICT ANTI-CLICHÉ PROTOCOL**: ", "").replace("- **STRICT HUMAN VOICE MANDATE**: ", "")}</anti_cliche_mandate>
-</specifications>
-
-<execution_steps>
-  <step>1. Analyze objective from first principles.</step>
-  <step>2. Provide direct, production-grade output formatted cleanly without meta commentary.</step>
-</execution_steps>`;
-    }
-
-    return `### ROLE & PERSONA
-You are an authoritative ${role}. Execute this task with highest precision:
-"${text}"
-
-### ${sec1}
-- **Subject**: "${subject}"
-- **Tone Profile**: ${toneStr}
-${antiCliche}
-- **Quality Constraint**: Deliver complete, immediately usable results without placeholders or conversational fluff.
-
-### ${sec2}
-1. Analyze core requirements for "${subject}" and anticipate implicit edge cases.
-2. Structure output with modular sections, scannable Markdown headers, and concrete code/examples.
-3. Validate solution against real-world usability, scalability, and performance.
-
-### DELIVERABLES & OUTPUT FORMAT
-- Deliver complete, immediately usable results formatted in clean Markdown.`;
+  async function enhanceInPlace(input, raw, tone) {
+    if (enhancementPending || !raw.trim()) return;
+    const initialText = getText(input).trim();
+    enhancementPending = true;
+    showToast("Enhancing with cloud models…");
+    try {
+      const result = await enhanceText(raw, tone);
+      if (getText(input).trim() !== initialText) {
+        showToast("Input changed while enhancing. Try again to use your latest text.");
+        return;
+      }
+      setText(input, result.text);
+      showToast(result.source);
+    } finally { enhancementPending = false; }
   }
 
   function getModelContextInfo() {
@@ -781,7 +737,16 @@ ${antiCliche}
     return { botKey: "AI", name: "Universal Chatbot", maxContext: 128000, tag: "128K Context", color: "#6366f1" };
   }
 
-  // Open Floating Optimizer Modal
+  function formatK(num) {
+    if (num == null) return "0";
+    if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+    if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+    return String(num);
+  }
+
+  let latestAnalysis = null;
+
+  // Open Floating Optimizer & Context Runway Studio Modal
   function openFloatingModal(inputEl) {
     if (modalEl) {
       modalEl.remove();
@@ -789,12 +754,19 @@ ${antiCliche}
     }
 
     const currentVal = getText(inputEl).trim();
-    const tokenCount = Math.ceil(currentVal.length / 3.8);
+    const tokenCount = currentVal.length > 0 ? (window.PromptPlusTokenizer ? window.PromptPlusTokenizer.countTokens(currentVal) : Math.ceil(currentVal.length / 3.8)) : 0;
     const modelInfo = getModelContextInfo();
-    const freeTokens = Math.max(0, modelInfo.maxContext - tokenCount);
-    const freeK = (freeTokens / 1000).toFixed(1);
-    const usedPct = Math.min(100, Math.max(1, (tokenCount / modelInfo.maxContext) * 100)).toFixed(2);
-    const freePct = (100 - parseFloat(usedPct)).toFixed(1);
+
+    const limit = latestAnalysis?.contextLimit || modelInfo.maxContext || 128000;
+    const totalTokens = (latestAnalysis?.totalTokens || 0) + tokenCount;
+    const pct = Math.min(100, Math.max(0, Math.round((totalTokens / limit) * 100)));
+    const modelName = latestAnalysis?.modelName || modelInfo.name;
+    const turnCount = latestAnalysis?.turnCount || 0;
+    const burn = latestAnalysis?.burnRate || "steady";
+
+    let color = "#10b981";
+    if (pct >= 80) color = "#ef4444";
+    else if (pct >= 60) color = "#f59e0b";
 
     modalEl = document.createElement("div");
     modalEl.className = "pp-floating-modal";
@@ -802,28 +774,35 @@ ${antiCliche}
     modalEl.innerHTML = `
       <div class="pp-modal-header">
         <div class="pp-modal-title">
-          <span class="pp-trigger-icon" style="width:18px;height:18px;min-width:18px;font-size:10px;">${ICONS.sparkle}</span>
-          <span>Prompt+ Studio</span>
-          <span class="pp-model-badge" style="color:${modelInfo.color};">
-            <span class="pp-status-dot" style="background:${modelInfo.color};"></span>
-            ${modelInfo.name}
-          </span>
+          <span class="pp-dock-icon" style="width:16px;height:16px;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;">${ICONS.sparkle}</span>
+          <span>Prompt+ Studio & Runway</span>
         </div>
-        <button type="button" class="pp-modal-close-btn" id="pp-modal-close" aria-label="Close">${ICONS.close}</button>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="pp-model-badge" style="color:${color};">
+            <span class="pp-status-dot" style="background:${color};box-shadow:0 0 8px ${color}80;"></span>
+            ${escapeHtml(modelName)}
+          </span>
+          <button type="button" class="pp-modal-close-btn" id="pp-modal-close" aria-label="Close">${ICONS.close}</button>
+        </div>
       </div>
 
-      <!-- Real-Time Token Context Remaining Telemetry Card -->
-      <div style="background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:7px 10px;display:flex;flex-direction:column;gap:5px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;font-size:10.5px;">
-          <span style="font-weight:700;color:#ffffff;letter-spacing:-0.01em;">Remaining Context</span>
-          <span style="font-weight:700;color:#10b981;background:rgba(16,185,129,0.14);padding:1.5px 7px;border-radius:4px;border:1px solid rgba(16,185,129,0.28);">${freeK}K tokens free (${freePct}%)</span>
+      <!-- Real-Time Context Runway Card -->
+      <div style="background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-weight:700;color:#ffffff;letter-spacing:-0.01em;">Context Runway</span>
+            <span id="pp-modal-burn-badge" style="font-size:9.5px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,0.08);color:#94a3b8;">${burn} burn</span>
+          </div>
+          <span id="pp-modal-rem-badge" style="font-weight:700;color:${color};background:${color}22;padding:1.5px 7px;border-radius:4px;border:1px solid ${color}44;">Capacity unknown (Estimated visible usage)</span>
         </div>
         <div style="width:100%;height:4.5px;border-radius:9999px;background:rgba(255,255,255,0.1);overflow:hidden;">
-          <div style="height:100%;border-radius:9999px;background:linear-gradient(90deg,#6366f1 0%,#10b981 100%);width:${Math.max(8, freePct)}%;box-shadow:0 0 8px rgba(16,185,129,0.4);"></div>
+          <div id="pp-modal-runway-bar" style="height:100%;border-radius:9999px;background:${color};width:${Math.min(100, Math.max(3, pct))}%;box-shadow:0 0 8px ${color}80;transition:width 0.3s ease;"></div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;font-size:9.5px;color:#a1a1aa;">
-          <span>Prompt Load: ~${tokenCount} tokens</span>
-          <span>Max Window: ${(modelInfo.maxContext / 1000).toFixed(0)}K tokens</span>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:9.5px;color:#a1a1aa;text-align:center;">
+          <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 0;">Used: <strong id="pp-modal-used-tok" style="color:#fff;">${formatK(totalTokens)}</strong></div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 0;">Limit: <strong style="color:#fff;">${formatK(limit)}</strong></div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 0;">Turns: <strong id="pp-modal-turn-count" style="color:#fff;">${turnCount}</strong></div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 0;">Left: <strong id="pp-modal-est-msgs" style="color:#34d399;">Unknown</strong></div>
         </div>
       </div>
 
@@ -835,8 +814,8 @@ ${antiCliche}
         <div class="pp-tone-chip ${selectedTone === "deep" ? "active" : ""}" data-tone="deep">Deep Reasoner</div>
       </div>
 
-      <div class="pp-modal-preview" id="pp-modal-preview">
-        ${escapeHtml(currentVal) || "Type your prompt idea in the chatbox below..."}
+      <div class="pp-modal-preview" id="pp-modal-preview" contenteditable="true" spellcheck="false" placeholder="Type prompt idea or click Optimize...">
+        ${escapeHtml(currentVal) || "Type your prompt idea in the chatbox below or type directly here..."}
       </div>
 
       <div class="pp-modal-actions">
@@ -855,9 +834,9 @@ ${antiCliche}
     document.body.appendChild(modalEl);
 
     // Position modal right above the input box
-    const card = getChatContainer(inputEl) || inputEl;
+    const card = resolveChatCapsule(inputEl) || inputEl;
     const rect = card.getBoundingClientRect();
-    const modalHeight = modalEl.offsetHeight || 260;
+    const modalHeight = modalEl.offsetHeight || 280;
     const modalWidth = modalEl.offsetWidth || 380;
 
     let top = rect.top - modalHeight - 12;
@@ -893,7 +872,7 @@ ${antiCliche}
     };
 
     const handleOutsideClick = (e) => {
-      if (modalEl && !modalEl.contains(e.target) && !e.target.closest(".pp-floating-trigger")) {
+      if (modalEl && !modalEl.contains(e.target) && !e.target.closest(".pp-unified-dock") && !e.target.closest(".pp-floating-trigger")) {
         closeModal();
       }
     };
@@ -903,7 +882,6 @@ ${antiCliche}
       document.addEventListener("click", handleOutsideClick);
     }, 50);
 
-    // Event handlers with stopPropagation to prevent host page cancellation
     modalEl.querySelector("#pp-modal-close")?.addEventListener("click", (e) => {
       e.stopPropagation();
       closeModal();
@@ -915,66 +893,94 @@ ${antiCliche}
         modalEl.querySelectorAll(".pp-tone-chip").forEach((c) => c.classList.remove("active"));
         chip.classList.add("active");
         selectedTone = chip.getAttribute("data-tone") || "code";
+
+        const dock = document.querySelector(".pp-unified-dock");
+        if (dock) {
+          dock.querySelectorAll(".pp-dock-tone").forEach((b) => {
+            b.classList.toggle("active", b.getAttribute("data-tone") === selectedTone);
+          });
+        }
       });
     });
 
     modalEl.querySelector("#pp-modal-replace-btn")?.addEventListener("click", (e) => {
       e.stopPropagation();
-      const raw = getText(inputEl).trim();
+      const previewEl = modalEl.querySelector("#pp-modal-preview");
+      const previewText = previewEl ? previewEl.innerText.trim() : "";
+      const raw = previewText && previewText !== "Type your prompt idea in the chatbox below or type directly here..." ? previewText : getText(inputEl).trim();
       if (!raw) {
-        showToast("⚠️ Type your prompt idea in the chat box first!");
+        showToast("⚠️ Type your prompt idea first!");
         return;
       }
-      const masterPrompt = synthesizeLocalPrompt(raw, selectedTone);
-      setText(inputEl, masterPrompt);
-      showToast("✓ Master prompt compiled & replaced in chat!");
+      void enhanceInPlace(inputEl, raw, selectedTone);
       closeModal();
     });
 
     modalEl.querySelector("#pp-modal-copy-btn")?.addEventListener("click", (e) => {
       e.stopPropagation();
-      const raw = getText(inputEl).trim();
-      const masterPrompt = synthesizeLocalPrompt(raw || "Build full stack scalable app", selectedTone);
-      navigator.clipboard.writeText(masterPrompt);
-      showToast("✓ Copied Master Prompt!");
+      const previewEl = modalEl.querySelector("#pp-modal-preview");
+      const previewText = previewEl ? previewEl.innerText.trim() : "";
+      const raw = previewText && previewText !== "Type your prompt idea in the chatbox below or type directly here..." ? previewText : getText(inputEl).trim();
+      if (!raw) { showToast("Enter a prompt first."); return; }
+      const masterPrompt = synthesizeLocalPrompt(raw, selectedTone);
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(masterPrompt).then(() => {
+          showToast("Local template (offline) copied");
+        });
+      } else {
+        showToast("✓ Master prompt compiled!");
+      }
     });
   }
 
   function resolveChatCapsule(input) {
     if (!input) return null;
+
+    // 1. If inside a form with reasonable composer dimensions, use that form
+    const form = input.closest("form");
+    if (form) {
+      const rect = form.getBoundingClientRect();
+      if (rect.height >= 24 && rect.height <= 340 && rect.width >= 200) {
+        return form;
+      }
+    }
+
+    // 2. Look for composer or prompt wrapper
     let cur = input.parentElement;
-    let best = input;
-    for (let i = 0; i < 8 && cur && cur !== document.body; i++) {
-      const tag = cur.tagName.toLowerCase();
+    for (let i = 0; i < 4 && cur && cur !== document.body; i++) {
       const cls = (cur.className || "").toString().toLowerCase();
-      if (
-        tag === "input-area-v2" ||
-        tag === "form" ||
-        tag === "fieldset" ||
-        cls.includes("input-area") ||
-        cls.includes("chat-input") ||
-        cls.includes("composer-parent") ||
-        cls.includes("text-input-field") ||
-        cls.includes("conversation-compose") ||
-        cls.includes("prosemirror-focused") ||
-        cls.includes("bottom-composer") ||
-        cls.includes("chat-composer") ||
-        cur.getAttribute("role") === "region" ||
-        cur.offsetWidth > 380
-      ) {
-        best = cur;
+      const rect = cur.getBoundingClientRect();
+      if (rect.height >= 24 && rect.height <= 340 && rect.width >= 200) {
+        if (
+          cls.includes("composer") ||
+          cls.includes("input-area") ||
+          cls.includes("chat-input") ||
+          cls.includes("prosemirror") ||
+          cur.getAttribute("role") === "region"
+        ) {
+          return cur;
+        }
       }
       cur = cur.parentElement;
     }
-    return best;
+
+    // 3. Fallback: immediate parent if it has reasonable size
+    if (input.parentElement) {
+      const r = input.parentElement.getBoundingClientRect();
+      if (r.height >= 24 && r.width >= 200) {
+        return input.parentElement;
+      }
+    }
+
+    return input;
   }
 
-  // Inject sleek floating trigger button
+  // Inject sleek unified prompt action dock
   function injectFloatingButton() {
     if (!document.body) return;
     ensureStylesInjected();
 
-    const existing = document.querySelector(".pp-floating-trigger");
+    const existing = document.querySelector(".pp-unified-dock, .pp-floating-trigger");
     if (existing) {
       if (document.body.contains(existing._targetInput) && isVisible(existing._targetInput)) {
         positionFloatingButton(existing, existing._targetInput);
@@ -989,96 +995,102 @@ ${antiCliche}
     const rect = input.getBoundingClientRect();
     if (!rect || rect.width === 0) { setTimeout(injectFloatingButton, 800); return; }
 
-    const trigger = document.createElement("div");
-    trigger.className = "pp-floating-trigger";
-    trigger._targetInput = input;
+    const dock = document.createElement("div");
+    dock.className = "pp-unified-dock";
+    dock._targetInput = input;
 
     const model = getModelContextInfo();
-    const initialVal = getText(input).trim();
-    const initialTokens = initialVal.length > 0 ? Math.ceil(initialVal.length / 3.8) : 0;
-    const initialFreeK = Math.max(0, (model.maxContext - initialTokens) / 1000).toFixed(0);
-    const badgeLabel = initialTokens > 0 ? `${initialFreeK}K free · ~${initialTokens} tok` : `${initialFreeK}K free`;
 
-    if (initialTokens === 0) {
-      trigger.classList.add("pp-idle");
-    }
+    const activeModelName = latestAnalysis?.modelName || model.name;
 
-    trigger.innerHTML = `
-      <div class="pp-trigger-icon" title="Prompt+ (Click to enhance or expand)">
-        ${ICONS.sparkle}
+    dock.innerHTML = `
+      <button type="button" class="pp-dock-btn" id="pp-dock-enhance" title="Compile & Enhance Prompt in-place (${kbdShortcut})">
+        <span class="pp-dock-icon">${ICONS.sparkle}</span>
+        <span class="pp-dock-label">Enhance</span>
+        <kbd class="pp-dock-kbd">${kbdShortcut}</kbd>
+      </button>
+
+      <div class="pp-dock-sep"></div>
+
+      <div class="pp-dock-runway" id="pp-dock-runway" title="Context Runway: Click for conversation token telemetry">
+        <span class="pp-runway-dot" id="pp-runway-dot"></span>
+        <span class="pp-runway-model" id="pp-runway-model">${escapeHtml(activeModelName)}</span>
+        <span class="pp-runway-tokens" id="pp-runway-tokens">Capacity unknown</span>
+        <span class="pp-runway-pct" id="pp-runway-pct">Limit unknown</span>
       </div>
-      <div class="pp-trigger-content">
-        <div class="pp-trigger-primary" id="pp-trigger-primary" title="Click to enhance prompt in-place">
-          <span class="pp-trigger-label">Enhance</span>
-          <kbd class="pp-trigger-kbd">${kbdShortcut}</kbd>
-        </div>
-        <div class="pp-trigger-sep"></div>
-        <span class="pp-trigger-token-badge" id="pp-trigger-tok">${badgeLabel}</span>
-        <button type="button" class="pp-trigger-more" id="pp-trigger-more" title="Open Studio Modal" aria-label="Open Studio">
-          ${ICONS.chevron}
-        </button>
+
+      <div class="pp-dock-sep"></div>
+
+      <div class="pp-dock-tones">
+        <button type="button" class="pp-dock-tone ${selectedTone === 'code' ? 'active' : ''}" data-tone="code" title="Tech Architect Tone">Tech</button>
+        <button type="button" class="pp-dock-tone ${selectedTone === 'human' ? 'active' : ''}" data-tone="human" title="Natural Human Tone">Human</button>
+        <button type="button" class="pp-dock-tone ${selectedTone === 'exec' ? 'active' : ''}" data-tone="exec" title="Executive Strategy Tone">Exec</button>
       </div>
+
+      <button type="button" class="pp-dock-studio-btn" id="pp-dock-studio-btn" title="Open Studio & Telemetry Panel" aria-label="Open Studio">
+        <span>Studio</span>
+        ${ICONS.chevron}
+      </button>
     `;
 
-    document.body.appendChild(trigger);
-    positionFloatingButton(trigger, input);
+    document.body.appendChild(dock);
+    positionFloatingButton(dock, input);
 
-    // Live typing token count & morph state
-    const updateTokens = () => {
+    // Live typing listener to show instant typed token cost
+    const updateTypingTokens = () => {
       const val = getText(input).trim();
-      const tokens = val.length > 0 ? Math.ceil(val.length / 3.8) : 0;
-      const m = getModelContextInfo();
-      const freeK = Math.max(0, (m.maxContext - tokens) / 1000).toFixed(0);
-      const tokBadge = trigger.querySelector("#pp-trigger-tok");
-      if (tokBadge) {
-        tokBadge.textContent = tokens > 0 ? `${freeK}K free · ~${tokens} tok` : `${freeK}K free`;
-      }
-      if (tokens === 0) {
-        trigger.classList.add("pp-idle");
-      } else {
-        trigger.classList.remove("pp-idle");
+      const typedTokens = val.length > 0 ? (window.PromptPlusTokenizer ? window.PromptPlusTokenizer.countTokens(val) : Math.ceil(val.length / 3.8)) : 0;
+      const tokEl = dock.querySelector("#pp-runway-tokens");
+      if (tokEl) {
+        const curLimit = latestAnalysis?.contextLimit || model.maxContext;
+        const curUsed = (latestAnalysis?.totalTokens || 0) + typedTokens;
+        const curRem = Math.max(0, curLimit - curUsed);
+        tokEl.textContent = !latestAnalysis?.contextLimitKnown ? `~${formatK(curUsed)} visible tokens` : typedTokens > 0 ? `${formatK(curRem)} left (~${typedTokens} tok)` : `${formatK(curRem)} left`;
       }
     };
-    input.addEventListener("input", updateTokens);
-    updateTokens();
+    input.addEventListener("input", updateTypingTokens);
 
-    setupDraggable(trigger);
+    setupDraggable(dock);
 
-    // Reliable click handlers
-    trigger.querySelector("#pp-trigger-more")?.addEventListener("click", (e) => {
+    // Quick Tone Switcher Handlers
+    dock.querySelectorAll(".pp-dock-tone").forEach((toneBtn) => {
+      toneBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const newTone = toneBtn.getAttribute("data-tone") || "human";
+        selectedTone = newTone;
+        dock.querySelectorAll(".pp-dock-tone").forEach((b) => b.classList.remove("active"));
+        toneBtn.classList.add("active");
+
+        showToast(`Tone set to ${newTone.toUpperCase()}`);
+      });
+    });
+
+    // Primary Enhance Action
+    dock.querySelector("#pp-dock-enhance")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (dock._hasMoved && dock._hasMoved()) return;
+      const raw = getText(input).trim();
+      if (raw) {
+        void enhanceInPlace(input, raw, selectedTone);
+      } else {
+        openFloatingModal(input);
+      }
+    });
+
+    // Runway click
+    dock.querySelector("#pp-dock-runway")?.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       openFloatingModal(input);
     });
 
-    trigger.querySelector("#pp-trigger-primary")?.addEventListener("click", (e) => {
+    // Studio open button
+    dock.querySelector("#pp-dock-studio-btn")?.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (trigger._hasMoved && trigger._hasMoved()) return;
-      const raw = getText(input).trim();
-      if (raw) {
-        const masterPrompt = synthesizeLocalPrompt(raw, selectedTone);
-        setText(input, masterPrompt);
-        showToast("✓ Prompt enhanced in-place!");
-      } else {
-        openFloatingModal(input);
-      }
-    });
-
-    // Outer trigger click fallback (e.g. clicking the icon or when idle)
-    trigger.addEventListener("click", (e) => {
-      if (e.target.closest("#pp-trigger-more") || e.target.closest("#pp-trigger-primary")) return;
-      e.preventDefault();
-      e.stopPropagation();
-      if (trigger._hasMoved && trigger._hasMoved()) return;
-      const raw = getText(input).trim();
-      if (trigger.classList.contains("pp-idle") || !raw) {
-        openFloatingModal(input);
-      } else {
-        const masterPrompt = synthesizeLocalPrompt(raw, selectedTone);
-        setText(input, masterPrompt);
-        showToast("✓ Prompt enhanced in-place!");
-      }
+      openFloatingModal(input);
     });
 
     let rafPending = false;
@@ -1087,20 +1099,18 @@ ${antiCliche}
       rafPending = true;
       requestAnimationFrame(() => {
         rafPending = false;
-        if (document.body.contains(trigger) && document.body.contains(input)) {
-          positionFloatingButton(trigger, input);
+        if (document.body.contains(dock) && document.body.contains(input)) {
+          positionFloatingButton(dock, input);
         }
       });
     };
 
-    // Dynamic Text Field Observers: Follows the chatbot input as it grows, shrinks, or moves
     input.addEventListener("input", schedulePosition);
     input.addEventListener("focus", schedulePosition);
     input.addEventListener("blur", schedulePosition);
     input.addEventListener("keyup", schedulePosition);
 
     const capsule = resolveChatCapsule(input) || input;
-
     try {
       if (window.ResizeObserver) {
         const ro = new ResizeObserver(() => schedulePosition());
@@ -1120,14 +1130,13 @@ ${antiCliche}
       return;
     }
 
-    // Check if user has saved a custom dragged position
-    const customPosStr = localStorage.getItem("pp_btn_custom_pos");
+    const customPosStr = localStorage.getItem("pp_dock_custom_pos");
     if (customPosStr) {
       try {
         const pos = JSON.parse(customPosStr);
         if (typeof pos.top === "number" && typeof pos.left === "number") {
           const clampedTop = Math.max(8, Math.min(window.innerHeight - 40, pos.top));
-          const clampedLeft = Math.max(8, Math.min(window.innerWidth - 140, pos.left));
+          const clampedLeft = Math.max(8, Math.min(window.innerWidth - 220, pos.left));
           trigger.style.removeProperty("right");
           trigger.style.setProperty("top", `${clampedTop}px`, "important");
           trigger.style.setProperty("left", `${clampedLeft}px`, "important");
@@ -1137,31 +1146,23 @@ ${antiCliche}
       } catch {}
     }
 
-    // Find the full outermost active prompt capsule
     const capsule = resolveChatCapsule(input) || input;
     const rect = capsule.getBoundingClientRect();
-    if (!rect || rect.width === 0 || rect.height === 0 || rect.top < 0) {
+    if (!rect || rect.width === 0 || rect.height === 0 || rect.bottom <= 0 || rect.top >= window.innerHeight) {
       trigger.style.setProperty("display", "none", "important");
       return;
     }
 
-    const triggerHeight = 28;
+    const dockHeight = 30;
     const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
 
-    // Ergonomic vertical placement with clean 12px separation
-    let top = 0;
-    if (rect.bottom + triggerHeight + 18 < viewportHeight) {
-      top = rect.bottom + 12;
-    } else {
-      top = rect.top - triggerHeight - 12;
+    // Ergonomic placement: docked 8px directly above the top-right edge of the chat input
+    let top = rect.top - dockHeight - 8;
+    if (top < 10) {
+      top = rect.top + 8;
     }
 
-    if (top < 10) top = 10;
-    if (top + triggerHeight > viewportHeight - 10) top = viewportHeight - triggerHeight - 10;
-
-    // Anchor to right edge of capsule so morph expansions expand naturally to the left
-    const rightOffset = Math.max(16, Math.min(viewportWidth - 36, viewportWidth - rect.right + 6));
+    const rightOffset = Math.max(12, Math.min(viewportWidth - 40, viewportWidth - rect.right + 4));
 
     trigger.style.removeProperty("left");
     trigger.style.setProperty("right", `${Math.round(rightOffset)}px`, "important");
@@ -1169,7 +1170,6 @@ ${antiCliche}
     trigger.style.setProperty("display", "inline-flex", "important");
   }
 
-  // Draggable support for floating button
   function setupDraggable(trigger) {
     let isDragging = false;
     let startX = 0;
@@ -1180,6 +1180,9 @@ ${antiCliche}
 
     trigger.addEventListener("mousedown", (e) => {
       if (e.button !== 0) return;
+      if (e.target.closest("button") || e.target.closest(".pp-dock-btn") || e.target.closest(".pp-dock-runway")) {
+        return;
+      }
       isDragging = true;
       moved = false;
       startX = e.clientX;
@@ -1210,17 +1213,17 @@ ${antiCliche}
       trigger.style.transition = "";
       if (moved) {
         const rect = trigger.getBoundingClientRect();
-        localStorage.setItem("pp_btn_custom_pos", JSON.stringify({ top: rect.top, left: rect.left }));
+        localStorage.setItem("pp_dock_custom_pos", JSON.stringify({ top: rect.top, left: rect.left }));
       }
     });
 
-    // Double click resets position to default anchor
     trigger.addEventListener("dblclick", (e) => {
       e.preventDefault();
       e.stopPropagation();
+      localStorage.removeItem("pp_dock_custom_pos");
       localStorage.removeItem("pp_btn_custom_pos");
       trigger.style.removeProperty("left");
-      showToast("✓ Button position reset to default");
+      showToast("✓ Dock position reset to default");
       if (trigger._targetInput) {
         positionFloatingButton(trigger, trigger._targetInput);
       }
@@ -1229,43 +1232,259 @@ ${antiCliche}
     trigger._hasMoved = () => moved;
   }
 
-  // Keyboard shortcut listener: Cmd+Shift+P / Ctrl+Shift+P to enhance in-place
+  // Keyboard shortcut listener:
+  // 1. Cmd+Shift+P / Ctrl+Shift+P (global toggle or enhance)
+  // 2. Cmd+Enter / Ctrl+Enter (while focused in chat input, matching dock kbd badge)
   document.addEventListener("keydown", (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "P" || e.key === "p")) {
-      e.preventDefault();
-      const input = getInput();
+    const isCmdShiftP = (e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "P" || e.key === "p");
+    const input = getInput();
+    const isFocusedInInput = input && (document.activeElement === input || input.contains(document.activeElement));
+    const isCmdEnter = (e.metaKey || e.ctrlKey) && !e.shiftKey && e.key === "Enter" && isFocusedInInput;
+
+    if (isCmdShiftP || isCmdEnter) {
+      if (modalEl) return; // Handled by modal's own keydown listener
       if (input) {
         const text = getText(input);
         if (text && text.trim()) {
+          e.preventDefault();
+          e.stopPropagation();
           showToast("⚡ Compiling master prompt in-place...");
-          const master = synthesizeLocalPrompt(text, selectedTone);
-          setText(input, master);
-          showToast("✓ Prompt optimized in-place!");
-        } else {
+          void enhanceInPlace(input, text, selectedTone);
+        } else if (isCmdShiftP) {
+          e.preventDefault();
+          e.stopPropagation();
           openFloatingModal(input);
         }
       }
     }
-  });
+  }, true);
+
+  // Update Dock UI when new conversation audit runs
+  function updateDockRunwayUI(analysis) {
+    if (!analysis) return;
+    latestAnalysis = analysis;
+
+    const dock = document.querySelector(".pp-unified-dock");
+    if (!dock) return;
+
+    const dot = dock.querySelector("#pp-runway-dot");
+    const modelEl = dock.querySelector("#pp-runway-model");
+    const tokEl = dock.querySelector("#pp-runway-tokens");
+    const pctEl = dock.querySelector("#pp-runway-pct");
+
+    const pct = analysis.percentUsed != null ? Math.round(analysis.percentUsed) : 0;
+    const remainingK = formatK(analysis.tokensRemaining || 0);
+
+    if (modelEl && analysis.modelName) {
+      modelEl.textContent = analysis.modelName;
+    }
+
+    if (tokEl) {
+      tokEl.textContent = analysis.contextLimitKnown ? `~${remainingK} left` : `~${formatK(analysis.totalTokens || 0)} visible tokens`;
+      if (pct >= 80) {
+        tokEl.style.color = "#f87171";
+      } else if (pct >= 60) {
+        tokEl.style.color = "#fbbf24";
+      } else {
+        tokEl.style.color = "#34d399";
+      }
+    }
+
+    if (pctEl) {
+      pctEl.textContent = analysis.contextLimitKnown ? `~${pct}%` : "Limit unknown";
+      pctEl.style.color = pct >= 80 ? "#f87171" : pct >= 60 ? "#fbbf24" : "#94a3b8";
+    }
+
+    if (dot) {
+      if (pct >= 80) {
+        dot.style.background = "#ef4444";
+        dot.style.boxShadow = "0 0 8px rgba(239, 68, 68, 0.7)";
+      } else if (pct >= 60) {
+        dot.style.background = "#f59e0b";
+        dot.style.boxShadow = "0 0 8px rgba(245, 158, 11, 0.7)";
+      } else {
+        dot.style.background = "#10b981";
+        dot.style.boxShadow = "0 0 8px rgba(16, 185, 129, 0.7)";
+      }
+    }
+
+    if (modalEl) {
+      const modalRemBadge = modalEl.querySelector("#pp-modal-rem-badge");
+      const modalBar = modalEl.querySelector("#pp-modal-runway-bar");
+      const modalUsed = modalEl.querySelector("#pp-modal-used-tok");
+      const modalTurns = modalEl.querySelector("#pp-modal-turn-count");
+      const modalLeft = modalEl.querySelector("#pp-modal-est-msgs");
+      const modalBurn = modalEl.querySelector("#pp-modal-burn-badge");
+
+      const color = pct >= 80 ? "#ef4444" : pct >= 60 ? "#f59e0b" : "#10b981";
+
+      if (modalRemBadge) {
+        modalRemBadge.textContent = analysis.contextLimitKnown ? `~${remainingK} left (~${pct}% used)` : "Capacity unknown; visible messages only";
+        modalRemBadge.style.color = color;
+        modalRemBadge.style.background = `${color}22`;
+        modalRemBadge.style.borderColor = `${color}44`;
+      }
+      if (modalBar) {
+        modalBar.style.width = `${Math.min(100, Math.max(3, pct))}%`;
+        modalBar.style.background = color;
+      }
+      if (modalUsed) modalUsed.textContent = formatK(analysis.totalTokens || 0);
+      if (modalTurns) modalTurns.textContent = String(analysis.turnCount || 0);
+      if (modalLeft) modalLeft.textContent = !analysis.contextLimitKnown ? "Unknown" : `~${analysis.estimatedMessagesLeft || 100}`;
+      if (modalBurn && analysis.burnRate) modalBurn.textContent = `${analysis.burnRate} burn`;
+    }
+  }
+
+  // ---------- Chatbot Adapter & Runway Bridge ----------
+  function getActiveAdapter() {
+    if (window.PromptPlusChatGPTAdapter && window.PromptPlusChatGPTAdapter.detect()) return window.PromptPlusChatGPTAdapter;
+    if (window.PromptPlusClaudeAdapter && window.PromptPlusClaudeAdapter.detect()) return window.PromptPlusClaudeAdapter;
+    if (window.PromptPlusGeminiAdapter && window.PromptPlusGeminiAdapter.detect()) return window.PromptPlusGeminiAdapter;
+    if (window.PromptPlusDeepSeekAdapter && window.PromptPlusDeepSeekAdapter.detect()) return window.PromptPlusDeepSeekAdapter;
+    if (window.PromptPlusGrokAdapter && window.PromptPlusGrokAdapter.detect()) return window.PromptPlusGrokAdapter;
+    if (window.PromptPlusPerplexityAdapter && window.PromptPlusPerplexityAdapter.detect()) return window.PromptPlusPerplexityAdapter;
+
+    const bot = detectChatbot();
+    if (bot === "chatgpt" && window.PromptPlusChatGPTAdapter) return window.PromptPlusChatGPTAdapter;
+    if (bot === "claude" && window.PromptPlusClaudeAdapter) return window.PromptPlusClaudeAdapter;
+    if ((bot === "gemini" || bot === "aistudio") && window.PromptPlusGeminiAdapter) return window.PromptPlusGeminiAdapter;
+    if (bot === "deepseek" && window.PromptPlusDeepSeekAdapter) return window.PromptPlusDeepSeekAdapter;
+    if (bot === "grok" && window.PromptPlusGrokAdapter) return window.PromptPlusGrokAdapter;
+    if (bot === "perplexity" && window.PromptPlusPerplexityAdapter) return window.PromptPlusPerplexityAdapter;
+
+    return null;
+  }
+
+  function initConversationRunway() {
+    const adapter = getActiveAdapter();
+    const bot = detectChatbot();
+
+    function runConversationAudit() {
+      try {
+        let activeModel = { name: "AI Model", limit: 128000, family: "default" };
+        let turns = [];
+
+        if (adapter) {
+          if (typeof adapter.getActiveModel === "function") {
+            activeModel = adapter.getActiveModel();
+          }
+          if (typeof adapter.getConversationTurns === "function") {
+            turns = adapter.getConversationTurns();
+          }
+        } else {
+          const info = getModelContextInfo();
+          activeModel = { name: info.name, limit: info.maxContext, family: bot };
+        }
+
+        let analysis;
+        if (window.PromptPlusTokenizer && typeof window.PromptPlusTokenizer.analyzeConversation === "function") {
+          analysis = window.PromptPlusTokenizer.analyzeConversation(turns, activeModel.limit, activeModel.family);
+        } else {
+          analysis = {
+            totalTokens: 0,
+            contextLimit: activeModel.limit,
+            tokensRemaining: activeModel.limit,
+            percentUsed: 0,
+            turnCount: turns.length,
+            userTokens: 0,
+            aiTokens: 0,
+            avgTokensPerTurn: 0,
+            avgTokensPerExchange: 0,
+            estimatedMessagesLeft: Math.floor(activeModel.limit / 800),
+            burnRate: "steady",
+          };
+        }
+
+        analysis.platform = adapter?.name || bot;
+        analysis.modelName = activeModel.name;
+        analysis.contextLimit = activeModel.limit;
+        // Chat-product capacity is not established by an API model limit.
+        analysis.contextLimitKnown = false;
+        analysis.estimated = true;
+
+        latestAnalysis = analysis;
+
+        // 1. Update In-Place Unified Dock & Modal
+        updateDockRunwayUI(analysis);
+
+        // 2. Broadcast to Background Service Worker for extension popup and badge
+        if (chrome?.runtime?.sendMessage) {
+          chrome.runtime.sendMessage({
+            action: "tokenUpdate",
+            contextLimitKnown: analysis.contextLimitKnown,
+            platform: analysis.platform,
+            modelName: analysis.modelName,
+            contextLimit: analysis.contextLimit,
+            conversationTokens: analysis.totalTokens,
+            tokensRemaining: analysis.tokensRemaining,
+            percentUsed: analysis.percentUsed,
+            turnCount: analysis.turnCount,
+            userTokens: analysis.userTokens,
+            aiTokens: analysis.aiTokens,
+            avgTokensPerTurn: analysis.avgTokensPerTurn,
+            avgTokensPerExchange: analysis.avgTokensPerExchange,
+            estimatedMessagesLeft: analysis.estimatedMessagesLeft,
+            burnRate: analysis.burnRate,
+            largestTurnTokens: analysis.largestTurnTokens,
+          }).catch(() => {});
+        }
+      } catch {
+        // Suppress audit errors during live streaming DOM changes
+      }
+    }
+
+    setTimeout(runConversationAudit, 800);
+    setTimeout(runConversationAudit, 2200);
+
+    const ObserverClass = typeof MutationObserver !== "undefined" ? MutationObserver : (typeof window !== "undefined" ? window.MutationObserver : null);
+    let auditDebounce = null;
+    if (ObserverClass && document.body) {
+      const conversationObserver = new ObserverClass((records) => {
+        if (records.every((record) => {
+          const element = record.target.nodeType === 1 ? record.target : record.target.parentElement;
+          return element?.closest?.(".pp-unified-dock, .pp-floating-modal");
+        })) return;
+        if (auditDebounce) clearTimeout(auditDebounce);
+        auditDebounce = setTimeout(runConversationAudit, 350);
+      });
+      conversationObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+    }
+
+    window.addEventListener("popstate", () => setTimeout(runConversationAudit, 500));
+    window.addEventListener("hashchange", () => setTimeout(runConversationAudit, 500));
+  }
 
   // Observe DOM changes with debounced MutationObserver to re-inject efficiently when new chat views render
+  const ObserverClass = typeof MutationObserver !== "undefined" ? MutationObserver : (typeof window !== "undefined" ? window.MutationObserver : null);
   let reinjectTimer = null;
-  const domObserver = new MutationObserver(() => {
-    if (reinjectTimer) return;
-    reinjectTimer = setTimeout(() => {
-      reinjectTimer = null;
-      const input = getInput();
-      if (input && !document.querySelector(".pp-floating-trigger")) {
-        injectFloatingButton();
-      }
-    }, 400);
-  });
+  if (ObserverClass) {
+    const domObserver = new ObserverClass(() => {
+      if (reinjectTimer) return;
+      reinjectTimer = setTimeout(() => {
+        reinjectTimer = null;
+        const input = getInput();
+        if (input && !document.querySelector(".pp-unified-dock")) {
+          injectFloatingButton();
+        }
+      }, 400);
+    });
+
+    if (document.body) {
+      domObserver.observe(document.body, { childList: true, subtree: true });
+    } else {
+      document.addEventListener("DOMContentLoaded", () => {
+        if (document.body) domObserver.observe(document.body, { childList: true, subtree: true });
+      });
+    }
+  }
 
   if (document.body) {
-    domObserver.observe(document.body, { childList: true, subtree: true });
+    initConversationRunway();
+    injectFloatingButton();
   } else {
     document.addEventListener("DOMContentLoaded", () => {
-      domObserver.observe(document.body, { childList: true, subtree: true });
+      initConversationRunway();
+      injectFloatingButton();
     });
   }
 
@@ -1273,4 +1492,80 @@ ${antiCliche}
     const input = getInput();
     if (input) injectFloatingButton();
   });
+
+  // ---------- Chrome Runtime Message Handler (Popup & Background Bridge) ----------
+  if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      if (!request || !request.action) return false;
+
+      // 1. Inject Enhanced Prompt from Popup "Use in Active Tab"
+      if (request.action === "injectEnhanced") {
+        const input = getInput();
+        if (input && request.enhanced) {
+          setText(input, request.enhanced);
+          showToast("✓ Injected into active chat!");
+          sendResponse({ success: true });
+        } else if (request.enhanced) {
+          const active = document.activeElement;
+          if (active && (active.tagName === "TEXTAREA" || active.tagName === "INPUT" || active.isContentEditable)) {
+            setText(active, request.enhanced);
+            showToast("✓ Injected into focused editor!");
+            sendResponse({ success: true });
+          } else {
+            showToast("⚠️ Could not detect chat input box");
+            sendResponse({ success: false, error: "No input field detected" });
+          }
+        } else {
+          sendResponse({ success: false, error: "Empty prompt" });
+        }
+        return true;
+      }
+
+      // 2. Enhance Selected Text from Context Menu
+      if (request.action === "enhanceSelection") {
+        const raw = request.text || "";
+        if (raw.trim()) {
+          void enhanceText(raw, selectedTone).then(({ text: enhanced, source }) => {
+          const input = getInput();
+          if (input) {
+            setText(input, enhanced);
+            showToast("✓ Selection enhanced & inserted into chat!");
+          } else {
+            navigator.clipboard?.writeText(enhanced);
+            showToast("✓ Selection enhanced & copied to clipboard!");
+          }
+          showToast(source);
+          sendResponse({ success: true, enhanced });
+          }).catch(() => sendResponse({ success: false, error: "Enhancement failed" }));
+        } else {
+          sendResponse({ success: false, error: "Empty selection" });
+        }
+        return true;
+      }
+
+      // 3. Open Floating Studio Panel via Keyboard Shortcut
+      if (request.action === "openEnhancePanel") {
+        const input = getInput() || document.activeElement;
+        openFloatingModal(input);
+        sendResponse({ success: true });
+        return true;
+      }
+
+      // 4. Retrieve Active Draft Prompt from Current Tab Input
+      if (request.action === "getActivePrompt") {
+        const input = getInput();
+        const text = input ? getText(input).trim() : "";
+        sendResponse({ success: true, text });
+        return true;
+      }
+
+      // 5. Ping query
+      if (request.action === "ping") {
+        sendResponse({ success: true, bot: detectChatbot(), hasInput: Boolean(getInput()) });
+        return true;
+      }
+
+      return false;
+    });
+  }
 })();

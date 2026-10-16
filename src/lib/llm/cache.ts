@@ -33,6 +33,7 @@ export class LruCache<T = unknown> {
   }
 
   public set(key: string, value: T, ttlMs = this.defaultTtlMs): void {
+    this.cache.delete(key);
     if (this.cache.size >= this.maxEntries) {
       // Evict oldest entry (first item in Map iterator)
       const oldestKey = this.cache.keys().next().value;

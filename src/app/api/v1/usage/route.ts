@@ -1,3 +1,4 @@
+import { summarizeMeasuredScores } from "@/lib/score-summary";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { getDb } from "@/lib/db/prisma";
@@ -23,7 +24,7 @@ export const GET = withAuth(
         },
       }),
       getDb().prompt.count({
-        where: { userId },
+        where: { userId, deletedAt: null },
       }),
       getDb().usageLog.count({
         where: {
@@ -34,29 +35,14 @@ export const GET = withAuth(
       getDb().prompt.findMany({
         where: {
           userId,
+          deletedAt: null,
           score: { not: Prisma.JsonNull },
         },
         select: { score: true },
       }),
     ]);
 
-    let averageScore = 72;
-    if (promptsWithScore.length > 0) {
-      let totalScore = 0;
-      let validCount = 0;
-      for (const p of promptsWithScore) {
-        if (p.score && typeof p.score === "object" && "total" in (p.score as Record<string, unknown>)) {
-          const val = Number((p.score as Record<string, unknown>).total);
-          if (!isNaN(val)) {
-            totalScore += val;
-            validCount++;
-          }
-        }
-      }
-      if (validCount > 0) {
-        averageScore = Math.round(totalScore / validCount);
-      }
-    }
+    const { averageScore, scoresMeasured } = summarizeMeasuredScores(promptsWithScore);
 
     return jsonResponse({
       data: {
@@ -67,6 +53,7 @@ export const GET = withAuth(
         totalPrompts,
         totalEnhancements,
         averageScore,
+        scoresMeasured,
       },
     }, { requestId });
   }

@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -8,7 +8,10 @@ const __dirname = path.dirname(__filename);
 
 const rootDir = path.resolve(__dirname, "..");
 const extDir = path.join(rootDir, "extension");
-const distDir = path.join(rootDir, "dist");
+const outputIndex = process.argv.indexOf("--output-dir");
+if (outputIndex >= 0 && !process.argv[outputIndex + 1]) throw new Error("--output-dir requires a path");
+const isolatedOutput = outputIndex >= 0;
+const distDir = isolatedOutput ? path.resolve(process.argv[outputIndex + 1]) : path.join(rootDir, "dist");
 
 if (!fs.existsSync(distDir)) {
   fs.mkdirSync(distDir, { recursive: true });
@@ -32,15 +35,24 @@ const cleanOldZips = (dir) => {
 };
 
 cleanOldZips(distDir);
-cleanOldZips(path.join(rootDir, "public"));
+if (!isolatedOutput) cleanOldZips(path.join(rootDir, "public"));
 
 console.log(`📦 Packaging Prompt+ Extension v${manifest.version}...`);
 
 try {
   // Zip extension files using zip command
-  execSync(`cd "${extDir}" && zip -r "${zipPath}" manifest.json background.js content.js web-bridge.js popup.html popup.js icons/ adapters/ README.md`, {
-    stdio: "inherit",
-  });
+  const referenced = [...manifest.content_scripts.flatMap((entry) => entry.js || []), manifest.background.service_worker, manifest.action.default_popup];
+  for (const file of referenced) {
+    if (!fs.existsSync(path.join(extDir, file))) throw new Error(`Missing manifest asset: ${file}`);
+  }
+  if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
+  execFileSync("zip", ["-r", zipPath, "manifest.json", "background.js", "content.js", "web-bridge.js", "popup.html", "popup.js", "icons/", "adapters/", "lib/", "README.md"], { cwd: extDir, stdio: "inherit" });
+  const entries = new Set(execFileSync("unzip", ["-Z1", zipPath], { encoding: "utf8" }).trim().split("\n"));
+  for (const file of referenced) if (!entries.has(file)) throw new Error(`Archive missing ${file}`);
+  if (isolatedOutput) {
+    console.log(`Validated isolated release: ${zipPath}`);
+    process.exit(0);
+  }
 
   const publicDir = path.join(rootDir, "public");
   if (!fs.existsSync(publicDir)) {

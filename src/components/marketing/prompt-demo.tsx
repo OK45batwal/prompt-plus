@@ -47,24 +47,29 @@ Write a 3-touch point high-converting cold email campaign targeting Enterprise C
 ];
 
 export function PromptDemo() {
-  const [activeSample, setActiveSample] = useState(0);
+  const [activeSample, setActiveSample] = useState<number | null>(null);
   const [customInput, setCustomInput] = useState("");
   const [customEnhanced, setCustomEnhanced] = useState("");
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const current = samplePrompts[activeSample];
-  const activeRaw = customInput.trim() ? customInput : current.raw;
-  const activeEnhanced = customEnhanced || current.enhanced;
+  const [error, setError] = useState<string | null>(null);
+  const [source, setSource] = useState("");
+  const current = activeSample === null ? null : samplePrompts[activeSample];
+  const activeRaw = customInput;
+  const activeEnhanced = customEnhanced || current?.enhanced || "";
 
   const tokens = estimateTokenCount(activeRaw);
   const costs = calculateCostEstimates(activeRaw);
-  const paidCosts = costs.filter((c) => c.estimatedCostUSD > 0);
-  const cheapest = paidCosts.length > 0 ? Math.min(...paidCosts.map((c) => c.estimatedCostUSD)) : 0;
+  const paidCosts = costs.filter((c) => c.estimatedCostUSD !== null && c.estimatedCostUSD > 0);
+  const cheapest = paidCosts.length > 0 ? Math.min(...paidCosts.map((c) => c.estimatedCostUSD!)) : 0;
 
   const handleEnhanceCustom = async () => {
     if (!activeRaw) return;
     setIsEnhancing(true);
+    setError(null);
+    setActiveSample(null);
+    setCustomEnhanced("");
     try {
       const res = await fetch("/api/v1/extension/enhance", {
         method: "POST",
@@ -72,11 +77,13 @@ export function PromptDemo() {
         body: JSON.stringify({ text: activeRaw, level: "deep" }),
       });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Enhancement unavailable. Please try again.");
       if (data?.enhanced || data?.data?.enhanced) {
+        setSource((data.provider || data.data?.provider) === "local" ? "Local template (offline)" : "Live model result");
         setCustomEnhanced(data.enhanced || data.data.enhanced);
-      }
-    } catch {
-      // Fallback
+      } else throw new Error("No enhancement returned. Please try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Connection failed. Please try again.");
     } finally {
       setIsEnhancing(false);
     }
@@ -84,12 +91,13 @@ export function PromptDemo() {
 
   const handleSelectSample = (idx: number) => {
     setActiveSample(idx);
-    setCustomInput("");
+    setCustomInput(samplePrompts[idx].raw);
+    setError(null);
     setCustomEnhanced("");
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(activeEnhanced);
+  const handleCopy = async () => {
+    try { await navigator.clipboard.writeText(activeEnhanced); } catch { setError("Could not copy. Select the result and copy it manually."); return; }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -105,16 +113,17 @@ export function PromptDemo() {
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
             </span>
             <span className="text-[11px] font-semibold text-foreground tracking-wider uppercase font-mono flex items-center gap-1.5">
-              Interactive Architect Sandbox
+              Try your own prompt
             </span>
           </div>
 
           {/* Interactive Sample Tabs */}
-          <div className="flex items-center gap-1 bg-background/80 p-1 rounded-full border border-border/60 shadow-2xs">
+          <div className="flex flex-wrap items-center gap-1 bg-background/80 p-1 rounded-full border border-border/60 shadow-2xs">
             {samplePrompts.map((s, idx) => (
               <button
                 key={idx}
                 type="button"
+                disabled={isEnhancing}
                 onClick={() => handleSelectSample(idx)}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 flex items-center gap-1.5 active:scale-95 ${
                   activeSample === idx && !customInput
@@ -123,12 +132,13 @@ export function PromptDemo() {
                 }`}
               >
                 {idx === 0 ? <Terminal className="h-3 w-3" /> : idx === 1 ? <Cpu className="h-3 w-3" /> : <Sparkles className="h-3 w-3" />}
-                {s.title}
+                {s.title} · Static example
               </button>
             ))}
           </div>
         </div>
 
+        {error && <p role="alert" className="px-5 py-3 text-sm text-destructive">{error}</p>}
         {/* Main Split Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border/60">
           {/* Left Side — Live Editable Input */}
@@ -144,12 +154,15 @@ export function PromptDemo() {
                 </span>
               </div>
               <textarea
-                value={customInput || current.raw}
+                aria-label="Prompt to enhance"
+                disabled={isEnhancing}
+                value={customInput}
                 onChange={(e) => {
+                  setActiveSample(null);
                   setCustomInput(e.target.value);
                   setCustomEnhanced("");
                 }}
-                placeholder="Type any prompt here to enhance live..."
+                placeholder={samplePrompts[0].raw}
                 rows={5}
                 className="w-full p-3.5 rounded-xl border border-border/80 bg-background/90 font-mono text-xs text-foreground leading-relaxed focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none resize-none transition-all shadow-2xs"
               />
@@ -161,7 +174,7 @@ export function PromptDemo() {
               >
                 <span className="flex items-center gap-1.5">
                   <Sparkles className="h-3.5 w-3.5" />
-                  {isEnhancing ? "Compiling Master Prompt..." : "Enhance Prompt Live"}
+                  {isEnhancing ? "Enhancing your prompt…" : "Enhance Prompt Live"}
                 </span>
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground/20 text-[10px] transition-transform group-hover:translate-x-0.5">
                   →
@@ -175,12 +188,12 @@ export function PromptDemo() {
                 ~{tokens} tokens
               </span>
               <span className="font-mono text-primary font-medium">
-                Est. ${cheapest.toFixed(5)}/req
+                {paidCosts.length ? `Est. $${cheapest.toFixed(5)}/req` : "Pricing needs verification"}
               </span>
             </div>
           </div>
 
-          {/* Right Side — Enhanced Master Instruction Output */}
+          {/* Right Side — Enhanced {current ? "Static example" : "Your enhanced prompt"} Output */}
           <div className="p-5 sm:p-6 bg-primary/[0.02] dark:bg-primary/[0.04] flex flex-col justify-between gap-4 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-36 h-36 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -188,10 +201,11 @@ export function PromptDemo() {
               <div className="flex items-center justify-between text-xs font-semibold text-primary uppercase tracking-wider mb-2.5">
                 <span className="flex items-center gap-1.5 font-mono text-[11px]">
                   <Sparkles className="h-3.5 w-3.5 text-primary" />
-                  Master Instruction
+                  {current ? "Static example" : "Your enhanced prompt"}
                 </span>
                 <button
                   type="button"
+                  disabled={!activeEnhanced || isEnhancing}
                   onClick={handleCopy}
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-background border border-border/80 text-[11px] font-semibold text-foreground hover:bg-accent hover:border-primary/40 transition-all active:scale-95 shadow-2xs"
                 >
@@ -209,16 +223,16 @@ export function PromptDemo() {
                 </button>
               </div>
               <div className="p-4 rounded-xl border border-primary/20 bg-background/95 font-mono text-xs text-foreground/90 whitespace-pre-wrap leading-relaxed max-h-[220px] overflow-y-auto shadow-2xs">
-                {activeEnhanced}
+                {activeEnhanced || (isEnhancing ? "Waiting for your result…" : "Your result will appear here after you enhance a prompt.")}
               </div>
             </div>
 
             <div className="pt-3 border-t border-primary/10 flex items-center justify-between text-[11px] text-muted-foreground">
               <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                <span>✓ Production-Ready Structure</span>
+                <span>{current ? "Illustrative example, not a live result" : customEnhanced ? source : "No model run yet"}</span>
               </span>
               <span className="text-[10px] text-muted-foreground font-mono">
-                Universal LLM Format
+                Review before use
               </span>
             </div>
           </div>

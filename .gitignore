@@ -57,3 +57,6 @@ next-env.d.ts
 /src/generated/prisma
 node_modules
 .env.local
+
+/test-results/
+/playwright-report/

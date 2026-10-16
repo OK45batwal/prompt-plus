@@ -12,7 +12,7 @@ interface CandidateComparerProps {
       structuralScore: number;
       intentScore: number;
       constraintScore: number;
-      evaluationScore: number;
+      evaluationScore: number | null;
       efficiencyScore: number;
     };
   })[];
@@ -31,7 +31,7 @@ export function CandidateComparer({ originalPrompt, candidates, onSelectCandidat
       <div className="flex flex-wrap gap-2 border-b pb-3">
         {candidates.map((cand) => {
           const isActive = cand.id === activeCandidate?.id;
-          const score = cand.hybridScore?.totalScore || cand.score || 85;
+          const score = cand.hybridScore?.totalScore ?? cand.score ?? null;
           return (
             <button
               key={cand.id}
@@ -51,7 +51,7 @@ export function CandidateComparer({ originalPrompt, candidates, onSelectCandidat
                   isActive ? "bg-white/20 text-white" : "bg-primary/10 text-primary"
                 }`}
               >
-                {score}/100
+                {score === null ? "Not assessed" : `Structure ${score}/100`}
               </span>
             </button>
           );
@@ -73,7 +73,7 @@ export function CandidateComparer({ originalPrompt, candidates, onSelectCandidat
           </div>
 
           {activeCandidate.hybridScore && (
-            <div className="grid grid-cols-5 gap-2 pt-2 border-t text-center text-[11px]">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t text-center text-[11px]">
               <div className="p-1.5 rounded bg-muted/40">
                 <span className="block text-muted-foreground">Structural</span>
                 <span className="font-bold text-foreground">{activeCandidate.hybridScore.structuralScore}/20</span>
@@ -88,7 +88,7 @@ export function CandidateComparer({ originalPrompt, candidates, onSelectCandidat
               </div>
               <div className="p-1.5 rounded bg-muted/40">
                 <span className="block text-muted-foreground">Eval</span>
-                <span className="font-bold text-foreground">{activeCandidate.hybridScore.evaluationScore}/25</span>
+                <span className="font-bold text-foreground">{activeCandidate.hybridScore.evaluationScore === null ? "Not evaluated" : `${activeCandidate.hybridScore.evaluationScore}/25`}</span>
               </div>
               <div className="p-1.5 rounded bg-muted/40">
                 <span className="block text-muted-foreground">Efficiency</span>

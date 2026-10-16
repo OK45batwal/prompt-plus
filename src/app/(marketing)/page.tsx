@@ -77,13 +77,13 @@ export default function LandingPage() {
   return (
     <div className="relative overflow-hidden selection:bg-primary/20 selection:text-primary">
       {/* Ambient background glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[640px] pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute -top-32 left-1/4 w-[480px] h-[480px] rounded-full bg-primary/10 dark:bg-primary/15 blur-[140px] animate-drift" />
-        <div className="absolute top-40 right-1/4 w-[420px] h-[420px] rounded-full bg-primary/5 dark:bg-primary/10 blur-[150px] animate-drift-slow" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-160 pointer-events-none -z-10 overflow-hidden">
+        <div className="absolute -top-32 left-1/4 w-120 h-120 rounded-full bg-primary/10 dark:bg-primary/15 blur-[140px] animate-drift" />
+        <div className="absolute top-40 right-1/4 w-105 h-105 rounded-full bg-primary/5 dark:bg-primary/10 blur-[150px] animate-drift-slow" />
       </div>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-12 sm:pt-28 sm:pb-20 px-4 sm:px-6 min-h-[100dvh] flex flex-col justify-center">
+      <section className="pt-24 pb-12 sm:pt-28 sm:pb-20 px-4 sm:px-6 min-h-dvh flex flex-col justify-center">
         <div className="max-w-7xl mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Column: Left-aligned messaging stack */}
@@ -99,7 +99,7 @@ export default function LandingPage() {
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-[-0.03em] leading-[1.08] text-balance">
                 Craft Flawless AI Prompts.{" "}
-                <span className="bg-gradient-to-r from-primary via-primary/80 to-indigo-400 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-primary via-primary/80 to-indigo-400 bg-clip-text text-transparent">
                   Get Superior Outputs.
                 </span>
               </h1>
@@ -354,7 +354,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="double-bezel-outer">
             <div className="double-bezel-inner p-8 sm:p-12 flex flex-col sm:flex-row items-center gap-6 sm:gap-10">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 border border-primary/20 shadow-xs">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20 shadow-xs">
                 <Puzzle className="h-8 w-8" strokeWidth={1.5} />
               </div>
               <div className="text-center sm:text-left flex-1">
@@ -435,7 +435,7 @@ export default function LandingPage() {
                     "Bring your own key for full model access",
                   ].map((f) => (
                     <div key={f} className="flex items-start gap-2.5">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" strokeWidth={2} />
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" strokeWidth={2} />
                       <span className="text-muted-foreground text-xs sm:text-sm">{f}</span>
                     </div>
                   ))}
@@ -541,7 +541,7 @@ export default function LandingPage() {
                   aria-expanded={openFaq === idx}
                 >
                   <span className="text-sm font-semibold">{f.q}</span>
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full border border-border/80 text-muted-foreground flex-shrink-0 transition-transform text-xs font-mono">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full border border-border/80 text-muted-foreground shrink-0 transition-transform text-xs font-mono">
                     {openFaq === idx ? <span aria-hidden>-</span> : <span aria-hidden>+</span>}
                   </span>
                 </button>

@@ -46,7 +46,7 @@ const quickActions = [
 ];
 
 export default function DashboardPage() {
-  const [usage, setUsage] = useState<{ totalPrompts: number; totalEnhancements: number; averageScore: number; monthly: { used: number } } | null>(null);
+  const [usage, setUsage] = useState<{ totalPrompts: number; totalEnhancements: number; averageScore: number | null; monthly: { used: number } } | null>(null);
   const [collectionsCount, setCollectionsCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -134,9 +134,9 @@ export default function DashboardPage() {
               </div>
             </div>
             <p className="text-2xl sm:text-3xl font-extrabold mt-3 font-mono text-amber-500">
-              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : `${usage?.averageScore || 0}%`}
+              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : usage?.averageScore == null ? "—" : `${usage.averageScore}/100`}
             </p>
-            <p className="text-[11px] text-muted-foreground mt-1 font-mono">Average quality benchmark</p>
+            <p className="text-[11px] text-muted-foreground mt-1 font-mono">Average model assessment</p>
           </div>
         </div>
 

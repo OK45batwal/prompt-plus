@@ -2,7 +2,8 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getDb } from "@/lib/db/prisma";
 import { scorePromptSchema } from "@/lib/validations/prompts";
-import { callLLM } from "@/lib/llm/providers";
+import { calculateStructuralScore } from "@/lib/scoring";
+import { callLLM, type LLMOptions } from "@/lib/llm/providers";
 import { decrypt } from "@/lib/crypto";
 import { resolveServerApiKey } from "@/lib/llm/server-api-key";
 import { withAuth } from "@/lib/api/with-auth";
@@ -23,25 +24,6 @@ const scoreOutputSchema = z.object({
   recommendations: z.array(z.string()).default([]),
 });
 
-function heuristicScorePrompt(text: string) {
-  const wc = text.split(/\s+/).length;
-  const total = Math.min(100, Math.max(30, wc * 2));
-  return {
-    total,
-    dimensions: {
-      clarity: Math.min(100, 40 + wc),
-      specificity: Math.min(100, 35 + wc),
-      structure: Math.min(100, 30 + wc),
-      context: Math.min(100, 35 + wc),
-      length: Math.min(100, 40 + wc),
-      actionability: Math.min(100, 40 + wc),
-    },
-    strengths: wc > 15 ? ["Good length and initial direction"] : ["Concise core concept"],
-    weaknesses: wc < 20 ? ["Lacks specific formatting guidelines", "Needs background context"] : ["Could define constraints better"],
-    recommendations: ["Add a specific persona/role", "Specify step-by-step output requirements"],
-  };
-}
-
 export const POST = withAuth(
   async (request: NextRequest, { userId, requestId }) => {
     let body: unknown;
@@ -61,17 +43,28 @@ export const POST = withAuth(
 
     const { promptId, text } = parseResult.data;
 
+    const savedPrompt = promptId ? await getDb().prompt.findFirst({
+      where: { id: promptId, userId, deletedAt: null },
+      select: { id: true, originalText: true, enhancedText: true },
+    }) : null;
+    if (promptId && !savedPrompt) return jsonResponse({ error: "Prompt not found" }, { status: 404, requestId });
+    if (savedPrompt && savedPrompt.enhancedText !== text) return jsonResponse({ error: "Score text must match the saved enhancement" }, { status: 409, requestId });
+    const fallback = () => jsonResponse({ data: {
+      promptId, ...calculateStructuralScore(text), source: "heuristic", measuredBy: "structural",
+      measuredTotal: null, originalTotal: null, enhancedTotal: null,
+    } }, { requestId });
+
     const userKey = await getDb().apiKey.findFirst({
-      where: { userId, isActive: true },
+      where: { userId, isActive: true, provider: { in: ["openai", "anthropic", "google", "openrouter", "nvidia"] } },
     });
 
     let apiKey: string | undefined;
-    let provider: "openai" | "anthropic" = "openai";
+    let provider: LLMOptions["provider"] = "openai";
 
     if (userKey) {
       try {
         apiKey = decrypt(userKey.apiKeyEnc);
-        provider = (userKey.provider as "openai" | "anthropic") || "openai";
+        provider = (userKey.provider as LLMOptions["provider"]) || "openai";
       } catch {
         // ignore bad key
       }
@@ -81,12 +74,12 @@ export const POST = withAuth(
       const serverKey = resolveServerApiKey("openai");
       if (serverKey) {
         apiKey = serverKey.apiKey;
-        provider = serverKey.provider === "nvidia" || serverKey.provider === "openrouter" ? "openai" : serverKey.provider;
+        provider = serverKey.provider;
       }
     }
 
     if (!apiKey) {
-      return jsonResponse({ data: { promptId, ...heuristicScorePrompt(text) } }, { requestId });
+      return fallback();
     }
 
     const systemPrompt = `You are a prompt scoring engine. Rate the user's prompt on a scale of 0 to 100 across 6 dimensions and output a JSON object strictly matching this schema:
@@ -106,59 +99,41 @@ export const POST = withAuth(
 }
 Return ONLY raw valid JSON, with no markdown formatting or commentary.`;
 
-    const startTime = Date.now();
+    async function assess(input: string) {
+      const startTime = Date.now();
+      try {
+        const response = await callLLM({ tenantId: userId, provider, apiKey, systemPrompt,
+          userPrompt: input, temperature: 0, responseFormatJson: true });
+        const jsonStart = response.content.indexOf("{");
+        const jsonEnd = response.content.lastIndexOf("}");
+        const score = scoreOutputSchema.parse(JSON.parse(response.content.slice(jsonStart, jsonEnd + 1)));
+        await getDb().usageLog.create({ data: { userId, promptId: promptId || null,
+          action: "score", provider: response.provider, model: response.model,
+          tokensIn: response.tokensIn, tokensOut: response.tokensOut,
+          latencyMs: Date.now() - startTime, success: true } });
+        return { score, model: response.model, provider: response.provider };
+      } catch (error) {
+        await getDb().usageLog.create({ data: { userId, promptId: promptId || null,
+          action: "score", provider, latencyMs: Date.now() - startTime, success: false } }).catch(() => {});
+        throw error;
+      }
+    }
 
     try {
-      const response = await callLLM({
-        provider,
-        apiKey,
-        systemPrompt,
-        userPrompt: text,
-        temperature: 0.3,
-        responseFormatJson: true,
-      });
-
-      const latencyMs = Date.now() - startTime;
-
-      await getDb().usageLog.create({
-        data: {
-          userId,
-          promptId: promptId || null,
-          action: "score",
-          provider,
-          model: response.model,
-          tokensIn: response.tokensIn,
-          tokensOut: response.tokensOut,
-          latencyMs,
-          success: true,
-        },
-      }).catch(() => {});
-
-      const jsonStart = response.content.indexOf("{");
-      const jsonEnd = response.content.lastIndexOf("}");
-      const jsonString = jsonStart !== -1 && jsonEnd !== -1
-        ? response.content.slice(jsonStart, jsonEnd + 1)
-        : response.content;
-
-      const rawObj = JSON.parse(jsonString);
-      const validatedOutput = scoreOutputSchema.parse(rawObj);
-
-      return jsonResponse({ data: { promptId, ...validatedOutput } }, { requestId });
-    } catch (error) {
-      console.error("LLM Scoring Error (falling back to heuristic):", error);
-
-      await getDb().usageLog.create({
-        data: {
-          userId,
-          promptId: promptId || null,
-          action: "score",
-          provider,
-          latencyMs: Date.now() - startTime,
-          success: false,
-        },
-      }).catch(() => {});
-
-      return jsonResponse({ data: { promptId, ...heuristicScorePrompt(text) } }, { requestId });
+      const enhanced = await assess(text);
+      const original = savedPrompt ? await assess(savedPrompt.originalText) : null;
+      const paired = original && original.model === enhanced.model && original.provider === enhanced.provider;
+      const score = { ...enhanced.score, source: "llm" as const, measuredBy: "llm" as const,
+        measuredTotal: enhanced.score.total, originalTotal: paired ? original.score.total : null,
+        enhancedTotal: enhanced.score.total, model: enhanced.model, provider: enhanced.provider };
+      if (savedPrompt) {
+        // Prevent a slow assessment from overwriting a newer edit.
+        await getDb().prompt.updateMany({ where: { id: savedPrompt.id, userId, deletedAt: null,
+          originalText: savedPrompt.originalText, enhancedText: text }, data: { score } });
+      }
+      return jsonResponse({ data: { promptId, ...score } }, { requestId });
+    } catch {
+      return fallback();
     }
   }
 );

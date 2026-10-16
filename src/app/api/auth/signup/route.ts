@@ -5,14 +5,14 @@ import { signupSchema, logRejection } from "@/lib/validations/auth";
 import { generateOtp, hashOtp, buildVerifyToken } from "@/lib/auth/otp";
 import { sendOtpEmail } from "@/lib/email";
 import { logger } from "@/lib/logger";
-import { checkIpRateLimit, extractClientIp } from "@/lib/rate-limit";
+import { checkIpRateLimitAsync, extractClientIp, getRateLimitHeaders, rateLimitStatus, rateLimitMessage } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
     const ip = extractClientIp(request);
-    const rl = checkIpRateLimit(`signup:${ip}`, 5, 3600000);
+    const rl = await checkIpRateLimitAsync(`signup:${ip}`, 5, 3600000);
     if (!rl.allowed) {
-      return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+      return NextResponse.json({ error: rateLimitMessage(rl) }, { status: rateLimitStatus(rl), headers: getRateLimitHeaders(rl) });
     }
     const body = await request.json();
     const parsed = signupSchema.safeParse(body);

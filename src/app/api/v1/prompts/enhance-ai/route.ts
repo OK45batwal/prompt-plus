@@ -1,12 +1,12 @@
 import { NextRequest, after } from "next/server";
 import { getDb } from "@/lib/db/prisma";
 import { enhancePromptSchema } from "@/lib/validations/prompts";
-import { callLLM } from "@/lib/llm/providers";
+import { callLLM, createLLMCacheKey } from "@/lib/llm/providers";
 import { decrypt } from "@/lib/crypto";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 import { buildArchitectMetaPrompt, cleanMasterPromptOutput } from "@/lib/llm/meta-prompt";
-import { calculateDynamicPromptScore } from "@/lib/scoring";
+import { calculateStructuralScore } from "@/lib/scoring";
 import { synthesizeAlgorithmicPrompt } from "@/lib/llm/algorithmic-enhancers";
 import { enhancementCache } from "@/lib/llm/cache";
 
@@ -31,6 +31,12 @@ export const POST = withAuth(
 
     const { promptId, text, model, provider: reqProvider, category, tone, length, level, userApiKey } = parseResult.data;
     const startTime = Date.now();
+    const structuralPair = (enhanced: string) => ({
+      ...calculateStructuralScore(enhanced),
+      originalTotal: calculateStructuralScore(text).total,
+      enhancedTotal: calculateStructuralScore(enhanced).total,
+      measuredBy: "structural", measuredTotal: null,
+    });
 
     let targetProvider: "openai" | "anthropic" | "openrouter" | "google" | "nvidia";
     if (reqProvider === "nvidia" || reqProvider === "openrouter" || reqProvider === "anthropic" || reqProvider === "google" || reqProvider === "openai") {
@@ -92,11 +98,11 @@ export const POST = withAuth(
       );
     }
 
-    const cacheKey = `web:${userId}:${text}:${model || "default"}:${category || ""}:${tone || ""}:${length || ""}:${level || ""}`;
+    const cacheKey = createLLMCacheKey({ userId, apiKey, provider: resolvedProvider, text, model, category, tone, length, level });
     const cached = enhancementCache.get(cacheKey);
     if (cached) {
       const cleanCachedText = cleanMasterPromptOutput(cached.enhancedText);
-      const scoreData = calculateDynamicPromptScore(cleanCachedText);
+      const scoreData = structuralPair(cleanCachedText);
       return jsonResponse({
         data: {
           enhanced: cleanCachedText,
@@ -104,7 +110,7 @@ export const POST = withAuth(
           model: cached.model,
           tokensIn: cached.tokensIn || 0,
           tokensOut: cached.tokensOut || 0,
-          latencyMs: 12,
+          latencyMs: Date.now() - startTime,
           provider: "cache",
         },
       }, { requestId });
@@ -114,6 +120,7 @@ export const POST = withAuth(
 
     try {
       const response = await callLLM({
+        tenantId: userId,
         provider: resolvedProvider,
         apiKey: apiKey || "",
         model,
@@ -161,6 +168,7 @@ export const POST = withAuth(
               where: { id: activePromptId },
               data: {
                 enhancedText: cleanedOutput,
+                score: JSON.parse(JSON.stringify(structuralPair(cleanedOutput))),
                 model: response.model,
               },
             }).catch(() => {});
@@ -172,9 +180,9 @@ export const POST = withAuth(
                 title,
                 originalText: text,
                 enhancedText: cleanedOutput,
+                score: JSON.parse(JSON.stringify(structuralPair(cleanedOutput))),
                 model: response.model,
                 category: category || "general",
-                score: JSON.parse(JSON.stringify(calculateDynamicPromptScore(cleanedOutput))),
               },
             }).catch(() => null);
             if (created) activePromptId = created.id;
@@ -209,7 +217,7 @@ export const POST = withAuth(
         }
       });
 
-      const promptScore = calculateDynamicPromptScore(cleanedOutput);
+      const promptScore = structuralPair(cleanedOutput);
 
       return jsonResponse(
         {
@@ -243,7 +251,7 @@ export const POST = withAuth(
 
       // Dynamic algorithmic meta-prompt synthesis
       const fallbackEnhancedText = synthesizeAlgorithmicPrompt(text, level);
-      const fallbackScore = calculateDynamicPromptScore(fallbackEnhancedText);
+      const fallbackScore = structuralPair(fallbackEnhancedText);
 
       return jsonResponse(
         {
@@ -251,6 +259,8 @@ export const POST = withAuth(
             promptId: promptId || "algorithmic",
             enhanced: fallbackEnhancedText,
             score: fallbackScore,
+            source: "local-template",
+            sourceLabel: "Local template (offline)",
             provider: "prompt-architect-engine",
             model: "algorithmic-v2",
             tokensIn: 0,

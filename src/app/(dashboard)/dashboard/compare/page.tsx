@@ -1,27 +1,29 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Plus, X, Copy, Check, GitCompare, LayoutGrid } from "lucide-react";
 import { PromptDiff } from "@/components/dashboard/prompt-diff";
 
 interface ComparisonItem {
   id: string;
   text: string;
-  score: number;
+  score: number | null;
 }
 
 export default function ComparePage() {
   const [mode, setMode] = useState<"side-by-side" | "diff">("side-by-side");
   const [items, setItems] = useState<ComparisonItem[]>([
-    { id: "1", text: "", score: 0 },
-    { id: "2", text: "", score: 0 },
+    { id: "1", text: "", score: null },
+    { id: "2", text: "", score: null },
   ]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const scoreTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
+  useEffect(() => { const timers = scoreTimers.current; return () => Object.values(timers).forEach(clearTimeout); }, []);
+
   const addItem = () => {
     if (items.length >= 4) return;
-    setItems([...items, { id: `new-${Date.now()}`, text: "", score: 0 }]);
+    setItems([...items, { id: `new-${Date.now()}`, text: "", score: null }]);
   };
 
   const removeItem = (id: string) => {
@@ -32,7 +34,7 @@ export default function ComparePage() {
   const updateItem = (id: string, text: string) => {
     if (scoreTimers.current[id]) clearTimeout(scoreTimers.current[id]);
 
-    setItems((prev) => prev.map((item) => item.id === id ? { ...item, text } : item));
+    setItems((prev) => prev.map((item) => item.id === id ? { ...item, text, score: null } : item));
 
     if (text.trim().length > 10) {
       scoreTimers.current[id] = setTimeout(async () => {
@@ -43,22 +45,15 @@ export default function ComparePage() {
             body: JSON.stringify({ text }),
           });
           const json = await res.json();
-          const score = json.data?.total || 0;
-          setItems((prev) => prev.map((item) => item.id === id ? { ...item, score } : item));
+          const score = res.ok && json.data?.source === "llm" ? json.data.total ?? null : null;
+          setItems((prev) => prev.map((item) => item.id === id && item.text === text ? { ...item, score } : item));
         } catch {
-          // fallback: heuristic score
-          let score = 50;
-          const wc = text.split(/\s+/).length;
-          if (wc > 10) score += 10;
-          if (wc > 30) score += 10;
-          if (text.toLowerCase().includes("specific")) score += 10;
-          if (/\d/.test(text)) score += 5;
-          if (text.toLowerCase().includes("example")) score += 5;
-          setItems((prev) => prev.map((item) => item.id === id ? { ...item, score: Math.min(100, score) } : item));
+          // A failed assessment stays unmeasured.
+
         }
       }, 800);
     } else {
-      setItems((prev) => prev.map((item) => item.id === id ? { ...item, score: 0 } : item));
+      setItems((prev) => prev.map((item) => item.id === id ? { ...item, score: null } : item));
     }
   };
 
@@ -68,16 +63,13 @@ export default function ComparePage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const bestItem = items.reduce((best, item) =>
-    item.score > best.score ? item : best
-  , items[0]);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-semibold text-sm">Compare Prompts</h2>
-          <p className="text-xs text-muted-foreground">Side-by-side comparison & token-level diffing</p>
+          <p className="text-xs text-muted-foreground">Model assessments of prompt wording, with a text diff. Verify actual outputs in the Studio.</p>
         </div>
 
         {/* View Mode Toggle */}
@@ -112,18 +104,16 @@ export default function ComparePage() {
                 <div className="p-3 border-b flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Prompt {index + 1}</span>
-                    {item.score > 0 && (
+                    {item.score !== null && (
                       <span className={`text-xs font-bold px-2 py-0.5 rounded ${
-                        item.score >= 80 ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" :
-                        item.score >= 60 ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400" :
+                        (item.score ?? 0) >= 80 ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" :
+                        (item.score ?? 0) >= 60 ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400" :
                         "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
                       }`}>
                         {item.score}/100
                       </span>
                     )}
-                    {item.id === bestItem.id && item.score > 0 && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-foreground text-background">BEST</span>
-                    )}
+                    {item.score === null && <span className="text-xs text-muted-foreground">Not measured</span>}
                   </div>
                   <div className="flex items-center gap-1">
                     {item.text && (
@@ -159,11 +149,11 @@ export default function ComparePage() {
                     <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full ${
-                          item.score >= 80 ? "bg-green-500" :
-                          item.score >= 60 ? "bg-yellow-500" :
+                          (item.score ?? 0) >= 80 ? "bg-green-500" :
+                          (item.score ?? 0) >= 60 ? "bg-yellow-500" :
                           "bg-red-500"
                         }`}
-                        style={{ width: `${item.score}%` }}
+                        style={{ width: `${item.score ?? 0}%` }}
                       />
                     </div>
                   </div>

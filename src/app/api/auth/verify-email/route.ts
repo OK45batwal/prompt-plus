@@ -2,16 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getDb } from "@/lib/db/prisma";
 import { verifyOtp, stripPrefix, isVerifyToken } from "@/lib/auth/otp";
-import { checkIpRateLimit, extractClientIp } from "@/lib/rate-limit";
+import { checkIpRateLimitAsync, extractClientIp, getRateLimitHeaders, rateLimitStatus, rateLimitMessage } from "@/lib/rate-limit";
 
 const schema = z.object({ email: z.string().email(), otp: z.string().length(6) });
 
 export async function POST(request: NextRequest) {
   try {
     const ip = extractClientIp(request);
-    const rl = checkIpRateLimit(`verify:${ip}`, 5, 3600000);
+    const rl = await checkIpRateLimitAsync(`verify:${ip}`, 5, 3600000);
     if (!rl.allowed) {
-      return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+      return NextResponse.json({ error: rateLimitMessage(rl) }, { status: rateLimitStatus(rl), headers: getRateLimitHeaders(rl) });
     }
     const body = await request.json();
     const parsed = schema.safeParse(body);
@@ -20,9 +20,9 @@ export async function POST(request: NextRequest) {
     const { email, otp } = parsed.data;
     const normalizedEmail = email.toLowerCase().trim();
 
-    const emailRl = checkIpRateLimit(`verify_email:${normalizedEmail}`, 5, 3600000);
+    const emailRl = await checkIpRateLimitAsync(`verify_email:${normalizedEmail}`, 5, 3600000);
     if (!emailRl.allowed) {
-      return NextResponse.json({ error: "Too many attempts for this account. Try again later." }, { status: 429 });
+      return NextResponse.json({ error: rateLimitMessage(emailRl) }, { status: rateLimitStatus(emailRl), headers: getRateLimitHeaders(emailRl) });
     }
 
     let user = null;

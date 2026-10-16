@@ -14,7 +14,9 @@
     "test": "node scripts/check-api-routes.mjs && vitest run",
     "test:e2e": "playwright test",
     "postinstall": "prisma generate",
-    "check-env": "node scripts/check-env.mjs"
+    "check-env": "node scripts/check-env.mjs",
+    "test:extension": "node extension/test-plan.js",
+    "test:extension:e2e": "playwright test --config playwright.extension.config.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

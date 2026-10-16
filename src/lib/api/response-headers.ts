@@ -20,7 +20,7 @@ export function jsonResponse(data: unknown, options: ResponseOptions = {}): Next
     resHeaders.set("x-request-id", requestId);
   }
 
-  if (rateLimit) {
+  if (rateLimit && !rateLimit.unavailable) {
     resHeaders.set("X-RateLimit-Limit", rateLimit.limit.toString());
     resHeaders.set("X-RateLimit-Remaining", rateLimit.remaining.toString());
     resHeaders.set(
