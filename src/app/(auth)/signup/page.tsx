@@ -141,7 +141,7 @@ export default function SignupPage() {
                 Unlock Master-Class AI Prompts
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                Join thousands of builders refining prompts in ChatGPT, Claude, Gemini, and DeepSeek.
+                Refine prompts for ChatGPT, Claude, Gemini, and DeepSeek in one workspace.
               </p>
 
               <div className="space-y-4 text-xs font-medium">
@@ -156,7 +156,7 @@ export default function SignupPage() {
                   <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 mt-0.5">🔐</div>
                   <div>
                     <strong className="text-foreground block mb-0.5">AES-256 GCM Key Security</strong>
-                    <span className="text-muted-foreground">Optional user API keys are encrypted locally using Web Crypto API.</span>
+                    <span className="text-muted-foreground">Optional user API keys are encrypted with AES-256-GCM before being stored.</span>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-xl bg-background/40 border border-border/40">
@@ -170,7 +170,7 @@ export default function SignupPage() {
             </div>
 
             <div className="pt-4 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground">
-              <span>Prompt+ Studio v1.1.1</span>
+              <span>Prompt+ Studio</span>
               <span className="text-emerald-400 font-medium">🟢 Production Ready</span>
             </div>
           </div>
@@ -242,7 +242,7 @@ export default function SignupPage() {
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Create Account</h1>
                     <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                      Start engineering 10x better AI prompts today
+                      Start engineering better AI prompts today
                     </p>
                   </div>
 

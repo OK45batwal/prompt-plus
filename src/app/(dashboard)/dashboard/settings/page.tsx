@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { EXTENSION_VERSION } from "@/lib/version";
 import {
   User,
   Key,
@@ -262,6 +263,18 @@ export default function SettingsPage() {
       } catch {
         // ignore
       }
+
+      // Default model/tone are client-only Studio preferences: the Studio reads the same
+      // "pp_prefs" key. Before this, nothing ever wrote it and the setting did nothing.
+      try {
+        const raw = localStorage.getItem("pp_prefs");
+        if (!raw || !active) return;
+        const prefs = JSON.parse(raw) as { defaultModel?: string; defaultTone?: string };
+        if (prefs.defaultModel) setDefaultModel(prefs.defaultModel);
+        if (prefs.defaultTone) setDefaultTone(prefs.defaultTone);
+      } catch {
+        // ignore malformed prefs
+      }
     }
     loadUserPrefs();
     return () => {
@@ -324,17 +337,18 @@ export default function SettingsPage() {
         body: JSON.stringify({ provider, apiKey: rawKey }),
       });
       const json = await res.json();
-      if (res.ok && json.success) {
-        setTestResults((prev) => ({
-          ...prev,
-          [provider]: { ok: true, msg: "✓ Key syntax verified & connected" },
-        }));
-      } else {
-        setTestResults((prev) => ({
-          ...prev,
-          [provider]: { ok: false, msg: json.error || "Invalid key format" },
-        }));
-      }
+      setTestResults((prev) => ({
+        ...prev,
+        [provider]:
+          res.ok && json.success
+            ? { ok: true, msg: json.data?.message || "Key accepted by the provider." }
+            : { ok: false, msg: json.error || "Could not verify this key." },
+      }));
+    } catch {
+      setTestResults((prev) => ({
+        ...prev,
+        [provider]: { ok: false, msg: "Could not reach the server." },
+      }));
     } finally {
       setIsTestingKey((prev) => ({ ...prev, [provider]: false }));
     }
@@ -465,27 +479,37 @@ export default function SettingsPage() {
     }
 
     // 2. Save Preferences
-    await fetch("/api/v1/user/preferences", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Requested-With": "XMLHttpRequest",
-      },
-      body: JSON.stringify({
-        developerRole,
-        defaultEngineMode: engineMode,
-        defaultStrategy,
-        defaultOutputFormat: defaultFormat,
-        enableAutoCorrect: autoCorrectEnabled,
-        enableZeroFluff: zeroFluffEnabled,
-        enableSoundEffects: soundEffectsEnabled,
-        emailNotifications: notifEmail,
-        usageAlerts: notifUsage,
-        weeklyDigest: notifDigest,
-        productUpdates: notifUpdates,
-        securityAlerts: notifSecurity,
-      }),
-    });
+    let preferencesSaved = true;
+    try {
+      const res = await fetch("/api/v1/user/preferences", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: JSON.stringify({
+          developerRole,
+          defaultEngineMode: engineMode,
+          defaultStrategy,
+          defaultOutputFormat: defaultFormat,
+          enableAutoCorrect: autoCorrectEnabled,
+          enableZeroFluff: zeroFluffEnabled,
+          enableSoundEffects: soundEffectsEnabled,
+          emailNotifications: notifEmail,
+          usageAlerts: notifUsage,
+          weeklyDigest: notifDigest,
+          productUpdates: notifUpdates,
+          securityAlerts: notifSecurity,
+        }),
+      });
+      preferencesSaved = res.ok;
+    } catch {
+      preferencesSaved = false;
+    }
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pp_prefs", JSON.stringify({ defaultModel, defaultTone }));
+    }
 
     // 3. Save any pending API keys
     const pendingKeys = Object.entries(apiKeysInput).filter(([, v]) => v?.trim());
@@ -509,7 +533,11 @@ export default function SettingsPage() {
     }
 
     setSaved(true);
-    toast("Settings, preferences, and custom avatar saved successfully!", "success");
+    if (preferencesSaved) {
+      toast("Settings, preferences, and custom avatar saved.", "success");
+    } else {
+      toast("Your preferences could not be saved. Everything else was.", "error");
+    }
     setTimeout(() => setSaved(false), 2000);
   };
 
@@ -737,10 +765,10 @@ export default function SettingsPage() {
               <div className="p-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/5 space-y-3 text-xs shadow-xs">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-indigo-500 flex items-center gap-1.5">
-                    <Zap className="h-4 w-4" /> Cross-AI Context Bridge & Cloud Sync Active
+                    Cross-AI Context Bridge &amp; Cloud Sync
                   </span>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold">
-                    Extension v2.1.3.2
+                    Extension v{EXTENSION_VERSION}
                   </span>
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
@@ -751,7 +779,7 @@ export default function SettingsPage() {
                     href="/api/v1/extension/download"
                     className="h-8 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs inline-flex items-center gap-1.5 transition-colors shadow-xs"
                   >
-                    <UploadCloud className="h-3.5 w-3.5" /> Download Extension v2.1.3.2 (.zip)
+                    <UploadCloud className="h-3.5 w-3.5" /> Download Extension v{EXTENSION_VERSION} (.zip)
                   </a>
                   <button
                     type="button"

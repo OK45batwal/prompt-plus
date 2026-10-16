@@ -16,9 +16,9 @@ export default function ExtensionPage() {
       <div className="max-w-3xl mx-auto">
         {/* Hero */}
         <div className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 mb-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400 mb-6">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            Chrome Web Store Official Release v1.2.0 • 🟢 Verified & Safe
+            Available on the Chrome Web Store • Manifest V3
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">
             Enhance AI Prompts Directly Inside Your Chat
@@ -57,16 +57,16 @@ export default function ExtensionPage() {
         <div className="p-6 rounded-2xl border bg-emerald-500/5 border-emerald-500/20 mb-14 flex items-start gap-4">
           <ShieldCheck className="h-6 w-6 text-emerald-500 shrink-0 mt-1" />
           <div className="space-y-1 text-xs">
-            <h3 className="font-bold text-sm text-foreground">Official Chrome Web Store Listing Verified</h3>
+            <h3 className="font-bold text-sm text-foreground">Chrome Web Store Listing</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Prompt+ Architect AI adheres strictly to Chrome Web Store Manifest V3 guidelines, privacy standards, and narrowest-scope permissions (`storage`, `activeTab`, `contextMenus`). No personal credentials or passwords are ever stored or evaluated.
+              Prompt+ Architect AI follows Chrome Web Store Manifest V3 guidelines and never asks for your ChatGPT, Claude, or Gemini password.
             </p>
           </div>
         </div>
 
         {/* Features */}
         <div className="mb-14">
-          <h2 className="text-base font-bold mb-4">Features Included in Extension v1.2.0</h2>
+          <h2 className="text-base font-bold mb-4">What the extension does</h2>
           <div className="space-y-3 text-sm text-muted-foreground">
             {[
               "Floating Action Bar on ChatGPT, Claude, Gemini, DeepSeek, and Grok",

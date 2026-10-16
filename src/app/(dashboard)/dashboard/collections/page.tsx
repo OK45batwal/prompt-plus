@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Plus, Folder, Edit, Trash2, X } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 
@@ -21,6 +21,9 @@ export default function CollectionsPage() {
   const [showNewModal, setShowNewModal] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const cancelRenameRef = useRef(false);
 
   const fetchCollections = async () => {
     try {
@@ -44,28 +47,36 @@ export default function CollectionsPage() {
   };
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch("/api/v1/collections");
-        const json = await res.json();
-        const data: Collection[] = (json.data || []).map((item: Record<string, unknown>) => ({
-          id: item.id,
-          name: item.name,
-          description: item.description || "",
-          promptCount: item.prompt_count ?? 0,
-          icon: item.icon || "📁",
-          color: item.color || "#6b7280",
-          createdAt: item.createdAt,
-        }));
-        setCollections(data);
-      } catch {
-        setCollections([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    queueMicrotask(() => {
+      fetchCollections();
+    });
   }, []);
+
+  const startRename = (c: Collection) => {
+    setRenamingId(c.id);
+    setRenameValue(c.name);
+  };
+
+  const commitRename = async (id: string) => {
+    const name = renameValue.trim();
+    setRenamingId(null);
+    if (!name) return;
+    try {
+      const res = await fetch(`/api/v1/collections/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Failed to rename collection");
+      }
+      setCollections((prev) => prev.map((c) => (c.id === id ? { ...c, name } : c)));
+      toast("Collection renamed", "success");
+    } catch (err: unknown) {
+      toast(err instanceof Error ? err.message : "Failed to rename collection", "error");
+    }
+  };
 
   const deleteCollection = async (id: string) => {
     try {
@@ -151,31 +162,50 @@ export default function CollectionsPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">{collection.icon}</span>
                   <div>
-                    <h3 className="font-medium text-sm">{collection.name}</h3>
+                    {renamingId === collection.id ? (
+                      <input
+                        autoFocus
+                        value={renameValue}
+                        aria-label="Collection name"
+                        onChange={(e) => setRenameValue(e.target.value)}
+                        onBlur={() => {
+                          // Escape unmounts the input, which can also fire blur.
+                          if (cancelRenameRef.current) {
+                            cancelRenameRef.current = false;
+                            return;
+                          }
+                          commitRename(collection.id);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            commitRename(collection.id);
+                          }
+                          if (e.key === "Escape") {
+                            cancelRenameRef.current = true;
+                            setRenamingId(null);
+                          }
+                        }}
+                        className="h-7 w-full rounded-md border bg-background px-2 text-sm outline-none focus:border-ring"
+                      />
+                    ) : (
+                      <h3 className="font-medium text-sm">{collection.name}</h3>
+                    )}
                     <p className="text-xs text-muted-foreground">{collection.promptCount} prompts</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => {
-                    const newName = prompt("New name for this collection:", collection.name);
-                    if (newName && newName.trim()) {
-                      fetch(`/api/v1/collections/${collection.id}`, {
-                        method: "PATCH",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ name: newName.trim() }),
-                      }).then(async (res) => {
-                        if (!res.ok) {
-                          const errData = await res.json().catch(() => null);
-                          throw new Error(errData?.error || "Failed to rename");
-                        }
-                        setCollections((prev) => prev.map((c) => c.id === collection.id ? { ...c, name: newName.trim() } : c));
-                        toast("Collection renamed", "success");
-                      }).catch((err) => toast(err instanceof Error ? err.message : "Failed to rename", "error"));
-                    }
-                  }} className="p-1 hover:bg-accent rounded">
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                  <button
+                    type="button"
+                    aria-label={`Rename ${collection.name}`}
+                    onClick={() => startRename(collection)}
+                    className="p-1 hover:bg-accent rounded"
+                  >
                     <Edit className="h-3.5 w-3.5 text-muted-foreground" />
                   </button>
                   <button
+                    type="button"
+                    aria-label={`Delete ${collection.name}`}
                     onClick={() => deleteCollection(collection.id)}
                     className="p-1 hover:bg-accent rounded text-red-600"
                   >

@@ -800,7 +800,7 @@
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:9.5px;color:#a1a1aa;text-align:center;">
           <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 0;">Used: <strong id="pp-modal-used-tok" style="color:#fff;">${formatK(totalTokens)}</strong></div>
-          <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 0;">Limit: <strong style="color:#fff;">${formatK(limit)}</strong></div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 0;">Limit: <strong style="color:#fff;">${latestAnalysis?.contextLimitKnown ? formatK(limit) : "Unknown"}</strong></div>
           <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 0;">Turns: <strong id="pp-modal-turn-count" style="color:#fff;">${turnCount}</strong></div>
           <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 0;">Left: <strong id="pp-modal-est-msgs" style="color:#34d399;">Unknown</strong></div>
         </div>

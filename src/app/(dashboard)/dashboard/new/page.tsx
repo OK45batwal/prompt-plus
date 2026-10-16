@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Sparkles,
   Copy,
@@ -117,9 +118,17 @@ const enhanceLevels: { id: EnhanceLevel; label: string; hint: string }[] = [
   { id: "expert", label: "Expert", hint: "Detailed constraints & examples" },
 ];
 
-export default function PromptBuilderPage() {
+function PromptBuilderPage() {
   const { toast } = useToast();
-  const [prompt, setPrompt] = useState("");
+
+  // Handoff links (Library, History) and the browser extension's "Web Studio" pass the
+  // prompt in the query string. Before this the Studio ignored it and opened empty.
+  const searchParams = useSearchParams();
+  const handoffPrompt = searchParams.get("prompt");
+  const handoffPromptId = searchParams.get("promptId");
+  const handoffTone = searchParams.get("tone");
+
+  const [prompt, setPrompt] = useState(handoffPrompt || "");
   const [selectedLength, setSelectedLength] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [isEnhancing, setIsEnhancing] = useState(false);
@@ -144,7 +153,27 @@ export default function PromptBuilderPage() {
   const [selectedModel, setSelectedModel] = useState(
     MODELS.some((m) => m.id === initialPrefs.defaultModel) ? initialPrefs.defaultModel : DEFAULT_MODEL_ID
   );
-  const [selectedTone, setSelectedTone] = useState(initialPrefs.defaultTone || "");
+  const [selectedTone, setSelectedTone] = useState(
+    // The extension ships its own tone vocabulary, so only exact Studio tones apply.
+    handoffTone && tones.includes(handoffTone) ? handoffTone : initialPrefs.defaultTone || ""
+  );
+
+  useEffect(() => {
+    if (!handoffPromptId) return;
+    let isMounted = true;
+    fetch(`/api/v1/prompts/${handoffPromptId}`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("not found"))))
+      .then((json) => {
+        const text = json?.data?.originalText;
+        if (isMounted && typeof text === "string") setPrompt(text);
+      })
+      .catch(() => {
+        if (isMounted) toast("Could not load that saved prompt.", "error");
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [handoffPromptId, toast]);
 
   // Context Memory Blocks State
   const [availableBlocks, setAvailableBlocks] = useState<ContextBlock[]>(() => getSavedContextBlocks());
@@ -245,7 +274,7 @@ export default function PromptBuilderPage() {
         }
       }
 
-      // ── Branch 2: No-API Rule Engine (100% Offline, Deterministic, Sub-30ms) ──
+      // ── Branch 2: No-API Rule Engine (offline, deterministic, in-process) ──
       else if (enhanceMode === "algorithmic") {
         try {
           const v2Res = await fetch("/api/v2/optimize", {
@@ -973,5 +1002,13 @@ export default function PromptBuilderPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function PromptBuilderRoute() {
+  return (
+    <Suspense fallback={null}>
+      <PromptBuilderPage />
+    </Suspense>
   );
 }

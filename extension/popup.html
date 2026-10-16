@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prompt+ Architect AI v2.1.3.2</title>
+  <title>Prompt+ Architect AI</title>
   <style>
     :root {
       --bg: #09090b;
@@ -1185,7 +1185,7 @@
       <div class="header-title-group">
         <div class="header-title-row">
           <span class="header-title">Prompt+ Architect</span>
-          <span class="v2-pill">v3.0.0</span>
+          <span class="v2-pill" id="header-version-pill"></span>
         </div>
         <div class="header-sync-row">
           <span class="sync-indicator-dot" id="sync-dot"></span>
@@ -1348,7 +1348,7 @@
           </div>
 
           <div class="promptplus-quota-row">
-            <span>Free Quota: <strong id="token-remaining-badge">100 / 100 units</strong></span>
+            <span>Free Quota: <strong id="token-remaining-badge">—</strong></span>
             <span id="token-needed-txt">~0 tok input</span>
           </div>
           <div class="promptplus-quota-track">
@@ -1485,11 +1485,11 @@
       <div class="sync-card-box">
         <div class="sync-card-row">
           <span style="font-weight: 700; color: #fff;">Web Platform Account</span>
-          <span id="settings-auth-status" style="font-weight: 700; color: #10b981;">Connected</span>
+          <span id="settings-auth-status" style="font-weight: 700; color: #a1a1aa;">Not connected</span>
         </div>
         <div class="sync-card-row" style="color: #a1a1aa;">
-          <span>User: <strong id="settings-user-name" style="color: #fff;">Studio</strong></span>
-          <span>Quota: <strong id="settings-quota-txt" style="color: #10b981;">100 / 100</strong></span>
+          <span>User: <strong id="settings-user-name" style="color: #fff;">—</strong></span>
+          <span>Quota: <strong id="settings-quota-txt" style="color: #a1a1aa;">—</strong></span>
         </div>
         <button type="button" class="sync-card-btn" id="manual-sync-btn">Force Sync with Web Account</button>
       </div>

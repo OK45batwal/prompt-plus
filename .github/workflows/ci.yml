@@ -64,6 +64,9 @@ jobs:
       - name: Verify API Route Security & CSRF Guards
         run: node scripts/check-api-routes.mjs
 
+      - name: Verify No Fabricated Claims Shipped
+        run: node scripts/check-honesty.mjs
+
       - name: Check Environment Variable Contract
         run: node scripts/check-env.mjs
         env:

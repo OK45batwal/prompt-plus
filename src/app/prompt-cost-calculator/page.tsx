@@ -23,16 +23,17 @@ export default function PromptCostCalculatorPage() {
           LLM Token Cost Calculator
         </h1>
         <p className="text-muted-foreground max-w-lg mx-auto text-sm">
-          Estimate API costs across OpenAI, Claude, Gemini, and DeepSeek. See how Prompt+&apos;s Token Saver saves ~40% on token spend.
+          Estimate API costs across OpenAI, Claude, Gemini, and DeepSeek from provider list prices.
         </p>
       </div>
 
       <div className="p-6 rounded-xl border bg-card/50 mb-8 space-y-5">
         <div>
-          <label className="block text-sm font-semibold mb-2">
+          <label htmlFor="prompts-per-day" className="block text-sm font-semibold mb-2">
             Prompts Per Day: <span className="text-primary font-bold">{promptsPerDay}</span>
           </label>
           <input
+            id="prompts-per-day"
             type="range"
             min="5"
             max="500"
@@ -45,10 +46,11 @@ export default function PromptCostCalculatorPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold mb-1 text-muted-foreground">
+            <label htmlFor="avg-input-tokens" className="block text-xs font-semibold mb-1 text-muted-foreground">
               Average Input Tokens per Prompt
             </label>
             <input
+              id="avg-input-tokens"
               type="number"
               value={avgInputTokens}
               onChange={(e) => setAvgInputTokens(Number(e.target.value))}
@@ -56,10 +58,11 @@ export default function PromptCostCalculatorPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold mb-1 text-muted-foreground">
+            <label htmlFor="avg-output-tokens" className="block text-xs font-semibold mb-1 text-muted-foreground">
               Average Output Tokens per Response
             </label>
             <input
+              id="avg-output-tokens"
               type="number"
               value={avgOutputTokens}
               onChange={(e) => setAvgOutputTokens(Number(e.target.value))}
@@ -76,7 +79,6 @@ export default function PromptCostCalculatorPage() {
               <th className="p-3">Model</th>
               <th className="p-3">Daily Cost</th>
               <th className="p-3">Monthly Cost</th>
-              <th className="p-3 text-emerald-500 font-bold">With Prompt+ Token Saver (-40%)</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -85,14 +87,12 @@ export default function PromptCostCalculatorPage() {
               const dailyOutputCost = (promptsPerDay * avgOutputTokens / 1000000) * m.outputCost;
               const dailyTotal = dailyInputCost + dailyOutputCost;
               const monthlyTotal = dailyTotal * 30;
-              const monthlySaved = monthlyTotal * 0.6;
 
               return (
                 <tr key={i} className="hover:bg-muted/30">
                   <td className="p-3 font-semibold">{m.name}</td>
                   <td className="p-3">${dailyTotal.toFixed(3)}</td>
                   <td className="p-3 font-medium">${monthlyTotal.toFixed(2)}</td>
-                  <td className="p-3 font-bold text-emerald-500">${monthlySaved.toFixed(2)} / mo</td>
                 </tr>
               );
             })}
@@ -100,12 +100,16 @@ export default function PromptCostCalculatorPage() {
         </table>
       </div>
 
+      <p className="mt-3 text-[11px] text-muted-foreground">
+        Prices are provider list prices in USD per million tokens and can change. Confirm current pricing with the provider.
+      </p>
+
       <div className="mt-8 text-center">
         <Link
           href="/"
           className="inline-flex items-center justify-center font-semibold text-sm px-5 py-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
         >
-          Start Saving Token Costs with Prompt+ →
+          Try Prompt+ Free →
         </Link>
       </div>
     </div>

@@ -238,9 +238,8 @@ export default function LoginPage() {
           {/* Left Panel: Desktop Brand & Extension SSO Status Panel */}
           <div className="hidden lg:flex flex-col justify-between p-8 rounded-2xl border border-border/60 bg-card/40 backdrop-blur-xl h-full min-h-[460px]">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs font-semibold text-emerald-400 mb-6">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span>🟢 Extension Auto-Sync Ready</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-xs font-semibold text-primary mb-6">
+                <span>Web + Browser Extension</span>
               </div>
               <h2 className="text-3xl font-extrabold tracking-tight mb-3">
                 Seamless AI Meta-Prompt Compilation
@@ -252,8 +251,8 @@ export default function LoginPage() {
 
             <div className="p-4 rounded-xl border border-border/50 bg-background/50 space-y-2.5 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Extension Auto-Login</span>
-                <span className="text-emerald-400 font-semibold">Active</span>
+                <span className="text-muted-foreground">Sync</span>
+                <span className="text-foreground font-semibold">Web + Extension</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">API Vault Encryption</span>

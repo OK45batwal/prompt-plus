@@ -15,13 +15,13 @@ export default function PromptEngineeringGuidePage() {
         The Science-Backed Prompt Engineering Guide
       </h1>
       <p className="lead text-muted-foreground text-center mb-10">
-        How to get 10x better results from ChatGPT, Claude, and Gemini using empirical research from AI labs.
+        How to get better results from ChatGPT, Claude, and Gemini using techniques from published AI research.
       </p>
 
       <section className="space-y-6">
         <h2 className="text-2xl font-bold border-b pb-2">1. Chain-of-Thought (CoT) Prompting</h2>
         <p className="text-sm leading-relaxed">
-          Pioneered by <em>Wei et al. (2022) at Google Research</em>, Chain-of-Thought prompting forces large language models to output intermediate reasoning steps before arriving at a final answer. This reduces reasoning hallucinations by up to 60%.
+          Pioneered by <em>Wei et al. (2022) at Google Research</em>, Chain-of-Thought prompting asks large language models to output intermediate reasoning steps before arriving at a final answer, giving the model room to work through a problem before committing to a response.
         </p>
 
         <h2 className="text-2xl font-bold border-b pb-2">2. Role & Objective Conditioning</h2>
@@ -37,7 +37,7 @@ export default function PromptEngineeringGuidePage() {
         <div className="mt-10 p-6 rounded-xl border bg-muted/30 text-center not-prose">
           <h3 className="text-lg font-bold mb-2">Automate Science-Backed Prompts Instantly</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Prompt+ automatically applies all these research techniques in sub-100ms on-device.
+            Prompt+ automatically applies these research techniques to the prompts you write.
           </p>
           <Link
             href="/"

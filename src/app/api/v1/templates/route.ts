@@ -28,7 +28,6 @@ const OFFICIAL_TEMPLATES = [
     description: "Generates a structured, SEO-optimized blog post with headers, FAQs, and a compelling conclusion.",
     category: "Blog Post",
     model: "gpt-4o-mini",
-    usageCount: 1420,
     isOfficial: true,
     prompt: `You are an expert SEO content strategist and copywriter. Create a comprehensive, engaging 1500-word blog article on {{topic}} targeting {{target_audience}}.
 
@@ -45,7 +44,6 @@ Instructions:
     description: "High-response 3-step cold email sequence tailored to specific buyer personas and pain points.",
     category: "Email",
     model: "claude-3-5-sonnet-20241022",
-    usageCount: 980,
     isOfficial: true,
     prompt: `You are a world-class B2B sales copywriter. Write a 3-step cold email sequence introducing {{product_name}} to a {{target_role}}.
 
@@ -65,7 +63,6 @@ Email 3 (Final Check-in):
     description: "Production-grade Next.js App Router API route with Zod validation, error handling, and Prisma ORM logic.",
     category: "Code",
     model: "meta-llama/llama-3.3-70b-instruct:free",
-    usageCount: 2150,
     isOfficial: true,
     prompt: `You are a Senior Full-Stack Engineer specializing in Next.js 16 (App Router), TypeScript, and Prisma. Write a complete, production-ready API route for {{feature_description}}.
 
@@ -82,7 +79,6 @@ Requirements:
     description: "Compelling 7-tweet story thread designed for high engagement, retweets, and audience growth.",
     category: "Social Media",
     model: "gpt-4o-mini",
-    usageCount: 1840,
     isOfficial: true,
     prompt: `You are a viral social media strategist. Write a 7-tweet thread sharing a core lesson about {{core_lesson}} targeting {{audience_persona}}.
 
@@ -98,7 +94,6 @@ Structure:
     description: "Clear, beginner-friendly technical tutorial with code blocks, prerequisites, and common troubleshooting steps.",
     category: "Tutorial",
     model: "claude-3-5-sonnet-20241022",
-    usageCount: 760,
     isOfficial: true,
     prompt: `You are a Principal Developer Advocate. Write an in-depth, step-by-step technical tutorial on {{technology}} for developers with {{skill_level}} experience.
 
@@ -116,7 +111,6 @@ Sections:
     description: "High-converting SaaS landing page copy including Hero H1, Subheadline, Feature Pillars, and Social Proof triggers.",
     category: "Marketing",
     model: "meta-llama/llama-3.3-70b-instruct:free",
-    usageCount: 1290,
     isOfficial: true,
     prompt: `You are an elite SaaS landing page conversion strategist. Write complete landing page copy for {{saas_product}} built for {{target_customer}}.
 
@@ -132,7 +126,6 @@ Sections Required:
     description: "Clean, performant Python async pipeline script using asyncio, aiohttp, and structured logging.",
     category: "Code",
     model: "meta/llama-3.3-70b-instruct",
-    usageCount: 1610,
     isOfficial: true,
     prompt: `You are a Python Systems Architect. Write an asynchronous Python script for {{task_purpose}}.
 
@@ -148,7 +141,6 @@ Specifications:
     description: "Polished LinkedIn post positioning you as an industry expert with strong formatting and conversation starters.",
     category: "Social Media",
     model: "gpt-4o-mini",
-    usageCount: 1120,
     isOfficial: true,
     prompt: `You are an executive personal branding expert. Write an engaging LinkedIn post discussing {{key_insight}} in the {{industry}} sector.
 
@@ -163,7 +155,6 @@ Formatting Guidelines:
     description: "Optimizes slow SQL queries, recommends composite indexes, and analyzes execution query plans.",
     category: "Code",
     model: "gpt-4o-mini",
-    usageCount: 890,
     isOfficial: true,
     prompt: `You are a Principal Database Administrator. Analyze and optimize the following SQL query for {{database_engine}}:
 
@@ -186,7 +177,6 @@ Provide:
     description: "Detailed DALL-E 3 & Midjourney v6 prompt with camera lens, lighting, composition, and rendering flags.",
     category: "Marketing",
     model: "gpt-4o-mini",
-    usageCount: 1950,
     isOfficial: true,
     prompt: `Create a ultra-detailed photorealistic Midjourney v6 / DALL-E 3 image prompt for: {{subject}}.
 
@@ -201,7 +191,6 @@ Include exact parameters for:
     description: "Production-grade system prompt defining persona, constraints, tool calling schema, and edge case safety guidelines.",
     category: "Code",
     model: "claude-3-5-sonnet-20241022",
-    usageCount: 2310,
     isOfficial: true,
     prompt: `You are an Autonomous AI Agent designed for {{agent_role}}.
 
@@ -222,7 +211,6 @@ Provide concise, step-by-step reasoning followed by executable JSON tool calls.`
     description: "Engaging 10-minute video script with visual cues, pattern interrupts, retention hooks, and CTA overlays.",
     category: "Social Media",
     model: "gpt-4o-mini",
-    usageCount: 1480,
     isOfficial: true,
     prompt: `You are a YouTube viral strategist. Write a complete 8-minute video script on {{video_topic}} targeting {{target_viewer}}.
 
@@ -239,7 +227,6 @@ Script Structure:
     description: "Compelling launch copy with tagline, founder story, key features bullet list, and maker comment.",
     category: "Marketing",
     model: "gpt-4o-mini",
-    usageCount: 1730,
     isOfficial: true,
     prompt: `You are a startup launch copywriter. Write Product Hunt & TechCrunch launch copy for {{product_name}}, an innovative {{product_category}}.
 
@@ -255,7 +242,6 @@ Include:
     description: "Generates thorough unit & integration test cases with mock handlers, edge cases, and 100% code coverage.",
     category: "Code",
     model: "meta-llama/llama-3.3-70b-instruct:free",
-    usageCount: 1590,
     isOfficial: true,
     prompt: `You are a Lead QA Automation Engineer. Write a comprehensive Vitest / Jest test suite for the following TypeScript module:
 
@@ -275,7 +261,6 @@ Requirements:
     description: "Empathetic, clear customer service response SOP for resolving billing, technical, or account issues.",
     category: "Email",
     model: "gpt-4o-mini",
-    usageCount: 940,
     isOfficial: true,
     prompt: `You are a Customer Experience Manager. Write an empathetic, professional customer support email resolving a customer issue regarding {{issue_description}}.
 

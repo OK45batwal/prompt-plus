@@ -53,6 +53,7 @@ export const PATCH = withAuth(async (req: NextRequest, { userId, requestId }) =>
   if (typeof body.enhancedText === "string" && body.enhancedText !== existing.enhancedText) data.score = Prisma.DbNull;
   if (body.analysis !== undefined) data.analysis = body.analysis;
   if (typeof body.title === "string") data.title = body.title;
+  if (typeof body.isFavorite === "boolean") data.isFavorite = body.isFavorite;
 
   if (Object.keys(data).length === 0) {
     return jsonResponse({ error: "No valid fields to update" }, { status: 400, requestId });
@@ -61,7 +62,7 @@ export const PATCH = withAuth(async (req: NextRequest, { userId, requestId }) =>
   const updated = await getDb().prompt.update({
     where: { id },
     data,
-    select: { id: true, enhancedText: true, score: true, analysis: true, title: true, updatedAt: true },
+    select: { id: true, enhancedText: true, score: true, analysis: true, title: true, isFavorite: true, updatedAt: true },
   });
 
   return jsonResponse({ data: updated }, { requestId });

@@ -91,9 +91,9 @@ export default function LandingPage() {
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-xs font-semibold text-primary mb-6 shadow-2xs">
                 <Sparkles className="h-3.5 w-3.5" />
                 <span className="font-mono text-[11px] flex items-center gap-1.5">
-                  Prompt+ v2.1.3
+                  100% Free
                   <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  100% Free & Open
+                  No credit card
                 </span>
               </div>
 
@@ -105,7 +105,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="mt-5 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-xl">
-                Transform rough text into precise instructions for ChatGPT, Claude, Gemini, and DeepSeek — 100% free with local AES privacy.
+                Transform rough text into precise instructions for ChatGPT, Claude, Gemini, and DeepSeek — 100% free, with API keys encrypted at rest.
               </p>
 
               {/* Deduplicated Single-Intent CTAs with Button-in-Button Trailing Icon */}
@@ -204,7 +204,7 @@ export default function LandingPage() {
                 </div>
                 <div className="mt-6 p-4 rounded-xl border border-border/60 bg-muted/20 font-mono text-xs text-muted-foreground flex items-center justify-between">
                   <span>[ROLE] Act as Senior Cloud Architect...</span>
-                  <span className="text-emerald-500 font-semibold font-mono">100/100 Quality</span>
+                  <span className="text-muted-foreground font-semibold font-mono">Example output</span>
                 </div>
               </div>
             </div>
@@ -225,11 +225,8 @@ export default function LandingPage() {
                     Real-time scoring across clarity, specificity, constraints, role alignment, and token efficiency.
                   </p>
                 </div>
-                <div className="mt-6 flex items-center gap-2">
-                  <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full w-[92%] rounded-full bg-amber-500" />
-                  </div>
-                  <span className="font-mono text-xs font-bold text-foreground">92%</span>
+                <div className="mt-6 font-mono text-[11px] text-muted-foreground">
+                  Scored on every enhancement
                 </div>
               </div>
             </div>
@@ -296,8 +293,8 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
               { icon: CircleDollarSign, label: "Free forever", desc: "No paywall, ever" },
-              { icon: Infinity, label: "No daily limits", desc: "Unlimited enhancements" },
-              { icon: ShieldCheck, label: "MIT open source", desc: "Auditable on GitHub" },
+              { icon: Infinity, label: "Free server model", desc: "No API key needed" },
+              { icon: ShieldCheck, label: "Encrypted at rest", desc: "AES-256-GCM" },
               { icon: Lock, label: "Private by default", desc: "On-device AI option" },
             ].map((t) => (
               <div key={t.label} className="flex flex-col items-center gap-2 md:flex-row md:items-center md:justify-center md:gap-3 group">
@@ -446,56 +443,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Honest Comparison Table Section */}
-      <section className="py-20 sm:py-32 px-4 sm:px-6 border-t bg-accent/20">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-[-0.03em] text-balance">Prompt+ vs. $9–$19/month tools</h2>
-            <p className="text-sm text-muted-foreground mt-3 text-pretty max-w-xl mx-auto">Why pay monthly subscriptions for basic prompt wrappers when Prompt+ is 100% free and private?</p>
-          </div>
-          <div className="double-bezel-outer" data-reveal>
-            <div className="double-bezel-inner overflow-hidden">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-muted/40 text-xs uppercase font-mono font-semibold text-muted-foreground border-b border-border/60">
-                  <tr>
-                    <th className="p-4">Feature</th>
-                    <th className="p-4 text-primary font-bold">Prompt+</th>
-                    <th className="p-4 text-muted-foreground">Paid prompt tools ($9–$19/mo)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/60 text-xs sm:text-sm">
-                  <tr>
-                    <td className="p-4 font-medium">Pricing</td>
-                    <td className="p-4 font-bold text-primary">$0 / forever free</td>
-                    <td className="p-4 text-muted-foreground">$9 to $19 / month</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 font-medium">Usage caps</td>
-                    <td className="p-4 font-bold text-primary">Unlimited enhancements</td>
-                    <td className="p-4 text-muted-foreground">3 – 10 prompts/day free cap</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 font-medium">On-device privacy</td>
-                    <td className="p-4 font-bold text-primary">Chrome Gemini Nano (100% local)</td>
-                    <td className="p-4 text-muted-foreground">Cloud server logging only</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 font-medium">Security & trust</td>
-                    <td className="p-4 font-bold text-primary">AES-256 encrypted & private</td>
-                    <td className="p-4 text-muted-foreground">Unencrypted logs</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 font-medium">Signup required</td>
-                    <td className="p-4 font-bold text-primary">No signup wall</td>
-                    <td className="p-4 text-muted-foreground">Mandatory email & credit card wall</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Science & Research Backed Section */}
       <section className="py-20 sm:py-32 px-4 sm:px-6 border-t">
         <div className="max-w-4xl mx-auto">
@@ -507,7 +454,7 @@ export default function LandingPage() {
           </div>
           <div className="space-y-4">
             {[
-              { cite: "Wei et al. (2022)", title: "Chain-of-thought reasoning", desc: "Forces step-by-step intermediate reasoning paths, cutting math & logic hallucinations by 60%." },
+              { cite: "Wei et al. (2022)", title: "Chain-of-thought reasoning", desc: "Forces step-by-step intermediate reasoning paths before the final answer." },
               { cite: "Zhou et al. (2023)", title: "Structural role boundaries", desc: "Establishes explicit Role, Context, Instructions, and Non-Negotiable Constraints to prevent context drift." },
               { cite: "Brown et al. (2020)", title: "Few-shot in-context learning", desc: "Structures input variable placeholders and example ordering to maximize LLM adherence." },
             ].map((c, i) => (

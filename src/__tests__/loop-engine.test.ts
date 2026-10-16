@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { executeLoopEngineering } from "@/lib/prompt-engine/loop-engine";
 
 describe("Loop Engineering Optimizer", () => {
-  it("should execute closed-loop refinement with sub-50ms latency", () => {
+  it("should execute closed-loop refinement", () => {
     const rawInput = "imrpove python web scrpaer with secutiy";
     const result = executeLoopEngineering(rawInput, { zeroFluff: true });
 

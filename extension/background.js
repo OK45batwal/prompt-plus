@@ -220,42 +220,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
-  if (request.action === "getTemplates") {
-    (async () => {
-      const targetUrls = cachedWorkingUrl ? [cachedWorkingUrl, ...API_URLS.filter((u) => u !== cachedWorkingUrl)] : API_URLS;
-      for (const baseUrl of targetUrls) {
-        try {
-          const res = await fetch(`${baseUrl}/api/v1/extension/templates`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "X-PromptPlus-Client": "chrome-extension",
-              "X-Requested-With": "XMLHttpRequest",
-            },
-            credentials: "include",
-          });
-          if (res.ok) {
-            const json = await res.json();
-            if (json.success && json.data) {
-              cachedWorkingUrl = baseUrl;
-              chrome.storage.local.set({ pp_cached_blueprints: json.data });
-              sendResponse({ success: true, data: json.data });
-              return;
-            }
-          }
-        } catch {
-          // try next
-        }
-      }
-
-      // Check cached blueprints if offline
-      chrome.storage.local.get("pp_cached_blueprints", (data) => {
-        sendResponse({ success: Boolean(data?.pp_cached_blueprints), data: data?.pp_cached_blueprints || null });
-      });
-    })();
-    return true;
-  }
-
   if (request.action === "saveToCloudPrompt") {
     (async () => {
       try {
@@ -332,29 +296,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ apiKey: key });
       });
     })();
-    return true;
-  }
-
-  if (request.action === "getSettings") {
-    chrome.storage.local.get(STORAGE_KEY, (data) => {
-      sendResponse({ settings: data[STORAGE_KEY] || {} });
-    });
-    return true;
-  }
-
-  if (request.action === "saveSettings") {
-    chrome.storage.local.get(STORAGE_KEY, (data) => {
-      const cur = data[STORAGE_KEY] || {};
-      const allowedKeys = ["tone", "model", "autoEnhance", "shortcut", "cloudSync", "theme", "contextVault"];
-      if (request.settings && typeof request.settings === "object") {
-        for (const key of allowedKeys) {
-          if (key in request.settings) {
-            cur[key] = request.settings[key];
-          }
-        }
-      }
-      chrome.storage.local.set({ [STORAGE_KEY]: cur }, () => sendResponse({ success: true }));
-    });
     return true;
   }
 

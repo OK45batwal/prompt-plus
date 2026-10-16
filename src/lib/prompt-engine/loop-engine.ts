@@ -2,7 +2,7 @@
  * Loop Engineering Optimizer
  *
  * Implements an automated Generate -> Evaluate -> Critique -> Auto-Repair -> Polish
- * closed-loop convergence cycle for sub-30ms prompt quality refinement.
+ * closed-loop convergence cycle for in-process prompt quality refinement.
  */
 
 import { PromptCandidate, TaskType, ComplexityLevel, SecurityScanResult } from "./types";

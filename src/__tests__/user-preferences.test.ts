@@ -39,31 +39,33 @@ describe("User Preferences & API Key Validator", () => {
     expect(json.data.preferences.developerRole).toBe("AI / ML Researcher");
   });
 
-  it("should validate API key structure via POST /api/v1/api-keys/test", async () => {
-    const validReq = new NextRequest("http://localhost:3000/api/v1/api-keys/test", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        provider: "openai",
-        apiKey: "sk-proj-1234567890123456789012345",
-      }),
-    });
+  it("really probes the provider via POST /api/v1/api-keys/test", async () => {
+    const requestBody = { provider: "openai", apiKey: "sk-proj-1234567890123456789012345" };
+    const makeRequest = () =>
+      new NextRequest("http://localhost:3000/api/v1/api-keys/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
 
-    const resValid = await testApiKey(validReq);
-    expect(resValid.status).toBe(200);
-    const jsonValid = await resValid.json();
-    expect(jsonValid.success).toBe(true);
+    // A key the provider accepts is reported as connected.
+    const accepted = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", accepted);
+    const okRes = await testApiKey(makeRequest());
+    expect(okRes.status).toBe(200);
+    expect((await okRes.json()).success).toBe(true);
+    expect(accepted).toHaveBeenCalledWith("https://api.openai.com/v1/models", expect.anything());
 
-    const invalidReq = new NextRequest("http://localhost:3000/api/v1/api-keys/test", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        provider: "openai",
-        apiKey: "invalid_key",
-      }),
-    });
+    // A key the provider rejects is a failure, not a success.
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("{}", { status: 401 })));
+    const rejectedRes = await testApiKey(makeRequest());
+    expect(rejectedRes.status).toBe(400);
+    expect((await rejectedRes.json()).success).toBe(false);
 
-    const resInvalid = await testApiKey(invalidReq);
-    expect(resInvalid.status).toBe(400);
+    // An unreachable provider is reported as such, never as validated.
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    expect((await testApiKey(makeRequest())).status).toBe(502);
+
+    vi.unstubAllGlobals();
   });
 });

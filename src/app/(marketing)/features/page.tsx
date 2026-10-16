@@ -2,14 +2,14 @@ import { Sparkles, BarChart3, BookOpen, Shield, Sliders, Zap, Bot, Layers } from
 import Link from "next/link";
 
 const items = [
-  { icon: Sparkles, title: "On-Device Gemini Nano AI", description: "Enhance prompts 100% locally inside Chrome 138+ with sub-100ms latency and total privacy." },
+  { icon: Sparkles, title: "On-Device Gemini Nano AI", description: "Enhance prompts entirely on your device inside Chrome 138+ — nothing leaves your browser." },
   { icon: Layers, title: "Cross-Chatbot Context Bucket", description: "Scrape and carry active chat history from ChatGPT to Claude, Gemini, or DeepSeek in 1 click." },
   { icon: BarChart3, title: "100-Point Precision Quality Scoring", description: "Evaluate prompt clarity, role assignment, target audience, and non-negotiable constraints." },
   { icon: Sliders, title: "Side-by-Side Model Lab", description: "Compare responses across OpenAI, Claude 3.5, and Gemini simultaneously with version control." },
   { icon: Bot, title: "Chrome Extension Floating Bar", description: "Enhance prompts directly inside ChatGPT, Claude, Gemini, Grok, and DeepSeek without tab switching." },
   { icon: Shield, title: "Privacy First & BYO-Key Support", description: "Use our free server model or bring your own API keys encrypted with AES-256-GCM at rest." },
   { icon: BookOpen, title: "Curated Template Library", description: "Access battle-tested templates for Code Review, Marketing, Copywriting, and Data Analysis." },
-  { icon: Zap, title: "Token Saver Mode", description: "Reduce prompt output token consumption by ~40% while preserving output structure and quality." },
+  { icon: Zap, title: "Token Saver Mode", description: "Rewrite prompts to drop redundant tokens while keeping structure, intent, and constraints intact." },
 ];
 
 export default function FeaturesPage() {

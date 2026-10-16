@@ -13,7 +13,7 @@ export default function DocsPage() {
           <div>
             <h2 className="text-xl font-bold mb-2">1. On-Device AI (Chrome Gemini Nano)</h2>
             <p className="text-muted-foreground leading-relaxed">
-              On-Device mode runs 100% locally inside Chrome 138+ using Chrome&apos;s built-in <code>window.ai.languageModel</code> Prompt API. Prompts are enhanced in sub-100ms with zero network requests and zero server data transmission.
+              On-Device mode runs 100% locally inside Chrome 138+ using Chrome&apos;s built-in <code>window.ai.languageModel</code> Prompt API. Prompts are enhanced locally with zero network requests and zero server data transmission.
             </p>
           </div>
 
