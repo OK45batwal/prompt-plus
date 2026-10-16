@@ -7,7 +7,7 @@ const items = [
   { icon: BarChart3, title: "100-Point Precision Quality Scoring", description: "Evaluate prompt clarity, role assignment, target audience, and non-negotiable constraints." },
   { icon: Sliders, title: "Side-by-Side Model Lab", description: "Compare responses across OpenAI, Claude 3.5, and Gemini simultaneously with version control." },
   { icon: Bot, title: "Chrome Extension Floating Bar", description: "Enhance prompts directly inside ChatGPT, Claude, Gemini, Grok, and DeepSeek without tab switching." },
-  { icon: Shield, title: "Privacy First & BYO-Key Support", description: "Use our free server model or bring your own API keys encrypted with AES-256-GCM at rest." },
+  { icon: Shield, title: "Privacy First & BYO-Key Support", description: "Use the built-in deterministic engine, or bring your own API keys encrypted with AES-256-GCM at rest." },
   { icon: BookOpen, title: "Curated Template Library", description: "Access battle-tested templates for Code Review, Marketing, Copywriting, and Data Analysis." },
   { icon: Zap, title: "Token Saver Mode", description: "Rewrite prompts to drop redundant tokens while keeping structure, intent, and constraints intact." },
 ];

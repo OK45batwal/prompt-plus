@@ -65,13 +65,13 @@ export default function LandingPage() {
   }, []);
 
   const faqs = [
-    { q: "Is Prompt+ really free?", a: "Yes — 100% free with no daily limits, no quotas, and no credit card. Enhancements run on our free server model or fully on-device with Chrome's Gemini Nano, so it costs us almost nothing to keep it free." },
+    { q: "Is Prompt+ really free?", a: "Yes — free to use, no credit card. Enhancements run on a built-in deterministic engine, or fully on-device with Chrome's Gemini Nano, so it costs us almost nothing to keep it free." },
     { q: "Why not just ask ChatGPT to improve my prompt?", a: "When an LLM evaluates or improves its own prompt in the same conversation, it suffers from Same-Model Self-Evaluation Bias—it assumes its own implied context and inherits its own blind spots. Prompt+ uses an independent meta-architect engine with explicit structural rules (Role, Objective, Instructions, Constraints) so your prompt is completely unbiased and production-ready for any LLM." },
     { q: "Does on-device AI require an API key?", a: "No. On-device mode uses Chrome 138+'s built-in Gemini Nano and runs entirely in your browser — private, offline, and free. Your prompt text never leaves your device." },
     { q: "Which AI models does Prompt+ work with?", a: "The enhanced prompts work with any major model — ChatGPT, Claude, Gemini, DeepSeek, Grok, Perplexity, and Llama. API mode also lets you run enhancement itself on OpenRouter free models, NVIDIA, OpenAI, or Anthropic." },
     { q: "Is there a Chrome extension?", a: "Yes. The free extension enhances prompts directly inside ChatGPT, Claude, Gemini, and DeepSeek with a floating button — no tab switching and no key required." },
     { q: "What do you do with my prompts?", a: "Nothing — we never sell, rent, or train on your prompts. Your prompts and API keys (encrypted with AES-256-GCM) belong to you. You can delete your account and data at any time." },
-    { q: "Can I bring my own API key?", a: "Yes. Add OpenAI, Anthropic, OpenRouter, or NVIDIA keys in Settings for full model access. Keys are encrypted at rest. If you don't add one, the free server model covers you." },
+    { q: "Can I bring my own API key?", a: "Yes. Add OpenAI, Anthropic, OpenRouter, or NVIDIA keys in Settings for full model access. Keys are encrypted at rest. If you don't add one, the built-in deterministic engine handles it." },
   ];
 
   return (
@@ -293,7 +293,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
               { icon: CircleDollarSign, label: "Free forever", desc: "No paywall, ever" },
-              { icon: Infinity, label: "Free server model", desc: "No API key needed" },
+              { icon: Infinity, label: "No API key needed", desc: "Built-in engine" },
               { icon: ShieldCheck, label: "Encrypted at rest", desc: "AES-256-GCM" },
               { icon: Lock, label: "Private by default", desc: "On-device AI option" },
             ].map((t) => (
@@ -422,9 +422,9 @@ export default function LandingPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 mt-8 text-sm">
                   {[
-                    "Unlimited prompt enhancements",
+                    "Prompt enhancements included free",
                     "On-device AI — free, private, offline",
-                    "Free server model out of the box",
+                    "Built-in deterministic engine — no key required",
                     "6-dimension quality scoring",
                     "Curated prompt library & templates",
                     "Chrome extension — no key required",

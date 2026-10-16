@@ -149,7 +149,7 @@ export default function SignupPage() {
                   <div className="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5">✓</div>
                   <div>
                     <strong className="text-foreground block mb-0.5">100% Free Out-of-the-Box</strong>
-                    <span className="text-muted-foreground">Access OpenRouter free models without credit card or paid API keys.</span>
+                    <span className="text-muted-foreground">Enhance prompts with the built-in engine — no credit card, no API key required.</span>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-xl bg-background/40 border border-border/40">

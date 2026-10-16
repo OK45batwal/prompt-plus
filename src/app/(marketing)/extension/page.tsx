@@ -7,7 +7,7 @@ const steps = [
   { icon: Puzzle, title: "1. Install in 1-Click", desc: "Add Prompt+ Architect AI to Google Chrome directly from the official Chrome Web Store." },
   { icon: Sparkles, title: "2. Open Web AI Chat", desc: "Visit ChatGPT, Claude, Gemini, DeepSeek, or Grok. A non-intrusive floating action bar appears." },
   { icon: Copy, title: "3. Optimize & Launch", desc: "Click Enhance — select from 4 V2 strategy candidates right at your prompt box." },
-  { icon: Layers, title: "4. On-Device or Cloud", desc: "Use free server-managed cloud AI or offline local Gemini Nano for total privacy." },
+  { icon: Layers, title: "4. On-Device or Cloud", desc: "Use the built-in deterministic engine, or offline local Gemini Nano for total privacy." },
 ];
 
 export default function ExtensionPage() {
@@ -75,7 +75,7 @@ export default function ExtensionPage() {
               "Real-time token counter & context window limit threshold warnings",
               "1-click Apply or Keep Original — zero copy-pasting required",
               "On-Device Mode using Chrome's built-in Gemini Nano — 100% free, private, offline",
-              "Server-managed Cloud AI included out-of-the-box — no API keys required",
+              "Built-in deterministic engine — enhances prompts with no API keys required",
             ].map((f) => (
               <div key={f} className="flex items-start gap-2.5">
                 <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />

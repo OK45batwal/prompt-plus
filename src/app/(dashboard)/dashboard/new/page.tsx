@@ -321,7 +321,7 @@ function PromptBuilderPage() {
         enhanceProvider = "api";
         const hasConnectedKey = !!(savedKeys[selectedModelData?.provider || "openai"] || userApiKey);
         if (!selectedModelData?.free && !hasConnectedKey) {
-          toast(`⚠️ No API key found for ${selectedModelData?.provider || "selected model"}. Using Free Server AI fallback.`, "info");
+          toast(`No API key found for ${selectedModelData?.provider || "selected model"} — using the built-in engine instead.`, "info");
         }
 
         try {

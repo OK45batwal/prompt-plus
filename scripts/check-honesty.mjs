@@ -55,6 +55,20 @@ const RULES = [
     include: [/^src\/.*\.tsx?$/],
     fix: "Delete the claim, or measure it and label it as a benchmark.",
   },
+  {
+    id: "fabricated-free-server-model",
+    // Production has no LLM provider key, so there is no free server model to promise users.
+    pattern: /free server model|server-managed cloud ai/i,
+    include: [/^src\/.*\.tsx?$/],
+    fix: "Describe the built-in deterministic engine, or provision a server key first.",
+  },
+  {
+    id: "unlimited-enhancement-claim",
+    // Enhancements are capped (100/month reported, 120/hour per IP), so "unlimited" is false.
+    pattern: /\bunlimited\b[^.\n]{0,24}\benhancements?\b/i,
+    include: [/^src\/.*\.tsx?$/],
+    fix: "State the real cap, or drop the word \"unlimited\".",
+  },
 ];
 
 function walk(dir) {
