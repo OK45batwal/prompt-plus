@@ -53,7 +53,7 @@ export function checkIpRateLimit(key: string, limit: number, windowMs: number): 
 }
 
 // Atomic increment + expiry, including repair of a legacy key lacking a TTL.
-export const RATE_LIMIT_SCRIPT = `
+const RATE_LIMIT_SCRIPT = `
 local count = redis.call('INCR', KEYS[1])
 local ttl = redis.call('PTTL', KEYS[1])
 if ttl < 0 then

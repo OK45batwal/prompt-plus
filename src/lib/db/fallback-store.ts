@@ -143,6 +143,9 @@ export class LocalDatabaseStore {
   }
 
   async createUser(data: Partial<MockUser> & { email: string }): Promise<MockUser> {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Local fallback store is disabled in production");
+    }
     const emailNorm = data.email.toLowerCase().trim();
     const newUser: MockUser = {
       id: data.id || `usr_${Math.random().toString(36).substring(2, 11)}`,
@@ -167,6 +170,9 @@ export class LocalDatabaseStore {
   }
 
   async updateUser(where: { id?: string; email?: string }, data: Partial<MockUser>): Promise<MockUser> {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Local fallback store is disabled in production");
+    }
     let existing: MockUser | null = null;
     if (where.email) {
       existing = await this.findUserByEmail(where.email);

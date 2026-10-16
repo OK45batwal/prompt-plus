@@ -51,29 +51,13 @@ export const POST = withAuth(
       targetProvider = "openai";
     }
 
-    let userApiKeyRow = await getDb().apiKey.findFirst({
+    const userApiKeyRow = await getDb().apiKey.findFirst({
       where: {
         userId,
         provider: targetProvider,
         isActive: true,
       },
     });
-
-    let resolvedProvider = targetProvider;
-
-    // If no key for targetProvider, check if user has another active provider key
-    if (!userApiKey && !userApiKeyRow) {
-      const anyActiveKey = await getDb().apiKey.findFirst({
-        where: {
-          userId,
-          isActive: true,
-        },
-      });
-      if (anyActiveKey) {
-        userApiKeyRow = anyActiveKey;
-        resolvedProvider = anyActiveKey.provider as typeof targetProvider;
-      }
-    }
 
     let apiKey: string | undefined = userApiKey;
 
@@ -86,11 +70,12 @@ export const POST = withAuth(
     }
 
     // STRICT USER API KEY ENFORCEMENT:
-    // If the user does not have a valid API key connected or provided, disallow API-based prompt enhancement.
+    // If the user has no valid key for the selected model's provider, stop. Falling back to a
+    // different provider's key would send a foreign key with a model that provider cannot serve.
     if (!apiKey) {
       return jsonResponse(
         {
-          error: "API key required. Please add your API key in Settings -> API Keys to use AI prompt enhancement.",
+          error: `No ${targetProvider} API key found. Add one in Settings → API Keys to enhance with this model.`,
           code: "API_KEY_REQUIRED",
           provider: targetProvider,
         },
@@ -98,7 +83,7 @@ export const POST = withAuth(
       );
     }
 
-    const cacheKey = createLLMCacheKey({ userId, apiKey, provider: resolvedProvider, text, model, category, tone, length, level });
+    const cacheKey = createLLMCacheKey({ userId, apiKey, provider: targetProvider, text, model, category, tone, length, level });
     const cached = enhancementCache.get(cacheKey);
     if (cached) {
       const cleanCachedText = cleanMasterPromptOutput(cached.enhancedText);
@@ -121,7 +106,7 @@ export const POST = withAuth(
     try {
       const response = await callLLM({
         tenantId: userId,
-        provider: resolvedProvider,
+        provider: targetProvider,
         apiKey: apiKey || "",
         model,
         systemPrompt: systemInstruction,
@@ -243,7 +228,7 @@ export const POST = withAuth(
           userId,
           promptId: promptId || null,
           action: "enhance",
-          provider: resolvedProvider,
+          provider: targetProvider,
           latencyMs,
           success: false,
         },

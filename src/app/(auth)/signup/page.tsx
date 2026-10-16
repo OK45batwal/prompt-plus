@@ -226,6 +226,12 @@ export default function SignupPage() {
                       Resend code
                     </button>
                   </p>
+                  <p className="text-center text-xs text-muted-foreground mt-3">
+                    Already have an account?{" "}
+                    <Link href="/login" className="text-primary font-semibold hover:underline">
+                      Sign in
+                    </Link>
+                  </p>
                 </div>
               ) : (
                 <div className="animate-slide-up">
