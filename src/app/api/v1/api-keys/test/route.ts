@@ -7,46 +7,57 @@ const testKeySchema = z.object({
   apiKey: z.string().min(1, "API Key is required"),
 });
 
+type Provider = z.infer<typeof testKeySchema>["provider"];
+
+/**
+ * Cheap authenticated GETs that prove a credential works without spending tokens.
+ * This endpoint used to only check the key's prefix and then report a success
+ * message, which was not a validation at all.
+ */
+const PROBES: Record<Provider, (key: string) => { url: string; headers: Record<string, string> }> = {
+  openai: (key) => ({
+    url: "https://api.openai.com/v1/models",
+    headers: { Authorization: `Bearer ${key}` },
+  }),
+  anthropic: (key) => ({
+    url: "https://api.anthropic.com/v1/models",
+    headers: { "x-api-key": key, "anthropic-version": "2023-06-01" },
+  }),
+  openrouter: (key) => ({
+    url: "https://openrouter.ai/api/v1/auth/key",
+    headers: { Authorization: `Bearer ${key}` },
+  }),
+  nvidia: (key) => ({
+    url: "https://integrate.api.nvidia.com/v1/models",
+    headers: { Authorization: `Bearer ${key}` },
+  }),
+  google: (key) => ({
+    url: `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`,
+    headers: {},
+  }),
+};
+
 export const POST = withAuth(
   async (_req, { requestId, body }) => {
     const { provider, apiKey } = body!;
-    const key = apiKey.trim();
+    const { url, headers } = PROBES[provider](apiKey);
 
-    // 1. Format & Prefix Validation
-    let isValidFormat = false;
-    let details = "";
-
-    switch (provider) {
-      case "openai":
-        isValidFormat = key.startsWith("sk-") && key.length > 20;
-        details = isValidFormat ? "Valid OpenAI API key structure (sk-...)" : "Invalid key format. Expected prefix 'sk-'";
-        break;
-      case "anthropic":
-        isValidFormat = key.startsWith("sk-ant-") && key.length > 20;
-        details = isValidFormat ? "Valid Anthropic API key structure (sk-ant-...)" : "Invalid key format. Expected prefix 'sk-ant-'";
-        break;
-      case "google":
-        isValidFormat = (key.startsWith("AIza") || key.length > 25);
-        details = isValidFormat ? "Valid Google Gemini API key structure" : "Invalid Google AI key format";
-        break;
-      case "openrouter":
-        isValidFormat = key.startsWith("sk-or-") && key.length > 20;
-        details = isValidFormat ? "Valid OpenRouter API key structure (sk-or-...)" : "Invalid key format. Expected prefix 'sk-or-'";
-        break;
-      case "nvidia":
-        isValidFormat = key.startsWith("nvapi-") && key.length > 20;
-        details = isValidFormat ? "Valid NVIDIA API key structure (nvapi-...)" : "Invalid key format. Expected prefix 'nvapi-'";
-        break;
+    let res: Response;
+    try {
+      res = await fetch(url, { headers, signal: AbortSignal.timeout(8000) });
+    } catch {
+      return jsonResponse(
+        { error: `Could not reach ${provider}. Check your connection and try again.` },
+        { status: 502, requestId }
+      );
     }
 
-    if (!isValidFormat) {
-      return jsonResponse(
-        {
-          error: details,
-          success: false,
-        },
-        { status: 400, requestId }
-      );
+    if (!res.ok) {
+      const reason =
+        res.status === 401 || res.status === 403
+          ? `${provider.toUpperCase()} rejected this key.`
+          : `${provider.toUpperCase()} returned HTTP ${res.status}.`;
+      return jsonResponse({ error: reason, success: false }, { status: 400, requestId });
     }
 
     return jsonResponse(
@@ -55,7 +66,7 @@ export const POST = withAuth(
         data: {
           provider,
           status: "connected",
-          message: `Successfully validated ${provider.toUpperCase()} credentials!`,
+          message: `${provider.toUpperCase()} accepted this key.`,
         },
       },
       { requestId }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sparkles, Book, History, Folder, LayoutTemplate, GitCompare, ArrowRight, Zap, TrendingUp, Loader2 } from "lucide-react";
 import { OnboardingTour } from "@/components/dashboard/onboarding-tour";
+import { EXTENSION_VERSION } from "@/lib/version";
 
 const quickActions = [
   {
@@ -46,7 +47,7 @@ const quickActions = [
 ];
 
 export default function DashboardPage() {
-  const [usage, setUsage] = useState<{ totalPrompts: number; totalEnhancements: number; averageScore: number | null; monthly: { used: number } } | null>(null);
+  const [usage, setUsage] = useState<{ totalPrompts: number; totalEnhancements: number; averageScore: number | null; used: number } | null>(null);
   const [collectionsCount, setCollectionsCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -106,7 +107,7 @@ export default function DashboardPage() {
             <p className="text-2xl sm:text-3xl font-extrabold mt-3 font-mono">
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : usage?.totalEnhancements || 0}
             </p>
-            <p className="text-[11px] text-muted-foreground mt-1 font-mono">{loading ? "" : `${usage?.monthly?.used || 0} this month`}</p>
+            <p className="text-[11px] text-muted-foreground mt-1 font-mono">{loading ? "" : `${usage?.used || 0} this month`}</p>
           </div>
         </div>
 
@@ -257,7 +258,7 @@ export default function DashboardPage() {
                   Test prompts simultaneously across GPT-4o, Claude 3.5 Sonnet, Gemini 2.0 Flash, and DeepSeek R1.
                 </p>
               </div>
-              <Link href="/dashboard/compare" className="mt-4 text-xs font-semibold text-blue-500 hover:underline flex items-center gap-1">
+              <Link href="/dashboard/model-lab" className="mt-4 text-xs font-semibold text-blue-500 hover:underline flex items-center gap-1">
                 Open Model Lab →
               </Link>
             </div>
@@ -330,11 +331,11 @@ export default function DashboardPage() {
                   <span className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
                     <LayoutTemplate className="h-5 w-5" />
                   </span>
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">v1.1.1</span>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">v{EXTENSION_VERSION}</span>
                 </div>
                 <h4 className="font-bold text-sm mt-3">🧩 Browser Extension Hub</h4>
                 <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                  Install the v1.1.1 Chrome & Edge extension for in-page prompt enhancement on ChatGPT, Claude & Gemini.
+                  Install the v{EXTENSION_VERSION} Chrome &amp; Edge extension for in-page prompt enhancement on ChatGPT, Claude &amp; Gemini.
                 </p>
               </div>
               <Link href="/extension" className="mt-4 text-xs font-semibold text-indigo-500 hover:underline flex items-center gap-1">

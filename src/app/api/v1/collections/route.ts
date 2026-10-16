@@ -11,7 +11,6 @@ export const GET = withAuth(
     const queryResult = paginationSchema.safeParse({
       page: searchParams.get("page"),
       pageSize: searchParams.get("pageSize"),
-      search: searchParams.get("search"),
     });
 
     if (!queryResult.success) {

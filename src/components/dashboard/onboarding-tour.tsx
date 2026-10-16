@@ -78,7 +78,7 @@ export function OnboardingTour() {
       <div className="flex items-center justify-between pt-1 text-xs">
         <span className="text-muted-foreground flex items-center gap-1">
           <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-          Free & unlimited out-of-the-box — no API keys required.
+          Free out-of-the-box — no API keys required.
         </span>
         <Link
           href="/dashboard/new"

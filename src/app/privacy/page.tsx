@@ -43,7 +43,7 @@ const sections = [
     body: [
       "Prompt+ offers two enhancement modes, and they differ in where your prompt text goes:",
       "On-Device mode uses Chrome's built-in Gemini Nano and runs entirely in your browser. Your prompt text is processed locally and never transmitted to our servers or any third party.",
-      "API mode sends your prompt text to our server, which forwards it to the AI provider you select (or the free server model) solely to generate the enhanced output. The prompt is processed for that request and is not used for training.",
+      "API mode sends your prompt text to our server, which either forwards it to the AI provider you select or runs the built-in deterministic engine, solely to generate the enhanced output. The prompt is processed for that request and is not used for training.",
       "In both modes, the enhanced result is returned to you. We do not log prompt content in API mode beyond what is necessary to deliver the request and, when you are signed in, the history you explicitly keep.",
     ],
   },

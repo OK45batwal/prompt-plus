@@ -106,11 +106,6 @@ const jsonLd = {
     price: "0.00",
     priceCurrency: "USD",
   },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.9",
-    ratingCount: "1280",
-  },
   description:
     "Free AI prompt engineering tool & browser extension that turns simple inputs into production-grade prompts for ChatGPT, Claude, and Gemini.",
   url: "https://prompt-plus-three.vercel.app",

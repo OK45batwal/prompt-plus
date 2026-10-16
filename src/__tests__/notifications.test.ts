@@ -9,15 +9,15 @@ vi.mock("@/lib/auth/config", () => ({
 import { GET as getNotifications, PATCH as patchNotifications, DELETE as deleteNotifications } from "@/app/api/v1/notifications/route";
 
 describe("In-App Notification Center API", () => {
-  it("should return notifications list and unread count for authenticated user", async () => {
+  it("returns an empty feed until a real notification source exists", async () => {
     const req = new NextRequest("http://localhost:3000/api/v1/notifications");
     const res = await getNotifications(req);
     expect(res.status).toBe(200);
 
     const json = await res.json();
     expect(json.data).toBeDefined();
-    expect(json.data.notifications.length).toBeGreaterThan(0);
-    expect(typeof json.data.unreadCount).toBe("number");
+    expect(json.data.notifications).toEqual([]);
+    expect(json.data.unreadCount).toBe(0);
   });
 
   it("should mark notifications as read via PATCH", async () => {

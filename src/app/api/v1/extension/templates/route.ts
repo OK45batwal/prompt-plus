@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { jsonResponse } from "@/lib/api/response-headers";
 import { auth } from "@/lib/auth/config";
 import { getDb } from "@/lib/db/prisma";
+import { EXTENSION_VERSION } from "@/lib/version";
 
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -98,7 +99,7 @@ export async function GET(request: NextRequest) {
     return jsonResponse(
       {
         success: true,
-        version: "2.1.3.2",
+        version: EXTENSION_VERSION,
         data: {
           curated: EXTENSION_CURATED_BLUEPRINTS,
           userPrompts: userBlueprints,

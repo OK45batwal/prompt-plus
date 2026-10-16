@@ -53,6 +53,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Prompt+ Quota Elements
   const tokenRemainingBadge = document.getElementById("token-remaining-badge");
+  const headerVersionPill = document.getElementById("header-version-pill");
+  if (headerVersionPill) headerVersionPill.textContent = `v${chrome.runtime.getManifest().version}`;
   const tokenNeededTxt = document.getElementById("token-needed-txt");
   const tokenMeterFill = document.getElementById("token-meter-fill");
 
@@ -638,7 +640,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           }
           if (authData.savedBlocks && authData.savedBlocks.length > 0) {
-            cloudPrompts = authData.savedBlocks;
+            // The API returns ContextBlock ({name, content}); the library renders {title, text}.
+            // Without this mapping every cloud blueprint rendered blank.
+            cloudPrompts = authData.savedBlocks.map((b) => ({
+              id: b.id,
+              title: b.name,
+              text: b.content,
+              category: b.category,
+            }));
           }
         } else {
           if (syncStatusText) syncStatusText.textContent = "Local Mode";
@@ -1020,7 +1029,6 @@ document.addEventListener("DOMContentLoaded", () => {
         enhancedText: enhancedResult,
         category: "Extension v3.0",
         tone: currentTone,
-        score: calculateScore(enhancedResult),
       },
       (r) => {
         if (r?.success) {

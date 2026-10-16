@@ -63,3 +63,12 @@ test("Studio shows genuine zero assessments and an inconclusive verification wit
   expect(evaluationBody).toMatchObject({ confirmLiveEvaluation: true, rubric: { exact: "4" }, promptId: "saved-prompt" });
   await page.screenshot({ path: info.outputPath("studio-verification.png"), fullPage: true });
 });
+
+test("marketing home ships no fabricated social proof or rating markup", async ({ page }) => {
+  await page.goto("/");
+  const html = await page.content();
+  expect(html).not.toContain("aggregateRating");
+  expect(html).not.toMatch(/join thousands|trusted by \d|loved by \d|\d+x (better|faster)/i);
+  expect(html).not.toMatch(/MIT[- ]?open[- ]?source/i);
+  await expect(page.getByText(/\d[\d,]*\s+(developers|users|customers)\b/i)).toHaveCount(0);
+});

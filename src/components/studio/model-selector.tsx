@@ -234,7 +234,7 @@ export function ModelSelector({
               <div>
                 <div className="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 flex items-center justify-between">
                   <span>⚡ OpenRouter Free Models</span>
-                  <span className="text-[10px] opacity-75">No Key Required</span>
+                  <span className="text-[10px] opacity-75">Needs OpenRouter key</span>
                 </div>
                 <div className="space-y-0.5">
                   {MODELS.filter((m) => m.provider === "openrouter").map((model) => (
