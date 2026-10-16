@@ -46,8 +46,10 @@ if (!dbUrl) {
   console.log(`✅ DATABASE_URL is configured (${dbUrl.startsWith("file:") ? "SQLite" : "PostgreSQL/Neon"}).`);
 }
 
-if (process.env.NODE_ENV === "production" && (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN)) {
-  errors.push("Production requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN. Protected routes return 503 without distributed rate limiting.");
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+if (process.env.NODE_ENV === "production" && (!redisUrl || !redisToken)) {
+  errors.push("Production requires UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN (or the KV_REST_API_URL/KV_REST_API_TOKEN pair the Vercel Upstash integration injects). Protected routes return 503 without distributed rate limiting.");
 }
 
 const smtpHost = process.env.SMTP_HOST;

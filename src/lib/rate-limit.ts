@@ -65,8 +65,9 @@ return {count, ttl}
 
 export async function checkIpRateLimitAsync(key: string, limit: number, windowMs: number): Promise<RateLimitResult> {
   if (!Number.isSafeInteger(limit) || limit < 1 || !Number.isSafeInteger(windowMs) || windowMs < 1) throw new Error("Invalid rate limit budget");
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  // Vercel's Upstash integration injects KV_REST_API_URL/KV_REST_API_TOKEN; accept either name.
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
   if (!url && !token) return checkIpRateLimit(key, limit, windowMs);
   if (!url || !token) return unavailable(limit);
   try {
