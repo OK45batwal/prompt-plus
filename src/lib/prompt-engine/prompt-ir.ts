@@ -2,7 +2,6 @@ import {
   PromptIR,
   Constraint,
   Instruction,
-  Example,
   OutputContract,
   ReasoningConfig,
 } from "./types";
@@ -314,31 +313,6 @@ export function setOutputContract(ir: PromptIR, contract: Partial<OutputContract
       ...contract,
     },
     metadata: { ...ir.metadata, updatedAt: Date.now() },
-  };
-}
-
-export function addExample(ir: PromptIR, example: Example): PromptIR {
-  return {
-    ...ir,
-    examples: [...ir.examples, example],
-    metadata: { ...ir.metadata, updatedAt: Date.now() },
-  };
-}
-
-export function compressContext(ir: PromptIR, maxBlocks = 3): { ir: PromptIR; removedCount: number } {
-  if (ir.context.length <= maxBlocks) return { ir, removedCount: 0 };
-
-  const sorted = [...ir.context].sort((a, b) => b.relevanceScore - a.relevanceScore);
-  const kept = sorted.slice(0, maxBlocks);
-  const removedCount = ir.context.length - maxBlocks;
-
-  return {
-    ir: {
-      ...ir,
-      context: kept,
-      metadata: { ...ir.metadata, updatedAt: Date.now() },
-    },
-    removedCount,
   };
 }
 

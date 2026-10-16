@@ -194,7 +194,7 @@ export function PromptDemo() {
           </div>
 
           {/* Right Side — Enhanced {current ? "Static example" : "Your enhanced prompt"} Output */}
-          <div className="p-5 sm:p-6 bg-primary/[0.02] dark:bg-primary/[0.04] flex flex-col justify-between gap-4 relative overflow-hidden">
+          <div className="p-5 sm:p-6 bg-primary/2 dark:bg-primary/4 flex flex-col justify-between gap-4 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-36 h-36 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
             <div>
@@ -222,7 +222,7 @@ export function PromptDemo() {
                   )}
                 </button>
               </div>
-              <div className="p-4 rounded-xl border border-primary/20 bg-background/95 font-mono text-xs text-foreground/90 whitespace-pre-wrap leading-relaxed max-h-[220px] overflow-y-auto shadow-2xs">
+              <div className="p-4 rounded-xl border border-primary/20 bg-background/95 font-mono text-xs text-foreground/90 whitespace-pre-wrap leading-relaxed max-h-55 overflow-y-auto shadow-2xs">
                 {activeEnhanced || (isEnhancing ? "Waiting for your result…" : "Your result will appear here after you enhance a prompt.")}
               </div>
             </div>

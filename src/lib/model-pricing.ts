@@ -1,6 +1,5 @@
 import type { ModelPricing } from "./token-calculator";
 
-export const PRICING_METADATA_VERSION = 1;
 // Historical entries: verifiedAt intentionally absent until checked against the provider.
 export const MODEL_PRICING: ModelPricing[] = [
   { id: "openrouter-free", name: "OpenRouter Free Models", provider: "OpenRouter", sourceUrl: "https://openrouter.ai/models", inputCostPer1M: 0.00, outputCostPer1M: 0.00 },

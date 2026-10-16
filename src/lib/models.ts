@@ -55,10 +55,6 @@ export function getModelById(id: string): ModelDefinition | undefined {
   return MODELS.find((m) => m.id === id);
 }
 
-export function getFreeModels(): ModelDefinition[] {
-  return MODELS.filter((m) => m.free);
-}
-
 /** Format for Settings select dropdown */
 export function getModelDisplayLabel(m: ModelDefinition): string {
   const providerLabel =

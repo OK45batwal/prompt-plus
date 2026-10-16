@@ -31,10 +31,6 @@ interface ApiKeyCacheEntry {
 
 const validatedApiKeyCache = new Map<string, ApiKeyCacheEntry>();
 
-export function clearApiKeyAuthCache() {
-  validatedApiKeyCache.clear();
-}
-
 /**
  * Higher-Order Function wrapper for API v1 route handlers.
  * Enforces session authentication, CSRF validation on mutating methods,
