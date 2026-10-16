@@ -1,5 +1,7 @@
 // @public-route
 import { NextRequest } from "next/server";
+import { validateCsrf } from "@/lib/auth/csrf";
+import { calculateStructuralScore } from "@/lib/scoring";
 import { auth } from "@/lib/auth/config";
 import { getDb } from "@/lib/db/prisma";
 import { jsonResponse } from "@/lib/api/response-headers";
@@ -17,6 +19,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const csrf = validateCsrf(request);
+    if (!csrf.valid) return jsonResponse({ success: false, error: "CSRF validation failed" }, { status: 403, requestId });
+
     let body: {
       originalText?: string;
       enhancedText?: string;
@@ -32,6 +37,10 @@ export async function POST(request: NextRequest) {
       return jsonResponse({ success: false, error: "Invalid JSON body" }, { status: 400, requestId });
     }
 
+    if (!body || (body.originalText !== undefined && typeof body.originalText !== "string") ||
+        (body.enhancedText !== undefined && typeof body.enhancedText !== "string")) {
+      return jsonResponse({ success: false, error: "Prompt text must be a string" }, { status: 400, requestId });
+    }
     const originalText = (body.originalText || "").trim();
     const enhancedText = (body.enhancedText || "").trim();
 
@@ -53,9 +62,6 @@ export async function POST(request: NextRequest) {
       ? originalText.slice(0, 50).trim() + "…"
       : originalText || "Extension Prompt";
 
-    const rawScore = typeof body.score === "number" ? body.score : 95;
-    const clampedScore = Math.min(100, Math.max(0, Math.round(rawScore)));
-
     const savedPrompt = await getDb().prompt.create({
       data: {
         userId: session.user.id,
@@ -64,8 +70,8 @@ export async function POST(request: NextRequest) {
         enhancedText: enhancedText || originalText,
         category: body.category || "General",
         tone: body.tone || "code",
-        model: body.model || "promptplus-v2",
-        score: clampedScore,
+        model: body.model || "not-recorded",
+        score: JSON.parse(JSON.stringify({ ...calculateStructuralScore(enhancedText || originalText), measuredBy: "structural", measuredTotal: null, originalTotal: calculateStructuralScore(originalText || enhancedText).total, enhancedTotal: calculateStructuralScore(enhancedText || originalText).total })),
       },
       select: {
         id: true,
@@ -85,8 +91,7 @@ export async function POST(request: NextRequest) {
       data: {
         userId: session.user.id,
         action: "extension_save",
-        model: body.model || "promptplus-v2",
-        tokensOut: Math.round(enhancedText.length / 4),
+        promptId: savedPrompt.id,
       },
     }).catch((err) => {
       console.error("[save-prompt] Failed to record usage log:", err);

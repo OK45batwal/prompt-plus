@@ -6,15 +6,15 @@ import { Search, Clock, RotateCcw, ChevronDown, Check, Sparkles, Loader2, Trash2
 import { useToast } from "@/components/ui/toast";
 import Link from "next/link";
 
-import { calculateDynamicPromptScore } from "@/lib/scoring";
+import { isScore } from "@/lib/score-summary";
 
 interface HistoryItem {
   id: string;
   originalText: string;
   enhancedText: string;
   model: string;
-  originalScore: number;
-  enhancedScore: number;
+  originalScore: number | null;
+  enhancedScore: number | null;
   timestamp: string;
 }
 
@@ -34,7 +34,7 @@ export default function HistoryPage() {
       const raw = localStorage.getItem("pp_local_history");
       if (raw) {
         const parsed = JSON.parse(raw);
-        localItems = (parsed || []).map((x: { id?: string; originalText: string; enhancedText: string; model?: string; originalScore?: number; enhancedScore?: number; timestamp: string }) => {
+        localItems = (parsed || []).map((x: { id?: string; originalText: string; enhancedText: string; model?: string; originalScore?: number; enhancedScore?: number; measuredBy?: string; timestamp: string }) => {
           const orig = x.originalText || "";
           const enh = x.enhancedText || "";
           return {
@@ -42,8 +42,8 @@ export default function HistoryPage() {
             originalText: orig,
             enhancedText: enh,
             model: x.model || "AI Prompt+",
-            originalScore: typeof x.originalScore === "number" && x.originalScore > 0 ? x.originalScore : calculateDynamicPromptScore(orig).total,
-            enhancedScore: typeof x.enhancedScore === "number" && x.enhancedScore > 0 ? x.enhancedScore : calculateDynamicPromptScore(enh).total,
+            originalScore: x.measuredBy === "llm" && isScore(x.originalScore) ? x.originalScore : null,
+            enhancedScore: x.measuredBy === "llm" && isScore(x.enhancedScore) ? x.enhancedScore : null,
             timestamp: new Date(x.timestamp).toLocaleDateString(),
           };
         });
@@ -58,17 +58,16 @@ export default function HistoryPage() {
         const serverItems = (json.data || []).map((p: { id: string; originalText: string; enhancedText: string | null; model: string; score: unknown; createdAt: string }) => {
           const orig = p.originalText || "";
           const enh = p.enhancedText || "";
-          const serverScore = (typeof p.score === "object" && p.score && "total" in (p.score as Record<string, unknown>))
-            ? Number((p.score as Record<string, unknown>).total)
-            : 0;
+          const score = p.score && typeof p.score === "object" ? p.score as Record<string, unknown> : {};
+          const measured = score.measuredBy === "llm";
 
           return {
             id: p.id,
             originalText: orig,
             enhancedText: enh,
             model: p.model,
-            originalScore: calculateDynamicPromptScore(orig).total,
-            enhancedScore: serverScore > 0 ? serverScore : calculateDynamicPromptScore(enh).total,
+            originalScore: measured && isScore(score.originalTotal) ? score.originalTotal : null,
+            enhancedScore: measured && isScore(score.total) ? score.total : null,
             timestamp: new Date(p.createdAt).toLocaleDateString(),
           };
         });
@@ -237,11 +236,11 @@ export default function HistoryPage() {
                   <div className="flex items-center gap-2 shrink-0">
                     <div className="text-center">
                       <p className="text-xs text-muted-foreground">Before</p>
-                      <p className="text-sm font-bold text-red-600">{item.originalScore}</p>
+                      <p className="text-sm font-bold text-red-600">{item.originalScore ?? "—"}</p>
                     </div>
                     <div className="text-center">
                       <p className="text-xs text-muted-foreground">After</p>
-                      <p className="text-sm font-bold text-green-600">{item.enhancedScore}</p>
+                      <p className="text-sm font-bold text-green-600">{item.enhancedScore ?? "—"}</p>
                     </div>
                     <button
                       type="button"

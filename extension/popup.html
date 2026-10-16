@@ -52,13 +52,13 @@
     }
 
     html, body {
-      width: 420px;
-      height: 585px;
-      max-height: 585px;
+      width: 410px;
+      height: 560px;
+      max-height: 560px;
       background: radial-gradient(550px 300px at 50% -30px, rgba(99, 102, 241, 0.18), transparent 70%), var(--bg);
       color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
-      font-size: 12.5px;
+      font-size: 12px;
       line-height: 1.4;
       overflow: hidden;
       display: flex;
@@ -399,16 +399,16 @@
 
     textarea#input {
       width: 100%;
-      height: 115px;
+      height: 86px;
       background: transparent;
       border: none;
       outline: none;
       resize: none;
-      padding: 10px;
+      padding: 8px 10px;
       color: #ffffff;
       font-family: inherit;
       font-size: 12px;
-      line-height: 1.5;
+      line-height: 1.45;
     }
 
     textarea#input::placeholder {
@@ -443,13 +443,49 @@
       justify-content: center;
       gap: 6px;
       box-shadow: 0 4px 18px rgba(99, 102, 241, 0.35);
-      transition: all 0.15s ease;
+      transition: all 0.18s var(--ease-spring);
+      position: relative;
+      overflow: hidden;
     }
 
     .master-enhance-btn:hover:not(:disabled) {
       background: linear-gradient(135deg, #7174f3 0%, #5d54ed 100%);
       box-shadow: 0 6px 24px rgba(99, 102, 241, 0.5);
       transform: translateY(-1px);
+    }
+
+    .master-enhance-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .master-enhance-btn.is-loading {
+      background: linear-gradient(90deg, #4f46e5 20%, #818cf8 50%, #4f46e5 80%);
+      background-size: 200% 100%;
+      animation: btnShimmer 1.5s infinite linear;
+      cursor: wait;
+    }
+
+    @keyframes btnShimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .master-enhance-btn.is-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+      border-color: #34d399 !important;
+      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
+    }
+
+    .master-enhance-btn.is-error {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+      border-color: #f87171 !important;
+      animation: btnShake 0.4s ease;
+    }
+
+    @keyframes btnShake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-4px); }
+      40%, 80% { transform: translateX(4px); }
     }
 
     .master-enhance-btn:disabled {
@@ -462,8 +498,70 @@
       height: 14px;
     }
 
-    /* ---------- Real-Time Token Remaining Meter ---------- */
-    .token-meter-strip {
+    /* ---------- Hero Context Banner (Simplified Top Strip) ---------- */
+    .context-hero-banner {
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-inner);
+      padding: 8px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero-banner-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .hero-bot-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hero-bot-name {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+    }
+
+    .hero-token-stats {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hero-token-used {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+
+    /* ---------- Advanced Tools Accordion Toggle ---------- */
+    .advanced-tools-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+
+    .advanced-tools-toggle:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    /* ---------- Context Runway Card & Circular Progress Ring ---------- */
+    .context-runway-card {
       background: var(--surface-1);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-inner);
@@ -471,60 +569,195 @@
       display: flex;
       flex-direction: column;
       gap: 5px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
     }
 
-    .token-meter-header {
+    .runway-card-top {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .runway-ring-box {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+    }
+
+    .runway-svg-ring {
+      width: 38px;
+      height: 38px;
+      transform: rotate(-90deg);
+    }
+
+    .runway-ring-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 3.5;
+    }
+
+    .runway-ring-fg {
+      fill: none;
+      stroke: #10b981;
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.4s ease, stroke 0.3s ease;
+    }
+
+    .runway-ring-pct {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 10px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .runway-meta-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .runway-model-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 10.5px;
     }
 
-    .token-needed-txt {
+    .runway-bot-pill {
+      font-weight: 700;
+      font-size: 11px;
+      color: #fff;
       display: flex;
       align-items: center;
-      gap: 6px;
-      color: var(--text-muted);
+      gap: 4px;
     }
 
-    .active-bot-pill {
-      font-weight: 700;
-      color: #fff;
+    .runway-status-tag {
+      font-size: 9.5px;
+      font-weight: 600;
       padding: 1px 6px;
       border-radius: 4px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border-subtle);
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.25);
     }
 
-    .token-remaining-badge {
+    .runway-numbers-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .runway-used-txt {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .runway-rem-badge {
+      font-size: 10.5px;
       font-weight: 700;
-      color: var(--emerald);
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.12);
+      padding: 1px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
     }
 
-    .token-meter-track {
+    .runway-subtext-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 9.5px;
+      color: var(--text-dim);
+    }
+
+    .runway-track {
       width: 100%;
-      height: 3px;
+      height: 4px;
       background: rgba(255, 255, 255, 0.08);
       border-radius: 9999px;
       overflow: hidden;
     }
 
-    .token-meter-fill {
+    .runway-fill {
       height: 100%;
-      background: linear-gradient(90deg, #6366f1, #10b981);
+      background: linear-gradient(90deg, #10b981, #059669);
       border-radius: 9999px;
-      transition: width 0.3s ease;
+      transition: width 0.35s ease, background 0.35s ease;
     }
 
-    .token-meter-footer {
+    .runway-drawer-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 3px;
+      font-size: 9.5px;
+      color: var(--text-dim);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .runway-drawer-toggle:hover {
+      color: var(--text-muted);
+    }
+
+    .runway-drawer-details {
+      padding: 6px 8px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .runway-details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 8px;
+      font-size: 9.5px;
+      color: var(--text-muted);
+    }
+
+    .runway-details-grid strong {
+      color: #fff;
+    }
+
+    /* Prompt+ Quota Secondary Bar */
+    .promptplus-quota-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-size: 9.5px;
       color: var(--text-dim);
+      margin-top: 2px;
     }
 
-    /* ---------- Multi-AI Launcher ---------- */
+    .promptplus-quota-row strong {
+      color: var(--emerald);
+    }
+
+    .promptplus-quota-track {
+      width: 100%;
+      height: 2.5px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .promptplus-quota-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+      border-radius: 9999px;
+      transition: width 0.3s ease;
+    }
+
+    /* ---------- Multi-AI Launcher (8 Platforms) ---------- */
     .multi-ai-section {
       display: flex;
       flex-direction: column;
@@ -536,11 +769,31 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.04em;
       color: var(--text-dim);
+    }
+
+    .send-all-btn {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      color: #818cf8;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.15s ease;
+    }
+
+    .send-all-btn:hover {
+      background: rgba(99, 102, 241, 0.28);
+      color: #fff;
     }
 
     .multi-ai-grid {
@@ -550,24 +803,53 @@
     }
 
     .ai-pill-btn {
-      height: 25px;
+      height: 26px;
       border-radius: 6px;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--border-subtle);
+      border-left-width: 3px;
       color: var(--text-muted);
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.12s ease;
+      gap: 4px;
+      transition: all 0.14s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 4px;
     }
 
     .ai-pill-btn:hover {
       background: rgba(255, 255, 255, 0.08);
       color: #ffffff;
       border-color: var(--border-highlight);
+      transform: translateY(-1px);
+    }
+
+    .ai-pill-btn[data-bot="chatgpt"] { border-left-color: #10a37f; }
+    .ai-pill-btn[data-bot="claude"] { border-left-color: #d97706; }
+    .ai-pill-btn[data-bot="gemini"] { border-left-color: #3b82f6; }
+    .ai-pill-btn[data-bot="deepseek"] { border-left-color: #6366f1; }
+    .ai-pill-btn[data-bot="grok"] { border-left-color: #ec4899; }
+    .ai-pill-btn[data-bot="perplexity"] { border-left-color: #06b6d4; }
+    .ai-pill-btn[data-bot="copilot"] { border-left-color: #0078d4; }
+    .ai-pill-btn[data-bot="meta"] { border-left-color: #0668e1; }
+
+    .ai-pill-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #475569;
+      flex-shrink: 0;
+    }
+
+    .ai-pill-dot.is-active {
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
     }
 
     /* ---------- Stage 2: Compiled Result View ---------- */
@@ -619,7 +901,9 @@
       color: #ffffff;
       white-space: pre-wrap;
       word-break: break-word;
-      height: 310px;
+      flex: 1;
+      max-height: 285px;
+      min-height: 180px;
       overflow-y: auto;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
@@ -860,6 +1144,11 @@
 
     /* ---------- Toast Notification ---------- */
     .toast-msg {
+      position: fixed;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      z-index: 1000;
       display: none;
       font-size: 11px;
       padding: 6px 10px;
@@ -896,11 +1185,12 @@
       <div class="header-title-group">
         <div class="header-title-row">
           <span class="header-title">Prompt+ Architect</span>
-          <span class="v2-pill">v2.1.3.2</span>
+          <span class="v2-pill">v3.0.0</span>
         </div>
         <div class="header-sync-row">
           <span class="sync-indicator-dot" id="sync-dot"></span>
-          <span id="sync-status-text">Cloud Synced</span>
+          <span id="sync-status-text">Not checked</span>
+          <span id="sync-latency-badge" style="font-size:9.5px; color:#94a3b8; margin-left:4px;">—</span>
         </div>
       </div>
     </div>
@@ -937,28 +1227,30 @@
   <main class="main-viewport">
     <!-- PANEL 1: COMPILER / ENHANCE -->
     <div class="tab-content-panel" id="panel-enhance">
-      <!-- Engine Switcher -->
-      <div class="engine-segmented-box">
-        <button type="button" class="engine-segmented-tab active" id="mode-api" title="Multi-Model Cloud AI">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
-          <span>Cloud AI</span>
-        </button>
-        <button type="button" class="engine-segmented-tab" id="mode-algo" title="Sub-30ms Instant Heuristic (<30ms)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          <span>Turbo Local</span>
-        </button>
-        <button type="button" class="engine-segmented-tab" id="mode-device" title="Chrome On-Device Gemini Nano">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          <span>Gemini Nano</span>
-        </button>
+      <!-- Sleek Live Context Banner -->
+      <div class="context-hero-banner" id="context-hero-banner">
+        <div class="hero-banner-main">
+          <div class="hero-bot-badge">
+            <span class="sync-indicator-dot" id="runway-status-dot"></span>
+            <span class="hero-bot-name" id="active-bot-pill">Universal AI</span>
+            <span class="runway-status-tag" id="runway-status-tag">Limit unknown</span>
+          </div>
+          <div class="hero-token-stats">
+            <span class="runway-rem-badge" id="runway-rem-badge">Capacity unknown</span>
+            <span class="hero-token-used" id="runway-used-txt">Visible token estimate</span>
+          </div>
+        </div>
+        <div class="runway-track">
+          <div class="runway-fill" id="runway-fill" style="width: 0%;"></div>
+        </div>
       </div>
 
       <!-- Tone Persona Strip -->
       <div class="tone-selector-strip">
         <button type="button" class="tone-pill-btn active" data-tone="human">Natural Human</button>
         <button type="button" class="tone-pill-btn" data-tone="code">Tech Architect</button>
-        <button type="button" class="tone-pill-btn" data-tone="copy">Marketing Copy</button>
         <button type="button" class="tone-pill-btn" data-tone="exec">Executive Strategy</button>
+        <button type="button" class="tone-pill-btn" data-tone="copy">Marketing Copy</button>
         <button type="button" class="tone-pill-btn" data-tone="deep">Deep Reasoning</button>
       </div>
 
@@ -993,39 +1285,112 @@
       <button type="button" class="master-enhance-btn" id="enhance-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         <span id="btn-text">Compile Master Prompt (⌘↵)</span>
+        <span id="btn-timer" style="display:none; font-size:10px; opacity:0.8; font-weight:600;">(0.0s)</span>
       </button>
 
-      <!-- Token Meter Strip -->
-      <div class="token-meter-strip" id="token-meter-strip">
-        <div class="token-meter-header">
-          <div class="token-needed-txt">
-            <span class="active-bot-pill" id="active-bot-pill">Active Chat · 128K</span>
-            <span id="token-needed-txt">~0 tok</span>
-          </div>
-          <span class="token-remaining-badge" id="token-remaining-badge">100 / 100 Free Units</span>
+      <!-- Toast Notification -->
+
+      <!-- Expandable Advanced Telemetry & Multi-AI Launcher -->
+      <div class="advanced-tools-toggle" id="advanced-tools-toggle" title="Click to view multi-model engine, circular ring telemetry & cross-platform launcher">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span style="font-weight:600; font-size:10.5px; color:#a1a1aa;">Advanced Telemetry & Multi-AI</span>
         </div>
-        <div class="token-meter-track">
-          <div class="token-meter-fill" id="token-meter-fill" style="width: 100%;"></div>
-        </div>
-        <div class="token-meter-footer">
-          <span id="engine-telemetry-txt">Sub-30ms Loop Engine</span>
-          <span id="context-capacity-txt">128.0K tokens free</span>
-        </div>
+        <span class="advanced-arrow" id="advanced-arrow" style="font-size:11px; color:#71717a; transition:transform 0.2s ease;">▾</span>
       </div>
 
-      <!-- Toast Notification -->
-      <div class="toast-msg" id="toast-msg"></div>
-
-      <!-- Multi-AI Split Launch -->
-      <div class="multi-ai-section">
-        <div class="multi-ai-title">
-          <span>Cross-Platform AI Launch</span>
+      <div class="advanced-tools-drawer" id="advanced-tools-drawer" style="display:none; flex-direction:column; gap:8px;">
+        <!-- Engine Switcher -->
+        <div class="engine-segmented-box">
+          <button type="button" class="engine-segmented-tab active" id="mode-api" title="Multi-Model Cloud AI">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+            <span>Cloud AI</span>
+          </button>
+          <button type="button" class="engine-segmented-tab" id="mode-algo" title="Sub-30ms Instant Heuristic (<30ms)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Turbo Local</span>
+          </button>
+          <button type="button" class="engine-segmented-tab" id="mode-device" title="Chrome On-Device Gemini Nano">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <span>Gemini Nano</span>
+          </button>
         </div>
-        <div class="multi-ai-grid">
-          <button type="button" class="ai-pill-btn" id="bridge-chatgpt">ChatGPT</button>
-          <button type="button" class="ai-pill-btn" id="bridge-claude">Claude</button>
-          <button type="button" class="ai-pill-btn" id="bridge-gemini">Gemini</button>
-          <button type="button" class="ai-pill-btn" id="bridge-deepseek">DeepSeek</button>
+
+        <!-- Detailed Runway Card with Circular SVG Progress Ring -->
+        <div class="context-runway-card" id="context-runway-card">
+          <div class="runway-card-top">
+            <div class="runway-ring-box" title="Percentage of active context limit consumed">
+              <svg class="runway-svg-ring" viewBox="0 0 44 44">
+                <circle class="runway-ring-bg" cx="22" cy="22" r="18" />
+                <circle class="runway-ring-fg" id="runway-ring-fg" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="113.1" />
+              </svg>
+              <div class="runway-ring-pct" id="runway-ring-pct">—</div>
+            </div>
+            <div class="runway-meta-col">
+              <div class="runway-numbers-row">
+                <span id="runway-est-msgs">Capacity unknown</span>
+                <span id="runway-burn-rate">· Steady burn</span>
+              </div>
+              <div class="runway-drawer-toggle" id="runway-drawer-toggle" title="Click to view message role token distribution">
+                <span id="runway-breakdown-summary">You: 0 tok · AI: 0 tok · 0 turns</span>
+                <span class="runway-toggle-arrow" id="runway-toggle-arrow">▾</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="runway-drawer-details" id="runway-drawer-details" style="display: none;">
+            <div class="runway-details-grid">
+              <div>User Input: <strong id="runway-user-tok">0</strong></div>
+              <div>AI Output: <strong id="runway-ai-tok">0</strong></div>
+              <div>Avg Turn: <strong id="runway-avg-turn">0 tok</strong></div>
+              <div>Max Single: <strong id="runway-max-turn">0 tok</strong></div>
+            </div>
+          </div>
+
+          <div class="promptplus-quota-row">
+            <span>Free Quota: <strong id="token-remaining-badge">100 / 100 units</strong></span>
+            <span id="token-needed-txt">~0 tok input</span>
+          </div>
+          <div class="promptplus-quota-track">
+            <div class="promptplus-quota-fill" id="token-meter-fill" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <!-- Multi-AI Split Launch (8 Platforms) -->
+        <div class="multi-ai-section">
+          <div class="multi-ai-title">
+            <span>Cross-Platform AI Launch</span>
+            <button type="button" class="send-all-btn" id="bridge-send-all" title="Launch all 8 AI platforms simultaneously with compiled prompt">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span>Send to All</span>
+            </button>
+          </div>
+          <div class="multi-ai-grid">
+            <button type="button" class="ai-pill-btn" data-bot="chatgpt" id="bridge-chatgpt">
+              <span class="ai-pill-dot" id="dot-chatgpt"></span>ChatGPT
+            </button>
+            <button type="button" class="ai-pill-btn" data-bot="claude" id="bridge-claude">
+              <span class="ai-pill-dot" id="dot-claude"></span>Claude
+            </button>
+            <button type="button" class="ai-pill-btn" data-bot="gemini" id="bridge-gemini">
+              <span class="ai-pill-dot" id="dot-gemini"></span>Gemini
+            </button>
+            <button type="button" class="ai-pill-btn" data-bot="deepseek" id="bridge-deepseek">
+              <span class="ai-pill-dot" id="dot-deepseek"></span>DeepSeek
+            </button>
+            <button type="button" class="ai-pill-btn" data-bot="grok" id="bridge-grok">
+              <span class="ai-pill-dot" id="dot-grok"></span>Grok
+            </button>
+            <button type="button" class="ai-pill-btn" data-bot="perplexity" id="bridge-perplexity">
+              <span class="ai-pill-dot" id="dot-perplexity"></span>Perplexity
+            </button>
+            <button type="button" class="ai-pill-btn" data-bot="copilot" id="bridge-copilot">
+              <span class="ai-pill-dot" id="dot-copilot"></span>Copilot
+            </button>
+            <button type="button" class="ai-pill-btn" data-bot="meta" id="bridge-meta">
+              <span class="ai-pill-dot" id="dot-meta"></span>Meta AI
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1038,8 +1403,8 @@
           <span>Back to Edit</span>
         </button>
         <div style="display: flex; gap: 5px; align-items: center;">
-          <span class="score-badge" id="quality-score-badge" style="font-size:10px; font-weight:800; padding:2px 6px; border-radius:5px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); color:#34d399;">Score: 96/100</span>
-          <span class="loop-badge" id="loop-telemetry-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); color:#a5b4fc;">⚡ &lt;20ms</span>
+          <span class="score-badge" id="quality-score-badge" style="font-size:10px; font-weight:800; padding:2px 6px; border-radius:5px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); color:#34d399;">Not evaluated</span>
+          <span class="loop-badge" id="loop-telemetry-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); color:#a5b4fc;">Not measured</span>
         </div>
       </div>
 
@@ -1078,6 +1443,17 @@
       <div class="library-grid" id="library-grid">
         <!-- Dynamic templates injected via JS -->
       </div>
+
+      <!-- Recent History Timeline (Phase 5) -->
+      <div class="history-timeline-section" style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-subtle);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:10px; font-weight:700; text-transform:uppercase; color:var(--text-dim); letter-spacing:0.04em;">Recent Compilations</span>
+          <button type="button" id="clear-history-btn" style="background:none; border:none; font-size:9.5px; color:#ef4444; cursor:pointer; font-weight:600;">Clear</button>
+        </div>
+        <div id="history-timeline-list" style="display:flex; flex-direction:column; gap:6px;">
+          <!-- Injected via JS -->
+        </div>
+      </div>
     </div>
 
     <!-- PANEL 3: CONTEXT VAULT -->
@@ -1092,6 +1468,20 @@
 
     <!-- PANEL 4: SETTINGS & WEB SYNC -->
     <div class="tab-content-panel" id="panel-settings" style="display: none;">
+      <div class="sync-card-box">
+        <div class="sync-card-row">
+          <span style="font-weight: 700; color: #fff;">Connection Health</span>
+          <span id="settings-health-status" style="font-weight: 700; color: #10b981; display:flex; align-items:center; gap:4px;">
+            <span style="width:6px; height:6px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+            Not checked
+          </span>
+        </div>
+        <div class="sync-card-row" style="color: #a1a1aa;">
+          <span>Target: <strong id="settings-health-url" style="color: #cbd5e1; font-size:10px;">Cloud Production API</strong></span>
+          <button type="button" id="ping-health-btn" style="background:rgba(255,255,255,0.06); border:1px solid var(--border-subtle); border-radius:4px; padding:2px 8px; color:#fff; font-size:9.5px; cursor:pointer;">Ping</button>
+        </div>
+      </div>
+
       <div class="sync-card-box">
         <div class="sync-card-row">
           <span style="font-weight: 700; color: #fff;">Web Platform Account</span>
@@ -1113,7 +1503,10 @@
     </div>
   </main>
 
+  <script src="lib/tokenizer.js"></script>
+  <script src="lib/synthesize.js"></script>
   <script src="popup.js"></script>
+  <div class="toast-msg" id="toast-msg" role="status" aria-live="polite"></div>
 </body>
 
 </html>

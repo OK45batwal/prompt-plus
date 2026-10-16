@@ -1,3 +1,4 @@
+import { summarizeMeasuredScores } from "@/lib/score-summary";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 import { getDb } from "@/lib/db/prisma";
@@ -15,8 +16,8 @@ export const GET = withAuth(
     else if (range === "all") daysToLookBack = 90;
 
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - (daysToLookBack - 1));
-    startDate.setHours(0, 0, 0, 0);
+    startDate.setUTCDate(startDate.getUTCDate() - (daysToLookBack - 1));
+    startDate.setUTCHours(0, 0, 0, 0);
 
     const [
       monthlyCount,
@@ -65,10 +66,11 @@ export const GET = withAuth(
           tokensIn: true,
           tokensOut: true,
           latencyMs: true,
+          success: true,
           createdAt: true,
         },
         orderBy: { createdAt: "desc" },
-        take: 50,
+
       }),
     ]);
 
@@ -78,9 +80,9 @@ export const GET = withAuth(
 
     for (let i = 0; i < daysToLookBack; i++) {
       const d = new Date(startDate);
-      d.setDate(d.getDate() + i);
+      d.setUTCDate(d.getUTCDate() + i);
       const dateKey = d.toISOString().split("T")[0];
-      const dayLabel = dayNames[d.getDay()];
+      const dayLabel = dayNames[d.getUTCDay()];
       dailyMap.set(dateKey, {
         date: dateKey,
         day: dayLabel,
@@ -103,6 +105,7 @@ export const GET = withAuth(
       const dateKey = u.createdAt.toISOString().split("T")[0];
       if (dailyMap.has(dateKey)) {
         const item = dailyMap.get(dateKey)!;
+        if (u.action !== "enhance") continue;
         item.enhancements += 1;
         item.total += 1;
       }
@@ -112,15 +115,11 @@ export const GET = withAuth(
     const maxDayCount = Math.max(1, ...dailyActivity.map((d) => d.total));
     const formattedDaily = dailyActivity.map((d) => ({
       ...d,
-      height: `${Math.max(12, Math.round((d.total / maxDayCount) * 100))}%`,
+      height: `${Math.round((d.total / maxDayCount) * 100)}%`,
     }));
 
     // 2. Model Breakdown
     const modelCounts: Record<string, number> = {};
-    for (const p of prompts) {
-      const m = p.model || "Gemini 2.0 Flash";
-      modelCounts[m] = (modelCounts[m] || 0) + 1;
-    }
     for (const u of usageLogs) {
       if (u.model) {
         modelCounts[u.model] = (modelCounts[u.model] || 0) + 1;
@@ -148,15 +147,6 @@ export const GET = withAuth(
       };
     });
 
-    if (modelBreakdown.length === 0) {
-      modelBreakdown.push(
-        { name: "GEMINI 2.0 FLASH", count: 12, pct: 45, color: "bg-emerald-500" },
-        { name: "DEEPSEEK R1", count: 8, pct: 30, color: "bg-blue-500" },
-        { name: "CLAUDE 3.5 SONNET", count: 4, pct: 15, color: "bg-amber-500" },
-        { name: "LOCAL ON-DEVICE", count: 3, pct: 10, color: "bg-purple-500" }
-      );
-    }
-
     // 3. Category Breakdown
     const categoryCounts: Record<string, number> = {};
     for (const p of prompts) {
@@ -170,22 +160,11 @@ export const GET = withAuth(
     }));
 
     // 4. Quality & Score Analytics
-    let totalScore = 0;
-    let scoreCount = 0;
-    for (const p of prompts) {
-      if (p.score && typeof p.score === "object" && "total" in (p.score as Record<string, unknown>)) {
-        const val = Number((p.score as Record<string, unknown>).total);
-        if (!isNaN(val)) {
-          totalScore += val;
-          scoreCount++;
-        }
-      }
-    }
-    const averageScore = scoreCount > 0 ? Math.round(totalScore / scoreCount) : 92;
+    const { averageScore, scoresMeasured, scoreLift, pairedScores } = summarizeMeasuredScores(prompts);
 
     // 5. Latency & Token Efficiency
-    const validLatencies = usageLogs.map((u) => u.latencyMs).filter((l): l is number => typeof l === "number" && l > 0);
-    const avgLatencyMs = validLatencies.length > 0 ? Math.round(validLatencies.reduce((a, b) => a + b, 0) / validLatencies.length) : 24;
+    const validLatencies = usageLogs.map((u) => u.latencyMs).filter((l): l is number => typeof l === "number" && Number.isFinite(l) && l >= 0);
+    const avgLatencyMs = validLatencies.length > 0 ? Math.round(validLatencies.reduce((a, b) => a + b, 0) / validLatencies.length) : null;
 
     const totalTokensIn = usageLogs.reduce((acc, u) => acc + (u.tokensIn || 0), 0);
     const totalTokensOut = usageLogs.reduce((acc, u) => acc + (u.tokensOut || 0), 0);
@@ -202,7 +181,9 @@ export const GET = withAuth(
             totalPrompts,
             totalEnhancements,
             averageScore,
-            scoreLift: Math.max(25, Math.round(averageScore - 52)),
+            scoresMeasured,
+            scoreLift,
+            pairedScores,
             avgLatencyMs,
             totalTokens,
           },

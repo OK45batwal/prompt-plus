@@ -1,18 +1,36 @@
-# Prompt+ Browser Extension (Manifest V3) — v2.1.3.2
+# Prompt+ Browser Extension (Manifest V3) — v3.0.0
 
-Enterprise-grade AI Prompt Compiler, Context Memory Bridge & Sub-30ms Optimizer for ChatGPT, Claude, Gemini, DeepSeek, and modern AI platforms.
+Enterprise-grade AI Prompt Compiler, Live Context Runway, Real-Time Token Tracker & Multi-AI Launcher for ChatGPT, Claude, Gemini, DeepSeek, Grok, Perplexity, Copilot, and Meta AI.
 
-## What's New in v2.1.3.2
+## Major Innovations in v3.0.0
 
-- **Precision Glassmorphic UI**: Linear/Raycast-inspired dark theme with sharp SVG iconography and fluid layout.
-- **Smart 3-Tier Execution Engine**:
-  - **Cloud AI (`/api/v1/extension/enhance`)**: Multi-model routing across GPT-4o, Claude 3.5 Sonnet, Gemini 2.0 Flash, DeepSeek-R1, and open-source models with BYOK key management.
-  - **Turbo Local (`/api/v2/extension/optimize`)**: Sub-30ms offline algorithmic heuristic and Prompt IR synthesis.
-  - **Gemini Nano (`On-Device`)**: Private, zero-latency local synthesis using Chrome's built-in `window.ai.languageModel` API.
-- **Interactive Context Vault**: Custom project rules and specifications saved in `chrome.storage.local` with toggleable rule sets dynamically injected into every compiled master prompt.
-- **Dynamic Blueprints Library**: Synchronized repository of enterprise prompt templates fetched from `/api/v1/extension/templates` with instant search and variable interpolation.
-- **Efficient In-Page Automation (`content.js`)**: Debounced `MutationObserver` eliminates idle CPU overhead while attaching smoothly to chat inputs across 20+ supported AI platforms.
-- **Bi-Directional Quota & Auth Sync**: Real-time integration with Prompt+ Web Studio via `web-bridge.js`.
+### 1. Visible conversation token estimates
+- Counts visible DOM messages with a lightweight approximate tokenizer; hidden/system context is excluded.
+- Shows per-role estimates, turn count and largest visible turn.
+- Chat-product capacity is unknown; legacy adapter API limits are not treated as confirmed chat limits. Remaining-token/exchange claims and threshold notifications are disabled until a limit is verified.
+- Minimal counters and alert metadata survive service-worker restarts in session storage. Raw conversation text is not persisted in that state.
+
+### 2. Button & Floating Trigger Overhaul
+- **Animated Loading State**: Master Enhance button displays shimmer gradient sweep and elapsed timer counter (`Compiling... 1.2s`).
+- **Dynamic Mode-Aware Labels**: Button text reflects execution mode (`⚡ Compile via Cloud AI`, `⚡ Turbo Local IR`, `⚡ Gemini Nano`).
+- **Tactile State Transitions**: Spring-scale bounce on click, green success checkmark on completion, error shake on failure.
+- **Draggable Floating Trigger**: Persistent custom position stored in local storage, live token badge in the pill, and platform-tailored accent colors.
+
+### 3. Cross-Platform AI Launcher (8 Platforms)
+- Expanded from 4 to **8 AI platforms**: ChatGPT, Claude, Gemini, DeepSeek, Grok, Perplexity, Copilot, and Meta AI.
+- Dedicated brand color accents and active tab presence indicators (green dot if that AI tab is already open).
+- **"Send to All" Dispatcher**: Opens primary platforms simultaneously with your compiled master prompt.
+
+### 4. Enterprise Connection Health System
+- **Real-Time Heartbeat**: Regular background telemetry pings `/api/health` with round-trip latency tracking.
+- **Measured Health Indicator**: starts Not checked, then reports Connected, Degraded or Offline with measured latency.
+- **Manual Ping & Force Sync**: In-popup diagnostic controls to test cloud latency and reconcile user session data instantly.
+
+### 5. Prompt History Timeline
+- Persistent chronological record of the last 20 compiled prompts with original snippet, tone, quality score, and timestamp.
+- One-click "Load" button to restore any previous compilation directly into the compiler.
+
+---
 
 ## Quick Install
 
@@ -20,12 +38,8 @@ Enterprise-grade AI Prompt Compiler, Context Memory Bridge & Sub-30ms Optimizer 
 2. Toggle **Developer mode** in the top-right corner.
 3. Click **Load unpacked**.
 4. Select the `extension/` directory from this repository.
-5. Open any supported platform (e.g. ChatGPT, Claude, Gemini, DeepSeek) and click the Prompt+ beacon or press `Cmd+Shift+P` / `Ctrl+Shift+P`.
+5. Navigate to any supported AI platform (e.g. [ChatGPT](https://chatgpt.com), [Claude](https://claude.ai), [Gemini](https://gemini.google.com), [DeepSeek](https://chat.deepseek.com)) to see the **Context Runway Bar** and Prompt+ trigger in action!
 
-## Extension Files
+## Verification
 
-- `manifest.json`: Manifest V3 specification and permissions.
-- `background.js`: Service worker with AES-256 Web Crypto encryption and intelligent endpoint dispatch.
-- `content.js`: In-page floating trigger, context detector, and text injection bridge.
-- `web-bridge.js`: Zero-friction communication bridge connecting the Next.js web application to the browser extension.
-- `popup.html` & `popup.js`: High-density compiler popup studio.
+Run `npm run test:extension` for structural checks and `npm run test:extension:e2e` for Chromium fixtures covering insertion, worker restarts and navigation cleanup. Use `node scripts/package-extension.mjs --output-dir /tmp/prompt-plus-release` to validate a standalone ZIP. Manual tests on current live chatbot pages are still required before release.

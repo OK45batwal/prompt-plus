@@ -5,14 +5,14 @@ import { signupSchema, logRejection } from "@/lib/validations/auth";
 import { generateOtp, hashOtp, buildVerifyToken } from "@/lib/auth/otp";
 import { sendOtpEmail } from "@/lib/email";
 import { logger } from "@/lib/logger";
-import { checkIpRateLimit, extractClientIp } from "@/lib/rate-limit";
+import { checkIpRateLimitAsync, extractClientIp, getRateLimitHeaders, rateLimitStatus, rateLimitMessage } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
     const ip = extractClientIp(request);
-    const rl = checkIpRateLimit(`signup:${ip}`, 5, 3600000);
+    const rl = await checkIpRateLimitAsync(`signup:${ip}`, 5, 3600000);
     if (!rl.allowed) {
-      return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+      return NextResponse.json({ error: rateLimitMessage(rl) }, { status: rateLimitStatus(rl), headers: getRateLimitHeaders(rl) });
     }
     const body = await request.json();
     const parsed = signupSchema.safeParse(body);
@@ -38,7 +38,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (existingUser) {
-      return NextResponse.json({ error: "Invalid input" }, { status: 409 });
+      // Identical response to a fresh signup: never reveal whether an email is already registered.
+      // A returning user reaches their account through sign-in or password reset.
+      return NextResponse.json({ needsVerification: true, email: normalizedEmail }, { status: 201 });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
@@ -57,7 +59,18 @@ export async function POST(request: NextRequest) {
           resetTokenExpiry: expiry,
         },
       });
-    } catch {
+    } catch (dbError) {
+      // Never "succeed" into a per-instance local store: the account would be invisible everywhere else.
+      if (process.env.NODE_ENV === "production") {
+        logger.error("Signup database write failed", {
+          email: normalizedEmail,
+          error: dbError instanceof Error ? dbError.message : String(dbError),
+        });
+        return NextResponse.json(
+          { error: "Sign-up is temporarily unavailable. Please try again in a moment." },
+          { status: 503 }
+        );
+      }
       const { fallbackStore } = await import("@/lib/db/fallback-store");
       await fallbackStore.createUser({
         name: name || null,

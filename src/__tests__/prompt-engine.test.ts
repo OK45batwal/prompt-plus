@@ -188,29 +188,11 @@ describe("Prompt+ 2.0 Engine Suite", () => {
   });
 
   describe("Real Output Evaluation & Quality Grading", () => {
-    it("grades rich, structured, fluff-free output higher than conversational fluff", async () => {
+    it("does not confuse formatting with task correctness", async () => {
       const { evaluateOutputQuality } = await import("../lib/prompt-engine/evaluation-engine");
-      const highQualityOutput = `### Architecture Overview
-This module implements a token bucket rate limiter with sliding window logs.
-
-### Core Implementation
-\`\`\`typescript
-export class RateLimiter {
-  constructor(private capacity: number) {}
-}
-\`\`\`
-
-- Zero conversational filler
-- Strictly typed production code`;
-
-      const lowQualityFluff = "Sure! As an AI language model, here is your answer: feel free to ask me anything else!";
-
-      const highScore = evaluateOutputQuality(highQualityOutput);
-      const lowScore = evaluateOutputQuality(lowQualityFluff);
-
-      expect(highScore).toBeGreaterThan(lowScore);
-      expect(highScore).toBeGreaterThanOrEqual(80);
-      expect(lowScore).toBeLessThan(60);
+      expect(evaluateOutputQuality("4", { exact: "4" })).toBe(100);
+      expect(evaluateOutputQuality("### Answer\n- Five", { exact: "4" })).toBe(0);
+      expect(evaluateOutputQuality("A long answer without a task rubric")).toBeNull();
     });
   });
 });

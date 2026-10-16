@@ -10,6 +10,10 @@ export interface LLMOptions {
   maxTokens?: number;
   responseFormatJson?: boolean;
   _retryDepth?: number;
+  tenantId?: string;
+  bypassCache?: boolean;
+  disableFailover?: boolean;
+  maxAttempts?: 1 | 2;
 }
 
 export interface LLMResponse {
@@ -72,6 +76,13 @@ export function detectProviderFromKey(apiKey: string, fallbackProvider: LLMOptio
   if (k.startsWith("sk-ant-")) return "anthropic";
   if (k.startsWith("sk-proj-") || k.startsWith("sk-admin-") || k.startsWith("sk-")) return "openai";
   return fallbackProvider || "openrouter";
+}
+
+// Process-local keyed digest: neither prompt content nor credential suffixes appear in keys.
+const cacheSalt = crypto.randomBytes(32);
+export function createLLMCacheKey(input: Record<string, unknown>): string {
+  const canonical = Object.keys(input).sort().map((key) => [key, input[key] ?? null]);
+  return crypto.createHmac("sha256", cacheSalt).update(JSON.stringify(canonical)).digest("hex");
 }
 
 export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
@@ -153,17 +164,12 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
     }
   }
 
-  // Cache check for instant <5ms responses on repeated prompts
-  const keyIdentity = apiKey ? apiKey.slice(-8) : "server";
-  const promptHash = crypto
-    .createHash("sha256")
-    .update(`${userPrompt}:::${systemPrompt}`)
-    .digest("hex");
-  const cacheKey = `${keyIdentity}:${provider}:${model}:${promptHash}`;
-  const cached = llmResponseCache.get(cacheKey);
-  if (cached && Date.now() < cached.expiresAt) {
-    return cached.response;
-  }
+  const cacheKey = createLLMCacheKey({ tenantId: options.tenantId, apiKey, provider, model, systemPrompt, userPrompt, temperature, maxTokens, responseFormatJson });
+  // Anonymous/server calls without a trusted tenant have no shared cache.
+  const cacheEnabled = !options.bypassCache && Boolean(options.tenantId);
+  const cached = cacheEnabled ? llmResponseCache.get(cacheKey) : undefined;
+  if (cached && Date.now() < cached.expiresAt) return cached.response;
+  if (cached) llmResponseCache.delete(cacheKey);
 
   const url = isOpenRouter
     ? "https://openrouter.ai/api/v1/chat/completions"
@@ -203,7 +209,7 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
   let lastErrMessage = "";
 
   // Resilient serverless timeout: 20 seconds max per attempt
-  for (let attempt = 1; attempt <= 2; attempt++) {
+  for (let attempt = 1; attempt <= (options.maxAttempts ?? 2); attempt++) {
     const controller = new AbortController();
     const attemptTimeout = setTimeout(() => controller.abort(), 20000);
 
@@ -214,11 +220,11 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
       if (res.ok) break;
       if (res.status < 500 && res.status !== 429 && res.status !== 404 && res.status !== 400) break;
       lastErrMessage = (data as { error?: { message?: string } })?.error?.message || `${provider} API error (${res.status})`;
-      if (attempt < 2) await new Promise((r) => setTimeout(r, 500));
+      if (attempt < (options.maxAttempts ?? 2)) await new Promise((r) => setTimeout(r, 500));
     } catch (err: unknown) {
       clearTimeout(attemptTimeout);
       lastErrMessage = err instanceof Error && err.name === "AbortError" ? "Request timed out after 20s" : `${provider} connection failed`;
-      if (attempt < 2) await new Promise((r) => setTimeout(r, 500));
+      if (attempt < (options.maxAttempts ?? 2)) await new Promise((r) => setTimeout(r, 500));
     }
   }
 
@@ -237,11 +243,12 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
     // Automatic Failover: Only attempt on depth 0 to avoid runaway cascade timeouts.
     // Try at most 2 alternative free OpenRouter models in sequence.
     const retryDepth = options._retryDepth || 0;
-    if (retryDepth === 0) {
+    if (retryDepth === 0 && !options.disableFailover) {
       const fallbackCandidates = OPENROUTER_FREE_MODELS.filter((m) => m !== model).slice(0, 2);
       for (const fallbackModel of fallbackCandidates) {
         try {
           return await callLLM({
+            ...options,
             userPrompt,
             systemPrompt,
             temperature,
@@ -279,7 +286,11 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
     provider,
   };
 
-  if (textOutput) {
+  if (textOutput && cacheEnabled) {
+    if (llmResponseCache.size >= 500) {
+      const oldest = llmResponseCache.keys().next().value;
+      if (oldest !== undefined) llmResponseCache.delete(oldest);
+    }
     llmResponseCache.set(cacheKey, {
       response: responseResult,
       expiresAt: Date.now() + 10 * 60 * 1000,

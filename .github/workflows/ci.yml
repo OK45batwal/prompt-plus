@@ -108,6 +108,9 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
+      - name: Install Redis for atomic limiter integration tests
+        run: sudo apt-get update && sudo apt-get install -y redis-server
+
       - name: Run Vitest Test Suite
         run: npm test
 
@@ -145,3 +148,28 @@ jobs:
 
       - name: Build Next.js Production Bundle
         run: npm run build
+
+  browser-tests:
+    name: Web and extension browser regressions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:extension
+      - run: npm run test:extension:e2e
+      - run: npm run build
+      - run: npm run test:e2e
+      - name: Validate extension release package
+        run: |
+          node scripts/package-extension.mjs --output-dir /tmp/prompt-plus-release
+          unzip -l /tmp/prompt-plus-release/prompt-plus-extension-v*.zip
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failure-traces
+          path: test-results/

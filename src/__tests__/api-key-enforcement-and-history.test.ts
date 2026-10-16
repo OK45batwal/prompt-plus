@@ -149,7 +149,8 @@ describe("Strict API Key Enforcement on Prompt Enhancement", () => {
     expect(res.status).toBe(402);
     const json = await res.json();
     expect(json.code).toBe("API_KEY_REQUIRED");
-    expect(json.error).toContain("API key required");
+    expect(json.error).toContain("openai");
+    expect(json.error).toContain("Settings");
   });
 });
 

@@ -1,168 +1,91 @@
+import { createHash } from "node:crypto";
+import { isIP } from "node:net";
 import { NextRequest } from "next/server";
 
-interface RateLimitBucket {
-  count: number;
-  resetAt: number;
-}
-
+interface RateLimitBucket { count: number; resetAt: number }
 const ipBuckets = new Map<string, RateLimitBucket>();
-
 export interface RateLimitResult {
   allowed: boolean;
   remaining: number;
   resetMs: number;
   limit: number;
+  unavailable?: boolean;
 }
 
-/**
- * Extract verified client IP address from request headers.
- * Security Note: On Vercel, x-real-ip and x-vercel-forwarded-for are set/overwritten by the edge proxy,
- * making them untamperable by the client. Plain x-forwarded-for can be spoofed if untrusted headers pass through.
- */
+// Only trust a proxy that the deployment explicitly identifies and configures
+// to overwrite this header. Never accept arbitrary forwarded headers by default.
 export function extractClientIp(req: NextRequest | Request): string {
-  const headers = req.headers;
-  const realIp = headers.get("x-real-ip");
-  if (realIp) return realIp.trim();
-
-  const vercelIp = headers.get("x-vercel-forwarded-for");
-  if (vercelIp) return vercelIp.split(",")[0].trim();
-
-  const forwarded = headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-
-  return "127.0.0.1";
+  const header = process.env.VERCEL === "1" ? "x-vercel-forwarded-for" : process.env.TRUSTED_PROXY_IP_HEADER;
+  const value = header ? req.headers.get(header)?.split(",")[0].trim() : undefined;
+  return value && isIP(value) ? value : "unknown";
 }
 
-/**
- * Generate standard HTTP X-RateLimit-* headers from a rate limit result.
- */
 export function getRateLimitHeaders(result: RateLimitResult): Record<string, string> {
+  if (result.unavailable) return { "Retry-After": "5" };
   return {
     "X-RateLimit-Limit": String(result.limit),
     "X-RateLimit-Remaining": String(result.remaining),
     "X-RateLimit-Reset": String(Math.ceil((Date.now() + result.resetMs) / 1000)),
+    ...(!result.allowed ? { "Retry-After": String(Math.max(1, Math.ceil(result.resetMs / 1000))) } : {}),
   };
 }
+export function rateLimitStatus(result: RateLimitResult): number { return result.unavailable ? 503 : 429; }
+export function rateLimitMessage(result: RateLimitResult): string {
+  return result.unavailable ? "Request protection is temporarily unavailable. Please retry shortly." : "Too many requests. Please retry later.";
+}
+function unavailable(limit: number): RateLimitResult {
+  return { allowed: false, remaining: 0, resetMs: 5000, limit, unavailable: true };
+}
 
-/**
- * Per-IP sliding-window rate limit for abuse protection.
- * Supports distributed Upstash Redis REST API or in-memory sliding window fallback.
- */
-export function checkIpRateLimit(
-  key: string,
-  limit: number,
-  windowMs: number
-): RateLimitResult {
-  const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
-  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-  // Synchronous in-memory check for fast path & fallback
+/** Bounded development-only fixed-window limiter. Production must use Redis. */
+export function checkIpRateLimit(key: string, limit: number, windowMs: number): RateLimitResult {
+  if (process.env.NODE_ENV === "production") return unavailable(limit);
   const now = Date.now();
+  for (const [k, b] of ipBuckets) if (now >= b.resetAt) ipBuckets.delete(k);
   let bucket = ipBuckets.get(key);
-
-  if (!bucket || now >= bucket.resetAt) {
-    bucket = { count: 1, resetAt: now + windowMs };
+  if (!bucket) {
+    if (ipBuckets.size >= 5000) return unavailable(limit);
+    bucket = { count: 0, resetAt: now + windowMs };
     ipBuckets.set(key, bucket);
-  } else {
-    bucket.count++;
   }
-
-  const result: RateLimitResult = {
-    allowed: bucket.count <= limit,
-    remaining: Math.max(0, limit - bucket.count),
-    resetMs: Math.max(0, bucket.resetAt - now),
-    limit,
-  };
-
-  // If Upstash Redis environment variables are set, sync asynchronously to distributed Redis store
-  if (redisUrl && redisToken) {
-    void (async () => {
-      try {
-        await fetch(`${redisUrl}/pipeline`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${redisToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify([
-            ["INCR", key],
-            ["PEXPIRE", key, windowMs, "NX"],
-          ]),
-        });
-      } catch {
-        // Fallback to in-memory store silently on Redis network issues
-      }
-    })();
-  }
-
-  // Passive memory cleanup when bucket map exceeds threshold
-  if (ipBuckets.size > 5000) {
-    const expiredKeys: string[] = [];
-    for (const [k, b] of ipBuckets) {
-      if (now >= b.resetAt) expiredKeys.push(k);
-    }
-    for (const k of expiredKeys) {
-      ipBuckets.delete(k);
-    }
-  }
-
-  return result;
+  bucket.count++;
+  return { allowed: bucket.count <= limit, remaining: Math.max(0, limit - bucket.count), resetMs: bucket.resetAt - now, limit };
 }
 
-/**
- * Async distributed rate limit check for environments requiring strict serverless Redis evaluation.
- */
-export async function checkIpRateLimitAsync(
-  key: string,
-  limit: number,
-  windowMs: number
-): Promise<RateLimitResult> {
-  const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
-  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+// Atomic increment + expiry, including repair of a legacy key lacking a TTL.
+const RATE_LIMIT_SCRIPT = `
+local count = redis.call('INCR', KEYS[1])
+local ttl = redis.call('PTTL', KEYS[1])
+if ttl < 0 then
+  redis.call('PEXPIRE', KEYS[1], ARGV[1])
+  ttl = tonumber(ARGV[1])
+end
+return {count, ttl}
+`;
 
-  if (redisUrl && redisToken) {
-    try {
-      const res = await fetch(`${redisUrl}/pipeline`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${redisToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify([
-          ["INCR", key],
-          ["PTTL", key],
-        ]),
-      });
-
-      if (res.ok) {
-        const data = (await res.json()) as Array<{ result: number }>;
-        const count = data[0]?.result || 1;
-        let pttl = data[1]?.result || windowMs;
-
-        if (pttl <= 0 || count === 1) {
-          pttl = windowMs;
-          // Set expiry asynchronously so the key never remains blocked indefinitely
-          fetch(`${redisUrl}/pipeline`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${redisToken}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify([["PEXPIRE", key, windowMs]]),
-          }).catch(() => {});
-        }
-
-        return {
-          allowed: count <= limit,
-          remaining: Math.max(0, limit - count),
-          resetMs: pttl,
-          limit,
-        };
-      }
-    } catch {
-      // Fallback to in-memory on error
-    }
+export async function checkIpRateLimitAsync(key: string, limit: number, windowMs: number): Promise<RateLimitResult> {
+  if (!Number.isSafeInteger(limit) || limit < 1 || !Number.isSafeInteger(windowMs) || windowMs < 1) throw new Error("Invalid rate limit budget");
+  // Vercel's Upstash integration injects KV_REST_API_URL/KV_REST_API_TOKEN; accept either name.
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  if (!url && !token) return checkIpRateLimit(key, limit, windowMs);
+  if (!url || !token) return unavailable(limit);
+  try {
+    const digest = createHash("sha256").update(key).digest("hex");
+    const res = await fetch(url.replace(/\/$/, ""), {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(["EVAL", RATE_LIMIT_SCRIPT, "1", `rate:v2:${digest}`, String(windowMs)]),
+      signal: AbortSignal.timeout(1500),
+      cache: "no-store",
+    });
+    if (!res.ok) return unavailable(limit);
+    const data = await res.json();
+    if (data.error || !Array.isArray(data.result) || data.result.length !== 2) return unavailable(limit);
+    const [count, ttl] = data.result;
+    if (!Number.isSafeInteger(count) || count < 1 || !Number.isSafeInteger(ttl) || ttl < 0 || ttl > windowMs) return unavailable(limit);
+    return { allowed: count <= limit, remaining: Math.max(0, limit - count), resetMs: ttl, limit };
+  } catch {
+    return unavailable(limit);
   }
-
-  return checkIpRateLimit(key, limit, windowMs);
 }

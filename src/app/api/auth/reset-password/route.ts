@@ -3,7 +3,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { getDb } from "@/lib/db/prisma";
 import { verifyOtp, stripPrefix, isResetToken } from "@/lib/auth/otp";
-import { checkIpRateLimit, extractClientIp } from "@/lib/rate-limit";
+import { checkIpRateLimitAsync, extractClientIp, getRateLimitHeaders, rateLimitStatus, rateLimitMessage } from "@/lib/rate-limit";
 
 const schema = z.object({
   email: z.string().email(),
@@ -14,9 +14,9 @@ const schema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const ip = extractClientIp(request);
-    const rl = checkIpRateLimit(`resetpw:${ip}`, 5, 3600000);
+    const rl = await checkIpRateLimitAsync(`resetpw:${ip}`, 5, 3600000);
     if (!rl.allowed) {
-      return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+      return NextResponse.json({ error: rateLimitMessage(rl) }, { status: rateLimitStatus(rl), headers: getRateLimitHeaders(rl) });
     }
     const body = await request.json();
     const parsed = schema.safeParse(body);
@@ -25,9 +25,9 @@ export async function POST(request: NextRequest) {
     const { email, otp, password } = parsed.data;
     const normalizedEmail = email.toLowerCase().trim();
 
-    const emailRl = checkIpRateLimit(`resetpw_email:${normalizedEmail}`, 5, 3600000);
+    const emailRl = await checkIpRateLimitAsync(`resetpw_email:${normalizedEmail}`, 5, 3600000);
     if (!emailRl.allowed) {
-      return NextResponse.json({ error: "Too many attempts for this account. Try again later." }, { status: 429 });
+      return NextResponse.json({ error: rateLimitMessage(emailRl) }, { status: rateLimitStatus(emailRl), headers: getRateLimitHeaders(emailRl) });
     }
 
     let user = null;

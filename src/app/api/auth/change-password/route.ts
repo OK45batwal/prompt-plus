@@ -3,15 +3,15 @@ import { getDb } from "@/lib/db/prisma";
 import { changePasswordSchema } from "@/lib/validations/auth";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
-import { checkIpRateLimit, extractClientIp } from "@/lib/rate-limit";
+import { checkIpRateLimitAsync, extractClientIp, getRateLimitHeaders, rateLimitStatus, rateLimitMessage } from "@/lib/rate-limit";
 
 export const POST = withAuth(
   async (req, context) => {
     const { userId, requestId, body } = context;
     const ip = extractClientIp(req);
-    const rl = checkIpRateLimit(`pwd:${ip}`, 5, 60 * 60 * 1000);
+    const rl = await checkIpRateLimitAsync(`pwd:${ip}`, 5, 60 * 60 * 1000);
     if (!rl.allowed) {
-      return jsonResponse({ error: "Too many attempts. Try again later." }, { status: 429, rateLimit: rl, requestId });
+      return jsonResponse({ error: rateLimitMessage(rl) }, { status: rateLimitStatus(rl), headers: getRateLimitHeaders(rl), rateLimit: rl, requestId });
     }
 
     const { currentPassword, newPassword } = body!;

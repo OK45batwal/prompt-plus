@@ -1,5 +1,5 @@
 import { getDb } from "@/lib/db/prisma";
-import { checkIpRateLimit, extractClientIp, getRateLimitHeaders } from "@/lib/rate-limit";
+import { checkIpRateLimitAsync, extractClientIp, getRateLimitHeaders, rateLimitStatus, rateLimitMessage } from "@/lib/rate-limit";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 
@@ -10,13 +10,13 @@ export const POST = withAuth(async (request, { requestId }) => {
   const templateId = useIdx > 0 ? parts[useIdx - 1] : "";
   const ip = extractClientIp(request);
 
-  const rateCheck = checkIpRateLimit(`tpluse:${ip}`, 60, 60 * 60 * 1000);
+  const rateCheck = await checkIpRateLimitAsync(`tpluse:${ip}`, 60, 60 * 60 * 1000);
   const rateLimitHeaders = getRateLimitHeaders(rateCheck);
 
   if (!rateCheck.allowed) {
     return jsonResponse(
-      { error: "Too many requests from this address. Try again later." },
-      { status: 429, headers: { ...rateLimitHeaders, "Retry-After": String(Math.ceil(rateCheck.resetMs / 1000)) }, requestId }
+      { error: rateLimitMessage(rateCheck) },
+      { status: rateLimitStatus(rateCheck), headers: { ...rateLimitHeaders }, requestId }
     );
   }
 

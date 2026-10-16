@@ -115,6 +115,7 @@ Return ONLY raw valid JSON, with no markdown formatting or commentary.`;
 
     try {
       const response = await callLLM({
+        tenantId: userId,
         provider,
         apiKey,
         systemPrompt,

@@ -1,92 +1,20 @@
-# Database Setup Guide
+# Database setup
 
-## Option 1: Supabase (Recommended - Free Tier)
+The runtime in `src/lib/db/prisma.ts` uses PrismaNeonHttp. Use a Neon PostgreSQL connection for the current application. Supabase and a plain local PostgreSQL URL are not interchangeable with this runtime adapter; they need an appropriate adapter change or compatible proxy first. SQLite is not supported by the current Prisma schema.
 
-### Step 1: Create Supabase Account
-1. Go to https://supabase.com
-2. Sign up for free
-3. Create a new project
+1. Create/select a Neon development database and copy its PostgreSQL connection URL with SSL enabled.
+2. Set `DATABASE_URL` in the Next.js environment (`.env.local`). Also expose it to Prisma CLI through the shell or ignored `.env`; `prisma.config.ts` loads `.env`, not `.env.local`.
+3. Install dependencies and apply the checked-in migrations to that development database:
 
-### Step 2: Get Connection String
-1. In your project, go to **Settings** → **Database**
-2. Copy the **Connection string** → **URI**
-3. It will look like: `postgresql://postgres:[YOUR-PASSWORD]@db.xxxxxxxxxxxxx.supabase.co:5432/postgres`
-
-### Step 3: Update .env
-```bash
-DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.xxxxxxxxxxxxx.supabase.co:5432/postgres"
+```sh
+npm ci
+npx prisma migrate deploy
+npm run check-env
+npm run dev
 ```
 
-### Step 4: Push Schema to Database
-```bash
-npx prisma db push
-```
+Use a separate development database. Review migrations and backups before applying them to production. Never commit connection credentials.
 
-### Step 5: Generate Prisma Client
-```bash
-npx prisma generate
-```
+Configure AUTH_SECRET and ENCRYPTION_KEY as described in the root README. Configure SMTP or Resend for verification/reset emails. Production rate-limited routes additionally require both Upstash REST variables; see [reliability contracts](RELIABILITY.md).
 
----
-
-## Option 2: Neon (Alternative - Free Tier)
-
-### Step 1: Create Neon Account
-1. Go to https://neon.tech
-2. Sign up for free
-3. Create a new project
-
-### Step 2: Get Connection String
-1. In your project dashboard, copy the **Connection string**
-2. It will look like: `postgresql://neondb_owner:xxxx@ep-xxxx.us-east-2.aws.neon.tech/neondb?sslmode=require`
-
-### Step 3: Update .env
-```bash
-DATABASE_URL="postgresql://neondb_owner:xxxx@ep-xxxx.us-east-2.aws.neon.tech/neondb?sslmode=require"
-```
-
-### Step 4: Push Schema to Database
-```bash
-npx prisma db push
-```
-
----
-
-## Option 3: Local PostgreSQL
-
-### Step 1: Install PostgreSQL
-```bash
-# macOS
-brew install postgresql@16
-brew services start postgresql@16
-
-# Create database
-createdb ai_prompt_plus
-```
-
-### Step 2: Update .env
-```bash
-DATABASE_URL="postgresql://localhost:5432/ai_prompt_plus"
-```
-
-### Step 3: Push Schema
-```bash
-npx prisma db push
-```
-
----
-
-## After Database Setup
-
-Run these commands:
-```bash
-npx prisma db push
-npx prisma generate
-npm run build
-```
-
-## Verify Setup
-```bash
-npx prisma studio
-```
-This opens a web interface to view your database tables.
+The default automated suite uses mocks for application database calls. Its separate real Redis test does not require a PostgreSQL account. Public browser smoke tests cover signed-out pages and access protection; authenticated database journeys need a configured test database and test accounts.

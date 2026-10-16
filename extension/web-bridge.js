@@ -5,7 +5,7 @@
 (function () {
   "use strict";
 
-  const EXTENSION_VERSION = "2.1.3.2";
+  const EXTENSION_VERSION = "3.0.0";
 
   // 1. Declare extension availability in the web page window context
   try {

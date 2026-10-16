@@ -116,8 +116,8 @@ describe("Validation Schemas", () => {
     });
 
     it("should calculate dynamic prompt quality scores accurately", async () => {
-      const { calculateDynamicPromptScore } = await import("@/lib/scoring");
-      const score = calculateDynamicPromptScore("[ROLE]\nAct as an expert Next.js engineer.\n\n[CONTEXT]\nBuilding SaaS app.\n\n[CONSTRAINTS]\nUse TypeScript.");
+      const { calculateStructuralScore } = await import("@/lib/scoring");
+      const score = calculateStructuralScore("[ROLE]\nAct as an expert Next.js engineer.\n\n[CONTEXT]\nBuilding SaaS app.\n\n[CONSTRAINTS]\nUse TypeScript.");
       expect(score.total).toBeGreaterThan(60);
       expect(score.dimensions.clarity).toBeGreaterThan(50);
       expect(score.dimensions.specificity).toBeGreaterThan(50);

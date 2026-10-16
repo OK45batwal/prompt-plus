@@ -158,7 +158,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           for (const url of endpoints) {
             try {
               const controller = new AbortController();
-              const timeout = setTimeout(() => controller.abort(), 15000);
+              const timeout = setTimeout(() => controller.abort(), 20000);
               const res = await fetch(url, {
                 method: "POST",
                 headers: {
@@ -187,12 +187,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               const enhancedText = resData.data?.enhanced || resData.enhanced || "";
               const modelUsed = resData.data?.model || resData.model || "promptplus-v2";
               const providerUsed = resData.data?.provider || resData.provider || "cloud";
-              const scoreUsed = resData.data?.score || resData.score || 96;
+              const scoreUsed = resData.data?.score ?? resData.score ?? null;
+              const local = providerUsed === "local" || /algorithmic|promptplus-v2/.test(modelUsed) || url.includes("/v2/extension/");
 
               sendResponse({
                 success: true,
                 data: {
                   enhanced: enhancedText,
+                  source: local ? "local-template" : "llm",
                   model: modelUsed,
                   provider: providerUsed,
                   score: scoreUsed,
@@ -275,7 +277,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 enhancedText,
                 category: category || "General",
                 tone: tone || "code",
-                score: score || 95,
+                score: score ?? null,
               }),
             });
 
@@ -361,7 +363,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       pp_web_session: {
         authenticated: true,
         user: request.user,
-        quota: request.quota || { remaining: 88, monthlyLimit: 100, usagePercentage: 12 },
+        quota: request.quota || null,
         savedBlocks: request.savedBlocks || [],
         recentPrompts: request.recentPrompts || [],
         syncedAt: new Date().toISOString(),
@@ -380,4 +382,141 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     chrome.tabs.create({ url: targetUrl }, () => sendResponse({ success: true }));
     return true;
   }
+
+  // ---------- Live Token Runway & Context State Tracking ----------
+  if (request.action === "tokenUpdate") {
+    queueTokenState(async () => {
+      const tabId = sender.tab?.id;
+      if (tabId == null) return;
+      const conversationId = await conversationIdentity(sender.url || sender.tab.url || "");
+      const number = (key) => Number.isFinite(request[key]) && request[key] >= 0 ? request[key] : 0;
+      const data = {
+        conversationId,
+        platform: String(request.platform || "chat").slice(0, 40),
+        modelName: String(request.modelName || "Unknown model").slice(0, 100),
+        estimated: true,
+        contextLimitKnown: request.contextLimitKnown === true,
+        ...Object.fromEntries(["conversationTokens", "contextLimit", "tokensRemaining", "percentUsed", "turnCount", "userTokens", "aiTokens", "avgTokensPerTurn", "avgTokensPerExchange", "estimatedMessagesLeft", "largestTurnTokens"].map((key) => [key, number(key)])),
+        burnRate: ["steady", "moderate", "heavy"].includes(request.burnRate) ? request.burnRate : "steady",
+        lastUpdated: Date.now(),
+      };
+      conversationTokenState.set(tabId, data);
+      await persistTokenState();
+      chrome.runtime.sendMessage({ action: "tokenStateUpdate", data }).catch(() => {});
+    }).then(() => sendResponse({ success: true })).catch(() => sendResponse({ success: false, error: "Token state unavailable" }));
+    return true;
+  }
+
+  if (request.action === "getTokenState") {
+    queueTokenState(async () => {
+      const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+      const tab = tabs?.[0];
+      const state = tab ? conversationTokenState.get(tab.id) : null;
+      const matches = state && state.conversationId === await conversationIdentity(tab.url || "");
+      sendResponse({ data: matches ? state : null });
+    }).catch(() => sendResponse({ data: null }));
+    return true;
+  }
+
+  // ---------- Connection Health & Latency Monitor ----------
+  if (request.action === "getHealthStatus") {
+    sendResponse({ health: cachedHealthState });
+    return true;
+  }
+
+  if (request.action === "triggerHealthCheck") {
+    (async () => {
+      const health = await pingServerHealth();
+      sendResponse({ health });
+    })();
+    return true;
+  }
 });
+
+// ---------- Real-Time Tab Token State & Notification Engine ----------
+const conversationTokenState = new Map();
+
+const TOKEN_SESSION_KEY = "pp_token_session_v1";
+const tokenStateReady = chrome.storage.session.get(TOKEN_SESSION_KEY).then((stored) => {
+  const snapshot = stored[TOKEN_SESSION_KEY];
+  for (const [id, data] of snapshot?.tokens || []) conversationTokenState.set(id, data);
+}).catch(() => {});
+let tokenStateQueue = tokenStateReady;
+function queueTokenState(operation) {
+  const next = tokenStateQueue.then(operation);
+  tokenStateQueue = next.catch(() => {});
+  return next;
+}
+async function conversationIdentity(url) {
+  const parsed = new URL(url || "https://unknown.invalid");
+  const bytes = new TextEncoder().encode(parsed.origin + parsed.pathname);
+  return Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+async function persistTokenState() {
+  await chrome.storage.session.set({ [TOKEN_SESSION_KEY]: { tokens: [...conversationTokenState] } });
+}
+// Clean up tab state on closed tabs
+chrome.tabs.onRemoved.addListener((tabId) => {
+  queueTokenState(async () => {
+    conversationTokenState.delete(tabId);
+    await persistTokenState();
+  }).catch(() => {});
+});
+chrome.tabs.onUpdated.addListener((tabId, change) => {
+  if (!change.url) return;
+  queueTokenState(async () => {
+    const identity = await conversationIdentity(change.url);
+    if (conversationTokenState.get(tabId)?.conversationId !== identity) {
+      conversationTokenState.delete(tabId);
+      await persistTokenState();
+    }
+  }).catch(() => {});
+});
+
+// ---------- Health Heartbeat System ----------
+let cachedHealthState = {
+  status: "unknown",
+  latencyMs: null,
+  lastChecked: null,
+  url: API_URLS[0],
+};
+
+async function pingServerHealth() {
+  const targetUrls = cachedWorkingUrl ? [cachedWorkingUrl, ...API_URLS.filter((u) => u !== cachedWorkingUrl)] : API_URLS;
+  for (const baseUrl of targetUrls) {
+    const start = Date.now();
+    try {
+      const res = await fetch(`${baseUrl}/api/health`, {
+        method: "GET",
+        headers: { "X-PromptPlus-Client": "chrome-extension" },
+        cache: "no-store",
+        signal: AbortSignal.timeout(5000),
+      });
+      const latencyMs = Date.now() - start;
+      if (res.ok) {
+        cachedWorkingUrl = baseUrl;
+        cachedHealthState = {
+          status: latencyMs > 2000 ? "degraded" : "connected",
+          latencyMs,
+          lastChecked: Date.now(),
+          url: baseUrl,
+        };
+        return cachedHealthState;
+      }
+    } catch {
+      // try next
+    }
+  }
+
+  cachedHealthState = {
+    status: "offline",
+    latencyMs: -1,
+    lastChecked: Date.now(),
+    url: null,
+  };
+  return cachedHealthState;
+}
+
+// Ping health every 60s
+setInterval(pingServerHealth, 60000);
+pingServerHealth();

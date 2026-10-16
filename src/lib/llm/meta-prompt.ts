@@ -1,11 +1,5 @@
 export type EnhanceLevel = "quick" | "deep" | "expert";
 
-export const ENHANCE_LEVEL_LABELS: Record<EnhanceLevel, string> = {
-  quick: "Quick",
-  deep: "Deep",
-  expert: "Expert",
-};
-
 export function detectImplicitTone(input: string): string {
   const text = (input || "").toLowerCase();
   if (/\b(tweet|post|linkedin|casual|friendly|fun|newsletter|blog|engaging|story)\b/i.test(text)) {

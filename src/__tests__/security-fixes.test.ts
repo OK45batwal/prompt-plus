@@ -57,7 +57,7 @@ describe("Security Fixes & Quality Hardening Tests", () => {
       expect(mockPromptCreate).not.toHaveBeenCalled();
     });
 
-    it("should clamp score between 0 and 100", async () => {
+    it("ignores client scores and persists only labeled structural checks", async () => {
       const reqHigh = new NextRequest("http://localhost:3000/api/v1/extension/save-prompt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -73,7 +73,7 @@ describe("Security Fixes & Quality Hardening Tests", () => {
       expect(mockPromptCreate).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            score: 100,
+            score: expect.objectContaining({ kind: "structural", measuredBy: "structural", measuredTotal: null }),
           }),
         })
       );
@@ -93,7 +93,7 @@ describe("Security Fixes & Quality Hardening Tests", () => {
       expect(mockPromptCreate).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            score: 0,
+            score: expect.objectContaining({ kind: "structural", measuredBy: "structural", measuredTotal: null }),
           }),
         })
       );

@@ -25,6 +25,8 @@ import { openAIPlatform } from "@/lib/platform-redirect";
 import { MODELS, DEFAULT_MODEL_ID, getModelById } from "@/lib/models";
 import { ModelSelector, EnhanceEngineMode } from "@/components/studio/model-selector";
 import { ContextMemoryPanel } from "@/components/studio/context-memory-panel";
+import { LiveEvaluation } from "@/components/studio/live-evaluation";
+import { isScore } from "@/lib/score-summary";
 import { ScoreBreakdown } from "@/components/studio/score-breakdown";
 import { ExportCodeModal } from "@/components/prompts/export-code-modal";
 import { LoopTraceCard } from "@/components/studio/loop-trace-card";
@@ -63,15 +65,18 @@ interface V2Candidate {
     structuralScore: number;
     intentScore: number;
     constraintScore: number;
-    evaluationScore: number;
+    evaluationScore: number | null;
     efficiencyScore: number;
-    dimensionBreakdown: { clarity: number; specificity: number; structure: number; actionability: number };
+    dimensionBreakdown: { clarity: number; specificity: number; structure: number; actionability: number | null };
   };
 }
 
 interface EnhancedResult {
-  original: { text: string; score: number };
-  enhanced: { text: string; score: number };
+  promptId?: string;
+  source: string;
+  dimensions?: { clarity: number; specificity: number; structure: number; context: number; actionability: number };
+  original: { text: string; score: number | null };
+  enhanced: { text: string; score: number | null };
   v2?: {
     intent: V2Intent;
     security: V2Security;
@@ -109,7 +114,7 @@ const categories = [
 const enhanceLevels: { id: EnhanceLevel; label: string; hint: string }[] = [
   { id: "quick", label: "Quick", hint: "Concise structure & clarity" },
   { id: "deep", label: "Deep", hint: "Full role, context & steps" },
-  { id: "expert", label: "Expert", hint: "Chain-of-thought + examples" },
+  { id: "expert", label: "Expert", hint: "Detailed constraints & examples" },
 ];
 
 export default function PromptBuilderPage() {
@@ -143,7 +148,7 @@ export default function PromptBuilderPage() {
 
   // Context Memory Blocks State
   const [availableBlocks, setAvailableBlocks] = useState<ContextBlock[]>(() => getSavedContextBlocks());
-  const [selectedBlockIds, setSelectedBlockIds] = useState<string[]>(["nextjs-tailwind"]);
+  const [selectedBlockIds, setSelectedBlockIds] = useState<string[]>([]);
 
   const toggleContextBlock = (id: string) => {
     setSelectedBlockIds((prev) =>
@@ -198,6 +203,7 @@ export default function PromptBuilderPage() {
     if (!prompt.trim()) return;
     setIsEnhancing(true);
     setErrorNotice(null);
+    setResult(null);
 
     const fullPrompt = getCombinedPromptWithContext();
 
@@ -250,12 +256,16 @@ export default function PromptBuilderPage() {
             },
             body: JSON.stringify({
               text: fullPrompt,
-              mode: "fast",
+              mode: "algorithmic",
+              tone: selectedTone,
+              length: selectedLength,
+              category: selectedCategory,
               targetModel: selectedModelData?.rawModel || selectedModel,
             }),
           });
           const v2Json = await v2Res.json();
           if (v2Res.ok && v2Json.data?.selectedCandidate?.renderedText) {
+            enhanceProvider = v2Json.data.source === "llm" ? "api" : "algorithmic";
             finalEnhancedText = v2Json.data.selectedCandidate.renderedText;
             v2Data = {
               intent: v2Json.data.intent,
@@ -294,12 +304,18 @@ export default function PromptBuilderPage() {
             },
             body: JSON.stringify({
               text: fullPrompt,
-              mode: "deep",
+              mode: "api",
+              provider: selectedModelData?.provider,
+              userApiKey,
+              tone: selectedTone,
+              length: selectedLength,
+              category: selectedCategory,
               targetModel: selectedModelData?.rawModel || selectedModel,
             }),
           });
           const v2Json = await v2Res.json();
           if (v2Res.ok && v2Json.data?.selectedCandidate?.renderedText) {
+            enhanceProvider = v2Json.data.source === "llm" ? "api" : "algorithmic";
             finalEnhancedText = v2Json.data.selectedCandidate.renderedText;
             v2Data = {
               intent: v2Json.data.intent,
@@ -341,10 +357,12 @@ export default function PromptBuilderPage() {
           }
 
           if (aiRes.ok && aiData.data?.enhanced) {
+            enhanceProvider = aiData.data.model === "algorithmic-v2" ? "algorithmic" : "api";
             finalEnhancedText = aiData.data.enhanced;
           } else {
             const { synthesizeAlgorithmicPrompt } = await import("@/lib/llm/algorithmic-enhancers");
             finalEnhancedText = synthesizeAlgorithmicPrompt(fullPrompt, enhanceLevel);
+            enhanceProvider = "algorithmic";
           }
         }
       }
@@ -354,86 +372,55 @@ export default function PromptBuilderPage() {
         return;
       }
 
-      // Calculate initial score & final score
-      const [scoreRes, enhancedScoreRes] = await Promise.all([
-        fetch("/api/v1/prompts/score", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
-          body: JSON.stringify({ text: fullPrompt }),
-        }),
-        fetch("/api/v1/prompts/score", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
-          body: JSON.stringify({ text: finalEnhancedText }),
-        }),
-      ]);
-
-      const [scoreData, enhancedScoreData] = await Promise.all([
-        scoreRes.json().catch(() => ({})),
-        enhancedScoreRes.json().catch(() => ({})),
-      ]);
-
-      const originalScore = scoreData.data?.total || 45;
-      const enhancedScore = v2Data?.selectedCandidate?.hybridScore?.totalScore || enhancedScoreData.data?.total || 88;
-
-      const resultData: EnhancedResult = {
-        original: { text: prompt, score: originalScore },
-        enhanced: { text: finalEnhancedText, score: enhancedScore },
-        v2: v2Data,
-      };
-
-      setResult(resultData);
-      toast("Prompt optimized with V2 Engine!", "success");
-
-      // Auto-save to Local History with real scores
-      if (typeof window !== "undefined") {
-        try {
-          const newItem = {
-            id: `hist_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-            originalText: prompt,
-            enhancedText: finalEnhancedText,
-            model: enhanceProvider === "device" ? "Gemini Nano (On-Device)" : selectedModelData?.name || selectedModel,
-            originalScore,
-            enhancedScore,
-            timestamp: new Date().toISOString(),
-          };
-          const existingRaw = localStorage.getItem("pp_local_history");
-          const existing = existingRaw ? JSON.parse(existingRaw) : [];
-          const updated = [newItem, ...existing.filter((x: { originalText: string }) => x.originalText !== prompt)].slice(0, 100);
-          localStorage.setItem("pp_local_history", JSON.stringify(updated));
-        } catch {
-          // ignore
-        }
-      }
-
-      // Save prompt to server
+      let promptId: string | undefined;
+      // Save the actual pair before requesting a server-owned assessment.
       try {
         const createRes = await fetch("/api/v1/prompts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
-          body: JSON.stringify({
-            originalText: fullPrompt,
-            model: enhanceProvider === "device" ? "gemini-nano" : selectedModelData?.rawModel || selectedModel,
-            category: selectedCategory || null,
-            tone: selectedTone || null,
-            length: selectedLength || null,
-          }),
+          method: "POST", headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+          body: JSON.stringify({ originalText: fullPrompt,
+            model: enhanceProvider === "algorithmic" ? "local-template" : enhanceProvider === "device" ? "gemini-nano" : selectedModelData?.rawModel || selectedModel,
+            category: selectedCategory || null, tone: selectedTone || null, length: selectedLength || null }),
         });
-        const createJson = await createRes.json();
-        const promptId = createJson.data?.id;
-        if (promptId) {
-          await fetch(`/api/v1/prompts/${promptId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
-            body: JSON.stringify({
-              enhancedText: finalEnhancedText,
-              score: { total: enhancedScore },
-            }),
-          });
-        }
+        const created = await createRes.json();
+        if (!createRes.ok || !created.data?.id) throw new Error("Save failed");
+        const saved = await fetch(`/api/v1/prompts/${created.data.id}`, {
+          method: "PATCH", headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+          body: JSON.stringify({ enhancedText: finalEnhancedText }),
+        });
+        if (!saved.ok) throw new Error("Save failed");
+        promptId = created.data.id;
       } catch {
-        // best effort
+        setErrorNotice("Your result is ready, but could not be saved to your account. Copy it before leaving.");
       }
+
+      let originalScore: number | null = null;
+      let enhancedScore: number | null = null;
+      let dimensions: EnhancedResult["dimensions"];
+      if (enhanceProvider === "api" && promptId) {
+        try {
+          const response = await fetch("/api/v1/prompts/score", {
+            method: "POST", headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+            body: JSON.stringify({ promptId, text: finalEnhancedText }),
+          });
+          const json = await response.json();
+          if (response.ok && json.data?.source === "llm") {
+            originalScore = isScore(json.data.originalTotal) ? json.data.originalTotal : null;
+            enhancedScore = isScore(json.data.total) ? json.data.total : null;
+            dimensions = json.data.dimensions;
+          }
+        } catch { /* Enhancement remains usable when assessment is unavailable. */ }
+      }
+      setResult({ promptId, source: enhanceProvider, dimensions,
+        original: { text: fullPrompt, score: originalScore },
+        enhanced: { text: finalEnhancedText, score: enhancedScore }, v2: v2Data });
+      toast(enhanceProvider === "algorithmic" ? "Local template ready. No model assessment was run." : "Enhanced prompt ready.", "success");
+      try {
+        const existing = JSON.parse(localStorage.getItem("pp_local_history") || "[]");
+        const entry = { id: promptId || `local_${Date.now()}`, originalText: fullPrompt,
+          enhancedText: finalEnhancedText, model: enhanceProvider === "algorithmic" ? "Local template (offline)" : selectedModelData?.name || selectedModel,
+          originalScore, enhancedScore, measuredBy: enhancedScore === null ? null : "llm", timestamp: new Date().toISOString() };
+        localStorage.setItem("pp_local_history", JSON.stringify([entry, ...existing.filter((x: { originalText: string }) => x.originalText !== fullPrompt)].slice(0, 100)));
+      } catch { /* Browser storage may be disabled. */ }
     } catch (error) {
       console.error("Enhancement failed:", error);
       setErrorNotice("Network error. Please try again.");
@@ -685,6 +672,8 @@ export default function PromptBuilderPage() {
               </div>
               <textarea
                 value={prompt}
+                aria-label="Your prompt"
+                disabled={isEnhancing}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="Enter your prompt here... Context Memory blocks above will be automatically included."
                 className="w-full h-40 p-3.5 rounded-xl border border-border/70 bg-background/80 font-mono text-xs text-foreground resize-none outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all shadow-2xs"
@@ -712,7 +701,7 @@ export default function PromptBuilderPage() {
                 {/* Side-by-Side Model Cost Comparison Table */}
                 {showCostBreakdown && (
                   <div className="pt-2 border-t border-border/40 space-y-1.5 text-[11px]">
-                    <div className="font-semibold text-muted-foreground font-mono text-[10px] uppercase">Pre-Execution Estimated Cost:</div>
+                    <p className="text-xs text-muted-foreground">Verify pricing with your provider before running paid requests. Unverified prices are not quoted here.</p>
                     <div className="grid grid-cols-2 gap-2 font-mono">
                       {costEstimates.map((c) => (
                         <div key={c.modelId} className="flex justify-between items-center p-2 rounded-lg bg-accent/40 border border-border/60">
@@ -726,7 +715,7 @@ export default function PromptBuilderPage() {
               </div>
 
               <div className="flex items-center justify-end pt-1">
-                <button onClick={handleReset} className="text-xs font-mono text-muted-foreground hover:text-foreground flex items-center gap-1 hover:underline">
+                <button disabled={isEnhancing} onClick={handleReset} className="text-xs font-mono text-muted-foreground hover:text-foreground flex items-center gap-1 hover:underline">
                   <RotateCcw className="h-3 w-3" /> Reset
                 </button>
               </div>
@@ -805,7 +794,7 @@ export default function PromptBuilderPage() {
                 </div>
                 <h3 className="font-bold text-sm">Ready for Enhancement</h3>
                 <p className="text-xs text-muted-foreground max-w-sm mt-1 leading-relaxed">
-                  Enter your prompt on the left, select any Context Memory blocks, and click &quot;Enhance Prompt&quot; to see deterministic optimization.
+                  Enter your prompt on the left, select any Context Memory blocks, and click &quot;Enhance Prompt&quot; to review the enhanced result.
                 </p>
               </div>
             </div>
@@ -847,9 +836,11 @@ export default function PromptBuilderPage() {
               )}
 
               {/* Score Comparison with Dimension Breakdown */}
+              <p className="text-xs text-muted-foreground">{result.source === "algorithmic" ? "Local template (offline) · no model ran" : result.source === "device" ? "On-device model" : "Cloud model enhancement"}</p>
               <ScoreBreakdown
                 originalScore={result.original.score}
                 enhancedScore={result.enhanced.score}
+                dimensions={result.dimensions}
                 v2HybridScore={result.v2?.selectedCandidate?.hybridScore}
               />
 
@@ -874,9 +865,13 @@ export default function PromptBuilderPage() {
                               prev
                                 ? {
                                     ...prev,
+                                    promptId: undefined,
+                                    source: "algorithmic",
+                                    dimensions: undefined,
+                                    original: { ...prev.original, score: null },
                                     enhanced: {
                                       text: cand.renderedText,
-                                      score: cand.hybridScore?.totalScore || prev.enhanced.score,
+                                      score: null,
                                     },
                                   }
                                 : null
@@ -966,6 +961,8 @@ export default function PromptBuilderPage() {
           )}
         </div>
       </div>
+
+      {result && <LiveEvaluation key={result.enhanced.text} originalPrompt={result.original.text} candidateText={result.enhanced.text} promptId={result.promptId} targetModel={selectedModelData?.rawModel || selectedModel} />}
 
       {result && (
         <ExportCodeModal
