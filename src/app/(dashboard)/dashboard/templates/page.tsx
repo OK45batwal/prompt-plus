@@ -24,7 +24,6 @@ export default function TemplatesPage() {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
   const [exportItem, setExportItem] = useState<{ title: string; text: string } | null>(null);
 
   // Interactive Variable Filler State
@@ -116,20 +115,16 @@ export default function TemplatesPage() {
     }
   };
 
-  const toggleFavorite = (id: string) => {
-    setFavorites((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
   const categories = ["all", "Blog Post", "Email", "Code", "Social Media", "Tutorial", "Marketing"];
 
   const getIcon = (category: string) => {
     switch (category) {
-      case "Blog Post": return <FileText className="h-5 w-5 text-indigo-500" />;
-      case "Email": return <Mail className="h-5 w-5 text-green-500" />;
-      case "Code": return <Code className="h-5 w-5 text-teal-500" />;
-      case "Social Media": return <Share2 className="h-5 w-5 text-pink-500" />;
-      case "Tutorial": return <Book className="h-5 w-5 text-amber-500" />;
-      case "Marketing": return <ShoppingBag className="h-5 w-5 text-orange-500" />;
+      case "Blog Post": return <FileText className="h-5 w-5 text-primary" />;
+      case "Email": return <Mail className="h-5 w-5 text-primary" />;
+      case "Code": return <Code className="h-5 w-5 text-primary" />;
+      case "Social Media": return <Share2 className="h-5 w-5 text-primary" />;
+      case "Tutorial": return <Book className="h-5 w-5 text-primary" />;
+      case "Marketing": return <ShoppingBag className="h-5 w-5 text-primary" />;
       default: return <FileText className="h-5 w-5 text-muted-foreground" />;
     }
   };
@@ -150,7 +145,7 @@ export default function TemplatesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-semibold text-sm">Template Marketplace</h2>
-          <p className="text-xs text-muted-foreground">Ready-to-use prompts with variable placeholders</p>
+          <p className="text-xs text-muted-foreground">Pick a template, see the inputs it needs, then customise it for your task.</p>
         </div>
       </div>
 
@@ -159,19 +154,23 @@ export default function TemplatesPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
           <div className="relative w-full sm:flex-1 sm:max-w-sm">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <label htmlFor="template-search" className="sr-only">Search templates by task</label>
             <input
+              id="template-search"
               type="text"
-              placeholder="Search templates..."
+              placeholder="Search by task, e.g. blog post, cold email"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-9 w-full rounded-lg border bg-background pl-9 pr-3 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring"
+              className="h-9 w-full rounded-lg border bg-background pl-9 pr-3 text-sm outline-none focus:border-ring focus-visible:ring-2 focus-visible:ring-ring"
             />
           </div>
 
+          <label htmlFor="template-category" className="sr-only">Filter templates by category</label>
           <select
+            id="template-category"
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="h-9 w-full sm:w-auto px-2 rounded-lg border bg-background text-sm outline-none focus:border-ring"
+            className="h-9 w-full sm:w-auto px-2 rounded-lg border bg-background text-sm outline-none focus:border-ring focus-visible:ring-2 focus-visible:ring-ring"
           >
             {categories.map((c) => (
               <option key={c} value={c}>{c === "all" ? "All Categories" : c}</option>
@@ -180,15 +179,16 @@ export default function TemplatesPage() {
 
           <button
             type="button"
+            aria-pressed={onlyOfficial}
             onClick={() => setOnlyOfficial(!onlyOfficial)}
-            className={`h-9 w-full sm:w-auto px-3 rounded-lg border text-xs font-medium inline-flex items-center justify-center gap-1.5 transition-colors shrink-0 ${
+            className={`h-9 w-full sm:w-auto px-3 rounded-lg border text-xs font-medium inline-flex items-center justify-center gap-1.5 transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
               onlyOfficial
                 ? "bg-foreground text-background border-foreground"
                 : "bg-background text-muted-foreground hover:text-foreground"
             }`}
           >
             <BadgeCheck className="h-3.5 w-3.5 text-indigo-400" />
-            Official Only
+            Official only
           </button>
         </div>
 
@@ -219,44 +219,70 @@ export default function TemplatesPage() {
             <p className="text-sm text-destructive">{loadError}</p>
           </div>
         ) : filteredTemplates.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-sm text-muted-foreground">No templates match your search filters.</p>
+          <div className="text-center py-12 border rounded-2xl bg-card/40">
+            <p className="text-sm font-semibold">
+              {templates.length === 0 ? "No templates to show" : "No templates match your search"}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {templates.length === 0
+                ? "Nothing came back from the template list. Reload the page to try again."
+                : "Try a different keyword or category, or turn off Official only."}
+            </p>
+            {templates.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setFilterCategory("all");
+                  setOnlyOfficial(false);
+                }}
+                className="mt-3 inline-flex h-8 items-center justify-center rounded-lg border bg-background px-3.5 text-xs font-medium hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                Clear search & filters
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredTemplates.map((template) => (
-              <div key={template.id} className="p-4 rounded-lg border bg-card hover:border-foreground/20 transition-colors hover-lift flex flex-col justify-between">
-                <div>
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                        {getIcon(template.category)}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <h3 className="font-medium text-sm">{template.title}</h3>
-                          {template.isOfficial && (
-                            <BadgeCheck className="h-4 w-4 text-indigo-500 shrink-0" />
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground">{template.category}</p>
-                      </div>
+            {filteredTemplates.map((template) => {
+              const variables = extractVariables(template.prompt);
+              return (
+                <div key={template.id} className="p-4 rounded-lg border bg-card hover:border-foreground/20 transition-colors hover-lift flex flex-col">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                      {getIcon(template.category)}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => toggleFavorite(template.id)}
-                      className={`p-1 transition-colors ${
-                        favorites[template.id] ? "text-amber-400 fill-amber-400" : "text-muted-foreground hover:text-amber-400"
-                      }`}
-                    >
-                      <span className="sr-only">Favorite</span>
-                      ★
-                    </button>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="font-medium text-sm truncate">{template.title}</h3>
+                        {template.isOfficial && (
+                          <span className="shrink-0 text-indigo-500" title="Official template">
+                            <BadgeCheck className="h-4 w-4" aria-hidden="true" />
+                            <span className="sr-only">Official template</span>
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{template.category}</p>
+                    </div>
                   </div>
 
                   <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
                     {template.description}
                   </p>
+
+                  {variables.length > 0 && (
+                    <p className="text-xs text-muted-foreground mb-3">
+                      <span className="font-medium text-foreground">Inputs: </span>
+                      {variables.map((v) => v.replace(/_/g, " ")).join(", ")}
+                    </p>
+                  )}
+
+                  <details className="mb-4">
+                    <summary className="cursor-pointer text-xs font-medium text-primary rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                      Preview structure
+                    </summary>
+                    <pre className="mt-2 p-3 rounded-lg border bg-muted/40 text-[11px] font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">{template.prompt}</pre>
+                  </details>
 
                   <div className="flex flex-wrap gap-1.5 mb-4">
                     {template.model && (
@@ -270,50 +296,50 @@ export default function TemplatesPage() {
                       </span>
                     )}
                   </div>
-                </div>
 
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const vars = extractVariables(template.prompt);
-                      const initialVals: Record<string, string> = {};
-                      vars.forEach((v) => (initialVals[v] = ""));
-                      setVariableValues(initialVals);
-                      setFillTemplate(template);
-                    }}
-                    className="flex-1 h-8 rounded-lg bg-primary text-primary-foreground text-xs font-semibold inline-flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors shadow-xs"
-                  >
-                    <Sparkles className="h-3.5 w-3.5" /> Fill Variables
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => copyTemplate(template)}
-                    className="h-8 px-2.5 rounded-lg border bg-background text-xs font-medium inline-flex items-center justify-center gap-1 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                    title="Copy raw template text"
-                  >
-                    {copiedId === template.id ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => forkTemplate(template)}
-                    disabled={forkingId === template.id}
-                    className="h-8 px-2.5 rounded-lg border bg-background text-xs font-medium inline-flex items-center justify-center gap-1 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                    title="Fork / Clone to Personal Library"
-                  >
-                    <GitFork className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setExportItem({ title: template.title, text: template.prompt })}
-                    className="h-8 px-2.5 rounded-lg border bg-background text-xs font-medium inline-flex items-center justify-center gap-1 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                    title="Export to Code"
-                  >
-                    <Terminal className="h-3.5 w-3.5" />
-                  </button>
+                  <div className="flex gap-2 mt-auto">
+                    <button
+                      type="button"
+                      aria-label={`Customize ${template.title}`}
+                      onClick={() => {
+                        const initialVals: Record<string, string> = {};
+                        variables.forEach((v) => (initialVals[v] = ""));
+                        setVariableValues(initialVals);
+                        setFillTemplate(template);
+                      }}
+                      className="flex-1 h-8 rounded-lg bg-primary text-primary-foreground text-xs font-semibold inline-flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" /> Customize
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => copyTemplate(template)}
+                      aria-label={copiedId === template.id ? "Copied raw template text" : "Copy raw template text"}
+                      className="h-8 px-2.5 rounded-lg border bg-background text-xs font-medium inline-flex items-center justify-center gap-1 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {copiedId === template.id ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => forkTemplate(template)}
+                      disabled={forkingId === template.id}
+                      aria-label={`Fork ${template.title} to your library`}
+                      className="h-8 px-2.5 rounded-lg border bg-background text-xs font-medium inline-flex items-center justify-center gap-1 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <GitFork className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setExportItem({ title: template.title, text: template.prompt })}
+                      aria-label={`Export ${template.title} as code`}
+                      className="h-8 px-2.5 rounded-lg border bg-background text-xs font-medium inline-flex items-center justify-center gap-1 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <Terminal className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -321,19 +347,20 @@ export default function TemplatesPage() {
       {/* Interactive Variable Filler Modal */}
       {fillTemplate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="bg-card border rounded-2xl max-w-xl w-full p-5 space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
+          <div role="dialog" aria-modal="true" aria-labelledby="template-fill-title" className="bg-card border rounded-2xl max-w-xl w-full p-5 space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b pb-3">
               <div>
-                <h3 className="font-bold text-sm flex items-center gap-1.5">
+                <h3 id="template-fill-title" className="font-bold text-sm flex items-center gap-1.5">
                   <Sparkles className="h-4 w-4 text-primary" />
-                  Customize Template Variables
+                  Customize Template
                 </h3>
                 <p className="text-xs text-muted-foreground">{fillTemplate.title}</p>
               </div>
               <button
                 type="button"
+                aria-label="Close"
                 onClick={() => setFillTemplate(null)}
-                className="text-xs text-muted-foreground hover:text-foreground"
+                className="text-xs text-muted-foreground hover:text-foreground rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 ✕
               </button>
@@ -341,18 +368,19 @@ export default function TemplatesPage() {
 
             {/* Dynamic Variable Input Fields */}
             <div className="space-y-3">
-              <label className="text-xs font-semibold text-muted-foreground block">Fill Template Variables</label>
+              <p className="text-xs font-semibold text-muted-foreground block">Required inputs</p>
               {extractVariables(fillTemplate.prompt).map((varName) => (
                 <div key={varName} className="space-y-1">
-                  <label className="text-xs font-medium text-foreground capitalize">
+                  <label htmlFor={`var-${varName}`} className="text-xs font-medium text-foreground capitalize">
                     {varName.replace(/_/g, " ")}
                   </label>
                   <input
+                    id={`var-${varName}`}
                     type="text"
                     value={variableValues[varName] || ""}
                     onChange={(e) => setVariableValues((prev) => ({ ...prev, [varName]: e.target.value }))}
-                    placeholder={`Enter ${varName.replace(/_/g, " ")}...`}
-                    className="w-full h-9 px-3 rounded-lg border bg-background text-xs outline-none focus:border-ring"
+                    placeholder={`Enter ${varName.replace(/_/g, " ")}`}
+                    className="w-full h-9 px-3 rounded-lg border bg-background text-xs outline-none focus:border-ring focus-visible:ring-2 focus-visible:ring-ring"
                   />
                 </div>
               ))}
@@ -360,8 +388,8 @@ export default function TemplatesPage() {
 
             {/* Live Prompt Preview */}
             <div className="space-y-1 pt-2">
-              <label className="text-xs font-semibold text-muted-foreground block">Live Custom Prompt Preview</label>
-              <div className="p-3 rounded-lg border bg-accent/30 text-xs font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
+              <p id="template-preview-label" className="text-xs font-semibold text-muted-foreground block">Resulting prompt</p>
+              <div role="group" aria-labelledby="template-preview-label" className="p-3 rounded-lg border bg-accent/30 text-xs font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
                 {getFilledPrompt(fillTemplate.prompt, variableValues)}
               </div>
             </div>
@@ -371,7 +399,7 @@ export default function TemplatesPage() {
               <button
                 type="button"
                 onClick={() => setFillTemplate(null)}
-                className="px-3 py-1.5 rounded-lg border text-xs text-muted-foreground hover:text-foreground"
+                className="px-3 py-1.5 rounded-lg border text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 Cancel
               </button>
@@ -380,12 +408,12 @@ export default function TemplatesPage() {
                 onClick={() => {
                   const finalPrompt = getFilledPrompt(fillTemplate.prompt, variableValues);
                   navigator.clipboard.writeText(finalPrompt);
-                  alert("Custom filled prompt copied to clipboard!");
+                  alert("Custom prompt copied to clipboard!");
                   setFillTemplate(null);
                 }}
-                className="px-4 py-1.5 rounded-lg bg-foreground text-background text-xs font-semibold hover:bg-foreground/90 transition-colors"
+                className="px-4 py-1.5 rounded-lg bg-foreground text-background text-xs font-semibold hover:bg-foreground/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                Copy Custom Prompt
+                Copy custom prompt
               </button>
             </div>
           </div>

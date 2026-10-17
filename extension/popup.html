@@ -402,11 +402,9 @@
     }
 
     .input-bezel-label {
-      font-size: 10.5px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--text-dim);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
     }
 
     .input-actions-group {
@@ -1516,7 +1514,7 @@
       <!-- Prompt input -->
       <div class="input-bezel-card">
         <div class="input-bezel-header">
-          <span class="input-bezel-label">Your prompt</span>
+          <label class="input-bezel-label" for="input">What do you want the AI to do?</label>
           <div class="input-actions-group">
             <button type="button" class="tool-icon-btn" id="paste-btn" title="Paste from clipboard">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
@@ -1563,6 +1561,7 @@
       <div class="quick-links">
         <button type="button" class="quick-link-btn" id="quick-recent-btn">Recent work</button>
         <button type="button" class="quick-link-btn" id="quick-studio-btn">Studio</button>
+        <button type="button" class="quick-link-btn" id="open-panel-btn" style="grid-column: 1 / -1;" hidden title="Open a bigger workspace for longer editing and comparison">Open side panel</button>
       </div>
 
       <!-- Secondary: one disclosure for engine, tone, capacity and other AI apps -->

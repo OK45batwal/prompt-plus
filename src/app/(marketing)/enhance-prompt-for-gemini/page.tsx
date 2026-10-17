@@ -4,20 +4,20 @@ import { ModelSeoPage } from "@/components/marketing/model-seo-page";
 export const metadata: Metadata = {
   title: "Gemini Prompt Enhancer — Optimize Prompts for Gemini | Prompt+",
   description:
-    "Free Gemini prompt enhancer. Structure your prompts for Google Gemini with role, context, constraints, and format specs. Enhance on-device with Gemini Nano — private and offline.",
+    "Free prompt enhancer for Gemini. Structure a rough request with a role, context, constraints, and an output format. On-device enhancement uses Chrome's built-in Gemini Nano when available.",
 };
 
 export default function GeminiEnhancerPage() {
   return (
     <ModelSeoPage
       model="Gemini"
-      tagline="Craft prompts that get sharper, more consistent answers from Google Gemini — including free on-device enhancement via Chrome's Gemini Nano."
+      tagline="Craft a structured prompt for Google Gemini, or enhance on-device with Chrome's built-in Gemini Nano when your browser provides it."
       perks={[
-        "Structured prompts tuned for Gemini's style and reasoning",
-        "On-device enhancement with Gemini Nano — private, offline, zero cost",
-        "One-click open your enhanced prompt in Gemini",
-        "Free Chrome extension that enhances right inside gemini.google.com",
-        "No limits, no credit card — genuinely free forever",
+        "Adds a role, context, constraints, and an output format to your request",
+        "On-device enhancement with Chrome's built-in Gemini Nano when available",
+        "Open your enhanced prompt in Gemini with one click",
+        "Free Chrome extension that enhances inside gemini.google.com",
+        "Free to use, no credit card",
       ]}
     />
   );

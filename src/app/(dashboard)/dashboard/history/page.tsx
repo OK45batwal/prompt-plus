@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/toast";
 import Link from "next/link";
 
 import { isScore } from "@/lib/score-summary";
+import { MODELS } from "@/lib/models";
 
 interface HistoryItem {
   id: string;
@@ -18,10 +19,27 @@ interface HistoryItem {
   timestamp: string;
 }
 
+// The engine stamps its own marker; anything else was produced by a model.
+// A row whose model was never recorded reports "Source unknown" rather than guessing.
+function describeSource(model: string): { label: string; detail?: string } {
+  if (model === "promptplus-engine") return { label: "Deterministic engine", detail: "no model ran" };
+  if (!model || model === "not-recorded" || model === "AI Prompt+") return { label: "Source unknown" };
+  const known = MODELS.find((m) => m.rawModel === model || m.id === model || m.name === model);
+  return { label: "Cloud model", detail: known?.name };
+}
+
+function formatWhen(iso: string) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+
 export default function HistoryPage() {
   const [search, setSearch] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [isClearingAll, setIsClearingAll] = useState(false);
@@ -41,10 +59,10 @@ export default function HistoryPage() {
             id: x.id || `local_${Math.random()}`,
             originalText: orig,
             enhancedText: enh,
-            model: x.model || "AI Prompt+",
+            model: x.model || "",
             originalScore: x.measuredBy === "llm" && isScore(x.originalScore) ? x.originalScore : null,
             enhancedScore: x.measuredBy === "llm" && isScore(x.enhancedScore) ? x.enhancedScore : null,
-            timestamp: new Date(x.timestamp).toLocaleDateString(),
+            timestamp: x.timestamp,
           };
         });
       }
@@ -65,10 +83,10 @@ export default function HistoryPage() {
             id: p.id,
             originalText: orig,
             enhancedText: enh,
-            model: p.model,
+            model: p.model || "",
             originalScore: measured && isScore(score.originalTotal) ? score.originalTotal : null,
             enhancedScore: measured && isScore(score.total) ? score.total : null,
-            timestamp: new Date(p.createdAt).toLocaleDateString(),
+            timestamp: p.createdAt,
           };
         });
 
@@ -78,11 +96,12 @@ export default function HistoryPage() {
         setHistory([...serverItems, ...uniqueLocal]);
       })
       .catch(() => {
-        // Fallback to local storage history if unauthenticated
+        // Fall back to whatever the device kept; surface a failure only when there is nothing to show.
         setHistory(localItems);
+        if (localItems.length === 0) setLoadError(true);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [reloadKey]);
 
   const filteredHistory = history.filter((item) =>
     item.originalText.toLowerCase().includes(search.toLowerCase()) ||
@@ -90,6 +109,12 @@ export default function HistoryPage() {
   );
 
   const router = useRouter();
+
+  const retryLoad = () => {
+    setLoading(true);
+    setLoadError(false);
+    setReloadKey((k) => k + 1);
+  };
 
   const reusePrompt = (item: HistoryItem) => {
     router.push(`/dashboard/new?prompt=${encodeURIComponent(item.originalText)}`);
@@ -178,7 +203,7 @@ export default function HistoryPage() {
           <button
             type="button"
             onClick={() => setShowClearConfirm(true)}
-            className="h-8 px-3 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10 text-xs font-medium transition-colors flex items-center gap-1.5"
+            className="h-8 px-3 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10 text-xs font-medium transition-colors flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Trash2 className="h-3.5 w-3.5" />
             <span>Clear All History</span>
@@ -189,9 +214,10 @@ export default function HistoryPage() {
       <div className="max-w-4xl">
         {/* Search */}
         <div className="relative mb-4">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <input
             type="text"
+            aria-label="Search history by prompt text"
             placeholder="Search history by prompt text..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -204,100 +230,129 @@ export default function HistoryPage() {
           <div className="flex items-center justify-center py-16">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
+        ) : loadError ? (
+          <div role="alert" className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-700 dark:text-amber-300 flex items-center justify-between gap-3">
+            <span>Could not load your history.</span>
+            <button
+              type="button"
+              onClick={retryLoad}
+              className="font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+            >
+              Try again
+            </button>
+          </div>
         ) : history.length === 0 && !search ? (
           <div className="text-center py-16">
             <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">No history yet</p>
             <p className="text-xs text-muted-foreground mt-1">Your prompt enhancements will appear here</p>
             <Link href="/dashboard/new" className="mt-4 inline-flex h-8 items-center justify-center rounded-lg bg-foreground text-background px-3 text-xs font-medium hover:bg-foreground/90 transition-colors">
-              <Sparkles className="h-3.5 w-3.5 mr-1" /> New Enhancement
+              <Sparkles className="h-3.5 w-3.5 mr-1" /> Enhance a prompt
             </Link>
           </div>
         ) : filteredHistory.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-sm text-muted-foreground">No history matches your search</p>
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="mt-3 text-xs font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+            >
+              Clear search
+            </button>
           </div>
         ) : (
           <div className="space-y-2">
-            {filteredHistory.map((item) => (
-              <div key={item.id} className="rounded-lg border bg-card overflow-hidden">
-                {/* Main Row */}
-                <div
-                  className="p-3 flex items-center gap-3 cursor-pointer hover:bg-accent/50 transition-colors"
-                  onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{item.originalText}</p>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                      <span className="px-1.5 py-0.5 rounded bg-muted">{item.model}</span>
-                      <span>{item.timestamp}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <div className="text-center">
-                      <p className="text-xs text-muted-foreground">Before</p>
-                      <p className="text-sm font-bold text-red-600">{item.originalScore ?? "—"}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xs text-muted-foreground">After</p>
-                      <p className="text-sm font-bold text-green-600">{item.enhancedScore ?? "—"}</p>
-                    </div>
+            {filteredHistory.map((item) => {
+              const source = describeSource(item.model);
+              const expanded = expandedId === item.id;
+              return (
+                <div key={item.id} className="rounded-lg border bg-card overflow-hidden">
+                  {/* Main Row */}
+                  <div className="flex items-stretch">
                     <button
                       type="button"
-                      onClick={(e) => handleDeleteItem(item, e)}
-                      disabled={isDeleting === item.id}
-                      className="h-7 w-7 rounded-md hover:bg-red-500/10 text-muted-foreground hover:text-red-500 flex items-center justify-center transition-colors ml-1"
-                      title="Delete prompt from history"
+                      aria-expanded={expanded}
+                      onClick={() => setExpandedId(expanded ? null : item.id)}
+                      className="flex-1 min-w-0 p-3 flex items-center gap-3 text-left hover:bg-accent/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
                     >
-                      {isDeleting === item.id ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-3.5 w-3.5" />
-                      )}
-                    </button>
-                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${expandedId === item.id ? "rotate-180" : ""}`} />
-                  </div>
-                </div>
-
-                {/* Expanded Content */}
-                {expandedId === item.id && (
-                  <div className="border-t p-3 space-y-3">
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-1">Original Prompt</p>
-                      <p className="text-sm p-2 rounded bg-muted/50 whitespace-pre-wrap">{item.originalText}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-1">Enhanced Output</p>
-                      <p className="text-sm p-2 rounded bg-muted/50 whitespace-pre-wrap">{item.enhancedText}</p>
-                    </div>
-                    <div className="flex items-center justify-between pt-1">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => reusePrompt(item)}
-                          className="h-8 flex items-center justify-center rounded-lg bg-foreground text-background px-3 text-xs font-medium hover:bg-foreground/90 transition-colors"
-                        >
-                          <RotateCcw className="h-3.5 w-3.5 mr-1" /> Reuse in Editor
-                        </button>
-                        <button
-                          onClick={() => copyToClipboard(item.enhancedText)}
-                          className="h-8 flex items-center justify-center rounded-lg border px-3 text-xs font-medium hover:bg-accent transition-colors"
-                        >
-                          <Check className="h-3.5 w-3.5 mr-1" /> Copy Enhanced
-                        </button>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{item.originalText}</p>
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs text-muted-foreground">
+                          <span>{source.label}{source.detail ? ` · ${source.detail}` : ""}</span>
+                          <span aria-hidden="true">·</span>
+                          <time dateTime={item.timestamp}>{formatWhen(item.timestamp)}</time>
+                        </div>
                       </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="text-center">
+                          <p className="text-xs text-muted-foreground">Before</p>
+                          <p className="text-sm font-bold text-red-600">{item.originalScore ?? "—"}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-muted-foreground">After</p>
+                          <p className="text-sm font-bold text-green-600">{item.enhancedScore ?? "—"}</p>
+                        </div>
+                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
+                      </div>
+                    </button>
+                    <div className="flex items-center pr-3 shrink-0">
                       <button
-                        onClick={() => handleDeleteItem(item)}
+                        type="button"
+                        onClick={(e) => handleDeleteItem(item, e)}
                         disabled={isDeleting === item.id}
-                        className="h-8 px-3 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10 text-xs font-medium transition-colors flex items-center gap-1"
+                        aria-label={`Delete "${item.originalText.slice(0, 40)}" from history`}
+                        className="h-8 w-8 rounded-md hover:bg-red-500/10 text-muted-foreground hover:text-red-500 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
-                        {isDeleting === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                        <span>Delete</span>
+                        {isDeleting === item.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-3.5 w-3.5" />
+                        )}
                       </button>
                     </div>
                   </div>
-                )}
-              </div>
-            ))}
+
+                  {/* Expanded Content */}
+                  {expanded && (
+                    <div className="border-t p-3 space-y-3">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Original Prompt</p>
+                        <p className="text-sm p-2 rounded bg-muted/50 whitespace-pre-wrap">{item.originalText}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Enhanced Output</p>
+                        <p className="text-sm p-2 rounded bg-muted/50 whitespace-pre-wrap">{item.enhancedText}</p>
+                      </div>
+                      <div className="flex items-center justify-between pt-1">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => reusePrompt(item)}
+                            className="h-8 flex items-center justify-center rounded-lg bg-foreground text-background px-3 text-xs font-medium hover:bg-foreground/90 transition-colors"
+                          >
+                            <RotateCcw className="h-3.5 w-3.5 mr-1" /> Reuse in Editor
+                          </button>
+                          <button
+                            onClick={() => copyToClipboard(item.enhancedText)}
+                            className="h-8 flex items-center justify-center rounded-lg border px-3 text-xs font-medium hover:bg-accent transition-colors"
+                          >
+                            <Check className="h-3.5 w-3.5 mr-1" /> Copy Enhanced
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteItem(item)}
+                          disabled={isDeleting === item.id}
+                          className="h-8 px-3 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-500/10 text-xs font-medium transition-colors flex items-center gap-1"
+                        >
+                          {isDeleting === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -305,12 +360,20 @@ export default function HistoryPage() {
       {/* Clear All Confirmation Modal */}
       {showClearConfirm && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-card border rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl animate-in fade-in zoom-in-95">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="clear-history-title"
+            onKeyDown={(e) => {
+              if (e.key === "Escape" && !isClearingAll) setShowClearConfirm(false);
+            }}
+            className="bg-card border rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl animate-in fade-in zoom-in-95"
+          >
             <div className="flex items-center gap-3 text-red-500">
               <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20">
                 <AlertTriangle className="h-5 w-5" />
               </div>
-              <h3 className="font-semibold text-base text-foreground">Clear Prompt History?</h3>
+              <h3 id="clear-history-title" className="font-semibold text-base text-foreground">Clear Prompt History?</h3>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
               This will permanently delete all {history.length} saved prompts from your account and device. This action cannot be undone.

@@ -18,7 +18,7 @@ import {
   Code,
   ChevronDown,
 } from "lucide-react";
-import { getSavedContextBlocks, ContextBlock } from "@/lib/context-memory";
+import { getSavedContextBlocks, DEFAULT_CONTEXT_BLOCKS, ContextBlock } from "@/lib/context-memory";
 import { estimateTokenCount, calculateCostEstimates } from "@/lib/token-calculator";
 import type { EnhanceLevel } from "@/lib/llm/meta-prompt";
 import { useToast } from "@/components/ui/toast";
@@ -161,21 +161,12 @@ function PromptBuilderPage() {
   const [announcement, setAnnouncement] = useState("");
   const resultRef = useRef<HTMLElement>(null);
 
-  const loadPrefs = () => {
-    try {
-      const raw = localStorage.getItem("pp_prefs");
-      return raw ? JSON.parse(raw) : {};
-    } catch {
-      return {};
-    }
-  };
-  const initialPrefs = typeof window !== "undefined" ? loadPrefs() : {};
-  const [selectedModel, setSelectedModel] = useState(
-    MODELS.some((m) => m.id === initialPrefs.defaultModel) ? initialPrefs.defaultModel : DEFAULT_MODEL_ID
-  );
+  // Storage-derived defaults are applied after mount so the first client render
+  // matches the server; reading them here would make the two disagree.
+  const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL_ID);
   const [selectedTone, setSelectedTone] = useState(
     // The extension ships its own tone vocabulary, so only exact Studio tones apply.
-    handoffTone && tones.includes(handoffTone) ? handoffTone : initialPrefs.defaultTone || ""
+    handoffTone && tones.includes(handoffTone) ? handoffTone : ""
   );
 
   useEffect(() => {
@@ -196,7 +187,7 @@ function PromptBuilderPage() {
   }, [handoffPromptId, toast]);
 
   // Context Memory Blocks State
-  const [availableBlocks, setAvailableBlocks] = useState<ContextBlock[]>(() => getSavedContextBlocks());
+  const [availableBlocks, setAvailableBlocks] = useState<ContextBlock[]>(DEFAULT_CONTEXT_BLOCKS);
   const [selectedBlockIds, setSelectedBlockIds] = useState<string[]>([]);
 
   const toggleContextBlock = (id: string) => {
@@ -216,6 +207,22 @@ function PromptBuilderPage() {
     if (!contextPrefix) return prompt;
     return `${contextPrefix}\n\n[User Prompt]:\n${prompt}`;
   };
+
+  // Saved defaults and custom context blocks also come from storage, so they load
+  // after mount. Declared before the draft effect so an in-progress draft still wins.
+  useEffect(() => {
+    queueMicrotask(() => {
+      try {
+        const raw = localStorage.getItem("pp_prefs");
+        const prefs = raw ? JSON.parse(raw) : {};
+        if (MODELS.some((m) => m.id === prefs.defaultModel)) setSelectedModel(prefs.defaultModel);
+        if (!(handoffTone && tones.includes(handoffTone)) && prefs.defaultTone) setSelectedTone(prefs.defaultTone);
+      } catch {
+        // Unreadable preferences just leave the defaults in place.
+      }
+      setAvailableBlocks(getSavedContextBlocks());
+    });
+  }, [handoffTone]);
 
   // Restore the in-progress draft so navigating away (or a sign-in round trip) does
   // not lose what the user typed. A handoff prompt/ID always wins over the draft.

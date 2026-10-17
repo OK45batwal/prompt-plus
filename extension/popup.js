@@ -92,6 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const contextPickerCount = document.getElementById("context-picker-count");
   const quickRecentBtn = document.getElementById("quick-recent-btn");
   const quickStudioBtn = document.getElementById("quick-studio-btn");
+  const openPanelBtn = document.getElementById("open-panel-btn");
 
   let currentMode = "algo";
   let currentTone = "human";
@@ -499,6 +500,19 @@ document.addEventListener("DOMContentLoaded", () => {
   // Quick entry: jump straight to the context rules, saved work, or the studio.
   contextPickerBtn?.addEventListener("click", () => switchTab(tabBtnContext, panelContext));
   quickRecentBtn?.addEventListener("click", () => switchTab(tabBtnLibrary, panelLibrary));
+
+  // The side panel opens from a user gesture, so it is this one click and nothing
+  // earlier. Older Chrome without chrome.sidePanel.open keeps a working popup:
+  // the control stays hidden instead of becoming a dead button.
+  if (openPanelBtn && chrome.sidePanel?.open) {
+    openPanelBtn.hidden = false;
+    openPanelBtn.addEventListener("click", () => {
+      saveDraft(); // hands the current draft to the panel through storage
+      chrome.sidePanel
+        .open({ windowId: chrome.windows.WINDOW_ID_CURRENT })
+        .catch(() => showToast("This page cannot show the side panel.", true));
+    });
+  }
 
   // Tone Chips & Pills
   document.querySelectorAll(".tone-pill-btn, .tone-chip").forEach((chip) => {
