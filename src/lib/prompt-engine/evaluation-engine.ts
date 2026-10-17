@@ -1,6 +1,7 @@
-import { PromptCandidate, EvaluationResult } from "./types";
+import { PromptCandidate, EvaluationResult, ComplexityLevel } from "./types";
 import { validatePromptIR } from "./validation-engine";
 import { calculateIntentPreservationScore, extractIntent } from "./intent-engine";
+import { extractSlots } from "./slots";
 import { callLLM, LLMOptions, LLMResponse } from "../llm/providers";
 
 export interface HybridScoreBreakdown {
@@ -19,38 +20,81 @@ export interface HybridScoreBreakdown {
   };
 }
 
+/** Tokens a prompt may spend per token of the request before it counts as padded. */
+const SIZE_BUDGET: Record<ComplexityLevel, number> = { low: 3, medium: 6, high: 12, expert: 20 };
+
+/**
+ * Hybrid score, 0-100, from rules only.
+ *
+ * Every component is measured rather than asserted. The candidate used to carry
+ * a hardcoded `efficiencyScore` (95/85/70/80) that fed straight into the total,
+ * so a fifth of the score was a number the generator had written about itself.
+ */
 export function calculateHybridScore(
   originalPrompt: string,
   candidate: PromptCandidate,
   evalResultScore?: number
 ): HybridScoreBreakdown {
   const ir = candidate.ir;
+  const intent = extractIntent(originalPrompt);
+  const slots = extractSlots(originalPrompt);
+  const rendered = candidate.renderedText.toLowerCase();
 
   // 1. Structural Score (Max 20)
   const validation = validatePromptIR(ir);
   const structuralScore = Math.round((validation.score / 100) * 20);
 
-  // 2. Intent Score (Max 20)
-  const intent = extractIntent(originalPrompt);
+  // 2. Intent fidelity (Max 20): the share of the request's meaningful words
+  //    that survive into the prompt. Nothing is dropped silently -- when this
+  //    is not full marks, the enhancement lost something the user asked for.
+  const matchedWords = slots.contentWords.filter((word) => rendered.includes(word)).length;
+  const coverage = slots.contentWords.length > 0 ? matchedWords / slots.contentWords.length : 1;
   const intentPreservation = calculateIntentPreservationScore(intent, ir);
-  const intentScore = Math.round((intentPreservation / 100) * 20);
+  const intentScore = Math.round(Math.min(coverage, intentPreservation / 100) * 20);
 
-  // 3. Constraint Score (Max 20)
-  const hasCritical = ir.constraints.some((c) => c.priority === "critical");
-  const constraintCount = ir.constraints.length;
-  const rawConstraint = Math.min(100, (hasCritical ? 50 : 30) + constraintCount * 15);
+  // 3. Constraint Score (Max 20), relevance-weighted: a rule that names
+  //    something in the request, or states a real assumption about it, counts
+  //    fully while a generic rule counts half. Otherwise "add more rules" is a
+  //    free win and the winning prompt is the wordiest one.
+  const terms = new Set([...slots.entities.map((entity) => entity.toLowerCase()), ...slots.contentWords]);
+  let weightedConstraints = 0;
+  let hasCritical = false;
+  for (const constraint of ir.constraints) {
+    if (constraint.priority === "critical") hasCritical = true;
+    const text = constraint.text.toLowerCase();
+    const relevant = constraint.source === "inferred" || [...terms].some((term) => text.includes(term));
+    weightedConstraints += relevant ? 1 : 0.5;
+  }
+  const rawConstraint = Math.min(100, weightedConstraints * 25 + (hasCritical ? 25 : 0));
   const constraintScore = Math.round((rawConstraint / 100) * 20);
 
-  // 4. Evaluation Score (Max 25)
+  // 4. Efficiency (Max 15): no padding beyond what the task needs. The budget
+  //    scales with the request's complexity, and a reasoning mandate is granted
+  //    extra room only when the task is complex enough to justify it -- which is
+  //    what lets the reasoning candidate win complex requests and lose simple
+  //    ones instead of one candidate winning everything.
+  const reasoningWarranted = intent.complexity !== "low" && !!ir.reasoningConfig?.mandateStepByStep;
+  // A worked example and a reasoning mandate are legitimate reasons to spend
+  // tokens; without this, the score always prefers the candidate that dropped
+  // them, because dropping text is the cheapest way to "win" on size.
+  const exampleAllowance = ir.examples.length > 0 ? 6 : 0;
+  const budget = SIZE_BUDGET[intent.complexity] + (reasoningWarranted ? 4 : 0) + exampleAllowance;
+  const growth = Math.ceil(candidate.renderedText.length / 4) / Math.max(1, Math.ceil(originalPrompt.length / 4));
+  const rawEfficiency = growth <= budget ? 100 : Math.max(30, 100 - (growth - budget) * 4);
+  const efficiencyScore = Math.round((rawEfficiency / 100) * 15);
+
+  // 5. Evaluation Score (Max 25), only when a real model output was graded
   const measured = evalResultScore !== undefined && Number.isFinite(evalResultScore);
   const evaluationScore = measured ? Math.round((Math.max(0, Math.min(100, evalResultScore)) / 100) * 25) : null;
 
-  // 5. Efficiency Score (Max 15)
-  const rawEff = candidate.efficiencyScore ?? 0;
-  const efficiencyScore = Math.round((rawEff / 100) * 15);
-
   const subtotal = structuralScore + intentScore + constraintScore + efficiencyScore;
   const totalScore = measured ? subtotal + (evaluationScore ?? 0) : Math.round(subtotal / 75 * 100);
+
+  // Specificity: the share of the technologies the request named that the
+  // prompt still names.
+  const specificityRatio = slots.entities.length > 0
+    ? slots.entities.filter((entity) => rendered.includes(entity.toLowerCase())).length / slots.entities.length
+    : 1;
 
   return {
     totalScore,
@@ -61,8 +105,13 @@ export function calculateHybridScore(
     evaluationStatus: measured ? "measured" : "unevaluated",
     efficiencyScore,
     dimensionBreakdown: {
-      clarity: Math.round(intentPreservation * 0.9),
-      specificity: Math.round(rawConstraint * 0.95),
+      // Rule-based estimates, not model judgements:
+      // clarity       -- share of the request's meaningful words that survive
+      // specificity   -- share of the request's named technologies that survive
+      // structure     -- structural validation score
+      // actionability -- set only when a real model output was graded
+      clarity: Math.round(coverage * 100),
+      specificity: Math.round(specificityRatio * 100),
       structure: Math.round(validation.score * 0.9),
       actionability: measured ? Math.round(evalResultScore * 0.9) : null,
     },
