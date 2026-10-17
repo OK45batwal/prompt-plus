@@ -4,7 +4,43 @@ import {
   Instruction,
   OutputContract,
   ReasoningConfig,
+  TaskType,
 } from "./types";
+import { classifyTaskType } from "./intent-engine";
+
+/**
+ * Sections are named for the task they belong to. The headers were previously
+ * identical in every prompt regardless of domain, which is the strongest visual
+ * signal that a template produced the text. Role, objective, instructions and
+ * examples keep their canonical names -- only the domain-flavoured sections move.
+ */
+function sectionLabels(taskType: TaskType): { context: string; constraints: string } {
+  switch (taskType) {
+    case "coding":
+    case "automation":
+      return { context: "TECHNICAL CONTEXT", constraints: "IMPLEMENTATION CONSTRAINTS" };
+    case "writing":
+    case "rewriting":
+    case "marketing":
+    case "creative":
+      return { context: "BACKGROUND & AUDIENCE", constraints: "STYLE & CONTENT RULES" };
+    case "data_analysis":
+    case "analysis":
+      return { context: "DATA & BACKGROUND", constraints: "ANALYSIS CONSTRAINTS" };
+    default:
+      return { context: "BACKGROUND CONTEXT", constraints: "CONSTRAINTS & OPERATING RULES" };
+  }
+}
+
+/**
+ * `createEmptyPromptIR` always sets an output contract, so "the contract
+ * exists" is not a signal. A prompt gets the deliverable section only when it
+ * says something beyond the default markdown format.
+ */
+function hasStatedOutputContract(output: OutputContract | undefined): boolean {
+  if (!output) return false;
+  return output.format !== "markdown" || Boolean(output.sections?.length || output.styleNotes?.length || output.schema);
+}
 
 export function createEmptyPromptIR(objective = ""): PromptIR {
   const now = Date.now();
@@ -26,8 +62,9 @@ export function createEmptyPromptIR(objective = ""): PromptIR {
   };
 }
 
-export function renderPromptIRToString(ir: PromptIR): string {
+export function renderPromptIRToString(ir: PromptIR, options: { taskType?: TaskType } = {}): string {
   const parts: string[] = [];
+  const labels = sectionLabels(options.taskType ?? classifyTaskType(ir.objective));
 
   // Role / Persona
   if (ir.role && ir.role.trim()) {
@@ -55,7 +92,7 @@ export function renderPromptIRToString(ir: PromptIR): string {
     const ctxLines = ir.context
       .map((c, i) => `[Context Item ${i + 1}] (${c.type}): ${c.content.trim()}`)
       .join("\n\n");
-    parts.push(`### BACKGROUND CONTEXT\n${ctxLines}`);
+    parts.push(`### ${labels.context}\n${ctxLines}`);
   }
 
   // Input Definitions
@@ -79,7 +116,7 @@ export function renderPromptIRToString(ir: PromptIR): string {
     const constraintLines = ir.constraints
       .map((c) => `- [${c.priority.toUpperCase()}] ${c.text.trim()}`)
       .join("\n");
-    parts.push(`### CONSTRAINTS & OPERATING RULES\n${constraintLines}`);
+    parts.push(`### ${labels.constraints}\n${constraintLines}`);
   }
 
   // Few-Shot Examples
@@ -96,7 +133,7 @@ export function renderPromptIRToString(ir: PromptIR): string {
   }
 
   // Output Contract
-  if (ir.output) {
+  if (hasStatedOutputContract(ir.output)) {
     let outStr = `Format: ${ir.output.format.toUpperCase()}`;
     if (ir.output.sections && ir.output.sections.length > 0) {
       outStr += `\nRequired Sections:\n` + ir.output.sections.map((s) => `- ${s}`).join("\n");
@@ -188,7 +225,7 @@ export function renderPromptIRToXMLString(ir: PromptIR): string {
   }
 
   // Output Contract
-  if (ir.output) {
+  if (hasStatedOutputContract(ir.output)) {
     let outStr = `<output_contract>\n  <format>${ir.output.format.toUpperCase()}</format>`;
     if (ir.output.sections && ir.output.sections.length > 0) {
       outStr += `\n  <required_sections>\n` + ir.output.sections.map((s) => `    <section>${s}</section>`).join("\n") + `\n  </required_sections>`;
