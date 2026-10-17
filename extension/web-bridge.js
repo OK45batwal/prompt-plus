@@ -1,11 +1,12 @@
 /**
- * Prompt+ Web Platform <-> Extension Sync Bridge (v2.1.3.2)
+ * Prompt+ Web Platform <-> Extension Sync Bridge
  * Enables zero-friction, bi-directional synchronization between the Prompt+ Web Platform and Extension.
  */
 (function () {
   "use strict";
 
-  const EXTENSION_VERSION = "3.0.0";
+  // Read the shipping version so it cannot drift from manifest.json.
+  const EXTENSION_VERSION = chrome.runtime.getManifest().version;
 
   // 1. Declare extension availability in the web page window context
   try {
