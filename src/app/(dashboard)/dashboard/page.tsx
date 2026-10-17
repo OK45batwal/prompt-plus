@@ -295,7 +295,7 @@ export default function DashboardPage() {
                 </div>
                 <h4 className="font-bold text-sm mt-3">📁 Prompt Vault & History</h4>
                 <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                  Save prompts, organize with custom tags, track complete version history, and generate shareable links.
+                  Save prompts, track complete version history, and generate shareable links.
                 </p>
               </div>
               <Link href="/dashboard/library" className="mt-4 text-xs font-semibold text-purple-500 hover:underline flex items-center gap-1">
