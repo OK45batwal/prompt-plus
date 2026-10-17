@@ -128,10 +128,10 @@ export const GET = withAuth(
 
     const modelColorMap: Record<string, string> = {
       "nvidia/nemotron-3.5-super-vl:free": "bg-emerald-500",
-      "xingchen-agi/xing4.0-29b-a4b:free": "bg-indigo-400",
+      "xingchen-agi/xing4.0-29b-a4b:free": "bg-cyan-400",
       "anthropic/claude-3.5-sonnet": "bg-amber-500",
       "openai/gpt-4o-mini": "bg-teal-400",
-      "openai/gpt-4o": "bg-indigo-600",
+      "openai/gpt-4o": "bg-cyan-600",
       "Default (Auto-Routing)": "bg-teal-600",
     };
 
@@ -142,7 +142,7 @@ export const GET = withAuth(
         name: cleanName.toUpperCase(),
         count,
         pct: Math.round((count / totalModelInteractions) * 100),
-        color: modelColorMap[name] || "bg-indigo-500",
+        color: modelColorMap[name] || "bg-cyan-500",
       };
     });
 

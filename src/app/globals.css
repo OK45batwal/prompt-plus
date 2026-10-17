@@ -1,4 +1,3 @@
-@import "../../extension/design-tokens.css";
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
@@ -39,12 +38,12 @@
   --muted-fg: #6b6b70;
   --border: #e4e4e7;
   --input: #e4e4e7;
-  /* One accent hue (239deg, indigo). Light theme uses the 600 step: as text
-     on #fafafa it is 6.1:1, so `text-primary` passes on a light page too. */
-  --ring: var(--brand-600);
+  /* One accent hue (189deg). Light theme darkens it: #06b6d4 as text on #fafafa
+     is 2.4:1, while #0e7490 is 5.4:1. text-primary alone is used 101 times. */
+  --ring: #0e7490;
   --accent: #f4f4f5;
   --accent-fg: #18181b;
-  --primary: var(--brand-600);
+  --primary: #0e7490;
   --primary-fg: #ffffff;
   --secondary: #f4f4f5;
   --secondary-fg: #18181b;
@@ -63,13 +62,13 @@
   --muted-fg: #9a9aa1;
   --border: #1e1e24;
   --input: #1e1e24;
-  --ring: var(--brand-400);
+  --ring: #06b6d4;
   --accent: #1a1a1e;
   --accent-fg: #f4f4f5;
-  /* Same indigo the extension popup uses, one step lighter for dark. */
-  --primary: var(--brand-400);
-  /* Dark ink on indigo-400 is 6.5:1; white is 3.0:1 and fails AA. */
-  --primary-fg: #0b1020;
+  /* The brand cyan, same value the extension popup uses. */
+  --primary: #06b6d4;
+  /* Dark ink on cyan is 7.7:1; white is 2.4:1 and fails AA. */
+  --primary-fg: #04141c;
   --secondary: #1a1a1e;
   --secondary-fg: #f4f4f5;
   --destructive: #f87171;
@@ -87,7 +86,7 @@ body {
 }
 
 ::selection {
-  background: rgba(var(--brand-rgb), 0.25);
+  background: rgba(6, 182, 212, 0.25);
   color: var(--fg);
 }
 
@@ -141,8 +140,8 @@ body {
 
 /* Pulse glow for logo and accent items */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--brand-rgb), 0); }
-  50% { box-shadow: 0 0 18px 4px rgba(var(--brand-rgb), 0.22); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
+  50% { box-shadow: 0 0 18px 4px rgba(6, 182, 212, 0.22); }
 }
 .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
 
@@ -166,8 +165,8 @@ body {
 .animate-bounce-in { animation: bounce-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 
 .hover-lift { transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform; }
-.hover-lift:hover { transform: translateY(-2px); box-shadow: 0 2px 8px rgba(var(--brand-rgb), 0.06); }
-.dark .hover-lift:hover { box-shadow: 0 2px 8px rgba(var(--brand-rgb), 0.12); }
+.hover-lift:hover { transform: translateY(-2px); box-shadow: 0 2px 8px rgba(6, 182, 212, 0.06); }
+.dark .hover-lift:hover { box-shadow: 0 2px 8px rgba(6, 182, 212, 0.12); }
 
 .hover-glow { transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out; }
 .hover-glow:hover { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }

@@ -44,7 +44,7 @@ function otpHtml(otp: string, intro: string, subject: string): string {
             <td align="center" style="padding:0 32px;">
               <div style="background:#f3f4f6;border-radius:8px;padding:20px 32px;margin-bottom:16px;">
                 <p style="margin:0 0 4px;font-size:12px;color:#6b7280;letter-spacing:1px;text-transform:uppercase;">Verification Code</p>
-                <p style="margin:0;font-size:32px;font-weight:800;color:#4f46e5;letter-spacing:8px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;">${otp}</p>
+                <p style="margin:0;font-size:32px;font-weight:800;color:#0e7490;letter-spacing:8px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;">${otp}</p>
               </div>
               <p style="margin:0 0 32px;font-size:12px;color:#9ca3af;">This code expires in <strong style="color:#6b7280;">10 minutes</strong>. If you didn't request this, you can safely ignore this email.</p>
             </td>
@@ -54,7 +54,7 @@ function otpHtml(otp: string, intro: string, subject: string): string {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="font-size:12px;color:#9ca3af;line-height:1.5;">
-                    Need help? <a href="${siteUrl}/contact" style="color:#4f46e5;text-decoration:none;">Contact support</a>
+                    Need help? <a href="${siteUrl}/contact" style="color:#0e7490;text-decoration:none;">Contact support</a>
                   </td>
                 </tr>
               </table>

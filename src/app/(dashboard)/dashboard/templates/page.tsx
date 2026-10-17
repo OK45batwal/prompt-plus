@@ -187,7 +187,7 @@ export default function TemplatesPage() {
                 : "bg-background text-muted-foreground hover:text-foreground"
             }`}
           >
-            <BadgeCheck className="h-3.5 w-3.5 text-indigo-400" />
+            <BadgeCheck className="h-3.5 w-3.5 text-cyan-400" />
             Official only
           </button>
         </div>
@@ -256,7 +256,7 @@ export default function TemplatesPage() {
                       <div className="flex items-center gap-1.5">
                         <h3 className="font-medium text-sm truncate">{template.title}</h3>
                         {template.isOfficial && (
-                          <span className="shrink-0 text-indigo-500" title="Official template">
+                          <span className="shrink-0 text-cyan-500" title="Official template">
                             <BadgeCheck className="h-4 w-4" aria-hidden="true" />
                             <span className="sr-only">Official template</span>
                           </span>

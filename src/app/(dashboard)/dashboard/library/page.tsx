@@ -138,7 +138,7 @@ export default function LibraryPage() {
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3">
           <div className="flex items-center gap-2">
-            <Book className="h-5 w-5 text-indigo-500" />
+            <Book className="h-5 w-5 text-cyan-500" />
             <h3 className="font-bold text-base tracking-tight">My Saved Prompts</h3>
             <span className="text-xs px-2 py-0.5 rounded-full bg-accent text-accent-foreground font-medium">
               {prompts.length}

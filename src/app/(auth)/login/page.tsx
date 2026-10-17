@@ -215,7 +215,7 @@ export default function LoginPage() {
       {/* Background Ambient Mesh Glow Orbs */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] pointer-events-none -z-10 overflow-hidden">
         <div className="absolute top-10 left-1/3 w-[450px] h-[450px] rounded-full bg-primary/10 blur-[130px] animate-pulse" style={{ animationDuration: "7s" }} />
-        <div className="absolute top-28 right-1/3 w-[400px] h-[400px] rounded-full bg-indigo-500/10 blur-[140px] animate-pulse" style={{ animationDuration: "9s" }} />
+        <div className="absolute top-28 right-1/3 w-[400px] h-[400px] rounded-full bg-cyan-500/10 blur-[140px] animate-pulse" style={{ animationDuration: "9s" }} />
       </div>
 
       {/* Header */}
@@ -260,7 +260,7 @@ export default function LoginPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">On-Device Execution</span>
-                <span className="text-indigo-400 font-semibold">Chrome Gemini Nano</span>
+                <span className="text-cyan-400 font-semibold">Chrome Gemini Nano</span>
               </div>
             </div>
           </div>
