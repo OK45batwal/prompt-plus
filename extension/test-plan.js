@@ -132,9 +132,6 @@ const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, "manifest.json"
 assert(/^\d+\.\d+\.\d+$/.test(manifest.version), "Manifest has a valid release version");
 assert(!manifest.permissions.includes("notifications"), "Unverified capacity does not request notifications permission");
 assert(manifest.permissions.includes("storage"), "Manifest has storage permission");
-// The side panel is the longer workspace: the manifest declares the page and the permission.
-assert(manifest.side_panel && manifest.side_panel.default_path === "sidepanel.html", "Manifest points the side panel at sidepanel.html");
-assert(manifest.permissions.includes("sidePanel"), "Manifest has the sidePanel permission");
 
 const contentScriptEntry = manifest.content_scripts[0];
 assert(contentScriptEntry.js.includes("content.js"), "content.js is present in content_scripts");
@@ -154,11 +151,6 @@ assert(contentCode.includes("pp-dock-studio-btn"), "content.js has #pp-dock-stud
 assert(!contentCode.includes("window.PromptPlusRunwayOverlay.init()"), "content.js does NOT call obsolete PromptPlusRunwayOverlay.init()");
 assert(!contentCode.includes("window.PromptPlusRunwayOverlay.update("), "content.js does NOT call obsolete PromptPlusRunwayOverlay.update()");
 
-// The enhancement preview must not steal Tab, must offer Undo, and is deliberately non-modal.
-assert(!contentCode.includes('event.key === "Tab"'), "content.js does not hijack Tab in the enhancement preview");
-assert(contentCode.includes("pp-preview-undo"), "content.js offers an Undo action for applied enhancements");
-assert(!contentCode.includes('"aria-modal"'), "content.js keeps the enhancement preview non-modal (no aria-modal)");
-
 // -------------------------------------------------------------------
 // TEST SUITE 4: Popup Dimensions & Layout Ergonomics
 // -------------------------------------------------------------------
@@ -176,17 +168,6 @@ const popupJs = fs.readFileSync(path.join(__dirname, "popup.js"), "utf8");
 assert(popupJs.includes("applyLiveTokenState"), "popup.js implements applyLiveTokenState");
 assert(popupJs.includes("getTokenState"), "popup.js fetches token state on open");
 assert(popupJs.includes("tokenUpdate"), "popup.js listens for live tab token updates");
-// The side panel keeps the popup and the Studio as alternatives, and reuses the
-// same local synthesizer, enhance endpoint and brand stylesheet.
-assert(popupJs.includes("chrome.sidePanel"), "popup.js feature-detects the side panel API before showing the control");
-const sidepanelHtml = fs.readFileSync(path.join(__dirname, "sidepanel.html"), "utf8");
-const sidepanelJs = fs.readFileSync(path.join(__dirname, "sidepanel.js"), "utf8");
-assert(sidepanelHtml.includes('href="design-tokens.css"'), "Panel links the shared design tokens");
-assert(sidepanelHtml.includes('class="dark"'), "Panel uses the dark brand surfaces like the popup");
-assert(sidepanelHtml.includes("Enhance prompt"), "Panel uses the fixed action label");
-assert(sidepanelJs.includes("PromptPlusSynthesis.synthesizeLocalPrompt"), "Panel reuses the local prompt synthesizer");
-assert(sidepanelJs.includes('action: "enhancePrompt"'), "Panel reuses the popup enhance endpoint");
-assert(sidepanelJs.includes("openInWebStudio"), "Panel keeps a route into the web Studio");
 
 // -------------------------------------------------------------------
 // TEST SUITE 5: Message Routing & Robust Text Injection

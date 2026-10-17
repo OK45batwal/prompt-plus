@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
   const ENTER_HINT = isMac ? "⌘↵" : "Ctrl+Enter";
   const PASTE_HINT = isMac ? "⌘V" : "Ctrl+V";
-  // Core elements
+  // Core Compiler Elements
   const input = document.getElementById("input");
   const charCount = document.getElementById("char-count");
   const tokenEstimate = document.getElementById("token-estimate");
@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const reviewTabResult = document.getElementById("review-tab-result");
   const diffBefore = document.getElementById("diff-before");
   const diffAfter = document.getElementById("diff-after");
+  const scoreBadge = document.getElementById("quality-score-badge");
   const loopBadge = document.getElementById("loop-telemetry-badge");
   const copyBtn = document.getElementById("copy-btn");
   const useBtn = document.getElementById("use-btn");
@@ -88,17 +89,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const customApiKeyInput = document.getElementById("custom-api-key-input");
   const saveKeyBtn = document.getElementById("save-key-btn");
   const bridgeSendAll = document.getElementById("bridge-send-all");
-  const contextPickerBtn = document.getElementById("context-picker-btn");
-  const contextPickerCount = document.getElementById("context-picker-count");
-  const quickRecentBtn = document.getElementById("quick-recent-btn");
-  const quickStudioBtn = document.getElementById("quick-studio-btn");
-  const openPanelBtn = document.getElementById("open-panel-btn");
 
   let currentMode = "algo";
   let currentTone = "human";
   let enhancedResult = "";
   let rawPromptMemory = "";
-  let lastResultSource = "";
   let isListening = false;
   let recognitionInstance = null;
   let compileTimerInterval = null;
@@ -148,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { match: "gemini", name: "Gemini", maxContext: 1000000, color: "#3b82f6" },
     { match: "deepseek", name: "DeepSeek", maxContext: 128000, color: "#6366f1" },
     { match: "grok", name: "Grok", maxContext: 128000, color: "#ec4899" },
-    { match: "perplexity", name: "Perplexity", maxContext: 32000, color: "#20808d" },
+    { match: "perplexity", name: "Perplexity", maxContext: 32000, color: "#06b6d4" },
     { match: "copilot", name: "Copilot", maxContext: 128000, color: "#0078d4" },
     { match: "meta", name: "Meta AI", maxContext: 128000, color: "#0668e1" },
   ];
@@ -264,87 +259,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   } catch {}
 
-  // ---------- Draft recovery ----------
-  // Chrome closes the popup the moment focus moves and the extension cannot stop
-  // it. The draft, the chosen context and a finished result are kept in storage
-  // and restored on reopen, so nothing typed is lost.
-  const DRAFT_KEY = "pp_popup_draft";
-
-  function saveDraft() {
-    // Only a result the user is actually looking at is worth resuming.
-    const resultVisible = !!(panelResult && panelResult.style.display !== "none");
-    try {
-      chrome.storage.local.set({
-        [DRAFT_KEY]: {
-          input: input ? input.value : "",
-          tone: currentTone,
-          context: contextRules.map((r) => ({ id: r.id, active: r.active })),
-          result: resultVisible ? (enhancedResult || "") : "",
-          raw: rawPromptMemory || "",
-          source: resultVisible ? (lastResultSource || "") : "",
-        },
-      });
-    } catch {}
-  }
-
-  // Prefill from the chat the user is on, but only when there is no saved draft
-  // to overwrite.
-  function autoFillFromActiveTab() {
-    try {
-      chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
-        const tab = tabs?.[0];
-        if (tab?.id && input && !input.value.trim()) {
-          chrome.tabs.sendMessage(tab.id, { action: "getActivePrompt" }, (r) => {
-            if (chrome.runtime?.lastError) return;
-            if (r?.text && !input.value.trim()) {
-              input.value = r.text;
-              input.dispatchEvent(new Event("input"));
-            }
-          });
-        }
-      });
-    } catch {}
-  }
-
-  function restoreDraft() {
-    try {
-      chrome.storage.local.get(DRAFT_KEY, (data) => {
-        const draft = data?.[DRAFT_KEY];
-        if (!draft) {
-          autoFillFromActiveTab();
-          return;
-        }
-        if (Array.isArray(draft.context)) {
-          draft.context.forEach((saved) => {
-            const rule = contextRules.find((r) => r.id === saved.id);
-            if (rule) rule.active = !!saved.active;
-          });
-          updateContextPicker();
-        }
-        if (draft.tone && TONE_LABELS[draft.tone]) {
-          currentTone = draft.tone;
-          document.querySelectorAll(".tone-pill-btn, .tone-chip").forEach((c) => {
-            c.classList.toggle("active", c.getAttribute("data-tone") === draft.tone);
-          });
-        }
-        if (draft.input && input && !input.value.trim()) {
-          input.value = draft.input;
-          input.dispatchEvent(new Event("input"));
-        }
-        if (draft.raw) rawPromptMemory = draft.raw;
-        if (draft.result) {
-          // A finished result survives reopening: resume exactly where you left off.
-          lastResultSource = draft.source || "";
-          showResultView(draft.result, "", lastResultSource);
-        } else {
-          autoFillFromActiveTab();
-        }
-      });
-    } catch {
-      autoFillFromActiveTab();
-    }
-  }
-  restoreDraft();
+  // Auto-fetch active tab prompt if input is currently empty
+  try {
+    chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs?.[0];
+      if (tab?.id && input && !input.value.trim()) {
+        chrome.tabs.sendMessage(tab.id, { action: "getActivePrompt" }, (r) => {
+          if (chrome.runtime?.lastError) return;
+          if (r?.text && !input.value.trim()) {
+            input.value = r.text;
+            input.dispatchEvent(new Event("input"));
+          }
+        });
+      }
+    });
+  } catch {}
 
   // Listen for broadcast token updates
   try {
@@ -411,19 +340,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (input) {
     input.addEventListener("input", updateTokenMetrics);
-    input.addEventListener("input", saveDraft);
   }
-
-  // How many context rules are currently added to every prompt.
-  function updateContextPicker() {
-    if (!contextPickerCount) return;
-    const count = contextRules.filter((r) => r.active).length;
-    contextPickerCount.textContent = count === 0 ? "none" : `${count} rule${count === 1 ? "" : "s"}`;
-  }
-  updateContextPicker();
 
   // ---------- 4. Engine Switcher ----------
-  const ENGINE_LABELS = { algo: "Enhance prompt", device: "Enhance with Chrome AI", api: "Enhance with cloud key" };
+  const ENGINE_LABELS = { algo: "Enhance Prompt", device: "Enhance with Chrome AI", api: "Enhance with cloud key" };
 
   function updateEnhanceButtonLabel() {
     if (!btnText) return;
@@ -497,30 +417,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Quick entry: jump straight to the context rules, saved work, or the studio.
-  contextPickerBtn?.addEventListener("click", () => switchTab(tabBtnContext, panelContext));
-  quickRecentBtn?.addEventListener("click", () => switchTab(tabBtnLibrary, panelLibrary));
-
-  // The side panel opens from a user gesture, so it is this one click and nothing
-  // earlier. Older Chrome without chrome.sidePanel.open keeps a working popup:
-  // the control stays hidden instead of becoming a dead button.
-  if (openPanelBtn && chrome.sidePanel?.open) {
-    openPanelBtn.hidden = false;
-    openPanelBtn.addEventListener("click", () => {
-      saveDraft(); // hands the current draft to the panel through storage
-      chrome.sidePanel
-        .open({ windowId: chrome.windows.WINDOW_ID_CURRENT })
-        .catch(() => showToast("This page cannot show the side panel.", true));
-    });
-  }
-
   // Tone Chips & Pills
   document.querySelectorAll(".tone-pill-btn, .tone-chip").forEach((chip) => {
     chip.addEventListener("click", () => {
       document.querySelectorAll(".tone-pill-btn, .tone-chip").forEach((c) => c.classList.remove("active"));
       chip.classList.add("active");
       currentTone = chip.getAttribute("data-tone") || "human";
-      saveDraft();
     });
   });
 
@@ -812,7 +714,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ---------- 8. Prompt History Timeline (Phase 5) ----------
-  function saveToHistory(orig, enhanced, tone) {
+  function saveToHistory(orig, enhanced, tone, score) {
     chrome.storage.local.get("pp_prompt_history", (data) => {
       let list = data?.pp_prompt_history || [];
       const item = {
@@ -820,6 +722,7 @@ document.addEventListener("DOMContentLoaded", () => {
         original: orig.slice(0, 160),
         enhanced,
         tone,
+        score,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
       list = [item, ...list].slice(0, 20); // Keep last 20
@@ -840,7 +743,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="history-item">
           <div class="history-item-main">
             <div class="history-item-title">${escapeHtml(item.original)}</div>
-            <div class="history-item-meta">${item.timestamp} · ${escapeHtml(TONE_LABELS[item.tone] || item.tone || "")}</div>
+            <div class="history-item-meta">${item.timestamp} · Structure ${item.score ?? "—"}/100 · ${escapeHtml(TONE_LABELS[item.tone] || item.tone || "")}</div>
           </div>
           <button type="button" class="load-hist-btn" data-id="${item.id}">Load</button>
         </div>
@@ -924,8 +827,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const r = contextRules.find((x) => x.id === id);
         if (r) r.active = e.target.checked;
         renderContextVault();
-        updateContextPicker();
-        saveDraft();
       });
     });
   }
@@ -933,6 +834,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- 10. Local Prompt Synthesizer ----------
   function synthesizeLocalPrompt(text) {
     return globalThis.PromptPlusSynthesis.synthesizeLocalPrompt(text, { tone: currentTone, context: contextRules.filter(r => r.active).map(r => r.content || r.name) });
+  }
+
+  function calculateScore(text) {
+    let score = 70;
+    if (text.includes("### ROLE")) score += 8;
+    if (text.includes("SPECIFICATIONS") || text.includes("OBJECTIVE")) score += 7;
+    if (text.includes("PROTOCOL") || text.includes("STEPS")) score += 7;
+    if (text.length > 350) score += 4;
+    return Math.min(99, score);
   }
 
   // ---------- 11. Enhance Action Trigger with Animated States ----------
@@ -952,7 +862,7 @@ document.addEventListener("DOMContentLoaded", () => {
       enhanceBtn.classList.remove("is-success");
       enhanceBtn.classList.add("is-loading");
     }
-    if (btnText) btnText.textContent = "Enhancing…";
+    if (btnText) btnText.textContent = "Compiling…";
     if (btnTimer) {
       btnTimer.style.display = "inline";
       btnTimer.textContent = "(0.0s)";
@@ -1017,6 +927,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (compileTimerInterval) clearInterval(compileTimerInterval);
     if (btnTimer) btnTimer.style.display = "none";
 
+    const qScore = calculateScore(finalResult);
     const elapsedMs = Date.now() - compileStartTime;
 
     // Animated completion state
@@ -1033,9 +944,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Save to history timeline
-    saveToHistory(rawText, finalResult, currentTone);
+    saveToHistory(rawText, finalResult, currentTone, qScore);
 
-    showResultView(finalResult, `${Math.max(0, elapsedMs)}ms`, resultSource);
+    // The structure score stays on screen. It used to be overwritten by the source label a line later.
+    showResultView(finalResult, qScore, `${Math.max(0, elapsedMs)}ms`, resultSource);
     showToast(resultSource);
   }
 
@@ -1056,7 +968,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- 12. Result View Management ----------
   // Review step first: the compiled prompt is shown as a diff against the input,
-  // so what the enhancement changed is visible before it gets inserted.
+  // so what the compiler changed is visible before it gets inserted.
   function setReviewMode(mode) {
     if (!panelResult) return;
     const showingDiff = mode !== "result";
@@ -1073,9 +985,8 @@ document.addEventListener("DOMContentLoaded", () => {
   reviewTabDiff?.addEventListener("click", () => setReviewMode("diff"));
   reviewTabResult?.addEventListener("click", () => setReviewMode("result"));
 
-  function showResultView(text, latency, source) {
+  function showResultView(text, score, latency, source) {
     enhancedResult = text;
-    lastResultSource = source || "";
     if (panelEnhance) panelEnhance.style.display = "none";
     if (panelResult) {
       panelResult.style.display = "flex";
@@ -1092,6 +1003,7 @@ document.addEventListener("DOMContentLoaded", () => {
         reviewSwitch.hidden = !review.changed;
         setReviewMode(review.changed ? "diff" : "result");
       }
+      if (scoreBadge) scoreBadge.textContent = `Structure estimate: ${score}/100`;
       if (loopBadge) loopBadge.textContent = [source, latency].filter(Boolean).join(" · ");
       if (resultTokenDelta) {
         const before = countTokens(rawPromptMemory);
@@ -1101,14 +1013,12 @@ document.addEventListener("DOMContentLoaded", () => {
           : `${after} tokens`;
       }
     }
-    saveDraft();
   }
 
   function showEditView() {
     if (panelResult) panelResult.style.display = "none";
     if (panelEnhance) panelEnhance.style.display = "flex";
     if (input) input.focus();
-    saveDraft();
   }
 
   backToEditBtn?.addEventListener("click", showEditView);
@@ -1150,11 +1060,11 @@ document.addEventListener("DOMContentLoaded", () => {
           if (!(await copyResultToClipboard())) return;
           setUseLabel("Copied to Clipboard!");
           showToast(`Copied. Paste it into the chat (${PASTE_HINT}).`);
-          setTimeout(() => setUseLabel("Apply"), 2500);
+          setTimeout(() => setUseLabel("Insert into chat"), 2500);
         } else {
           setUseLabel(r.pendingReview ? "Review in chat" : "✓ Inserted");
           showToast(r.pendingReview ? "Review the changes in your chat before accepting." : "Inserted into the active chat.");
-          setTimeout(() => setUseLabel("Apply"), 2000);
+          setTimeout(() => setUseLabel("Insert into chat"), 2000);
         }
       });
     });
@@ -1184,14 +1094,11 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   });
 
-  function openStudio() {
+  openStudioBtn?.addEventListener("click", () => {
     chrome.runtime.sendMessage({
       action: "openInWebStudio",
       prompt: rawPromptMemory || enhancedResult,
       tone: currentTone,
     });
-  }
-
-  openStudioBtn?.addEventListener("click", openStudio);
-  quickStudioBtn?.addEventListener("click", openStudio);
+  });
 });

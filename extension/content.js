@@ -62,8 +62,8 @@
 
       .pp-unified-dock:hover,
       .pp-floating-trigger:hover {
-        border-color: rgba(99, 102, 241, 0.55) !important;
-        box-shadow: 0 6px 26px rgba(0, 0, 0, 0.6), 0 0 16px rgba(99, 102, 241, 0.25) !important;
+        border-color: rgba(6, 182, 212, 0.55) !important;
+        box-shadow: 0 6px 26px rgba(0, 0, 0, 0.6), 0 0 16px rgba(6, 182, 212, 0.25) !important;
       }
 
       .pp-dock-btn {
@@ -73,35 +73,35 @@
         height: 22px !important;
         padding: 0 8px 0 5px !important;
         border-radius: 9999px !important;
-        /* White reads at 6.3:1 on this indigo gradient; dark ink is 3.4:1 and fails. */
-        background: linear-gradient(180deg, #6366f1 0%, #4338ca 100%) !important;
+        /* Dark ink on cyan reads at 8:1; white on cyan is 2.4:1 and fails. */
+        background: linear-gradient(180deg, #06b6d4 0%, #0d9488 100%) !important;
         border: 1px solid rgba(255, 255, 255, 0.35) !important;
-        color: #ffffff !important;
+        color: #04141c !important;
         cursor: pointer !important;
         font-size: 11px !important;
         font-weight: 700 !important;
         line-height: 1 !important;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4),
-                    0 2px 8px rgba(99, 102, 241, 0.45) !important;
+                    0 2px 8px rgba(6, 182, 212, 0.45) !important;
         transition: all 0.15s ease !important;
         flex-shrink: 0 !important;
       }
 
       .pp-dock-btn:hover {
-        background: linear-gradient(180deg, #818cf8 0%, #6366f1 100%) !important;
+        background: linear-gradient(180deg, #22d3ee 0%, #14b8a6 100%) !important;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5),
-                    0 3px 14px rgba(99, 102, 241, 0.6) !important;
+                    0 3px 14px rgba(6, 182, 212, 0.6) !important;
         transform: translateY(-0.5px) !important;
       }
 
       .pp-dock-btn:active {
         transform: translateY(0.5px) !important;
         box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3),
-                    0 1px 4px rgba(99, 102, 241, 0.4) !important;
+                    0 1px 4px rgba(6, 182, 212, 0.4) !important;
       }
 
       .pp-dock-btn:focus-visible {
-        outline: 2px solid rgba(165, 180, 252, 0.9) !important;
+        outline: 2px solid rgba(103, 232, 249, 0.9) !important;
         outline-offset: 2px !important;
       }
 
@@ -194,9 +194,9 @@
       }
 
       .pp-dock-tone.active {
-        background: rgba(99, 102, 241, 0.25) !important;
-        border-color: rgba(99, 102, 241, 0.45) !important;
-        color: #a5b4fc !important;
+        background: rgba(6, 182, 212, 0.25) !important;
+        border-color: rgba(6, 182, 212, 0.45) !important;
+        color: #67e8f9 !important;
       }
 
       .pp-dock-studio-btn {
@@ -227,8 +227,8 @@
         width: 380px !important;
         max-width: calc(100vw - 32px) !important;
         background: rgba(12, 12, 16, 0.96) !important;
-        border: 1px solid rgba(99, 102, 241, 0.45) !important;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 24px rgba(99, 102, 241, 0.25) !important;
+        border: 1px solid rgba(6, 182, 212, 0.45) !important;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 24px rgba(6, 182, 212, 0.25) !important;
         backdrop-filter: blur(24px) saturate(160%) !important;
         -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
         border-radius: 14px !important;
@@ -324,10 +324,10 @@
         border-color: rgba(255, 255, 255, 0.18) !important;
       }
       .pp-tone-chip.active {
-        background: rgba(99, 102, 241, 0.25) !important;
-        border-color: rgba(99, 102, 241, 0.65) !important;
-        color: #a5b4fc !important;
-        box-shadow: 0 0 10px rgba(99, 102, 241, 0.25) !important;
+        background: rgba(6, 182, 212, 0.25) !important;
+        border-color: rgba(6, 182, 212, 0.65) !important;
+        color: #67e8f9 !important;
+        box-shadow: 0 0 10px rgba(6, 182, 212, 0.25) !important;
       }
 
       .pp-modal-preview {
@@ -353,7 +353,7 @@
         flex: 1 !important;
         height: 36px !important;
         border-radius: 8px !important;
-        background: linear-gradient(180deg, #6366f1 0%, #4338ca 100%) !important;
+        background: linear-gradient(180deg, #06b6d4 0%, #0d9488 100%) !important;
         border: 1px solid rgba(255, 255, 255, 0.3) !important;
         color: #04141c !important;
         font-size: 11.5px !important;
@@ -363,7 +363,7 @@
         align-items: center !important;
         justify-content: center !important;
         gap: 6px !important;
-        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4) !important;
         transition: all 0.15s ease !important;
       }
       .pp-modal-btn-primary:hover {
@@ -403,11 +403,6 @@
       }
       #pp-enhancement-preview del { background: #7f1d1d !important; color: #fecaca !important; }
       #pp-enhancement-preview ins { background: #14532d !important; color: #bbf7d0 !important; }
-      /* Host pages routinely kill outlines; the panel must keep a visible focus ring. */
-      #pp-enhancement-preview button:focus-visible {
-        outline: 2px solid #a5b4fc !important;
-        outline-offset: 2px !important;
-      }
     `;
     (document.head || document.documentElement).appendChild(style);
   }
@@ -699,21 +694,13 @@
     return { text: synthesizeLocalPrompt(text, tone), source: "Local template (offline)" };
   }
 
-  // Non-modal review panel. It never contains or traps focus: Tab and Shift+Tab
-  // walk through it and back into the host page normally, the host stays
-  // interactive, and Tab never applies anything. role="dialog" without
-  // aria-modal is the non-modal form of dialog, so aria-modal and focus
-  // containment are deliberately omitted here.
   let closeEnhancementPreview = null;
   function showEnhancementPreview(input, original, enhanced, source) {
     closeEnhancementPreview?.();
-    // Escape/dismiss returns focus to whatever held it before the panel opened.
-    const previouslyFocused = document.activeElement;
     const panel = document.createElement("section");
     panel.id = "pp-enhancement-preview";
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-label", "Review enhancement");
-    panel.setAttribute("aria-keyshortcuts", "Escape");
     panel.tabIndex = -1;
     Object.assign(panel.style, {
       position: "fixed", bottom: "90px", right: "16px", width: "min(520px, calc(100vw - 32px))",
@@ -725,33 +712,23 @@
     const afterTokens = window.PromptPlusTokenizer.countTokens(enhanced);
     const delta = afterTokens - beforeTokens;
     const diff = highlight(original, enhanced);
-    // The key is part of the text, not just the colour: red/green alone is not readable.
-    const legend = diff.changed
-      ? `<p id="pp-preview-legend" style="margin:8px 0;font-size:12px;color:#cbd5e1">Key:
-           <span style="background:#7f1d1d;color:#fecaca;border-radius:3px;padding:0 4px">Removed</span>
-           <span style="background:#14532d;color:#bbf7d0;border-radius:3px;padding:0 4px">Added</span>
-         </p>`
-      : "";
     panel.innerHTML = `
       <strong style="font-size:16px">Review enhancement</strong>
       <p style="color:#cbd5e1;margin:6px 0">${escapeHtml(source)}</p>
       <p id="pp-preview-tokens" style="margin:8px 0">Estimated tokens: ${beforeTokens} → ${afterTokens} (${delta > 0 ? "+" : ""}${delta})</p>
-      ${legend}
       <div style="max-height:38vh;overflow:auto">
         <p style="font-weight:600">Original</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="original">${diff.before}</div>
         <p style="font-weight:600;margin-top:12px">Enhanced</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="enhanced">${diff.after}</div>
       </div>
       <div style="display:flex;gap:12px;margin-top:16px">
-        <button type="button" id="pp-preview-accept" style="padding:8px 14px;border-radius:8px;background:#6366f1;color:#fff">Apply enhancement</button>
+        <button type="button" id="pp-preview-accept" style="padding:8px 14px;border-radius:8px;background:#f1f5f9;color:#111318">Accept · Tab</button>
         <button type="button" id="pp-preview-keep" style="padding:8px 14px;border-radius:8px;background:#334155;color:#fff">Keep original · Esc</button>
       </div>`;
     const close = () => {
       document.removeEventListener("keydown", onKey, true);
-      panel.removeEventListener("keydown", stopPanelKeys);
       panel.remove();
       closeEnhancementPreview = null;
-      if (previouslyFocused && previouslyFocused.isConnected && typeof previouslyFocused.focus === "function") previouslyFocused.focus();
-      else if (input.isConnected) input.focus();
+      if (input.isConnected) input.focus();
     };
     const accept = () => {
       if (!input.isConnected || getText(input) !== original) {
@@ -759,47 +736,20 @@
         showToast("Your input changed. Enhance again to review your latest text.");
         return;
       }
-      setText(input, enhanced);
-      showApplied();
-      showToast("Enhancement applied");
-    };
-    const undo = () => {
       close();
-      if (!input.isConnected || getText(input) !== enhanced) {
-        showToast("Your input changed. Undo skipped to protect your edits.");
-        return;
-      }
-      setText(input, original);
-      showToast("Enhancement undone");
+      setText(input, enhanced);
+      showToast("Enhancement accepted");
     };
-    function showApplied() {
-      panel.setAttribute("aria-label", "Enhancement applied");
-      panel.innerHTML = `
-        <strong style="font-size:16px">Enhancement applied</strong>
-        <p style="color:#cbd5e1;margin:6px 0">${escapeHtml(source)}</p>
-        <div style="display:flex;gap:12px;margin-top:16px">
-          <button type="button" id="pp-preview-undo" style="padding:8px 14px;border-radius:8px;background:#6366f1;color:#fff">Undo</button>
-          <button type="button" id="pp-preview-done" style="padding:8px 14px;border-radius:8px;background:#334155;color:#fff">Done · Esc</button>
-        </div>`;
-      panel.querySelector("#pp-preview-undo").addEventListener("click", undo);
-      panel.querySelector("#pp-preview-done").addEventListener("click", close);
-      panel.querySelector("#pp-preview-undo").focus();
-    }
-    // The only shortcut the preview owns is Escape (shown on the buttons above).
-    // Tab and Shift+Tab are left alone so they move focus normally.
     const onKey = (event) => {
-      if (event.key !== "Escape") return;
+      if (event.key !== "Escape" && !(event.key === "Tab" && !event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey)) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      close();
+      if (event.key === "Escape") close(); else accept();
     };
-    // A focused Apply button must not look like a composer submit to the host app.
-    const stopPanelKeys = (event) => { event.stopPropagation(); };
     panel.querySelector("#pp-preview-accept").addEventListener("click", accept);
     panel.querySelector("#pp-preview-keep").addEventListener("click", close);
     document.body.appendChild(panel);
     document.addEventListener("keydown", onKey, true);
-    panel.addEventListener("keydown", stopPanelKeys);
     closeEnhancementPreview = close;
     panel.focus();
   }
@@ -897,7 +847,7 @@
     modalEl.innerHTML = `
       <div class="pp-modal-header">
         <div class="pp-modal-title">
-          <span class="pp-dock-icon" style="width:16px;height:16px;background:linear-gradient(135deg,#6366f1,#4338ca);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;">${ICONS.sparkle}</span>
+          <span class="pp-dock-icon" style="width:16px;height:16px;background:linear-gradient(135deg,#06b6d4,#0d9488);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;">${ICONS.sparkle}</span>
           <span>Prompt+</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">

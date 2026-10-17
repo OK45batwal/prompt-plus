@@ -13,13 +13,13 @@
       --surface-inner: rgba(0, 0, 0, 0.35);
       --border-subtle: rgba(255, 255, 255, 0.05);
       --border-highlight: rgba(255, 255, 255, 0.14);
-      /* Same brand aliases as popup.html: indigo is declared once in design-tokens.css. */
-      --accent-rgb: var(--brand-rgb);
-      --accent-text: var(--brand-300);
+      /* Same brand aliases as popup.html: cyan is declared once here. */
+      --accent-rgb: 6, 182, 212;
+      --accent-text: #67e8f9;
       --border-active: rgba(var(--accent-rgb), 0.55);
-      --primary: var(--brand-600);
-      --primary-hover: var(--brand-500);
-      --primary-deep: var(--brand-700);
+      --primary: #06b6d4;
+      --primary-hover: #22d3ee;
+      --primary-deep: #0d9488;
       --text-white: #ffffff;
       --text-main: #ededf0;
       --text-muted: #9a9aa3;
@@ -74,7 +74,7 @@
 
     .brand-mark {
       width: 26px; height: 26px; border-radius: 8px;
-      background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+      background: linear-gradient(135deg, #06b6d4, #0d9488);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 2px 10px rgba(var(--accent-rgb), 0.26);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
@@ -198,7 +198,7 @@
       padding: 0 14px;
       border-radius: 11px;
       border: 1px solid rgba(0, 0, 0, 0.25);
-      background: linear-gradient(180deg, var(--brand-500) 0%, var(--brand-700) 100%);
+      background: linear-gradient(180deg, #06b6d4 0%, #0d9488 100%);
       color: #ffffff;
       font-size: 13.5px; font-weight: 800; letter-spacing: -0.01em;
       cursor: pointer;
