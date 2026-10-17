@@ -858,6 +858,91 @@
       margin-top: -4px;
     }
 
+    /* ---------- Review Step (what changed before you insert it) ---------- */
+    .review-switch {
+      display: flex;
+      gap: 3px;
+      padding: 3px;
+      border-radius: 8px;
+      background: var(--surface-inner);
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Beats the author-level display below when the prompt is unchanged. */
+    .review-switch[hidden] {
+      display: none;
+    }
+
+    .review-switch-btn {
+      flex: 1;
+      height: 26px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .review-switch-btn:hover {
+      color: var(--text-white);
+    }
+
+    .review-switch-btn.active {
+      background: rgba(var(--accent-rgb), 0.22);
+      color: var(--accent-text);
+    }
+
+    .diff-pane {
+      flex: 1;
+      min-height: 180px;
+      max-height: 285px;
+      overflow-y: auto;
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-outer);
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #ffffff;
+    }
+
+    .diff-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+
+    .diff-label + .diff-body {
+      margin-bottom: 12px;
+    }
+
+    .diff-body {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .diff-body del,
+    .diff-body ins {
+      text-decoration: none;
+      border-radius: 3px;
+      padding: 0 2px;
+    }
+
+    .diff-body del { background: rgba(127, 29, 29, 0.85); color: #fecaca; }
+    .diff-body ins { background: rgba(20, 83, 45, 0.9); color: #bbf7d0; }
+
+    /* The switch only ever swaps these two, so one class on the panel drives it. */
+    #panel-result.mode-diff #result-body { display: none; }
+    #panel-result.mode-result #diff-pane { display: none; }
+
     .back-to-edit-btn {
       display: inline-flex;
       align-items: center;
@@ -1448,6 +1533,18 @@
 
       <div class="result-delta" id="result-token-delta"></div>
 
+      <div class="review-switch" id="review-switch" role="group" aria-label="Review view" hidden>
+        <button type="button" class="review-switch-btn active" id="review-tab-diff" aria-pressed="true">What changed</button>
+        <button type="button" class="review-switch-btn" id="review-tab-result" aria-pressed="false">Final prompt</button>
+      </div>
+
+      <div class="diff-pane" id="diff-pane">
+        <p class="diff-label">Original</p>
+        <div class="diff-body" id="diff-before"></div>
+        <p class="diff-label">Compiled</p>
+        <div class="diff-body" id="diff-after"></div>
+      </div>
+
       <div class="result-body-card" id="result-body"></div>
 
       <div class="result-bottom-actions">
@@ -1545,6 +1642,7 @@
 
   <script src="lib/tokenizer.js"></script>
   <script src="lib/synthesize.js"></script>
+  <script src="lib/diff.js"></script>
   <script src="popup.js"></script>
   <div class="toast-msg" id="toast-msg" role="status" aria-live="polite"></div>
 </body>

@@ -87,6 +87,7 @@
       "js": [
         "lib/tokenizer.js",
         "lib/synthesize.js",
+        "lib/diff.js",
         "adapters/chatgpt.js",
         "adapters/claude.js",
         "adapters/gemini.js",

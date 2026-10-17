@@ -201,3 +201,25 @@ it is a downgrade; Chrome Web Store will reject it if any `3.x` was ever uploade
 | — | Left alone | The server returns a dicebear avatar URL for signed-in users (`extension-sync/route.ts:66`), so `userAvatar.src` still points off-origin once signed in. Out of the agreed popup/dock/modal scope. |
 | — | Not done | Phase E4's gate widening: the honesty gate still scopes 8 of 9 rules to `src/`, so extension wording is only partly checked. |
 
+## 8. Structural pass — the popup gets a review step
+
+The `2.1.4` rebuild changed the skin. This pass changed the layout, following the *structure* of comparable review-first extensions (single status card, plain feature nouns, and a diff you accept or reject) without borrowing any name, tagline or trade dress.
+
+**The gap it closed:** the in-page panel already had a "see exactly what changed, then accept" step. The popup did not — it showed one finished text card. So the popup was structurally behind the extension's own in-page flow.
+
+| | Before | After |
+| --- | --- | --- |
+| Popup result | one `#result-body` card | a **What changed / Final prompt** switch; the diff is the default, `#result-body` is the reading view |
+| Diff renderer | inline in `content.js`, common-prefix/suffix only | one shared `lib/diff.js`, loaded by both the content script and the popup |
+| In-page diff granularity | one `<del>` + one `<ins>` for a whole rewrite | a real word-level LCS diff |
+
+**Why the renderer was rewritten.** The old prefix/suffix pass marked an entire prompt as changed whenever the compiler embedded the original verbatim in `### Task` / `### Context` scaffolding — which is exactly what the deterministic engine does. The diff claimed everything had changed when nothing had. `lib/diff.js` walks an LCS instead; a 400k-cell ceiling falls back to the linear prefix/suffix pass so a very large paste cannot block the popup. `src/__tests__/extension-review-diff.test.ts` pins the embed case, escaping, empties, and the fallback.
+
+**Not copied, on purpose.**
+
+| Idea from the reference | Why not |
+| --- | --- |
+| Three named pillars replacing the tab bar | The four tabs are pinned by 100+ structural assertions and the ids are load-bearing. Churn, no benefit. |
+| A two-axis refiner (tone **and** intensity) | It needs a real engine parameter. `synthesizeLocalPrompt` and the cloud route take `tone` + `context` only; adding a control the engine ignores is a fabricated capability. |
+| Their shield mark, name, tagline | Trade dress. `✦` stays. |
+

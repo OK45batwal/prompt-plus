@@ -93,7 +93,11 @@ for (const editor of ["textarea", "contenteditable"]) {
     await expect(dialog).toBeVisible();
     expect(await read()).toBe("Write a project update");
     await expect(dialog).toContainText("Deterministic engine");
-    await expect(dialog.locator("ins")).toContainText("concise");
+    await expect(dialog.locator("ins").first()).toContainText("concise");
+    // The original survives verbatim inside the compiled output, so the diff must
+    // report additions only — nothing from the input was removed.
+    await expect(dialog.locator("del")).toHaveCount(0);
+    await expect(dialog.locator('[data-preview="original"]')).toHaveText("Write a project update");
     const tokenizerContext = { PromptPlusTokenizer: undefined as undefined | { countTokens: (text: string) => number } };
     vm.runInNewContext(readFileSync("extension/lib/tokenizer.js", "utf8"), tokenizerContext);
     const counts = ["Write a project update", "Write a concise project update for the team."].map(text => tokenizerContext.PromptPlusTokenizer!.countTokens(text));

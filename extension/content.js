@@ -24,16 +24,8 @@
     close: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
   };
 
-  function escapeHtml(str) {
-    if (!str) return "";
-    return String(str).replace(/[&<>'"]/g, (c) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      "'": "&#39;",
-      '"': "&quot;",
-    }[c]));
-  }
+  // The shared review renderer owns escaping and diffing for both hosts.
+  const { escapeHtml, highlight } = window.PromptPlusDiff;
 
 
 
@@ -401,6 +393,16 @@
       .pp-modal-btn-sub:hover {
         background: rgba(255, 255, 255, 0.12) !important;
       }
+
+      /* Shared review diff. Scoped by panel id so host page <del>/<ins> are untouched. */
+      #pp-enhancement-preview del,
+      #pp-enhancement-preview ins {
+        text-decoration: none !important;
+        border-radius: 3px !important;
+        padding: 0 2px !important;
+      }
+      #pp-enhancement-preview del { background: #7f1d1d !important; color: #fecaca !important; }
+      #pp-enhancement-preview ins { background: #14532d !important; color: #bbf7d0 !important; }
     `;
     (document.head || document.documentElement).appendChild(style);
   }
@@ -709,23 +711,14 @@
     const beforeTokens = window.PromptPlusTokenizer.countTokens(original);
     const afterTokens = window.PromptPlusTokenizer.countTokens(enhanced);
     const delta = afterTokens - beforeTokens;
-    // Highlight the changed span while preserving common prefix/suffix words.
-    const before = original.split(/(\s+)/);
-    const after = enhanced.split(/(\s+)/);
-    let prefix = 0, suffix = 0;
-    while (prefix < before.length && prefix < after.length && before[prefix] === after[prefix]) prefix++;
-    while (suffix < before.length - prefix && suffix < after.length - prefix && before[before.length - 1 - suffix] === after[after.length - 1 - suffix]) suffix++;
-    const diff = (words, tag, color) => {
-      const end = words.length - suffix;
-      return escapeHtml(words.slice(0, prefix).join("")) + `<${tag} style="background:${color};color:inherit">` + escapeHtml(words.slice(prefix, end).join("")) + `</${tag}>` + escapeHtml(words.slice(end).join(""));
-    };
+    const diff = highlight(original, enhanced);
     panel.innerHTML = `
       <strong style="font-size:16px">Review enhancement</strong>
       <p style="color:#cbd5e1;margin:6px 0">${escapeHtml(source)}</p>
       <p id="pp-preview-tokens" style="margin:8px 0">Estimated tokens: ${beforeTokens} → ${afterTokens} (${delta > 0 ? "+" : ""}${delta})</p>
       <div style="max-height:38vh;overflow:auto">
-        <p style="font-weight:600">Original</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="original">${diff(before, "del", "#7f1d1d")}</div>
-        <p style="font-weight:600;margin-top:12px">Enhanced</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="enhanced">${diff(after, "ins", "#14532d")}</div>
+        <p style="font-weight:600">Original</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="original">${diff.before}</div>
+        <p style="font-weight:600;margin-top:12px">Enhanced</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="enhanced">${diff.after}</div>
       </div>
       <div style="display:flex;gap:12px;margin-top:16px">
         <button type="button" id="pp-preview-accept" style="padding:8px 14px;border-radius:8px;background:#f1f5f9;color:#111318">Accept · Tab</button>

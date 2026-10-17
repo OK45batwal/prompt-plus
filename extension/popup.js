@@ -17,6 +17,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const toastMsg = document.getElementById("toast-msg");
   const panelResult = document.getElementById("panel-result");
   const resultBody = document.getElementById("result-body");
+  const reviewSwitch = document.getElementById("review-switch");
+  const reviewTabDiff = document.getElementById("review-tab-diff");
+  const reviewTabResult = document.getElementById("review-tab-result");
+  const diffBefore = document.getElementById("diff-before");
+  const diffAfter = document.getElementById("diff-after");
   const scoreBadge = document.getElementById("quality-score-badge");
   const loopBadge = document.getElementById("loop-telemetry-badge");
   const copyBtn = document.getElementById("copy-btn");
@@ -963,6 +968,24 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ---------- 12. Result View Management ----------
+  // Review step first: the compiled prompt is shown as a diff against the input,
+  // so what the compiler changed is visible before it gets inserted.
+  function setReviewMode(mode) {
+    if (!panelResult) return;
+    const showingDiff = mode !== "result";
+    panelResult.classList.toggle("mode-diff", showingDiff);
+    panelResult.classList.toggle("mode-result", !showingDiff);
+    [reviewTabDiff, reviewTabResult].forEach((tab) => {
+      if (!tab) return;
+      const active = tab === (showingDiff ? reviewTabDiff : reviewTabResult);
+      tab.classList.toggle("active", active);
+      tab.setAttribute("aria-pressed", String(active));
+    });
+  }
+
+  reviewTabDiff?.addEventListener("click", () => setReviewMode("diff"));
+  reviewTabResult?.addEventListener("click", () => setReviewMode("result"));
+
   function showResultView(text, score, latency, source) {
     enhancedResult = text;
     if (panelEnhance) panelEnhance.style.display = "none";
@@ -973,6 +996,13 @@ document.addEventListener("DOMContentLoaded", () => {
         resultBody.classList.remove("flash-in");
         void resultBody.offsetWidth; // reflow so a repeat compile replays the flash
         resultBody.classList.add("flash-in");
+      }
+      if (reviewSwitch && diffBefore && diffAfter && window.PromptPlusDiff) {
+        const review = window.PromptPlusDiff.highlight(rawPromptMemory, text);
+        diffBefore.innerHTML = review.before;
+        diffAfter.innerHTML = review.after;
+        reviewSwitch.hidden = !review.changed;
+        setReviewMode(review.changed ? "diff" : "result");
       }
       if (scoreBadge) scoreBadge.textContent = `Structure estimate: ${score}/100`;
       if (loopBadge) loopBadge.textContent = [source, latency].filter(Boolean).join(" · ");

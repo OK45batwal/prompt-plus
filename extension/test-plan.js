@@ -136,6 +136,9 @@ assert(manifest.permissions.includes("storage"), "Manifest has storage permissio
 const contentScriptEntry = manifest.content_scripts[0];
 assert(contentScriptEntry.js.includes("content.js"), "content.js is present in content_scripts");
 assert(contentScriptEntry.js.includes("lib/tokenizer.js"), "tokenizer.js is loaded before content.js");
+// One diff renderer, shared by the in-page review panel and the popup review step.
+assert(contentScriptEntry.js.includes("lib/diff.js"), "diff.js is loaded in the content script");
+assert(contentScriptEntry.js.indexOf("lib/diff.js") < contentScriptEntry.js.indexOf("content.js"), "diff.js loads before content.js");
 
 // Check content.js for unified dock markup & absence of duplicate overlay calls
 const contentCode = fs.readFileSync(path.join(__dirname, "content.js"), "utf8");
