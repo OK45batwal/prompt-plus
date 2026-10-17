@@ -75,7 +75,6 @@ interface V2Candidate {
   name: string;
   strategyName: string;
   renderedText: string;
-  efficiencyScore: number;
   estimatedTokens: number;
   hybridScore: {
     totalScore: number;

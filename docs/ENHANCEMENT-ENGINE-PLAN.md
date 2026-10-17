@@ -226,6 +226,36 @@ No percentage, no "specificity" score.
 
 ---
 
+### Phase 14 — Make the engine answer from the request *(done)*
+
+Verified in code first: every strategy was input-blind. One persona per category, two fixed
+constraints, one fixed example, and a deliverable section that rendered even when the prompt
+declared nothing. The static strings are removed and quoted in the tests so they cannot return.
+
+**14.1** `slots.ts` reads the request once — action, subject, named technologies, requested
+output shape, audience, tone — with rules only: no model, no network, no dependency.
+**14.2** The persona, the constraints and the output guidelines are composed from those slots
+in `strategy-engine.ts`.
+**14.3** `example-synthesizer.ts` is a tagged library; the engine picks the entry whose tags
+match the request, and injects nothing when nothing matches. The old pairs also demonstrated
+invented statistics ("45% CTR", "costs by up to 80%") — exactly what a few-shot example
+teaches a model to copy.
+**14.4** `loop-engine.ts` calls `detectContextGaps` and states the assumptions the request
+left open inside the prompt, instead of detecting them and discarding them. A gap is only
+reported when the request really did not fill the slot.
+**14.5** `prompt-ir.ts` renders the deliverable section only when the prompt declares a
+format, and names the domain sections for the task.
+**14.6** `evaluation-engine.ts` scores measured signals: the share of the request's words that
+survive, rule relevance, and size against a task-scaled budget. The per-candidate
+`efficiencyScore` (95/85/70/80) is deleted rather than re-tuned.
+**14.7** The four candidates are four approaches — direct, role & structure, lean,
+reasoning-led — instead of four verbosity levels of one.
+
+**Verify:** `npx vitest run src/__tests__/prompt-engine-input-aware.test.ts` (28 tests), plus
+`npm test`, `npx eslint .`, `npx tsc --noEmit`, `npm run build`.
+
+---
+
 ## 5. What this plan will not do
 
 - Invent a savings percentage, a specificity score, or a quality delta.
