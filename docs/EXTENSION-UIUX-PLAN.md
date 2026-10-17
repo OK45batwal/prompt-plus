@@ -269,5 +269,31 @@ function currentResultText() {
 
 **Editing never switches view.** Typing does not yank the pane from result to diff, because taking the view away mid-keystroke is hostile. The popup still opens on the diff (review-first), and editing lives in "Final prompt".
 
-**A pre-existing defect, found and left alone.** In the result header bar the two badges wrap mid-label ("Structure estimate:" / "74/100"). Measured against the committed build: identical 35px, identical 148px and 161px widths, so the wrap predates this pass and Reset does not cause it. It is deferred to §11, which rewrites the badge that consumes most of that width.
+**A pre-existing defect, fixed as a side effect.** In the result header bar the two badges wrapped mid-label ("Structure estimate:" / "74/100"). Measured against the committed build: identical 35px, identical 148px and 161px widths, so the wrap predated this pass and Reset did not cause it. §11 removes the badge that consumed the width, and the bar is now 22px on a single line.
+
+## 11. Prompt quality inspector, and the end of the score
+
+`calculateScore()` was five substring checks on the *output*: does it contain `### ROLE`, does it contain `SPECIFICATIONS`, is it over 350 characters. It returned 70–99, it was labelled `Structure estimate: 82/100`, and it was saved into history. The deterministic engine always emits those markers, so the number mostly measured nothing, and a number is the one thing a text heuristic must not pretend to be. That guidance in §7 (D3, and the row at line 55 telling us to "keep the number") is now superseded: the number is gone.
+
+**The inspector moved to the input, where a finding is actionable.** After compilation the engine has already supplied role, format and constraints, so an inspector on the result would report a near-empty list and flatter itself. `extension/lib/inspector.js` reads the *draft* instead and reports five facts about the text:
+
+| check | reports |
+|---|---|
+| `format` | no output format named |
+| `action` | no action stated |
+| `limit` | no length or size given |
+| `boundary` | no constraints or boundaries |
+| `background` | no background or context |
+
+Plus the words standing in for a decision (`modern`, `clean`, `robust`, `as needed`). Every finding is a fact about the text — *this word is absent*, *this word is present* — never a grade. There is no score, no percentage and no verdict, because there is no way to compute one.
+
+**One trap worth naming.** The background check was first written to match `our`, `we` and `project`. That made "Write a project update" pass a context check it should fail — the word is there, the context is not. It now matches only signals that actually pin the request to a situation (`because`, `currently`, `existing`, `codebase`, `using react|next|node|…`), and the test asserts both directions.
+
+**Where it renders.** The middle item of the existing input bezel footer, beside the character and token counts. Layout was measured against the previous build and is byte-identical — footer 28px, panel 380px, `scrollHeight === clientHeight` throughout, body 560/560 — because the span is the same 10px line box the counts already use. The line names the most actionable gap and counts the rest (`no output format named · +4`); the full list is on the title, so nothing is hidden behind a number. A draft that answers all five reads `specific and scoped` in the accent.
+
+**Not on the dock.** The in-page dock is a single-row bar with no spare row, so putting findings there would mean restructuring it. The popup is the surface with room, and it is the same pre-enhance moment.
+
+**Honest limits.** It is a regular-expression checklist, not an understanding of the request. It can be satisfied by accident — "list" satisfies the output-format check in a draft that never asked for a list — and it says nothing about whether the resulting prompt is any good. It checks whether certain text is present, which is all that can be checked without a model.
+
+**Deletions.** `calculateScore()`, `#quality-score-badge`, the `score` field written to `pp_prompt_history`, and the `Structure N/100` label in each history row. History entries saved by earlier builds keep a dead `score` key; nothing reads it, and rows are capped at 20 so it ages out. Coverage: `src/__tests__/extension-inspector.test.ts`, 8 cases including the false-negative trap and repeated-call state on the global regexes.
 

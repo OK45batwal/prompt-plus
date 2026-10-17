@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Core Compiler Elements
   const input = document.getElementById("input");
   const charCount = document.getElementById("char-count");
+  const promptCheck = document.getElementById("prompt-check");
   const tokenEstimate = document.getElementById("token-estimate");
   const enhanceBtn = document.getElementById("enhance-btn");
   const btnText = document.getElementById("btn-text");
@@ -22,7 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const reviewTabResult = document.getElementById("review-tab-result");
   const diffBefore = document.getElementById("diff-before");
   const diffAfter = document.getElementById("diff-after");
-  const scoreBadge = document.getElementById("quality-score-badge");
   const loopBadge = document.getElementById("loop-telemetry-badge");
   const copyBtn = document.getElementById("copy-btn");
   const useBtn = document.getElementById("use-btn");
@@ -328,6 +328,20 @@ document.addEventListener("DOMContentLoaded", () => {
   checkOpenAITabs();
 
   // ---------- 3. Typing cost ----------
+  // What the draft does not say. Facts about the text, checked on-device -- the
+  // engine takes only tone and context, so this is a checklist, not a score.
+  function updatePromptCheck() {
+    if (!promptCheck) return;
+    if (!globalThis.PromptPlusInspector) {
+      promptCheck.textContent = "";
+      return;
+    }
+    const result = globalThis.PromptPlusInspector.check(input ? input.value : "");
+    promptCheck.textContent = globalThis.PromptPlusInspector.summarise(result);
+    promptCheck.title = globalThis.PromptPlusInspector.details(result);
+    promptCheck.classList.toggle("is-clear", !result.empty && result.gaps.length === 0 && result.vague.length === 0);
+  }
+
   function updateTokenMetrics() {
     const raw = input ? input.value : "";
     const estTokens = countTokens(raw);
@@ -340,6 +354,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const fillPct = Math.max(0, Math.min(100, Math.round((userQuota.remaining / userQuota.monthlyLimit) * 100)));
       tokenMeterFill.style.width = `${fillPct}%`;
     }
+
+    updatePromptCheck();
   }
 
   if (input) {
@@ -718,7 +734,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ---------- 8. Prompt History Timeline (Phase 5) ----------
-  function saveToHistory(orig, enhanced, tone, score) {
+  function saveToHistory(orig, enhanced, tone) {
     chrome.storage.local.get("pp_prompt_history", (data) => {
       let list = data?.pp_prompt_history || [];
       const item = {
@@ -726,7 +742,6 @@ document.addEventListener("DOMContentLoaded", () => {
         original: orig.slice(0, 160),
         enhanced,
         tone,
-        score,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
       list = [item, ...list].slice(0, 20); // Keep last 20
@@ -747,7 +762,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="history-item">
           <div class="history-item-main">
             <div class="history-item-title">${escapeHtml(item.original)}</div>
-            <div class="history-item-meta">${item.timestamp} · Structure ${item.score ?? "—"}/100 · ${escapeHtml(TONE_LABELS[item.tone] || item.tone || "")}</div>
+            <div class="history-item-meta">${item.timestamp} · ${escapeHtml(TONE_LABELS[item.tone] || item.tone || "")}</div>
           </div>
           <button type="button" class="load-hist-btn" data-id="${item.id}">Load</button>
         </div>
@@ -840,15 +855,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return globalThis.PromptPlusSynthesis.synthesizeLocalPrompt(text, { tone: currentTone, context: contextRules.filter(r => r.active).map(r => r.content || r.name) });
   }
 
-  function calculateScore(text) {
-    let score = 70;
-    if (text.includes("### ROLE")) score += 8;
-    if (text.includes("SPECIFICATIONS") || text.includes("OBJECTIVE")) score += 7;
-    if (text.includes("PROTOCOL") || text.includes("STEPS")) score += 7;
-    if (text.length > 350) score += 4;
-    return Math.min(99, score);
-  }
-
   // ---------- 11. Enhance Action Trigger with Animated States ----------
   async function triggerCompilation() {
     const rawText = input ? input.value.trim() : "";
@@ -931,7 +937,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (compileTimerInterval) clearInterval(compileTimerInterval);
     if (btnTimer) btnTimer.style.display = "none";
 
-    const qScore = calculateScore(finalResult);
     const elapsedMs = Date.now() - compileStartTime;
 
     // Animated completion state
@@ -948,10 +953,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Save to history timeline
-    saveToHistory(rawText, finalResult, currentTone, qScore);
+    saveToHistory(rawText, finalResult, currentTone);
 
-    // The structure score stays on screen. It used to be overwritten by the source label a line later.
-    showResultView(finalResult, qScore, `${Math.max(0, elapsedMs)}ms`, resultSource);
+    showResultView(finalResult, `${Math.max(0, elapsedMs)}ms`, resultSource);
     showToast(resultSource);
   }
 
@@ -1015,7 +1019,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return review.changed;
   }
 
-  function showResultView(text, score, latency, source) {
+  function showResultView(text, latency, source) {
     enhancedResult = text;
     resultEdited = false;
     if (resetEditBtn) resetEditBtn.hidden = true;
@@ -1030,7 +1034,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const changed = renderReview(text);
       if (changed !== null) setReviewMode(changed ? "diff" : "result");
-      if (scoreBadge) scoreBadge.textContent = `Structure estimate: ${score}/100`;
       if (loopBadge) loopBadge.textContent = [source, latency].filter(Boolean).join(" · ");
       renderResultDelta(text);
     }

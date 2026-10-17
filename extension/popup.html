@@ -472,6 +472,23 @@
       color: var(--text-dim);
     }
 
+    /* The inspector line sits between the counts. min-width:0 plus ellipsis so a
+       long finding can never push the character and token counts out of the row;
+       the full list is on the title. */
+    #prompt-check {
+      flex: 1;
+      min-width: 0;
+      margin: 0 8px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #prompt-check.is-clear {
+      color: var(--emerald);
+    }
+
     /* ---------- Master Enhance Action Button ---------- */
     /* No entrance animation here: any fill-mode that persists keeps `transform`
        applied and silently cancels the :hover lift and :active press below. */
@@ -1493,6 +1510,7 @@
 
         <div class="input-bezel-footer">
           <span id="char-count">0 characters</span>
+          <span id="prompt-check"></span>
           <span id="token-estimate">~0 tokens</span>
         </div>
       </div>
@@ -1593,7 +1611,6 @@
           <span>Back</span>
         </button>
         <div style="display: flex; gap: 5px; align-items: center;">
-          <span class="score-badge" id="quality-score-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.25); color:#34d399;">Not evaluated</span>
           <span class="loop-badge" id="loop-telemetry-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(var(--accent-rgb),0.12); border:1px solid rgba(var(--accent-rgb),0.25); color:var(--accent-text);">Not measured</span>
           <button type="button" id="reset-edit-btn" title="Discard manual edits and restore the compiled prompt" hidden style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(var(--accent-rgb),0.12); border:1px solid rgba(var(--accent-rgb),0.25); color:var(--accent-text); cursor:pointer;">Reset</button>
         </div>
@@ -1711,6 +1728,7 @@
   <script src="lib/tokenizer.js"></script>
   <script src="lib/synthesize.js"></script>
   <script src="lib/diff.js"></script>
+  <script src="lib/inspector.js"></script>
   <script src="popup.js"></script>
   <div class="toast-msg" id="toast-msg" role="status" aria-live="polite"></div>
 </body>
