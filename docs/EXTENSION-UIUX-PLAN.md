@@ -249,3 +249,25 @@ The extension shipped cyan (`#06b6d4`) while the website shipped indigo (`#6366f
 
 **Verified, not assumed.** Built CSS contains 0 `indigo`/`purple`/`violet`/`blue` utilities and 10 `cyan` + 5 `teal`. A per-element sweep of `/`, `/features` and `/login` in both themes found no remaining blue-family computed colour. No text element falls below its contrast threshold. Popup: header 410/410 with no overflow, hover transform live, long labels ellipsise instead of colliding with the shortcut pill, 560/560 body with zero overflow, no console errors.
 
+## 10. The result is editable
+
+The review step showed a finished prompt you could only accept, copy or insert. Any small fix meant going back, recompiling, and losing the whole result. The card is now editable.
+
+The problem was not the `contenteditable` attribute, it was that four separate output paths read the engine's `enhancedResult` variable directly: copy, insert, save-to-library, and the multi-AI launcher. Making the card editable without touching those would have shown one thing and sent another. So they all read one function:
+
+```js
+function currentResultText() {
+  return resultEdited && resultBody ? resultBody.innerText : enhancedResult;
+}
+```
+
+`resultEdited` is set by a single `input` listener and cleared by `showResultView` and by Reset. When nothing has been edited, every path returns exactly the value it returned before — so this is a behaviour-preserving change for the normal case, not a rewrite.
+
+**A bad edit must stay escapable.** Reset sits in the existing result header bar and appears only once something has been edited. It was deliberately *not* placed in the bottom action grid: that grid is a two-column layout and the popup's 560px height budget is exactly full, so a fifth button would have overflowed. The header bar measured 35px with Reset hidden and 35px with it shown.
+
+**The delta and the diff follow the edit.** Both used to describe the compiled prompt forever. They are now recomputed from `currentResultText()`, so the token delta never describes a version that no longer exists and the "What changed" pane does not contradict the "Final prompt" pane.
+
+**Editing never switches view.** Typing does not yank the pane from result to diff, because taking the view away mid-keystroke is hostile. The popup still opens on the diff (review-first), and editing lives in "Final prompt".
+
+**A pre-existing defect, found and left alone.** In the result header bar the two badges wrap mid-label ("Structure estimate:" / "74/100"). Measured against the committed build: identical 35px, identical 148px and 161px widths, so the wrap predates this pass and Reset does not cause it. It is deferred to §11, which rewrites the badge that consumes most of that width.
+

@@ -1043,6 +1043,13 @@
       animation: resultFlash 0.6s ease-out;
     }
 
+    /* Editable: contenteditable counts as keyboard input, so :focus-visible
+       matches on click too and the caret target is always visible. */
+    .result-body-card:focus-visible {
+      outline: 2px solid rgba(var(--accent-rgb), 0.55);
+      outline-offset: 1px;
+    }
+
     .result-bottom-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1588,6 +1595,7 @@
         <div style="display: flex; gap: 5px; align-items: center;">
           <span class="score-badge" id="quality-score-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.25); color:#34d399;">Not evaluated</span>
           <span class="loop-badge" id="loop-telemetry-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(var(--accent-rgb),0.12); border:1px solid rgba(var(--accent-rgb),0.25); color:var(--accent-text);">Not measured</span>
+          <button type="button" id="reset-edit-btn" title="Discard manual edits and restore the compiled prompt" hidden style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(var(--accent-rgb),0.12); border:1px solid rgba(var(--accent-rgb),0.25); color:var(--accent-text); cursor:pointer;">Reset</button>
         </div>
       </div>
 
@@ -1605,7 +1613,7 @@
         <div class="diff-body" id="diff-after"></div>
       </div>
 
-      <div class="result-body-card" id="result-body"></div>
+      <div class="result-body-card" id="result-body" contenteditable="true" spellcheck="false" role="textbox" aria-multiline="true" aria-label="Final prompt, editable"></div>
 
       <div class="result-bottom-actions">
         <button type="button" class="action-btn btn-copy" id="copy-btn">

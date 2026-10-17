@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultTokenDelta = document.getElementById("result-token-delta");
   const openStudioBtn = document.getElementById("open-studio-btn");
   const backToEditBtn = document.getElementById("back-to-edit-btn");
+  const resetEditBtn = document.getElementById("reset-edit-btn");
   const pasteBtn = document.getElementById("paste-btn");
   const clearBtn = document.getElementById("clear-btn");
   const modeApi = document.getElementById("mode-api");
@@ -94,6 +95,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentTone = "human";
   let enhancedResult = "";
   let rawPromptMemory = "";
+  // Set once the user edits the result card, so the reader below knows the DOM
+  // is authoritative and the engine's text is not.
+  let resultEdited = false;
   let isListening = false;
   let recognitionInstance = null;
   let compileTimerInterval = null;
@@ -542,7 +546,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- 6. Multi-AI Launcher (8 Platforms) ----------
   function openMultiAITab(platform, promptText = null) {
-    const text = promptText != null ? promptText : (enhancedResult || (input ? input.value.trim() : ""));
+    const text = promptText != null ? promptText : (currentResultText() || (input ? input.value.trim() : ""));
     const encoded = encodeURIComponent(text);
     let target = "";
 
@@ -567,7 +571,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   bridgeSendAll?.addEventListener("click", () => {
-    const text = enhancedResult || (input ? input.value.trim() : "");
+    const text = currentResultText() || (input ? input.value.trim() : "");
     if (!text) {
       showToast("Type or compile a prompt first!", true);
       return;
@@ -985,8 +989,36 @@ document.addEventListener("DOMContentLoaded", () => {
   reviewTabDiff?.addEventListener("click", () => setReviewMode("diff"));
   reviewTabResult?.addEventListener("click", () => setReviewMode("result"));
 
+  // The result card is editable, so the review views and every output path read
+  // what the user is looking at, not the text the engine produced.
+  function currentResultText() {
+    return resultEdited && resultBody ? resultBody.innerText : enhancedResult;
+  }
+
+  function renderResultDelta(text) {
+    if (!resultTokenDelta) return;
+    const before = countTokens(rawPromptMemory);
+    const after = countTokens(text);
+    resultTokenDelta.textContent = before > 0
+      ? `${before} → ${after} tokens (${after - before >= 0 ? "+" : ""}${after - before})`
+      : `${after} tokens`;
+  }
+
+  // Returns whether the prompt changed, or null when the diff renderer is absent,
+  // so the caller leaves the current view alone in that case.
+  function renderReview(text) {
+    if (!(reviewSwitch && diffBefore && diffAfter && window.PromptPlusDiff)) return null;
+    const review = window.PromptPlusDiff.highlight(rawPromptMemory, text);
+    diffBefore.innerHTML = review.before;
+    diffAfter.innerHTML = review.after;
+    reviewSwitch.hidden = !review.changed;
+    return review.changed;
+  }
+
   function showResultView(text, score, latency, source) {
     enhancedResult = text;
+    resultEdited = false;
+    if (resetEditBtn) resetEditBtn.hidden = true;
     if (panelEnhance) panelEnhance.style.display = "none";
     if (panelResult) {
       panelResult.style.display = "flex";
@@ -996,22 +1028,11 @@ document.addEventListener("DOMContentLoaded", () => {
         void resultBody.offsetWidth; // reflow so a repeat compile replays the flash
         resultBody.classList.add("flash-in");
       }
-      if (reviewSwitch && diffBefore && diffAfter && window.PromptPlusDiff) {
-        const review = window.PromptPlusDiff.highlight(rawPromptMemory, text);
-        diffBefore.innerHTML = review.before;
-        diffAfter.innerHTML = review.after;
-        reviewSwitch.hidden = !review.changed;
-        setReviewMode(review.changed ? "diff" : "result");
-      }
+      const changed = renderReview(text);
+      if (changed !== null) setReviewMode(changed ? "diff" : "result");
       if (scoreBadge) scoreBadge.textContent = `Structure estimate: ${score}/100`;
       if (loopBadge) loopBadge.textContent = [source, latency].filter(Boolean).join(" · ");
-      if (resultTokenDelta) {
-        const before = countTokens(rawPromptMemory);
-        const after = countTokens(text);
-        resultTokenDelta.textContent = before > 0
-          ? `${before} → ${after} tokens (${after - before >= 0 ? "+" : ""}${after - before})`
-          : `${after} tokens`;
-      }
+      renderResultDelta(text);
     }
   }
 
@@ -1027,11 +1048,33 @@ document.addEventListener("DOMContentLoaded", () => {
   const setUseLabel = (s) => { if (useBtnLabel) useBtnLabel.textContent = s; };
   const setSaveLabel = (s) => { if (saveCloudBtnLabel) saveCloudBtnLabel.textContent = s; };
 
+  // A manual edit must stay escapable, so Reset restores the compiled text. The
+  // delta and the diff follow the edit rather than describing a version that is
+  // gone -- but editing never switches view, because yanking the pane while
+  // someone is typing is hostile.
+  resultBody?.addEventListener("input", () => {
+    resultEdited = true;
+    if (resetEditBtn) resetEditBtn.hidden = false;
+    const text = currentResultText();
+    renderResultDelta(text);
+    renderReview(text);
+  });
+
+  resetEditBtn?.addEventListener("click", () => {
+    if (!resultBody) return;
+    resultEdited = false;
+    resultBody.textContent = enhancedResult;
+    resetEditBtn.hidden = true;
+    renderResultDelta(enhancedResult);
+    renderReview(enhancedResult);
+    resultBody.focus();
+  });
+
   // One clipboard path, so every failure surfaces the same honest message.
   async function copyResultToClipboard() {
     try {
       if (!navigator.clipboard) throw new Error("Clipboard unavailable");
-      await navigator.clipboard.writeText(enhancedResult);
+      await navigator.clipboard.writeText(currentResultText());
       return true;
     } catch {
       showToast("Clipboard unavailable. Select and copy the result manually.", true);
@@ -1040,21 +1083,22 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   copyBtn?.addEventListener("click", async () => {
-    if (!enhancedResult) return;
+    if (!currentResultText()) return;
     if (!(await copyResultToClipboard())) return;
     setCopyLabel("Copied");
     setTimeout(() => setCopyLabel("Copy"), 2000);
   });
 
   useBtn?.addEventListener("click", () => {
-    if (!enhancedResult) return;
+    const out = currentResultText();
+    if (!out) return;
     chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
       const tab = tabs?.[0];
       if (!tab?.id) {
         void copyResultToClipboard();
         return;
       }
-      chrome.tabs.sendMessage(tab.id, { action: "injectEnhanced", enhanced: enhancedResult }, async (r) => {
+      chrome.tabs.sendMessage(tab.id, { action: "injectEnhanced", enhanced: out }, async (r) => {
         if (chrome.runtime?.lastError || !r?.success) {
           // No injectable page (chrome://, the extension itself): copy instead, and say so.
           if (!(await copyResultToClipboard())) return;
@@ -1071,13 +1115,14 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   saveCloudBtn?.addEventListener("click", () => {
-    if (!enhancedResult) return;
+    const out = currentResultText();
+    if (!out) return;
     setSaveLabel("Saving…");
     chrome.runtime.sendMessage(
       {
         action: "saveToCloudPrompt",
-        originalText: rawPromptMemory || enhancedResult.slice(0, 100),
-        enhancedText: enhancedResult,
+        originalText: rawPromptMemory || out.slice(0, 100),
+        enhancedText: out,
         category: `Extension v${chrome.runtime.getManifest().version}`,
         tone: currentTone,
       },
