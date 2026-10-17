@@ -403,6 +403,11 @@
       }
       #pp-enhancement-preview del { background: #7f1d1d !important; color: #fecaca !important; }
       #pp-enhancement-preview ins { background: #14532d !important; color: #bbf7d0 !important; }
+      /* Host pages routinely kill outlines; the panel must keep a visible focus ring. */
+      #pp-enhancement-preview button:focus-visible {
+        outline: 2px solid #a5b4fc !important;
+        outline-offset: 2px !important;
+      }
     `;
     (document.head || document.documentElement).appendChild(style);
   }
@@ -694,13 +699,21 @@
     return { text: synthesizeLocalPrompt(text, tone), source: "Local template (offline)" };
   }
 
+  // Non-modal review panel. It never contains or traps focus: Tab and Shift+Tab
+  // walk through it and back into the host page normally, the host stays
+  // interactive, and Tab never applies anything. role="dialog" without
+  // aria-modal is the non-modal form of dialog, so aria-modal and focus
+  // containment are deliberately omitted here.
   let closeEnhancementPreview = null;
   function showEnhancementPreview(input, original, enhanced, source) {
     closeEnhancementPreview?.();
+    // Escape/dismiss returns focus to whatever held it before the panel opened.
+    const previouslyFocused = document.activeElement;
     const panel = document.createElement("section");
     panel.id = "pp-enhancement-preview";
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-label", "Review enhancement");
+    panel.setAttribute("aria-keyshortcuts", "Escape");
     panel.tabIndex = -1;
     Object.assign(panel.style, {
       position: "fixed", bottom: "90px", right: "16px", width: "min(520px, calc(100vw - 32px))",
@@ -712,23 +725,33 @@
     const afterTokens = window.PromptPlusTokenizer.countTokens(enhanced);
     const delta = afterTokens - beforeTokens;
     const diff = highlight(original, enhanced);
+    // The key is part of the text, not just the colour: red/green alone is not readable.
+    const legend = diff.changed
+      ? `<p id="pp-preview-legend" style="margin:8px 0;font-size:12px;color:#cbd5e1">Key:
+           <span style="background:#7f1d1d;color:#fecaca;border-radius:3px;padding:0 4px">Removed</span>
+           <span style="background:#14532d;color:#bbf7d0;border-radius:3px;padding:0 4px">Added</span>
+         </p>`
+      : "";
     panel.innerHTML = `
       <strong style="font-size:16px">Review enhancement</strong>
       <p style="color:#cbd5e1;margin:6px 0">${escapeHtml(source)}</p>
       <p id="pp-preview-tokens" style="margin:8px 0">Estimated tokens: ${beforeTokens} → ${afterTokens} (${delta > 0 ? "+" : ""}${delta})</p>
+      ${legend}
       <div style="max-height:38vh;overflow:auto">
         <p style="font-weight:600">Original</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="original">${diff.before}</div>
         <p style="font-weight:600;margin-top:12px">Enhanced</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="enhanced">${diff.after}</div>
       </div>
       <div style="display:flex;gap:12px;margin-top:16px">
-        <button type="button" id="pp-preview-accept" style="padding:8px 14px;border-radius:8px;background:#f1f5f9;color:#111318">Accept · Tab</button>
+        <button type="button" id="pp-preview-accept" style="padding:8px 14px;border-radius:8px;background:#6366f1;color:#fff">Apply enhancement</button>
         <button type="button" id="pp-preview-keep" style="padding:8px 14px;border-radius:8px;background:#334155;color:#fff">Keep original · Esc</button>
       </div>`;
     const close = () => {
       document.removeEventListener("keydown", onKey, true);
+      panel.removeEventListener("keydown", stopPanelKeys);
       panel.remove();
       closeEnhancementPreview = null;
-      if (input.isConnected) input.focus();
+      if (previouslyFocused && previouslyFocused.isConnected && typeof previouslyFocused.focus === "function") previouslyFocused.focus();
+      else if (input.isConnected) input.focus();
     };
     const accept = () => {
       if (!input.isConnected || getText(input) !== original) {
@@ -736,20 +759,47 @@
         showToast("Your input changed. Enhance again to review your latest text.");
         return;
       }
-      close();
       setText(input, enhanced);
-      showToast("Enhancement accepted");
+      showApplied();
+      showToast("Enhancement applied");
     };
+    const undo = () => {
+      close();
+      if (!input.isConnected || getText(input) !== enhanced) {
+        showToast("Your input changed. Undo skipped to protect your edits.");
+        return;
+      }
+      setText(input, original);
+      showToast("Enhancement undone");
+    };
+    function showApplied() {
+      panel.setAttribute("aria-label", "Enhancement applied");
+      panel.innerHTML = `
+        <strong style="font-size:16px">Enhancement applied</strong>
+        <p style="color:#cbd5e1;margin:6px 0">${escapeHtml(source)}</p>
+        <div style="display:flex;gap:12px;margin-top:16px">
+          <button type="button" id="pp-preview-undo" style="padding:8px 14px;border-radius:8px;background:#6366f1;color:#fff">Undo</button>
+          <button type="button" id="pp-preview-done" style="padding:8px 14px;border-radius:8px;background:#334155;color:#fff">Done · Esc</button>
+        </div>`;
+      panel.querySelector("#pp-preview-undo").addEventListener("click", undo);
+      panel.querySelector("#pp-preview-done").addEventListener("click", close);
+      panel.querySelector("#pp-preview-undo").focus();
+    }
+    // The only shortcut the preview owns is Escape (shown on the buttons above).
+    // Tab and Shift+Tab are left alone so they move focus normally.
     const onKey = (event) => {
-      if (event.key !== "Escape" && !(event.key === "Tab" && !event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey)) return;
+      if (event.key !== "Escape") return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      if (event.key === "Escape") close(); else accept();
+      close();
     };
+    // A focused Apply button must not look like a composer submit to the host app.
+    const stopPanelKeys = (event) => { event.stopPropagation(); };
     panel.querySelector("#pp-preview-accept").addEventListener("click", accept);
     panel.querySelector("#pp-preview-keep").addEventListener("click", close);
     document.body.appendChild(panel);
     document.addEventListener("keydown", onKey, true);
+    panel.addEventListener("keydown", stopPanelKeys);
     closeEnhancementPreview = close;
     panel.focus();
   }

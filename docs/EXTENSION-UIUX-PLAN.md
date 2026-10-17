@@ -12,7 +12,7 @@ Methods: full read of `popup.html` structure, `popup.js` wiring, the `content.js
 **The tree moved under this audit.** `ab2290a` ("Ship deterministic enhancement fallback and reviewed
 extension edits") landed on `main` between the request and this plan. It already implemented the
 server-side deterministic fallback and **rebuilt the in-page review panel** with a real word-level
-diff, measured token deltas, and `Accept · Tab` / `Keep original · Esc`
+diff, measured token deltas, and `Apply enhancement` / `Keep original · Esc`
 (`content.js:684-767`). That makes the **popup** — not the in-page UI — the weak surface, and it adds
 D17 below.
 
