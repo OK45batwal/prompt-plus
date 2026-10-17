@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Prompt+ Architect AI - Enterprise Prompt Compiler & Context Runway",
-  "version": "3.1.0",
+  "name": "Prompt+ Architect AI — Prompt Compiler & Token Monitor",
+  "version": "2.1.4",
   "description": "Enhance prompts with the deterministic engine or your cloud key. Review changes before inserting. Estimate visible chat tokens.",
   "icons": {
     "16": "icons/icon16.png",

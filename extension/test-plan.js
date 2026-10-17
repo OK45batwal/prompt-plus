@@ -193,7 +193,7 @@ assert(contentCode.includes("isCmdEnter"), "content.js implements in-chat Cmd+En
 assert(popupJs.includes("if (panelResult) panelResult.style.display = \"none\";"), "popup.js cleans up panelResult on tab switching");
 assert(popupJs.includes(".tone-pill-btn"), "popup.js queries .tone-pill-btn selector for tone switching");
 assert(popupJs.includes("advanced-tools-toggle"), "popup.js hooks up expandable advanced tools toggle");
-assert(popupJs.includes("navigator.clipboard?.writeText(enhancedResult)"), "popup.js implements clipboard fallback on tab injection edge cases");
+assert(popupJs.includes("copyResultToClipboard") && popupJs.includes("navigator.clipboard.writeText(enhancedResult)"), "popup.js implements clipboard fallback on tab injection edge cases");
 
 // -------------------------------------------------------------------
 // SUMMARY

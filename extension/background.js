@@ -149,7 +149,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         for (const baseUrl of targetUrls) {
           // Route based on user selected mode:
-          // "algo": Sub-30ms offline algorithmic IR endpoint
+          // "algo": the offline deterministic engine
           // "api" or default: Multi-model LLM enhancement engine, with fallback to algorithmic if offline
           const endpoints = request.mode === "algo"
             ? [`${baseUrl}/api/v2/extension/optimize`]

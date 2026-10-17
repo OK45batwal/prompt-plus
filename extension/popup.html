@@ -7,25 +7,25 @@
   <title>Prompt+ Architect AI</title>
   <style>
     :root {
-      --bg: #09090b;
-      --surface-1: rgba(18, 18, 23, 0.94);
-      --surface-2: rgba(26, 26, 34, 0.96);
-      --surface-inner: rgba(0, 0, 0, 0.45);
-      --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-highlight: rgba(255, 255, 255, 0.16);
-      --border-active: rgba(99, 102, 241, 0.5);
+      --bg: #0b0b0d;
+      --surface-1: rgba(22, 22, 26, 0.92);
+      --surface-2: rgba(30, 30, 36, 0.96);
+      --surface-inner: rgba(0, 0, 0, 0.35);
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-highlight: rgba(255, 255, 255, 0.14);
+      --border-active: rgba(129, 140, 248, 0.55);
       --primary: #6366f1;
       --primary-hover: #4f46e5;
-      --primary-glow: rgba(99, 102, 241, 0.35);
+      --primary-glow: rgba(99, 102, 241, 0.22);
       --emerald: #10b981;
-      --emerald-glow: rgba(16, 185, 129, 0.25);
+      --emerald-glow: rgba(16, 185, 129, 0.18);
       --amber: #f59e0b;
       --red: #ef4444;
       --text-white: #ffffff;
-      --text-main: #f4f4f5;
-      --text-muted: #a1a1aa;
-      --text-dim: #71717a;
-      --radius-outer: 12px;
+      --text-main: #ededf0;
+      --text-muted: #9a9aa3;
+      --text-dim: #6b6b74;
+      --radius-outer: 11px;
       --radius-inner: 8px;
       --radius-pill: 9999px;
       --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
@@ -55,16 +55,39 @@
       width: 410px;
       height: 560px;
       max-height: 560px;
-      background: radial-gradient(550px 300px at 50% -30px, rgba(99, 102, 241, 0.18), transparent 70%), var(--bg);
+      background: radial-gradient(600px 280px at 50% -40px, rgba(99, 102, 241, 0.10), transparent 70%), var(--bg);
       color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
       font-size: 12px;
-      line-height: 1.4;
+      line-height: 1.45;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       user-select: none;
       -webkit-font-smoothing: antialiased;
+    }
+
+    /* Keyboard users need to see where they are. */
+    :focus-visible {
+      outline: 2px solid var(--border-active);
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+
+    /* The result is meant to be read and re-used: it must be selectable. */
+    .result-body-card,
+    textarea#input,
+    .library-search-input {
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
 
     /* ---------- Header ---------- */
@@ -74,9 +97,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 10px 14px;
-      background: rgba(14, 14, 18, 0.95);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(16, 16, 19, 0.92);
       border-bottom: 1px solid var(--border-subtle);
       z-index: 50;
     }
@@ -91,14 +112,14 @@
       width: 28px;
       height: 28px;
       border-radius: 8px;
-      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      background: var(--primary);
       display: flex;
       align-items: center;
       justify-content: center;
       color: #fff;
       font-weight: 800;
       font-size: 13px;
-      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+      flex-shrink: 0;
     }
 
     .header-title-group {
@@ -205,8 +226,8 @@
       align-items: center;
       justify-content: center;
       gap: 5px;
-      height: 28px;
-      border-radius: 6px;
+      height: 30px;
+      border-radius: 7px;
       border: 1px solid transparent;
       background: transparent;
       color: var(--text-muted);
@@ -222,9 +243,9 @@
     }
 
     .nav-tab-btn.active {
-      background: rgba(99, 102, 241, 0.15);
-      border-color: rgba(99, 102, 241, 0.35);
-      color: #c7d2fe;
+      background: rgba(255, 255, 255, 0.07);
+      border-color: var(--border-highlight);
+      color: var(--text-white);
     }
 
     .nav-tab-btn svg {
@@ -335,7 +356,6 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
       transition: border-color 0.15s ease;
     }
 
@@ -429,12 +449,12 @@
     /* ---------- Master Enhance Action Button ---------- */
     .master-enhance-btn {
       width: 100%;
-      height: 38px;
+      height: 40px;
       border-radius: 9px;
       border: 1px solid rgba(99, 102, 241, 0.5);
-      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      background: var(--primary);
       color: #ffffff;
-      font-size: 12px;
+      font-size: 12.5px;
       font-weight: 700;
       letter-spacing: -0.01em;
       cursor: pointer;
@@ -442,16 +462,15 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      box-shadow: 0 4px 18px rgba(99, 102, 241, 0.35);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
       transition: all 0.18s var(--ease-spring);
       position: relative;
       overflow: hidden;
     }
 
     .master-enhance-btn:hover:not(:disabled) {
-      background: linear-gradient(135deg, #7174f3 0%, #5d54ed 100%);
-      box-shadow: 0 6px 24px rgba(99, 102, 241, 0.5);
-      transform: translateY(-1px);
+      background: var(--primary-hover);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
     }
 
     .master-enhance-btn:active:not(:disabled) {
@@ -498,96 +517,27 @@
       height: 14px;
     }
 
-    /* ---------- Hero Context Banner (Simplified Top Strip) ---------- */
-    .context-hero-banner {
-      background: var(--surface-1);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-inner);
-      padding: 8px 11px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    }
-
-    .hero-banner-main {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .hero-bot-badge {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .hero-bot-name {
-      font-size: 11.5px;
-      font-weight: 700;
-      color: #ffffff;
-      letter-spacing: -0.01em;
-    }
-
-    .hero-token-stats {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .hero-token-used {
-      font-size: 10px;
-      color: var(--text-dim);
-      font-weight: 500;
-    }
-
-    /* ---------- Advanced Tools Accordion Toggle ---------- */
-    .advanced-tools-toggle {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 6px 10px;
-      border-radius: 7px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-subtle);
-      cursor: pointer;
-      user-select: none;
-      transition: all 0.15s ease;
-    }
-
-    .advanced-tools-toggle:hover {
-      background: rgba(255, 255, 255, 0.07);
-      border-color: rgba(255, 255, 255, 0.15);
-    }
-
-    /* ---------- Context Runway Card & Circular Progress Ring ---------- */
+    /* ---------- Usage Card (single source of truth for capacity) ---------- */
     .context-runway-card {
       background: var(--surface-1);
       border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-inner);
-      padding: 7px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-    }
-
-    .runway-card-top {
+      border-radius: var(--radius-outer);
+      padding: 11px 12px;
       display: flex;
       align-items: center;
-      gap: 9px;
+      gap: 12px;
     }
 
-    .runway-ring-box {
+    .usage-ring {
       position: relative;
-      width: 38px;
-      height: 38px;
+      width: 44px;
+      height: 44px;
       flex-shrink: 0;
     }
 
     .runway-svg-ring {
-      width: 38px;
-      height: 38px;
+      width: 44px;
+      height: 44px;
       transform: rotate(-90deg);
     }
 
@@ -599,7 +549,7 @@
 
     .runway-ring-fg {
       fill: none;
-      stroke: #10b981;
+      stroke: var(--emerald);
       stroke-width: 3.5;
       stroke-linecap: round;
       transition: stroke-dashoffset 0.4s ease, stroke 0.3s ease;
@@ -607,37 +557,73 @@
 
     .runway-ring-pct {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 10px;
-      font-weight: 800;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10.5px;
+      font-weight: 700;
       color: #fff;
+      font-variant-numeric: tabular-nums;
     }
 
-    .runway-meta-col {
+    .usage-body {
       flex: 1;
+      min-width: 0;
       display: flex;
       flex-direction: column;
-      gap: 2px;
-      min-width: 0;
-    }
-
-    .runway-model-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .runway-bot-pill {
-      font-weight: 700;
-      font-size: 11px;
-      color: #fff;
-      display: flex;
-      align-items: center;
       gap: 4px;
     }
 
+    .usage-head {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .usage-model {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .usage-nums {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .usage-foot {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    /* ---------- Advanced Tools Accordion Toggle ---------- */
+    .advanced-tools-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 10px;
+      border-radius: 7px;
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+
+    .advanced-tools-toggle:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: var(--border-highlight);
+    }
+
+    /* ---------- Usage ring & status ---------- */
     .runway-status-tag {
       font-size: 9.5px;
       font-weight: 600;
@@ -646,42 +632,30 @@
       background: rgba(16, 185, 129, 0.15);
       color: #34d399;
       border: 1px solid rgba(16, 185, 129, 0.25);
-    }
-
-    .runway-numbers-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
+      white-space: nowrap;
     }
 
     .runway-used-txt {
       font-size: 10.5px;
       color: var(--text-muted);
       font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .runway-rem-badge {
-      font-size: 10.5px;
+      font-size: 11.5px;
       font-weight: 700;
       color: #34d399;
-      background: rgba(16, 185, 129, 0.12);
-      padding: 1px 6px;
-      border-radius: 4px;
+      background: none;
+      padding: 0;
       white-space: nowrap;
-    }
-
-    .runway-subtext-row {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 9.5px;
-      color: var(--text-dim);
     }
 
     .runway-track {
       width: 100%;
-      height: 4px;
+      height: 3px;
       background: rgba(255, 255, 255, 0.08);
       border-radius: 9999px;
       overflow: hidden;
@@ -689,43 +663,9 @@
 
     .runway-fill {
       height: 100%;
-      background: linear-gradient(90deg, #10b981, #059669);
+      background: var(--emerald);
       border-radius: 9999px;
       transition: width 0.35s ease, background 0.35s ease;
-    }
-
-    .runway-drawer-toggle {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-top: 3px;
-      font-size: 9.5px;
-      color: var(--text-dim);
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .runway-drawer-toggle:hover {
-      color: var(--text-muted);
-    }
-
-    .runway-drawer-details {
-      padding: 6px 8px;
-      background: rgba(0, 0, 0, 0.25);
-      border-radius: 6px;
-      border: 1px solid var(--border-subtle);
-    }
-
-    .runway-details-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4px 8px;
-      font-size: 9.5px;
-      color: var(--text-muted);
-    }
-
-    .runway-details-grid strong {
-      color: #fff;
     }
 
     /* Prompt+ Quota Secondary Bar */
@@ -733,9 +673,9 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 9.5px;
+      font-size: 10px;
       color: var(--text-dim);
-      margin-top: 2px;
+      font-variant-numeric: tabular-nums;
     }
 
     .promptplus-quota-row strong {
@@ -752,7 +692,7 @@
 
     .promptplus-quota-fill {
       height: 100%;
-      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+      background: var(--primary);
       border-radius: 9999px;
       transition: width 0.3s ease;
     }
@@ -858,12 +798,23 @@
       flex-direction: column;
       gap: 10px;
       height: 100%;
+      /* Leaves room for the toast, so it never sits on the action buttons. */
+      padding-bottom: 34px;
     }
 
     .result-header-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 8px;
+    }
+
+    /* Measured token change between the raw idea and the compiled prompt. */
+    .result-delta {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
+      margin-top: -4px;
     }
 
     .back-to-edit-btn {
@@ -906,7 +857,6 @@
       min-height: 180px;
       overflow-y: auto;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
     }
 
     .result-bottom-actions {
@@ -944,14 +894,13 @@
     }
 
     .btn-inject {
-      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      background: var(--primary);
       border: 1px solid rgba(99, 102, 241, 0.5);
       color: #ffffff;
-      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
     }
 
     .btn-inject:hover {
-      background: linear-gradient(135deg, #7174f3 0%, #5d54ed 100%);
+      background: var(--primary-hover);
     }
 
     .result-secondary-actions {
@@ -1016,46 +965,44 @@
       overflow-y: auto;
     }
 
-    .template-card {
+    .library-card {
       background: var(--surface-1);
       border: 1px solid var(--border-subtle);
       border-radius: 9px;
       padding: 9px 11px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      cursor: pointer;
-      transition: all 0.15s var(--ease-spring);
+      gap: 5px;
     }
 
-    .template-card:hover {
-      border-color: rgba(99, 102, 241, 0.5);
-      background: rgba(255, 255, 255, 0.04);
-      transform: translateY(-1px);
+    .library-card:hover {
+      border-color: var(--border-highlight);
     }
 
-    .template-title-row {
+    .library-card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 8px;
     }
 
-    .template-title {
+    .library-card-title {
       font-size: 11.5px;
       font-weight: 700;
       color: #ffffff;
     }
 
-    .template-cat-badge {
+    .library-card-category {
       font-size: 9px;
       font-weight: 700;
       padding: 1px 5px;
       border-radius: 4px;
       background: rgba(99, 102, 241, 0.15);
       color: #a5b4fc;
+      white-space: nowrap;
     }
 
-    .template-preview {
+    .library-card-desc {
       font-size: 10.5px;
       color: var(--text-muted);
       overflow: hidden;
@@ -1065,41 +1012,101 @@
       line-clamp: 2;
       -webkit-box-orient: vertical;
       line-height: 1.35;
+      user-select: text;
+    }
+
+    .library-card-footer {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 2px;
+    }
+
+    .use-blueprint-btn,
+    .load-hist-btn {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      color: #c7d2fe;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 5px;
+      padding: 3px 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .use-blueprint-btn:hover,
+    .load-hist-btn:hover {
+      background: rgba(99, 102, 241, 0.28);
+      color: #fff;
     }
 
     /* ---------- Context Vault View ---------- */
-    .vault-card {
+    .context-rule-card {
       background: var(--surface-1);
       border: 1px solid var(--border-subtle);
       border-radius: 9px;
       padding: 9px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .context-rule-card.active {
+      border-color: rgba(99, 102, 241, 0.35);
+    }
+
+    .rule-toggle {
+      accent-color: var(--primary);
+      cursor: pointer;
+      transform: scale(1.15);
+    }
+
+    .context-rule-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
     }
 
-    .vault-card-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .vault-card-title {
-      font-weight: 700;
+    .context-rule-name {
       font-size: 11.5px;
       color: #fff;
     }
 
-    .vault-card-desc {
+    .context-rule-desc {
       font-size: 10px;
       color: var(--text-muted);
     }
 
-    .vault-checkbox {
-      accent-color: #6366f1;
-      cursor: pointer;
-      transform: scale(1.15);
+    .history-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 7px 9px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .history-item-main {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .history-item-title {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #fff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .history-item-meta {
+      font-size: 9.5px;
+      color: var(--text-dim);
+      margin-top: 2px;
     }
 
     /* ---------- Settings & Sync Tab View ---------- */
@@ -1156,6 +1163,8 @@
       text-align: center;
       font-weight: 600;
       animation: toastIn 0.2s ease;
+      /* Status text only. It must never swallow clicks on what it covers. */
+      pointer-events: none;
     }
 
     @keyframes toastIn {
@@ -1181,188 +1190,165 @@
   <!-- Header -->
   <header class="header">
     <div class="header-left">
-      <div class="header-logo-badge">✦</div>
+      <div class="header-logo-badge" aria-hidden="true">✦</div>
       <div class="header-title-group">
         <div class="header-title-row">
-          <span class="header-title">Prompt+ Architect</span>
+          <span class="header-title">Prompt+</span>
           <span class="v2-pill" id="header-version-pill"></span>
         </div>
         <div class="header-sync-row">
           <span class="sync-indicator-dot" id="sync-dot"></span>
           <span id="sync-status-text">Not checked</span>
-          <span id="sync-latency-badge" style="font-size:9.5px; color:#94a3b8; margin-left:4px;">—</span>
+          <span id="sync-latency-badge" style="font-size:9.5px; color:#8b8b95; margin-left:4px;">—</span>
         </div>
       </div>
     </div>
 
     <div class="header-right">
-      <a href="https://prompt-plus-three.vercel.app/dashboard" target="_blank" class="user-pill-btn" id="user-profile-link" title="Open Web Dashboard">
-        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=promptplus_arch" class="user-avatar-img" id="user-avatar" alt="Avatar" />
-        <span class="user-name-label" id="user-name">Studio</span>
+      <a href="https://prompt-plus-three.vercel.app/dashboard" target="_blank" class="user-pill-btn" id="user-profile-link" title="Open the web dashboard">
+        <img src="icons/icon48.png" class="user-avatar-img" id="user-avatar" alt="" />
+        <span class="user-name-label" id="user-name">Account</span>
       </a>
     </div>
   </header>
 
   <!-- Top Navigation Tabs Bar -->
-  <nav class="nav-tabs-bar">
-    <button type="button" class="nav-tab-btn active" id="tab-btn-enhance">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      <span>Compiler</span>
+  <nav class="nav-tabs-bar" role="tablist" aria-label="Sections">
+    <button type="button" class="nav-tab-btn active" id="tab-btn-enhance" role="tab" aria-selected="true" aria-controls="panel-enhance">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <span>Enhance</span>
     </button>
-    <button type="button" class="nav-tab-btn" id="tab-btn-library">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-      <span>Blueprints</span>
+    <button type="button" class="nav-tab-btn" id="tab-btn-library" role="tab" aria-selected="false" aria-controls="panel-library">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <span>Templates</span>
     </button>
-    <button type="button" class="nav-tab-btn" id="tab-btn-context">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-      <span>Context Vault</span>
+    <button type="button" class="nav-tab-btn" id="tab-btn-context" role="tab" aria-selected="false" aria-controls="panel-context">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      <span>Context</span>
     </button>
-    <button type="button" class="nav-tab-btn" id="tab-btn-settings">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      <span>Sync</span>
+    <button type="button" class="nav-tab-btn" id="tab-btn-settings" role="tab" aria-selected="false" aria-controls="panel-settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Settings</span>
     </button>
   </nav>
 
   <!-- Main Viewport -->
   <main class="main-viewport">
-    <!-- PANEL 1: COMPILER / ENHANCE -->
-    <div class="tab-content-panel" id="panel-enhance">
-      <!-- Sleek Live Context Banner -->
-      <div class="context-hero-banner" id="context-hero-banner">
-        <div class="hero-banner-main">
-          <div class="hero-bot-badge">
+    <!-- PANEL 1: ENHANCE -->
+    <div class="tab-content-panel" id="panel-enhance" role="tabpanel" aria-labelledby="tab-btn-enhance">
+      <!-- Usage: the one card that reports capacity, nothing duplicated -->
+      <div class="usage-card context-runway-card" id="context-runway-card">
+        <div class="usage-ring" title="Share of this model's context limit used in the chat">
+          <svg class="runway-svg-ring" viewBox="0 0 44 44" aria-hidden="true">
+            <circle class="runway-ring-bg" cx="22" cy="22" r="18" />
+            <circle class="runway-ring-fg" id="runway-ring-fg" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="113.1" />
+          </svg>
+          <span class="runway-ring-pct" id="runway-ring-pct">—</span>
+        </div>
+        <div class="usage-body">
+          <div class="usage-head">
             <span class="sync-indicator-dot" id="runway-status-dot"></span>
-            <span class="hero-bot-name" id="active-bot-pill">Universal AI</span>
-            <span class="runway-status-tag" id="runway-status-tag">Limit unknown</span>
+            <span class="usage-model" id="active-bot-pill">Universal AI</span>
+            <span class="runway-status-tag" id="runway-status-tag">Not measured</span>
           </div>
-          <div class="hero-token-stats">
-            <span class="runway-rem-badge" id="runway-rem-badge">Capacity unknown</span>
-            <span class="hero-token-used" id="runway-used-txt">Visible token estimate</span>
+          <div class="usage-nums">
+            <span class="runway-rem-badge" id="runway-rem-badge">—</span>
+            <span class="runway-used-txt" id="runway-used-txt">Open a chat to measure it</span>
           </div>
-        </div>
-        <div class="runway-track">
-          <div class="runway-fill" id="runway-fill" style="width: 0%;"></div>
+          <div class="runway-track">
+            <div class="runway-fill" id="runway-fill" style="width: 0%;"></div>
+          </div>
+          <div class="usage-foot" id="runway-burn-rate">—</div>
         </div>
       </div>
 
-      <!-- Tone Persona Strip -->
-      <div class="tone-selector-strip">
-        <button type="button" class="tone-pill-btn active" data-tone="human">Natural Human</button>
-        <button type="button" class="tone-pill-btn" data-tone="code">Tech Architect</button>
-        <button type="button" class="tone-pill-btn" data-tone="exec">Executive Strategy</button>
-        <button type="button" class="tone-pill-btn" data-tone="copy">Marketing Copy</button>
-        <button type="button" class="tone-pill-btn" data-tone="deep">Deep Reasoning</button>
+      <!-- Tone: same five names everywhere (popup, in-page dock, modal) -->
+      <div class="tone-selector-strip" role="group" aria-label="Tone">
+        <button type="button" class="tone-pill-btn active" data-tone="human">Natural</button>
+        <button type="button" class="tone-pill-btn" data-tone="code">Technical</button>
+        <button type="button" class="tone-pill-btn" data-tone="exec">Executive</button>
+        <button type="button" class="tone-pill-btn" data-tone="copy">Marketing</button>
+        <button type="button" class="tone-pill-btn" data-tone="deep">Reasoning</button>
       </div>
 
-      <!-- Input Double-Bezel Card -->
+      <!-- Prompt input -->
       <div class="input-bezel-card">
         <div class="input-bezel-header">
-          <span class="input-bezel-label">Raw Prompt Idea</span>
+          <span class="input-bezel-label">Your prompt</span>
           <div class="input-actions-group">
-            <button type="button" class="tool-icon-btn" id="paste-btn" title="Paste clipboard text">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+            <button type="button" class="tool-icon-btn" id="paste-btn" title="Paste from clipboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
               <span>Paste</span>
             </button>
-            <button type="button" class="tool-icon-btn" id="voice-btn" title="Voice dictation">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+            <button type="button" class="tool-icon-btn" id="voice-btn" title="Dictate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
               <span>Voice</span>
             </button>
-            <button type="button" class="tool-icon-btn" id="clear-btn" title="Clear text">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+            <button type="button" class="tool-icon-btn" id="clear-btn" title="Clear" aria-label="Clear prompt">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
             </button>
           </div>
         </div>
 
-        <textarea id="input" placeholder="Type your rough task, code idea, or query... (e.g. build auth middleware with rate limiting)"></textarea>
+        <textarea id="input" placeholder="Type a rough idea or task, e.g. add rate limiting to the auth middleware"></textarea>
 
         <div class="input-bezel-footer">
           <span id="char-count">0 characters</span>
-          <span id="token-estimate">~0 Tokens</span>
+          <span id="token-estimate">~0 tokens</span>
         </div>
       </div>
 
-      <!-- Master Action Button -->
+      <!-- Primary action -->
       <button type="button" class="master-enhance-btn" id="enhance-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        <span id="btn-text">Compile Master Prompt (⌘↵)</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span id="btn-text">Enhance prompt</span>
         <span id="btn-timer" style="display:none; font-size:10px; opacity:0.8; font-weight:600;">(0.0s)</span>
       </button>
 
       <!-- Toast Notification -->
 
-      <!-- Expandable Advanced Telemetry & Multi-AI Launcher -->
-      <div class="advanced-tools-toggle" id="advanced-tools-toggle" title="Click to view multi-model engine, circular ring telemetry & cross-platform launcher">
+      <!-- Advanced: engine, quota, and the other AI apps -->
+      <div class="advanced-tools-toggle" id="advanced-tools-toggle" role="button" tabindex="0" aria-expanded="false" aria-controls="advanced-tools-drawer" title="Engine, quota and other AI apps">
         <div style="display:flex; align-items:center; gap:6px;">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          <span style="font-weight:600; font-size:10.5px; color:#a1a1aa;">Advanced Telemetry & Multi-AI</span>
+          <span style="font-weight:600; font-size:10.5px; color:#9a9aa3;">Advanced</span>
         </div>
         <span class="advanced-arrow" id="advanced-arrow" style="font-size:11px; color:#71717a; transition:transform 0.2s ease;">▾</span>
       </div>
 
       <div class="advanced-tools-drawer" id="advanced-tools-drawer" style="display:none; flex-direction:column; gap:8px;">
-        <!-- Engine Switcher -->
-        <div class="engine-segmented-box">
-          <button type="button" class="engine-segmented-tab active" id="mode-api" title="Multi-Model Cloud AI">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
-            <span>Cloud AI</span>
+        <!-- Engine: which model writes the prompt -->
+        <div class="engine-segmented-box" role="group" aria-label="Engine">
+          <button type="button" class="engine-segmented-tab active" id="mode-algo" aria-pressed="true" title="Runs instantly on this device. No network, no key.">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Instant</span>
           </button>
-          <button type="button" class="engine-segmented-tab" id="mode-algo" title="Sub-30ms Instant Heuristic (<30ms)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            <span>Turbo Local</span>
+          <button type="button" class="engine-segmented-tab" id="mode-api" aria-pressed="false" title="Runs on your saved API key. Needs a signed-in account.">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+            <span>Cloud key</span>
           </button>
-          <button type="button" class="engine-segmented-tab" id="mode-device" title="Chrome On-Device Gemini Nano">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            <span>Gemini Nano</span>
+          <button type="button" class="engine-segmented-tab" id="mode-device" aria-pressed="false" title="Chrome's built-in model, when your browser provides it.">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <span>Chrome AI</span>
           </button>
         </div>
 
-        <!-- Detailed Runway Card with Circular SVG Progress Ring -->
-        <div class="context-runway-card" id="context-runway-card">
-          <div class="runway-card-top">
-            <div class="runway-ring-box" title="Percentage of active context limit consumed">
-              <svg class="runway-svg-ring" viewBox="0 0 44 44">
-                <circle class="runway-ring-bg" cx="22" cy="22" r="18" />
-                <circle class="runway-ring-fg" id="runway-ring-fg" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="113.1" />
-              </svg>
-              <div class="runway-ring-pct" id="runway-ring-pct">—</div>
-            </div>
-            <div class="runway-meta-col">
-              <div class="runway-numbers-row">
-                <span id="runway-est-msgs">Capacity unknown</span>
-                <span id="runway-burn-rate">· Steady burn</span>
-              </div>
-              <div class="runway-drawer-toggle" id="runway-drawer-toggle" title="Click to view message role token distribution">
-                <span id="runway-breakdown-summary">You: 0 tok · AI: 0 tok · 0 turns</span>
-                <span class="runway-toggle-arrow" id="runway-toggle-arrow">▾</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="runway-drawer-details" id="runway-drawer-details" style="display: none;">
-            <div class="runway-details-grid">
-              <div>User Input: <strong id="runway-user-tok">0</strong></div>
-              <div>AI Output: <strong id="runway-ai-tok">0</strong></div>
-              <div>Avg Turn: <strong id="runway-avg-turn">0 tok</strong></div>
-              <div>Max Single: <strong id="runway-max-turn">0 tok</strong></div>
-            </div>
-          </div>
-
-          <div class="promptplus-quota-row">
-            <span>Free Quota: <strong id="token-remaining-badge">—</strong></span>
-            <span id="token-needed-txt">~0 tok input</span>
-          </div>
-          <div class="promptplus-quota-track">
-            <div class="promptplus-quota-fill" id="token-meter-fill" style="width: 100%;"></div>
-          </div>
+        <!-- This app's own free quota, not the chat model's context -->
+        <div class="promptplus-quota-row">
+          <span>Free quota: <strong id="token-remaining-badge">—</strong></span>
+          <span id="token-needed-txt">~0 tok in</span>
+        </div>
+        <div class="promptplus-quota-track">
+          <div class="promptplus-quota-fill" id="token-meter-fill" style="width: 100%;"></div>
         </div>
 
-        <!-- Multi-AI Split Launch (8 Platforms) -->
+        <!-- Take the compiled prompt to another AI -->
         <div class="multi-ai-section">
           <div class="multi-ai-title">
-            <span>Cross-Platform AI Launch</span>
-            <button type="button" class="send-all-btn" id="bridge-send-all" title="Launch all 8 AI platforms simultaneously with compiled prompt">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              <span>Send to All</span>
+            <span>Open in another AI</span>
+            <button type="button" class="send-all-btn" id="bridge-send-all" title="Open the compiled prompt in every listed AI">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span>Open in all</span>
             </button>
           </div>
           <div class="multi-ai-grid">
@@ -1395,49 +1381,51 @@
       </div>
     </div>
 
-    <!-- STAGE 2: COMPILED RESULT VIEW -->
+    <!-- STAGE 2: RESULT -->
     <div class="result-view-panel" id="panel-result">
       <div class="result-header-bar">
         <button type="button" class="back-to-edit-btn" id="back-to-edit-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-          <span>Back to Edit</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          <span>Back</span>
         </button>
         <div style="display: flex; gap: 5px; align-items: center;">
-          <span class="score-badge" id="quality-score-badge" style="font-size:10px; font-weight:800; padding:2px 6px; border-radius:5px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); color:#34d399;">Not evaluated</span>
-          <span class="loop-badge" id="loop-telemetry-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); color:#a5b4fc;">Not measured</span>
+          <span class="score-badge" id="quality-score-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.25); color:#34d399;">Not evaluated</span>
+          <span class="loop-badge" id="loop-telemetry-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.25); color:#a5b4fc;">Not measured</span>
         </div>
       </div>
+
+      <div class="result-delta" id="result-token-delta"></div>
 
       <div class="result-body-card" id="result-body"></div>
 
       <div class="result-bottom-actions">
         <button type="button" class="action-btn btn-copy" id="copy-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-          <span>Copy Prompt</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          <span id="copy-btn-label">Copy</span>
         </button>
         <button type="button" class="action-btn btn-inject" id="use-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <span>Use in Active Tab</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span id="use-btn-label">Insert into chat</span>
         </button>
       </div>
 
       <div class="result-secondary-actions">
         <button type="button" class="action-btn btn-save-cloud" id="save-cloud-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          <span>Save to Cloud</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <span id="save-cloud-btn-label">Save to library</span>
         </button>
         <button type="button" class="action-btn btn-studio" id="open-studio-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
-          <span>Web Studio</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+          <span>Open in studio</span>
         </button>
       </div>
     </div>
 
-    <!-- PANEL 2: PROMPT LIBRARY & BLUEPRINTS -->
-    <div class="tab-content-panel" id="panel-library" style="display: none;">
+    <!-- PANEL 2: TEMPLATES -->
+    <div class="tab-content-panel" id="panel-library" role="tabpanel" aria-labelledby="tab-btn-library" style="display: none;">
       <div class="library-search-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="text" class="library-search-input" id="lib-search" placeholder="Search templates & blueprints..." />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" class="library-search-input" id="lib-search" placeholder="Search templates…" />
       </div>
 
       <div class="library-grid" id="library-grid">
@@ -1447,7 +1435,7 @@
       <!-- Recent History Timeline (Phase 5) -->
       <div class="history-timeline-section" style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-subtle);">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <span style="font-size:10px; font-weight:700; text-transform:uppercase; color:var(--text-dim); letter-spacing:0.04em;">Recent Compilations</span>
+          <span style="font-size:10px; font-weight:700; text-transform:uppercase; color:var(--text-dim); letter-spacing:0.04em;">Recent</span>
           <button type="button" id="clear-history-btn" style="background:none; border:none; font-size:9.5px; color:#ef4444; cursor:pointer; font-weight:600;">Clear</button>
         </div>
         <div id="history-timeline-list" style="display:flex; flex-direction:column; gap:6px;">
@@ -1456,27 +1444,27 @@
       </div>
     </div>
 
-    <!-- PANEL 3: CONTEXT VAULT -->
-    <div class="tab-content-panel" id="panel-context" style="display: none;">
-      <div style="font-size: 11px; color: #a1a1aa; line-height: 1.4;">
-        Active Project Rules automatically injected into every compiled master prompt:
+    <!-- PANEL 3: CONTEXT -->
+    <div class="tab-content-panel" id="panel-context" role="tabpanel" aria-labelledby="tab-btn-context" style="display: none;">
+      <div style="font-size: 11px; color: var(--text-muted); line-height: 1.45;">
+        Rules added to every prompt you compile here.
       </div>
       <div id="context-vault-list" style="display: flex; flex-direction: column; gap: 6px;">
         <!-- Injected via JS -->
       </div>
     </div>
 
-    <!-- PANEL 4: SETTINGS & WEB SYNC -->
-    <div class="tab-content-panel" id="panel-settings" style="display: none;">
+    <!-- PANEL 4: SETTINGS -->
+    <div class="tab-content-panel" id="panel-settings" role="tabpanel" aria-labelledby="tab-btn-settings" style="display: none;">
       <div class="sync-card-box">
         <div class="sync-card-row">
-          <span style="font-weight: 700; color: #fff;">Connection Health</span>
+          <span style="font-weight: 700; color: #fff;">Connection</span>
           <span id="settings-health-status" style="font-weight: 700; color: #10b981; display:flex; align-items:center; gap:4px;">
             <span style="width:6px; height:6px; border-radius:50%; background:#10b981; display:inline-block;"></span>
             Not checked
           </span>
         </div>
-        <div class="sync-card-row" style="color: #a1a1aa;">
+        <div class="sync-card-row" style="color: var(--text-muted);">
           <span>Target: <strong id="settings-health-url" style="color: #cbd5e1; font-size:10px;">Cloud Production API</strong></span>
           <button type="button" id="ping-health-btn" style="background:rgba(255,255,255,0.06); border:1px solid var(--border-subtle); border-radius:4px; padding:2px 8px; color:#fff; font-size:9.5px; cursor:pointer;">Ping</button>
         </div>
@@ -1484,21 +1472,21 @@
 
       <div class="sync-card-box">
         <div class="sync-card-row">
-          <span style="font-weight: 700; color: #fff;">Web Platform Account</span>
-          <span id="settings-auth-status" style="font-weight: 700; color: #a1a1aa;">Not connected</span>
+          <span style="font-weight: 700; color: #fff;">Account</span>
+          <span id="settings-auth-status" style="font-weight: 700; color: var(--text-muted);">Not connected</span>
         </div>
-        <div class="sync-card-row" style="color: #a1a1aa;">
+        <div class="sync-card-row" style="color: var(--text-muted);">
           <span>User: <strong id="settings-user-name" style="color: #fff;">—</strong></span>
-          <span>Quota: <strong id="settings-quota-txt" style="color: #a1a1aa;">—</strong></span>
+          <span>Quota: <strong id="settings-quota-txt" style="color: var(--text-muted);">—</strong></span>
         </div>
-        <button type="button" class="sync-card-btn" id="manual-sync-btn">Force Sync with Web Account</button>
+        <button type="button" class="sync-card-btn" id="manual-sync-btn">Sync with web account</button>
       </div>
 
       <div class="sync-card-box">
-        <div style="font-weight: 700; font-size: 11px; color: #fff;">Bring Your Own API Key (AES-256 Encrypted)</div>
-        <div style="font-size: 10px; color: #a1a1aa;">Optional: Custom keys bypass all monthly rate limits.</div>
-        <input type="password" id="custom-api-key-input" placeholder="sk-... / AIza... / nvapi-..." style="width: 100%; height: 32px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 7px; padding: 0 8px; color: #fff; font-size: 11px; outline: none;" />
-        <button type="button" class="sync-card-btn" id="save-key-btn">Save Encrypted Key</button>
+        <div style="font-weight: 700; font-size: 11px; color: #fff;">Your own API key</div>
+        <div style="font-size: 10px; color: var(--text-muted);">Stored encrypted on this device. The 120-per-hour request cap is shared and still applies.</div>
+        <input type="password" id="custom-api-key-input" aria-label="API key" placeholder="sk-... / AIza... / nvapi-..." style="width: 100%; height: 32px; background: rgba(0,0,0,0.35); border: 1px solid var(--border-subtle); border-radius: 7px; padding: 0 8px; color: #fff; font-size: 11px; outline: none;" />
+        <button type="button" class="sync-card-btn" id="save-key-btn">Save key</button>
       </div>
     </div>
   </main>
