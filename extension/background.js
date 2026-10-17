@@ -362,7 +362,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   // ---------- Connection Health & Latency Monitor ----------
   if (request.action === "getHealthStatus") {
-    sendResponse({ health: cachedHealthState });
+    (async () => {
+      // The popup asks once and never re-polls, so a cold worker must probe now
+      // rather than answer "unknown" and leave the header reading "Not checked".
+      const health = cachedHealthState.status === "unknown" ? await pingServerHealth() : cachedHealthState;
+      sendResponse({ health });
+    })();
     return true;
   }
 

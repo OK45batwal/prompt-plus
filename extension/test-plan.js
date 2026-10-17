@@ -198,6 +198,14 @@ assert(popupJs.includes(".tone-pill-btn"), "popup.js queries .tone-pill-btn sele
 assert(popupJs.includes("advanced-tools-toggle"), "popup.js hooks up expandable advanced tools toggle");
 assert(popupJs.includes("copyResultToClipboard") && popupJs.includes("navigator.clipboard.writeText(enhancedResult)"), "popup.js implements clipboard fallback on tab injection edge cases");
 
+// The connection label has exactly one owner: the health probe. Two writers
+// drifting apart is how every signed-out user came to be told "Offline".
+assert((popupJs.match(/syncStatusText\.textContent\s*=/g) || []).length === 1, "popup.js writes the connection label in exactly one place");
+assert(!/if \(authData\?\.authenticated[^]*?syncStatusText/.test(popupJs), "popup.js does not let the auth-sync result override the connection label");
+
+const backgroundJs = fs.readFileSync(path.join(__dirname, "background.js"), "utf8");
+assert(backgroundJs.includes('cachedHealthState.status === "unknown" ? await pingServerHealth()'), "background.js probes before answering getHealthStatus on a cold worker");
+
 // -------------------------------------------------------------------
 // SUMMARY
 // -------------------------------------------------------------------

@@ -633,9 +633,10 @@ document.addEventListener("DOMContentLoaded", () => {
   async function syncWithWebPlatform() {
     return new Promise((resolve) => {
       chrome.runtime.sendMessage({ action: "syncAuth" }, (authData) => {
+        // This path owns identity and quota. The connection label has exactly one
+        // owner, the health probe: writing "Offline" here meant every signed-out
+        // user was told the server was unreachable while it was healthy.
         if (authData?.authenticated && authData.user) {
-          if (syncStatusText) syncStatusText.textContent = "Connected";
-          if (syncDot) syncDot.classList.remove("offline");
           if (userName) userName.textContent = authData.user.name ? authData.user.name.split(" ")[0] : "Account";
           if (userAvatar && authData.user.avatar) userAvatar.src = authData.user.avatar;
 
@@ -656,8 +657,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }));
           }
         } else {
-          if (syncStatusText) syncStatusText.textContent = "Offline";
-          if (syncDot) syncDot.classList.add("offline");
           if (userName) userName.textContent = "Guest";
         }
         updateTokenMetrics();
