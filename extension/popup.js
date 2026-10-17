@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const enhanceBtn = document.getElementById("enhance-btn");
   const btnText = document.getElementById("btn-text");
   const btnTimer = document.getElementById("btn-timer");
+  const btnKbdPill = document.getElementById("btn-kbd-pill");
   const toastMsg = document.getElementById("toast-msg");
   const panelResult = document.getElementById("panel-result");
   const resultBody = document.getElementById("result-body");
@@ -337,12 +338,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ---------- 4. Engine Switcher ----------
-  const ENGINE_LABELS = { algo: "Enhance prompt", device: "Enhance with Chrome AI", api: "Enhance with cloud key" };
+  const ENGINE_LABELS = { algo: "Enhance Prompt", device: "Enhance with Chrome AI", api: "Enhance with cloud key" };
 
   function updateEnhanceButtonLabel() {
     if (!btnText) return;
     btnText.textContent = ENGINE_LABELS[currentMode] || ENGINE_LABELS.algo;
     if (enhanceBtn) enhanceBtn.title = `Shortcut: ${ENTER_HINT}`;
+    if (btnKbdPill) {
+      btnKbdPill.textContent = ENTER_HINT;
+      btnKbdPill.hidden = false;
+    }
   }
 
   function setMode(mode) {
@@ -963,7 +968,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (panelEnhance) panelEnhance.style.display = "none";
     if (panelResult) {
       panelResult.style.display = "flex";
-      if (resultBody) resultBody.textContent = text;
+      if (resultBody) {
+        resultBody.textContent = text;
+        resultBody.classList.remove("flash-in");
+        void resultBody.offsetWidth; // reflow so a repeat compile replays the flash
+        resultBody.classList.add("flash-in");
+      }
       if (scoreBadge) scoreBadge.textContent = `Structure estimate: ${score}/100`;
       if (loopBadge) loopBadge.textContent = [source, latency].filter(Boolean).join(" · ");
       if (resultTokenDelta) {

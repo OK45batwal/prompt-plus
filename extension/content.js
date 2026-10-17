@@ -70,8 +70,8 @@
 
       .pp-unified-dock:hover,
       .pp-floating-trigger:hover {
-        border-color: rgba(99, 102, 241, 0.55) !important;
-        box-shadow: 0 6px 26px rgba(0, 0, 0, 0.6), 0 0 16px rgba(99, 102, 241, 0.25) !important;
+        border-color: rgba(6, 182, 212, 0.55) !important;
+        box-shadow: 0 6px 26px rgba(0, 0, 0, 0.6), 0 0 16px rgba(6, 182, 212, 0.25) !important;
       }
 
       .pp-dock-btn {
@@ -81,35 +81,35 @@
         height: 22px !important;
         padding: 0 8px 0 5px !important;
         border-radius: 9999px !important;
-        /* Every stop keeps the white label at 4.5:1 or better. */
-        background: linear-gradient(180deg, #5b5ef0 0%, #4f46e5 55%, #4338ca 100%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.22) !important;
-        color: #ffffff !important;
+        /* Dark ink on cyan reads at 8:1; white on cyan is 2.4:1 and fails. */
+        background: linear-gradient(180deg, #06b6d4 0%, #0d9488 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.35) !important;
+        color: #04141c !important;
         cursor: pointer !important;
         font-size: 11px !important;
         font-weight: 700 !important;
         line-height: 1 !important;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25),
-                    0 2px 8px rgba(79, 70, 229, 0.45) !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                    0 2px 8px rgba(6, 182, 212, 0.45) !important;
         transition: all 0.15s ease !important;
         flex-shrink: 0 !important;
       }
 
       .pp-dock-btn:hover {
-        background: linear-gradient(180deg, #6d70f7 0%, #5b5ef0 55%, #4f46e5 100%) !important;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3),
-                    0 3px 14px rgba(99, 102, 241, 0.6) !important;
+        background: linear-gradient(180deg, #22d3ee 0%, #14b8a6 100%) !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5),
+                    0 3px 14px rgba(6, 182, 212, 0.6) !important;
         transform: translateY(-0.5px) !important;
       }
 
       .pp-dock-btn:active {
         transform: translateY(0.5px) !important;
         box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3),
-                    0 1px 4px rgba(79, 70, 229, 0.4) !important;
+                    0 1px 4px rgba(6, 182, 212, 0.4) !important;
       }
 
       .pp-dock-btn:focus-visible {
-        outline: 2px solid rgba(165, 180, 252, 0.9) !important;
+        outline: 2px solid rgba(103, 232, 249, 0.9) !important;
         outline-offset: 2px !important;
       }
 
@@ -127,7 +127,7 @@
         border-radius: 3px !important;
         background: rgba(0, 0, 0, 0.28) !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        color: #e0e7ff !important;
+        color: rgba(255, 255, 255, 0.85) !important;
         line-height: 1 !important;
         font-weight: 600 !important;
       }
@@ -202,9 +202,9 @@
       }
 
       .pp-dock-tone.active {
-        background: rgba(99, 102, 241, 0.25) !important;
-        border-color: rgba(99, 102, 241, 0.45) !important;
-        color: #c7d2fe !important;
+        background: rgba(6, 182, 212, 0.25) !important;
+        border-color: rgba(6, 182, 212, 0.45) !important;
+        color: #67e8f9 !important;
       }
 
       .pp-dock-studio-btn {
@@ -235,8 +235,8 @@
         width: 380px !important;
         max-width: calc(100vw - 32px) !important;
         background: rgba(12, 12, 16, 0.96) !important;
-        border: 1px solid rgba(99, 102, 241, 0.45) !important;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 24px rgba(99, 102, 241, 0.25) !important;
+        border: 1px solid rgba(6, 182, 212, 0.45) !important;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 24px rgba(6, 182, 212, 0.25) !important;
         backdrop-filter: blur(24px) saturate(160%) !important;
         -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
         border-radius: 14px !important;
@@ -332,10 +332,10 @@
         border-color: rgba(255, 255, 255, 0.18) !important;
       }
       .pp-tone-chip.active {
-        background: rgba(99, 102, 241, 0.25) !important;
-        border-color: rgba(99, 102, 241, 0.65) !important;
-        color: #c7d2fe !important;
-        box-shadow: 0 0 10px rgba(99, 102, 241, 0.25) !important;
+        background: rgba(6, 182, 212, 0.25) !important;
+        border-color: rgba(6, 182, 212, 0.65) !important;
+        color: #67e8f9 !important;
+        box-shadow: 0 0 10px rgba(6, 182, 212, 0.25) !important;
       }
 
       .pp-modal-preview {
@@ -361,9 +361,9 @@
         flex: 1 !important;
         height: 36px !important;
         border-radius: 8px !important;
-        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        color: #ffffff !important;
+        background: linear-gradient(180deg, #06b6d4 0%, #0d9488 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        color: #04141c !important;
         font-size: 11.5px !important;
         font-weight: 700 !important;
         cursor: pointer !important;
@@ -371,7 +371,7 @@
         align-items: center !important;
         justify-content: center !important;
         gap: 6px !important;
-        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4) !important;
         transition: all 0.15s ease !important;
       }
       .pp-modal-btn-primary:hover {
@@ -854,7 +854,7 @@
     modalEl.innerHTML = `
       <div class="pp-modal-header">
         <div class="pp-modal-title">
-          <span class="pp-dock-icon" style="width:16px;height:16px;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;">${ICONS.sparkle}</span>
+          <span class="pp-dock-icon" style="width:16px;height:16px;background:linear-gradient(135deg,#06b6d4,#0d9488);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;">${ICONS.sparkle}</span>
           <span>Prompt+</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">

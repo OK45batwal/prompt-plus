@@ -7,16 +7,19 @@
   <title>Prompt+ Architect AI</title>
   <style>
     :root {
-      --bg: #0b0b0d;
-      --surface-1: rgba(22, 22, 26, 0.92);
-      --surface-2: rgba(30, 30, 36, 0.96);
+      --bg: #0a0b10;
+      --surface-1: rgba(12, 17, 30, 0.82);
+      --surface-2: rgba(18, 24, 38, 0.88);
       --surface-inner: rgba(0, 0, 0, 0.35);
       --border-subtle: rgba(255, 255, 255, 0.07);
       --border-highlight: rgba(255, 255, 255, 0.14);
-      --border-active: rgba(129, 140, 248, 0.55);
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --primary-glow: rgba(99, 102, 241, 0.22);
+      /* One accent, declared once: every tint below is derived from --accent-rgb. */
+      --accent-rgb: 6, 182, 212;
+      --accent-text: #67e8f9;
+      --border-active: rgba(var(--accent-rgb), 0.55);
+      --primary: #06b6d4;
+      --primary-hover: #22d3ee;
+      --primary-glow: rgba(var(--accent-rgb), 0.28);
       --emerald: #10b981;
       --emerald-glow: rgba(16, 185, 129, 0.18);
       --amber: #f59e0b;
@@ -55,7 +58,7 @@
       width: 410px;
       height: 560px;
       max-height: 560px;
-      background: radial-gradient(600px 280px at 50% -40px, rgba(99, 102, 241, 0.10), transparent 70%), var(--bg);
+      background: radial-gradient(600px 280px at 50% -40px, rgba(var(--accent-rgb), 0.08), transparent 70%), var(--bg);
       color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
       font-size: 12px;
@@ -112,7 +115,8 @@
       width: 28px;
       height: 28px;
       border-radius: 8px;
-      background: var(--primary);
+      background: linear-gradient(135deg, #06b6d4, #0d9488);
+      box-shadow: 0 0 16px var(--primary-glow);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -145,9 +149,9 @@
       font-weight: 700;
       padding: 1px 6px;
       border-radius: var(--radius-pill);
-      background: rgba(99, 102, 241, 0.15);
-      border: 1px solid rgba(99, 102, 241, 0.35);
-      color: #c7d2fe;
+      background: rgba(var(--accent-rgb), 0.15);
+      border: 1px solid rgba(var(--accent-rgb), 0.35);
+      color: var(--accent-text);
     }
 
     .header-sync-row {
@@ -164,11 +168,18 @@
       border-radius: 50%;
       background: var(--emerald);
       box-shadow: 0 0 8px var(--emerald-glow);
+      animation: statusPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes statusPulse {
+      0%, 100% { box-shadow: 0 0 8px var(--emerald-glow); }
+      50% { box-shadow: 0 0 14px rgba(16, 185, 129, 0.55); }
     }
 
     .sync-indicator-dot.offline {
       background: var(--text-dim);
       box-shadow: none;
+      animation: none;
     }
 
     .header-right {
@@ -296,8 +307,8 @@
     }
 
     .engine-segmented-tab.active {
-      background: rgba(99, 102, 241, 0.25);
-      border: 1px solid rgba(99, 102, 241, 0.4);
+      background: rgba(var(--accent-rgb), 0.25);
+      border: 1px solid rgba(var(--accent-rgb), 0.4);
       color: #ffffff;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
     }
@@ -343,9 +354,9 @@
     }
 
     .tone-pill-btn.active {
-      background: rgba(99, 102, 241, 0.2);
-      border-color: rgba(99, 102, 241, 0.45);
-      color: #c7d2fe;
+      background: rgba(var(--accent-rgb), 0.2);
+      border-color: rgba(var(--accent-rgb), 0.45);
+      color: var(--accent-text);
     }
 
     /* ---------- Input Bezel Card ---------- */
@@ -361,6 +372,7 @@
 
     .input-bezel-card:focus-within {
       border-color: var(--border-active);
+      box-shadow: 0 0 12px var(--primary-glow);
     }
 
     .input-bezel-header {
@@ -447,45 +459,69 @@
     }
 
     /* ---------- Master Enhance Action Button ---------- */
+    /* Dark ink on cyan reads at 8:1; white on cyan is 2.4:1 and fails. */
     .master-enhance-btn {
       width: 100%;
-      height: 40px;
-      border-radius: 9px;
-      border: 1px solid rgba(129, 140, 248, 0.55);
-      /* Every stop keeps the white label at 4.5:1 or better. */
-      background: linear-gradient(180deg, #5b5ef0 0%, #4f46e5 55%, #4338ca 100%);
-      color: #ffffff;
-      font-size: 12.5px;
-      font-weight: 700;
-      letter-spacing: -0.01em;
+      height: 44px;
+      border-radius: 10px;
+      border: 1.5px solid rgba(var(--accent-rgb), 0.5);
+      background: linear-gradient(180deg, #06b6d4 0%, #0d9488 100%);
+      color: #04141c;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22),
-                  0 2px 10px rgba(0, 0, 0, 0.35);
+      gap: 8px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                  0 2px 10px rgba(0, 0, 0, 0.4),
+                  0 0 14px var(--primary-glow);
       transition: all 0.18s var(--ease-spring);
       position: relative;
       overflow: hidden;
     }
 
     .master-enhance-btn:hover:not(:disabled) {
-      background: linear-gradient(180deg, #6d70f7 0%, #5b5ef0 55%, #4f46e5 100%);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3),
-                  0 4px 16px rgba(0, 0, 0, 0.45),
+      background: linear-gradient(180deg, #22d3ee 0%, #14b8a6 100%);
+      border-color: rgba(var(--accent-rgb), 0.75);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45),
+                  0 4px 16px rgba(0, 0, 0, 0.5),
                   0 0 18px var(--primary-glow);
+      transform: translateY(-1px);
     }
 
     .master-enhance-btn:active:not(:disabled) {
-      transform: scale(0.98);
+      transform: translateY(0.5px) scale(0.99);
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3),
+                  0 0 10px var(--primary-glow);
     }
 
     .master-enhance-btn.is-loading {
-      background: linear-gradient(90deg, #4f46e5 20%, #818cf8 50%, #4f46e5 80%);
+      background: linear-gradient(90deg, #0d9488 20%, #06b6d4 50%, #0d9488 80%);
       background-size: 200% 100%;
-      animation: btnShimmer 1.5s infinite linear;
+      animation: btnShimmer 1.8s infinite linear;
+      border-color: rgba(var(--accent-rgb), 0.6);
       cursor: wait;
+    }
+
+    /* Platform-aware hint, kept out of flow so the label stays centred. */
+    .btn-kbd-pill {
+      position: absolute;
+      right: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 9px;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: 700;
+      letter-spacing: 0;
+      line-height: 1;
     }
 
     @keyframes btnShimmer {
@@ -722,9 +758,9 @@
     }
 
     .send-all-btn {
-      background: rgba(99, 102, 241, 0.15);
-      border: 1px solid rgba(99, 102, 241, 0.35);
-      color: #818cf8;
+      background: rgba(var(--accent-rgb), 0.15);
+      border: 1px solid rgba(var(--accent-rgb), 0.35);
+      color: var(--accent-text);
       font-size: 9px;
       font-weight: 700;
       padding: 1px 7px;
@@ -737,7 +773,7 @@
     }
 
     .send-all-btn:hover {
-      background: rgba(99, 102, 241, 0.28);
+      background: rgba(var(--accent-rgb), 0.28);
       color: #fff;
     }
 
@@ -864,6 +900,16 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
+    /* Brief accent flash so a fresh result is noticed without a toast. */
+    @keyframes resultFlash {
+      from { box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.4); }
+      to { box-shadow: 0 0 0 rgba(var(--accent-rgb), 0); }
+    }
+
+    .result-body-card.flash-in {
+      animation: resultFlash 0.6s ease-out;
+    }
+
     .result-bottom-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -900,7 +946,7 @@
 
     .btn-inject {
       background: var(--primary);
-      border: 1px solid rgba(99, 102, 241, 0.5);
+      border: 1px solid rgba(var(--accent-rgb), 0.5);
       color: #ffffff;
     }
 
@@ -1002,8 +1048,8 @@
       font-weight: 700;
       padding: 1px 5px;
       border-radius: 4px;
-      background: rgba(99, 102, 241, 0.15);
-      color: #a5b4fc;
+      background: rgba(var(--accent-rgb), 0.15);
+      color: var(--accent-text);
       white-space: nowrap;
     }
 
@@ -1028,9 +1074,9 @@
 
     .use-blueprint-btn,
     .load-hist-btn {
-      background: rgba(99, 102, 241, 0.15);
-      border: 1px solid rgba(99, 102, 241, 0.35);
-      color: #c7d2fe;
+      background: rgba(var(--accent-rgb), 0.15);
+      border: 1px solid rgba(var(--accent-rgb), 0.35);
+      color: var(--accent-text);
       font-size: 10px;
       font-weight: 700;
       border-radius: 5px;
@@ -1041,7 +1087,7 @@
 
     .use-blueprint-btn:hover,
     .load-hist-btn:hover {
-      background: rgba(99, 102, 241, 0.28);
+      background: rgba(var(--accent-rgb), 0.28);
       color: #fff;
     }
 
@@ -1057,7 +1103,7 @@
     }
 
     .context-rule-card.active {
-      border-color: rgba(99, 102, 241, 0.35);
+      border-color: rgba(var(--accent-rgb), 0.35);
     }
 
     .rule-toggle {
@@ -1136,9 +1182,9 @@
       width: 100%;
       height: 32px;
       border-radius: 8px;
-      background: rgba(99, 102, 241, 0.2);
-      border: 1px solid rgba(99, 102, 241, 0.4);
-      color: #c7d2fe;
+      background: rgba(var(--accent-rgb), 0.2);
+      border: 1px solid rgba(var(--accent-rgb), 0.4);
+      color: var(--accent-text);
       font-size: 11px;
       font-weight: 700;
       cursor: pointer;
@@ -1150,7 +1196,7 @@
     }
 
     .sync-card-btn:hover {
-      background: rgba(99, 102, 241, 0.3);
+      background: rgba(var(--accent-rgb), 0.3);
       color: #fff;
     }
 
@@ -1306,8 +1352,9 @@
       <!-- Primary action -->
       <button type="button" class="master-enhance-btn" id="enhance-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        <span id="btn-text">Enhance prompt</span>
+        <span id="btn-text">Enhance Prompt</span>
         <span id="btn-timer" style="display:none; font-size:10px; opacity:0.8; font-weight:600;">(0.0s)</span>
+        <span class="btn-kbd-pill" id="btn-kbd-pill" hidden></span>
       </button>
 
       <!-- Toast Notification -->
@@ -1395,7 +1442,7 @@
         </button>
         <div style="display: flex; gap: 5px; align-items: center;">
           <span class="score-badge" id="quality-score-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.25); color:#34d399;">Not evaluated</span>
-          <span class="loop-badge" id="loop-telemetry-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.25); color:#a5b4fc;">Not measured</span>
+          <span class="loop-badge" id="loop-telemetry-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.25); color:var(--accent-text);">Not measured</span>
         </div>
       </div>
 
