@@ -127,12 +127,11 @@ export const GET = withAuth(
     }
 
     const modelColorMap: Record<string, string> = {
-      "google/gemini-2.0-flash-exp:free": "bg-emerald-500",
-      "deepseek/deepseek-r1:free": "bg-blue-500",
+      "nvidia/nemotron-3.5-super-vl:free": "bg-emerald-500",
+      "xingchen-agi/xing4.0-29b-a4b:free": "bg-blue-500",
       "anthropic/claude-3.5-sonnet": "bg-amber-500",
       "openai/gpt-4o-mini": "bg-purple-500",
       "openai/gpt-4o": "bg-indigo-500",
-      "meta-llama/llama-3.3-70b-instruct:free": "bg-pink-500",
       "Default (Auto-Routing)": "bg-teal-500",
     };
 

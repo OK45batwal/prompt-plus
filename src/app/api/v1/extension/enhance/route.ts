@@ -1,17 +1,17 @@
-// @public-route: Chrome extension enhancement endpoint with multi-provider retry loop & free model auto-routing
+// @public-route: rate-limited extension enhancement with CORS and deterministic fallback.
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { callLLM, createLLMCacheKey } from "@/lib/llm/providers";
 import { buildArchitectMetaPrompt, cleanMasterPromptOutput } from "@/lib/llm/meta-prompt";
-import { resolveServerApiKey } from "@/lib/llm/server-api-key";
+import { resolveServerApiKey, providerForModel, defaultModelForProvider } from "@/lib/llm/server-api-key";
 import { checkIpRateLimitAsync, extractClientIp, getRateLimitHeaders, rateLimitStatus, rateLimitMessage } from "@/lib/rate-limit";
 import { calculateStructuralScore } from "@/lib/scoring";
-import { synthesizeAlgorithmicPrompt } from "@/lib/llm/algorithmic-enhancers";
+import { executeLoopEngineering } from "@/lib/prompt-engine";
 import { enhancementCache } from "@/lib/llm/cache";
 import { auth } from "@/lib/auth/config";
 
 const extensionEnhanceSchema = z.object({
-  text: z.string().min(1).max(10000),
+  text: z.string().trim().min(1).max(10000),
   apiKey: z.string().min(5).optional(),
   provider: z.enum(["openai", "anthropic", "openrouter", "nvidia"]).optional(),
   model: z.string().optional(),
@@ -21,16 +21,10 @@ const extensionEnhanceSchema = z.object({
   level: z.enum(["quick", "deep", "expert"]).optional().default("deep"),
 });
 
-const FALLBACK_FREE_MODELS = [
-  "google/gemini-2.0-flash-exp:free",
-  "deepseek/deepseek-r1:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
-];
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Title, HTTP-Referer",
+  "Access-Control-Allow-Headers": "Content-Type, X-PromptPlus-Client, X-Requested-With, Authorization, X-Title, HTTP-Referer",
 };
 
 export async function OPTIONS() {
@@ -65,18 +59,7 @@ export async function POST(request: NextRequest) {
 
   const { text, apiKey, provider, model, category, tone, length, level } = parseResult.data;
 
-  let resolvedProvider: "openai" | "anthropic" | "openrouter" | "nvidia";
-  if (provider === "nvidia" || provider === "openrouter" || provider === "anthropic" || provider === "openai") {
-    resolvedProvider = provider;
-  } else if (model?.startsWith("meta/") || model?.startsWith("nvidia/") || model?.startsWith("google/gemma")) {
-    resolvedProvider = "nvidia";
-  } else if (model?.includes("claude")) {
-    resolvedProvider = "anthropic";
-  } else if (model?.includes(":") || model?.includes("/")) {
-    resolvedProvider = "openrouter";
-  } else {
-    resolvedProvider = "openrouter";
-  }
+  const resolvedProvider = provider || (model ? providerForModel(model) : "openrouter");
 
   let effectiveKey = apiKey || "";
   let effectiveProvider = resolvedProvider;
@@ -96,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const reqModel = model || (effectiveKey ? "gpt-4o-mini" : "google/gemini-2.0-flash-exp:free");
+  const reqModel = model && effectiveProvider === resolvedProvider ? model : defaultModelForProvider(effectiveProvider);
   const cacheKey = createLLMCacheKey({ tenantId, apiKey: effectiveKey, provider: effectiveProvider, text, model: reqModel, category, tone, length, level });
   const cached = tenantId ? enhancementCache.get(cacheKey) : null;
   if (cached) {
@@ -119,16 +102,9 @@ export async function POST(request: NextRequest) {
 
   const { metaPrompt, systemInstruction } = buildArchitectMetaPrompt(text, category, tone, length, level);
 
-  const modelCandidates = [
-    { provider: effectiveProvider, key: effectiveKey, model: reqModel },
-    ...FALLBACK_FREE_MODELS.filter((m) => m !== reqModel).slice(0, 1).map((m) => ({
-      provider: "openrouter" as const,
-      key: "",
-      model: m,
-    })),
-  ];
-
-  let lastError: unknown = null;
+  const modelCandidates = effectiveKey.trim()
+    ? [{ provider: effectiveProvider, key: effectiveKey, model: reqModel }]
+    : [];
 
   for (const candidate of modelCandidates) {
     try {
@@ -144,6 +120,7 @@ export async function POST(request: NextRequest) {
       });
 
       const cleanedOutput = cleanMasterPromptOutput(response.content);
+      if (!cleanedOutput.trim()) throw new Error("Provider returned an empty enhancement");
 
       if (tenantId) enhancementCache.set(cacheKey, {
         enhancedText: cleanedOutput,
@@ -201,22 +178,18 @@ export async function POST(request: NextRequest) {
         },
         { headers: corsHeaders }
       );
-    } catch (err) {
-      lastError = err;
-      console.warn(`[Extension Backend] Candidate ${candidate.model} failed, trying next candidate...`);
+    } catch {
+      console.warn(`[Extension Backend] Candidate ${candidate.model} failed; using deterministic engine.`);
     }
   }
 
-  console.log("[Extension Backend] Serving dynamic Algorithmic Meta-Prompt Synthesis:", lastError);
-
-  const enhancedText = synthesizeAlgorithmicPrompt(text, level);
-
+  const preferences = [tone && `Tone: ${tone}`, length && `Length: ${length}`, category && `Category: ${category}`].filter(Boolean).join("\n");
+  const result = executeLoopEngineering(preferences ? `${text}\n\n${preferences}` : text, {
+    maxCycles: level === "quick" ? 1 : 3,
+    zeroFluff: true,
+  });
   return NextResponse.json(
-    {
-      enhanced: enhancedText,
-      model: "prompt-architect-algorithmic",
-      provider: "local",
-    },
+    { enhanced: result.finalPrompt, model: "promptplus-engine", provider: "engine", source: "engine" },
     { headers: corsHeaders }
   );
 }

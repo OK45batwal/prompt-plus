@@ -79,7 +79,8 @@ export function PromptDemo() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Enhancement unavailable. Please try again.");
       if (data?.enhanced || data?.data?.enhanced) {
-        setSource((data.provider || data.data?.provider) === "local" ? "Local template (offline)" : "Live model result");
+        const provider = data.provider || data.data?.provider;
+        setSource(provider === "engine" ? "Deterministic engine · no model ran" : provider === "local" ? "Local template (offline)" : "Live model result");
         setCustomEnhanced(data.enhanced || data.data.enhanced);
       } else throw new Error("No enhancement returned. Please try again.");
     } catch (err) {

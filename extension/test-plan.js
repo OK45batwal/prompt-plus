@@ -1,5 +1,5 @@
 /**
- * Automated Test Plan Runner for Prompt+ Architect AI Extension v3.0.0
+ * Automated Test Plan Runner for Prompt+ Architect AI Extension
  * Tests Tokenizer, Adapters, Context Runway Analyzer & State Handlers
  */
 const fs = require("fs");
@@ -129,7 +129,7 @@ for (const item of adapterFiles) {
 console.log("\nTEST SUITE 3: Manifest & In-Page Widget Integration");
 
 const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, "manifest.json"), "utf8"));
-assert(manifest.version === "3.0.0", `Manifest version is 3.0.0`);
+assert(/^\d+\.\d+\.\d+$/.test(manifest.version), "Manifest has a valid release version");
 assert(!manifest.permissions.includes("notifications"), "Unverified capacity does not request notifications permission");
 assert(manifest.permissions.includes("storage"), "Manifest has storage permission");
 

@@ -40,14 +40,14 @@ export const POST = withAuth(
     }
     const budget = await checkIpRateLimitAsync(`evaluation:${userId}`, 5, 3600000);
     if (!budget.allowed) return jsonResponse({ error: rateLimitMessage(budget) }, { status: rateLimitStatus(budget), headers: getRateLimitHeaders(budget), requestId });
-    const model = targetModel || "google/gemini-2.0-flash-exp:free";
+    const model = targetModel || "nvidia/nemotron-3.5-super-vl:free";
     const provider = providerForModel(model);
     const resolved = resolveServerApiKey(provider);
     // Only use the resolved key when it belongs to the model's provider; never mix a key with a foreign model.
-    const apiKey = resolved.provider === provider ? resolved.apiKey : "";
-    if (!apiKey && provider !== "openrouter") {
+    const apiKey = resolved?.provider === provider ? resolved.apiKey : "";
+    if (!apiKey) {
       return jsonResponse(
-        { error: `Live verification needs a ${provider} API key on the server. Pick a model from a configured provider or a free OpenRouter model.`, code: "PROVIDER_KEY_MISSING", provider },
+        { error: `Live verification needs a ${provider} API key on the server. Pick a model from a configured provider with a matching API key.`, code: "PROVIDER_KEY_MISSING", provider },
         { status: 402, requestId }
       );
     }

@@ -7,7 +7,7 @@ import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 import { buildArchitectMetaPrompt, cleanMasterPromptOutput } from "@/lib/llm/meta-prompt";
 import { calculateStructuralScore } from "@/lib/scoring";
-import { synthesizeAlgorithmicPrompt } from "@/lib/llm/algorithmic-enhancers";
+import { executeLoopEngineering } from "@/lib/prompt-engine";
 import { enhancementCache } from "@/lib/llm/cache";
 
 export const maxDuration = 60;
@@ -235,7 +235,7 @@ export const POST = withAuth(
       }).catch(() => {});
 
       // Dynamic algorithmic meta-prompt synthesis
-      const fallbackEnhancedText = synthesizeAlgorithmicPrompt(text, level);
+      const fallbackEnhancedText = executeLoopEngineering(text, { maxCycles: level === "quick" ? 1 : 3 }).finalPrompt;
       const fallbackScore = structuralPair(fallbackEnhancedText);
 
       return jsonResponse(
@@ -244,10 +244,10 @@ export const POST = withAuth(
             promptId: promptId || "algorithmic",
             enhanced: fallbackEnhancedText,
             score: fallbackScore,
-            source: "local-template",
-            sourceLabel: "Local template (offline)",
-            provider: "prompt-architect-engine",
-            model: "algorithmic-v2",
+            source: "engine",
+            sourceLabel: "Deterministic engine · no model ran",
+            provider: "engine",
+            model: "promptplus-engine",
             tokensIn: 0,
             tokensOut: 0,
             latencyMs,

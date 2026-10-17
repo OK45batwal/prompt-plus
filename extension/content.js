@@ -674,25 +674,93 @@
         });
       });
       if (response?.success && response.data?.enhanced) {
-        return { text: response.data.enhanced, source: response.data.source === "local-template" ? "Local template (offline)" : "Cloud model" };
+        return { text: response.data.enhanced, source: response.data.source === "engine" ? "Deterministic engine" : response.data.source === "local-template" ? "Local template (offline)" : "Cloud model" };
       }
     } catch { /* Explicit local fallback below. */ }
     return { text: synthesizeLocalPrompt(text, tone), source: "Local template (offline)" };
   }
 
+  let closeEnhancementPreview = null;
+  function showEnhancementPreview(input, original, enhanced, source) {
+    closeEnhancementPreview?.();
+    const panel = document.createElement("section");
+    panel.id = "pp-enhancement-preview";
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-label", "Review enhancement");
+    panel.tabIndex = -1;
+    Object.assign(panel.style, {
+      position: "fixed", bottom: "90px", right: "16px", width: "min(520px, calc(100vw - 32px))",
+      maxHeight: "70vh", overflow: "auto", padding: "20px", borderRadius: "16px",
+      background: "#111318", color: "#f1f5f9", border: "1px solid #475569",
+      boxShadow: "0 16px 48px #0008", zIndex: "100000002", font: "13px/1.6 system-ui, sans-serif"
+    });
+    const beforeTokens = window.PromptPlusTokenizer.countTokens(original);
+    const afterTokens = window.PromptPlusTokenizer.countTokens(enhanced);
+    const delta = afterTokens - beforeTokens;
+    // Highlight the changed span while preserving common prefix/suffix words.
+    const before = original.split(/(\s+)/);
+    const after = enhanced.split(/(\s+)/);
+    let prefix = 0, suffix = 0;
+    while (prefix < before.length && prefix < after.length && before[prefix] === after[prefix]) prefix++;
+    while (suffix < before.length - prefix && suffix < after.length - prefix && before[before.length - 1 - suffix] === after[after.length - 1 - suffix]) suffix++;
+    const diff = (words, tag, color) => {
+      const end = words.length - suffix;
+      return escapeHtml(words.slice(0, prefix).join("")) + `<${tag} style="background:${color};color:inherit">` + escapeHtml(words.slice(prefix, end).join("")) + `</${tag}>` + escapeHtml(words.slice(end).join(""));
+    };
+    panel.innerHTML = `
+      <strong style="font-size:16px">Review enhancement</strong>
+      <p style="color:#cbd5e1;margin:6px 0">${escapeHtml(source)}</p>
+      <p id="pp-preview-tokens" style="margin:8px 0">Estimated tokens: ${beforeTokens} → ${afterTokens} (${delta > 0 ? "+" : ""}${delta})</p>
+      <div style="max-height:38vh;overflow:auto">
+        <p style="font-weight:600">Original</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="original">${diff(before, "del", "#7f1d1d")}</div>
+        <p style="font-weight:600;margin-top:12px">Enhanced</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="enhanced">${diff(after, "ins", "#14532d")}</div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:16px">
+        <button type="button" id="pp-preview-accept" style="padding:8px 14px;border-radius:8px;background:#f1f5f9;color:#111318">Accept · Tab</button>
+        <button type="button" id="pp-preview-keep" style="padding:8px 14px;border-radius:8px;background:#334155;color:#fff">Keep original · Esc</button>
+      </div>`;
+    const close = () => {
+      document.removeEventListener("keydown", onKey, true);
+      panel.remove();
+      closeEnhancementPreview = null;
+      if (input.isConnected) input.focus();
+    };
+    const accept = () => {
+      if (!input.isConnected || getText(input) !== original) {
+        close();
+        showToast("Your input changed. Enhance again to review your latest text.");
+        return;
+      }
+      close();
+      setText(input, enhanced);
+      showToast("Enhancement accepted");
+    };
+    const onKey = (event) => {
+      if (event.key !== "Escape" && !(event.key === "Tab" && !event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (event.key === "Escape") close(); else accept();
+    };
+    panel.querySelector("#pp-preview-accept").addEventListener("click", accept);
+    panel.querySelector("#pp-preview-keep").addEventListener("click", close);
+    document.body.appendChild(panel);
+    document.addEventListener("keydown", onKey, true);
+    closeEnhancementPreview = close;
+    panel.focus();
+  }
+
   async function enhanceInPlace(input, raw, tone) {
     if (enhancementPending || !raw.trim()) return;
-    const initialText = getText(input).trim();
+    const initialText = getText(input);
     enhancementPending = true;
-    showToast("Enhancing with cloud models…");
+    showToast("Enhancing your prompt…");
     try {
       const result = await enhanceText(raw, tone);
-      if (getText(input).trim() !== initialText) {
+      if (getText(input) !== initialText) {
         showToast("Input changed while enhancing. Try again to use your latest text.");
         return;
       }
-      setText(input, result.text);
-      showToast(result.source);
+      showEnhancementPreview(input, initialText, result.text, result.source);
     } finally { enhancementPending = false; }
   }
 
@@ -821,7 +889,7 @@
       <div class="pp-modal-actions">
         <button type="button" class="pp-modal-btn-primary" id="pp-modal-replace-btn">
           ${ICONS.zap}
-          <span>Optimize & Replace</span>
+          <span>Optimize & Review</span>
           <kbd class="pp-trigger-kbd" style="margin-left: 4px; background: rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.2); color: #ffffff;">${kbdShortcut}</kbd>
         </button>
         <button type="button" class="pp-modal-btn-sub" id="pp-modal-copy-btn" title="Copy Master Prompt">
@@ -1502,15 +1570,13 @@
       if (request.action === "injectEnhanced") {
         const input = getInput();
         if (input && request.enhanced) {
-          setText(input, request.enhanced);
-          showToast("✓ Injected into active chat!");
-          sendResponse({ success: true });
+          showEnhancementPreview(input, getText(input), request.enhanced, "Prompt+ enhancement");
+          sendResponse({ success: true, pendingReview: true });
         } else if (request.enhanced) {
           const active = document.activeElement;
           if (active && (active.tagName === "TEXTAREA" || active.tagName === "INPUT" || active.isContentEditable)) {
-            setText(active, request.enhanced);
-            showToast("✓ Injected into focused editor!");
-            sendResponse({ success: true });
+            showEnhancementPreview(active, getText(active), request.enhanced, "Prompt+ enhancement");
+            sendResponse({ success: true, pendingReview: true });
           } else {
             showToast("⚠️ Could not detect chat input box");
             sendResponse({ success: false, error: "No input field detected" });
@@ -1528,8 +1594,7 @@
           void enhanceText(raw, selectedTone).then(({ text: enhanced, source }) => {
           const input = getInput();
           if (input) {
-            setText(input, enhanced);
-            showToast("✓ Selection enhanced & inserted into chat!");
+            showEnhancementPreview(input, getText(input), enhanced, source);
           } else {
             navigator.clipboard?.writeText(enhanced);
             showToast("✓ Selection enhanced & copied to clipboard!");

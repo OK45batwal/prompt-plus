@@ -19,12 +19,11 @@ import {
 } from "lucide-react";
 import { getSavedContextBlocks, ContextBlock } from "@/lib/context-memory";
 import { estimateTokenCount, calculateCostEstimates } from "@/lib/token-calculator";
-import { enhanceWithDevice, isDeviceAISupported } from "@/lib/llm/device-ai";
 import type { EnhanceLevel } from "@/lib/llm/meta-prompt";
 import { useToast } from "@/components/ui/toast";
 import { openAIPlatform } from "@/lib/platform-redirect";
 import { MODELS, DEFAULT_MODEL_ID, getModelById } from "@/lib/models";
-import { ModelSelector, EnhanceEngineMode } from "@/components/studio/model-selector";
+import { ModelSelector } from "@/components/studio/model-selector";
 import { ContextMemoryPanel } from "@/components/studio/context-memory-panel";
 import { LiveEvaluation } from "@/components/studio/live-evaluation";
 import { isScore } from "@/lib/score-summary";
@@ -75,6 +74,7 @@ interface V2Candidate {
 interface EnhancedResult {
   promptId?: string;
   source: string;
+  model?: string;
   dimensions?: { clarity: number; specificity: number; structure: number; context: number; actionability: number };
   original: { text: string; score: number | null };
   enhanced: { text: string; score: number | null };
@@ -136,8 +136,6 @@ function PromptBuilderPage() {
   const [copied, setCopied] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showCostBreakdown, setShowCostBreakdown] = useState(false);
-  const [enhanceMode, setEnhanceMode] = useState<EnhanceEngineMode>("api");
-  const [deviceState, setDeviceState] = useState<"unknown" | "available" | "unavailable" | "downloading">("unknown");
   const [enhanceLevel, setEnhanceLevel] = useState<EnhanceLevel>("deep");
   const [isListening, setIsListening] = useState(false);
 
@@ -243,7 +241,7 @@ function PromptBuilderPage() {
         if (raw) {
           const localMap = JSON.parse(raw);
           const targetProv = selectedModelData?.provider || "openai";
-          userApiKey = localMap[targetProv] || localMap["openrouter"] || localMap["openai"] || localMap["anthropic"] || localMap["nvidia"];
+          userApiKey = localMap[targetProv];
         }
       } catch {
         // ignore
@@ -252,148 +250,21 @@ function PromptBuilderPage() {
 
     try {
       let finalEnhancedText: string | undefined;
-      let enhanceProvider = enhanceMode;
+      let enhanceProvider = "engine";
       let v2Data: EnhancedResult["v2"] | undefined;
-
-      // ── Branch 1: On-Device Gemini Nano ──
-      if (enhanceMode === "device" && isDeviceAISupported()) {
-        try {
-          finalEnhancedText = await enhanceWithDevice({
-            text: fullPrompt,
-            category: selectedCategory,
-            tone: selectedTone,
-            length: selectedLength,
-            level: enhanceLevel,
-          });
-          enhanceProvider = "device";
-        } catch {
-          // Fallback to No-API Engine
-          const { synthesizeAlgorithmicPrompt } = await import("@/lib/llm/algorithmic-enhancers");
-          finalEnhancedText = synthesizeAlgorithmicPrompt(fullPrompt, enhanceLevel);
-          enhanceProvider = "algorithmic";
-        }
-      }
-
-      // ── Branch 2: No-API Rule Engine (offline, deterministic, in-process) ──
-      else if (enhanceMode === "algorithmic") {
-        try {
-          const v2Res = await fetch("/api/v2/optimize", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Requested-With": "XMLHttpRequest",
-            },
-            body: JSON.stringify({
-              text: fullPrompt,
-              mode: "algorithmic",
-              tone: selectedTone,
-              length: selectedLength,
-              category: selectedCategory,
-              targetModel: selectedModelData?.rawModel || selectedModel,
-            }),
-          });
-          const v2Json = await v2Res.json();
-          if (v2Res.ok && v2Json.data?.selectedCandidate?.renderedText) {
-            enhanceProvider = v2Json.data.source === "llm" ? "api" : "algorithmic";
-            finalEnhancedText = v2Json.data.selectedCandidate.renderedText;
-            v2Data = {
-              intent: v2Json.data.intent,
-              security: v2Json.data.security,
-              selectedCandidate: v2Json.data.selectedCandidate,
-              candidates: v2Json.data.candidates || [],
-              modelRouting: v2Json.data.modelRouting || { recommended: selectedModel, reason: "No-API Rule Engine" },
-              loopTrace: v2Json.data.loopTrace,
-            };
-          }
-        } catch {
-          // client-side algorithmic fallback
-        }
-
-        if (!finalEnhancedText) {
-          const { synthesizeAlgorithmicPrompt } = await import("@/lib/llm/algorithmic-enhancers");
-          finalEnhancedText = synthesizeAlgorithmicPrompt(fullPrompt, enhanceLevel);
-        }
-        enhanceProvider = "algorithmic";
-      }
-
-      // ── Branch 3: Dedicated API Cloud AI ──
-      else {
-        enhanceProvider = "api";
-        const hasConnectedKey = !!(savedKeys[selectedModelData?.provider || "openai"] || userApiKey);
-        if (!selectedModelData?.free && !hasConnectedKey) {
-          toast(`No API key found for ${selectedModelData?.provider || "selected model"} — using the built-in engine instead.`, "info");
-        }
-
-        try {
-          const v2Res = await fetch("/api/v2/optimize", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Requested-With": "XMLHttpRequest",
-            },
-            body: JSON.stringify({
-              text: fullPrompt,
-              mode: "api",
-              provider: selectedModelData?.provider,
-              userApiKey,
-              tone: selectedTone,
-              length: selectedLength,
-              category: selectedCategory,
-              targetModel: selectedModelData?.rawModel || selectedModel,
-            }),
-          });
-          const v2Json = await v2Res.json();
-          if (v2Res.ok && v2Json.data?.selectedCandidate?.renderedText) {
-            enhanceProvider = v2Json.data.source === "llm" ? "api" : "algorithmic";
-            finalEnhancedText = v2Json.data.selectedCandidate.renderedText;
-            v2Data = {
-              intent: v2Json.data.intent,
-              security: v2Json.data.security,
-              selectedCandidate: v2Json.data.selectedCandidate,
-              candidates: v2Json.data.candidates || [],
-              modelRouting: v2Json.data.modelRouting || { recommended: selectedModel, reason: "API Cloud Model" },
-              loopTrace: v2Json.data.loopTrace,
-            };
-          }
-        } catch {
-          // Fall back to V1 enhance-ai
-        }
-
-        if (!finalEnhancedText) {
-          const aiRes = await fetch("/api/v1/prompts/enhance-ai", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Requested-With": "XMLHttpRequest",
-            },
-            body: JSON.stringify({
-              text: fullPrompt,
-              model: selectedModelData?.rawModel || selectedModel,
-              provider: selectedModelData?.provider,
-              category: selectedCategory,
-              tone: selectedTone,
-              length: selectedLength,
-              level: enhanceLevel,
-              userApiKey,
-            }),
-          });
-          const aiData = await aiRes.json();
-          if (aiRes.status === 402 || aiData.code === "API_KEY_REQUIRED") {
-            setErrorNotice("API key required. Please configure your API key in Settings -> API Keys to access cloud AI models.");
-            toast("API Key Required: Please add your API key in Settings to enhance with AI models.", "error");
-            setIsEnhancing(false);
-            return;
-          }
-
-          if (aiRes.ok && aiData.data?.enhanced) {
-            enhanceProvider = aiData.data.model === "algorithmic-v2" ? "algorithmic" : "api";
-            finalEnhancedText = aiData.data.enhanced;
-          } else {
-            const { synthesizeAlgorithmicPrompt } = await import("@/lib/llm/algorithmic-enhancers");
-            finalEnhancedText = synthesizeAlgorithmicPrompt(fullPrompt, enhanceLevel);
-            enhanceProvider = "algorithmic";
-          }
-        }
+      const response = await fetch("/api/v2/optimize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+        body: JSON.stringify({ text: fullPrompt, mode: "auto", provider: selectedModelData?.provider,
+          userApiKey, tone: selectedTone, length: selectedLength, category: selectedCategory,
+          level: enhanceLevel, targetModel: selectedModelData?.rawModel || selectedModel }),
+      });
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.error || "Enhancement failed. Please try again.");
+      if (json.data?.selectedCandidate?.renderedText) {
+        enhanceProvider = json.data.source === "llm" ? "api" : "engine";
+        finalEnhancedText = json.data.selectedCandidate.renderedText;
+        v2Data = json.data;
       }
 
       if (!finalEnhancedText) {
@@ -407,7 +278,7 @@ function PromptBuilderPage() {
         const createRes = await fetch("/api/v1/prompts", {
           method: "POST", headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
           body: JSON.stringify({ originalText: fullPrompt,
-            model: enhanceProvider === "algorithmic" ? "local-template" : enhanceProvider === "device" ? "gemini-nano" : selectedModelData?.rawModel || selectedModel,
+            model: json.data.model || (enhanceProvider === "engine" ? "promptplus-engine" : selectedModelData?.rawModel || selectedModel),
             category: selectedCategory || null, tone: selectedTone || null, length: selectedLength || null }),
         });
         const created = await createRes.json();
@@ -439,20 +310,20 @@ function PromptBuilderPage() {
           }
         } catch { /* Enhancement remains usable when assessment is unavailable. */ }
       }
-      setResult({ promptId, source: enhanceProvider, dimensions,
+      setResult({ promptId, source: enhanceProvider, model: json.data.model, dimensions,
         original: { text: fullPrompt, score: originalScore },
         enhanced: { text: finalEnhancedText, score: enhancedScore }, v2: v2Data });
-      toast(enhanceProvider === "algorithmic" ? "Local template ready. No model assessment was run." : "Enhanced prompt ready.", "success");
+      toast(enhanceProvider === "engine" ? "Deterministic enhancement ready. No model ran." : "Enhanced prompt ready.", "success");
       try {
         const existing = JSON.parse(localStorage.getItem("pp_local_history") || "[]");
         const entry = { id: promptId || `local_${Date.now()}`, originalText: fullPrompt,
-          enhancedText: finalEnhancedText, model: enhanceProvider === "algorithmic" ? "Local template (offline)" : selectedModelData?.name || selectedModel,
+          enhancedText: finalEnhancedText, model: json.data.model || (enhanceProvider === "engine" ? "promptplus-engine" : selectedModelData?.name || selectedModel),
           originalScore, enhancedScore, measuredBy: enhancedScore === null ? null : "llm", timestamp: new Date().toISOString() };
         localStorage.setItem("pp_local_history", JSON.stringify([entry, ...existing.filter((x: { originalText: string }) => x.originalText !== fullPrompt)].slice(0, 100)));
       } catch { /* Browser storage may be disabled. */ }
     } catch (error) {
       console.error("Enhancement failed:", error);
-      setErrorNotice("Network error. Please try again.");
+      setErrorNotice(error instanceof Error ? error.message : "Enhancement failed. Please try again.");
     } finally {
       setIsEnhancing(false);
     }
@@ -618,10 +489,6 @@ function PromptBuilderPage() {
           <ModelSelector
             selectedModel={selectedModel}
             onSelectModel={setSelectedModel}
-            enhanceMode={enhanceMode}
-            onSetEnhanceMode={setEnhanceMode}
-            deviceState={deviceState}
-            onSetDeviceState={setDeviceState}
             savedKeys={savedKeys}
           />
 
@@ -802,9 +669,7 @@ function PromptBuilderPage() {
           >
             <span>
               {isEnhancing
-                ? enhanceMode === "device"
-                  ? "Enhancing on Device..."
-                  : "Optimizing with Prompt+ 2.0..."
+                ? "Enhancing your prompt..."
                 : "Enhance Prompt"}
             </span>
             <span className="w-8 h-8 rounded-full bg-white/20 dark:bg-black/20 flex items-center justify-center shrink-0 transition-transform group-hover:scale-105">
@@ -833,14 +698,18 @@ function PromptBuilderPage() {
             <div className="double-bezel-outer h-full min-h-[300px]">
               <div className="double-bezel-inner h-full p-8 flex flex-col items-center justify-center text-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
-                <h3 className="font-bold text-sm">Compiling Master Instruction...</h3>
-                <p className="text-xs text-muted-foreground mt-1 font-mono">Running hybrid evaluation & multi-candidate synthesis</p>
+                <h3 className="font-bold text-sm">Enhancing your prompt...</h3>
+                <p className="text-xs text-muted-foreground mt-1 font-mono">Preserving your intent and refining the structure</p>
               </div>
             </div>
           )}
 
           {result && !isEnhancing && (
             <>
+              <p className="text-xs text-muted-foreground">{result.source === "api" ? "Cloud model enhancement" : "Deterministic engine · no model ran"}</p>
+              <details className="rounded-xl border p-3">
+                <summary className="cursor-pointer text-xs font-semibold">Developer details</summary>
+                <div className="mt-3 space-y-3">
               {/* V2 Engine Analysis Badges */}
               {result.v2 && (
                 <div className="double-bezel-outer">
@@ -865,7 +734,6 @@ function PromptBuilderPage() {
               )}
 
               {/* Score Comparison with Dimension Breakdown */}
-              <p className="text-xs text-muted-foreground">{result.source === "algorithmic" ? "Local template (offline) · no model ran" : result.source === "device" ? "On-device model" : "Cloud model enhancement"}</p>
               <ScoreBreakdown
                 originalScore={result.original.score}
                 enhancedScore={result.enhanced.score}
@@ -895,7 +763,7 @@ function PromptBuilderPage() {
                                 ? {
                                     ...prev,
                                     promptId: undefined,
-                                    source: "algorithmic",
+                                    source: "engine",
                                     dimensions: undefined,
                                     original: { ...prev.original, score: null },
                                     enhanced: {
@@ -921,17 +789,20 @@ function PromptBuilderPage() {
                 </div>
               )}
 
+                </div>
+              </details>
+
               {/* Enhanced Prompt Result with Double-Bezel */}
               <div className="double-bezel-outer">
                 <div className="double-bezel-inner p-4 space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <label className="text-xs font-bold font-mono uppercase">Optimized Prompt</label>
-                      {enhanceMode === "api" ? (
+                      {result.source === "api" ? (
                         <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-[10px] border border-blue-500/20 font-mono">
-                          ☁️ {selectedModelData?.name || selectedModel}
+                          ☁️ {result.model || selectedModelData?.name || selectedModel}
                         </span>
-                      ) : enhanceMode === "device" ? (
+                      ) : result.source === "device" ? (
                         <span className="px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold text-[10px] border border-purple-500/20 font-mono">
                           🧠 Gemini Nano
                         </span>

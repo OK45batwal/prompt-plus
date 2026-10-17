@@ -12,7 +12,7 @@ import {
 } from "@/lib/prompt-engine";
 import { decrypt } from "@/lib/crypto";
 import { getDb } from "@/lib/db/prisma";
-import { resolveServerApiKey } from "@/lib/llm/server-api-key";
+import { resolveServerApiKey, defaultModelForProvider, providerForModel } from "@/lib/llm/server-api-key";
 import { callLLM } from "@/lib/llm/providers";
 import { z } from "zod";
 
@@ -21,7 +21,8 @@ const optimizeSchema = z.object({
     .string()
     .min(1, "Text is required")
     .max(50000, "Text is too long (max 50,000 characters)"),
-  mode: z.enum(["api", "algorithmic", "device"]).optional(),
+  level: z.enum(["quick", "deep", "expert"]).optional(),
+  mode: z.enum(["auto", "api", "algorithmic", "device"]).optional(),
   taskType: z.string().optional(),
   provider: z.enum(["openai", "anthropic", "openrouter", "google", "nvidia"]).optional(),
   userApiKey: z.string().max(1000).optional(),
@@ -63,7 +64,7 @@ export const POST = withAuth(
     const preferences = [parseResult.data.tone && `Tone: ${parseResult.data.tone}`, parseResult.data.length && `Length: ${parseResult.data.length}`, parseResult.data.category && `Category: ${parseResult.data.category}`].filter(Boolean).join("\n");
 
     // Execute Loop Engineering Optimization Loop (Generate -> Critique -> Auto-Repair -> Polish)
-    const loopResult = executeLoopEngineering(preferences ? `${text}\n\n${preferences}` : text, { zeroFluff: true });
+    const loopResult = executeLoopEngineering(preferences ? `${text}\n\n${preferences}` : text, { zeroFluff: true, maxCycles: parseResult.data.level === "quick" ? 1 : 3 });
 
     // Incorporate any user answers to adaptive questions
     let finalSelected = loopResult.selectedCandidate;
@@ -88,40 +89,51 @@ export const POST = withAuth(
       privacyPreference,
     });
 
-    let source: "llm" | "local-template" = "local-template";
+    let source: "llm" | "engine" = "engine";
     const startedAt = Date.now();
+    let actualModel = "promptplus-engine";
+    let actualProvider = "engine";
 
-    // Hybrid Mode: If mode is "api", polish the algorithmic IR candidate using LLM
-    if (mode === "api" && privacyPreference !== "local_only") {
+    // Resolve credentials on the server; keyless requests use the deterministic result.
+    if ((!mode || mode === "auto" || mode === "api") && privacyPreference !== "local_only") {
       try {
-        const targetModel = reqModel || modelRouting.recommendedModel.model;
-        let key = resolveServerApiKey(parseResult.data.provider);
-        if (parseResult.data.userApiKey) key = { apiKey: parseResult.data.userApiKey, provider: key.provider };
-        else {
-          const stored = await getDb().apiKey.findFirst({ where: { userId, isActive: true, provider: parseResult.data.provider || key.provider } });
-          if (stored) key = { apiKey: decrypt(stored.apiKeyEnc), provider: key.provider };
+        const preferredProvider = parseResult.data.provider || providerForModel(reqModel || "");
+        let key: { apiKey: string; provider: string } | null = null;
+        if (parseResult.data.userApiKey?.trim()) {
+          key = { apiKey: parseResult.data.userApiKey, provider: preferredProvider };
+        } else {
+          const stored = await getDb().apiKey.findFirst({ where: { userId, isActive: true, provider: preferredProvider } }).catch(() => null);
+          if (stored) {
+            try { key = { apiKey: decrypt(stored.apiKeyEnc), provider: preferredProvider }; } catch { /* Try the configured server key. */ }
+          }
+          if (!key) key = resolveServerApiKey(preferredProvider);
         }
-        const llmRes = await callLLM({
-          ...key,
-          provider: parseResult.data.provider || key.provider,
-          tenantId: userId,
-          systemPrompt: "Improve the clarity and structure of this prompt. Preserve its intent and every explicit constraint. Do not invent requirements or claims. Return only the improved prompt.",
-          userPrompt: `Target Task: ${loopResult.intent.taskType}\n\nStructured Prompt IR Draft:\n${finalSelected.renderedText}\n\nDeliver the final polished prompt directly:`,
-          model: targetModel,
-          temperature: 0.5,
-          maxTokens: 3000,
-        });
-        if (llmRes.content && llmRes.content.trim().length > 30) {
-          source = "llm";
-          await getDb().usageLog.create({ data: { userId, action: "enhance", provider: llmRes.provider, model: llmRes.model, tokensIn: llmRes.tokensIn, tokensOut: llmRes.tokensOut, latencyMs: Date.now() - startedAt, success: true } });
-          finalSelected = {
-            ...finalSelected,
-            renderedText: llmRes.content.trim(),
-            strategyName: `${finalSelected.strategyName} + LLM Refined (${llmRes.model})`,
-          };
+        if (key?.apiKey.trim()) {
+          const targetModel = reqModel && key.provider === preferredProvider ? reqModel : defaultModelForProvider(key.provider);
+          const llmRes = await callLLM({
+            ...key,
+            provider: key.provider as "openai" | "anthropic" | "openrouter" | "nvidia",
+            tenantId: userId,
+            systemPrompt: "Improve the clarity and structure of this prompt. Preserve its intent and every explicit constraint. Do not invent requirements or claims. Return only the improved prompt.",
+            userPrompt: `Target Task: ${loopResult.intent.taskType}\n\nStructured Prompt IR Draft:\n${finalSelected.renderedText}\n\nDeliver the final polished prompt directly:`,
+            model: targetModel,
+            temperature: 0.5,
+            maxTokens: 3000,
+          });
+          if (llmRes.content && llmRes.content.trim().length > 30) {
+            source = "llm";
+            actualModel = llmRes.model;
+            actualProvider = llmRes.provider;
+            await getDb().usageLog.create({ data: { userId, action: "enhance", provider: llmRes.provider, model: llmRes.model, tokensIn: llmRes.tokensIn, tokensOut: llmRes.tokensOut, latencyMs: Date.now() - startedAt, success: true } }).catch(() => {});
+            finalSelected = {
+              ...finalSelected,
+              renderedText: llmRes.content.trim(),
+              strategyName: `${finalSelected.strategyName} + LLM Refined (${llmRes.model})`,
+            };
+          }
         }
       } catch {
-        source = "local-template";
+        source = "engine";
         await getDb().usageLog.create({ data: { userId, action: "enhance", latencyMs: Date.now() - startedAt, success: false } }).catch(() => {});
       }
     }
@@ -142,7 +154,9 @@ export const POST = withAuth(
         success: true,
         data: {
           source,
-          sourceLabel: source === "llm" ? "Cloud model" : "Local template (offline)",
+          model: actualModel,
+          provider: actualProvider,
+          sourceLabel: source === "llm" ? "Cloud model" : "Deterministic engine · no model ran",
           autoCorrect: loopResult.autoCorrect,
           security: loopResult.security,
           intent: loopResult.intent,

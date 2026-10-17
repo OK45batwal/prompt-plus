@@ -104,14 +104,13 @@ describe("Phase 1 Security & Correctness Hardening", () => {
   });
 
   describe("Server API Key Resolver", () => {
-    it("should return openrouter free fallback when no server keys are configured", () => {
+    it("should return null when no server keys are configured", () => {
       delete process.env.NVIDIA_API_KEY;
       delete process.env.OPENROUTER_API_KEY;
       delete process.env.OPENAI_API_KEY;
       delete process.env.ANTHROPIC_API_KEY;
       const res = resolveServerApiKey("openai");
-      expect(res.provider).toBe("openrouter");
-      expect(res.apiKey).toBe("");
+      expect(res).toBeNull();
     });
 
     it("should prefer the requested provider when its key exists", () => {
@@ -131,14 +130,13 @@ describe("Phase 1 Security & Correctness Hardening", () => {
       expect(result?.apiKey).toBe("nvapi-test");
     });
 
-    it("should return openrouter free fallback for an unknown preferred provider with no configured keys", () => {
+    it("should return null for an unknown preferred provider with no configured keys", () => {
       delete process.env.NVIDIA_API_KEY;
       delete process.env.OPENROUTER_API_KEY;
       delete process.env.OPENAI_API_KEY;
       delete process.env.ANTHROPIC_API_KEY;
       const res = resolveServerApiKey("google");
-      expect(res.provider).toBe("openrouter");
-      expect(res.apiKey).toBe("");
+      expect(res).toBeNull();
     });
   });
 
@@ -235,7 +233,7 @@ describe("Phase 1 Security & Correctness Hardening", () => {
     it("should pass static analysis route security check on all API v1 routes", async () => {
       const { execSync } = await import("child_process");
       const output = execSync("node scripts/check-api-routes.mjs", { encoding: "utf-8" });
-      expect(output).toContain("API Route Security Gate: All mutating API v1 routes strictly enforce withAuth");
+      expect(output).toContain("API Route Security Gate: API v1/v2 routes use withAuth");
     });
   });
 });

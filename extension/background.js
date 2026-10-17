@@ -188,13 +188,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               const modelUsed = resData.data?.model || resData.model || "promptplus-v2";
               const providerUsed = resData.data?.provider || resData.provider || "cloud";
               const scoreUsed = resData.data?.score ?? resData.score ?? null;
+              const engine = providerUsed === "engine";
               const local = providerUsed === "local" || /algorithmic|promptplus-v2/.test(modelUsed) || url.includes("/v2/extension/");
 
               sendResponse({
                 success: true,
                 data: {
                   enhanced: enhancedText,
-                  source: local ? "local-template" : "llm",
+                  source: engine ? "engine" : local ? "local-template" : "llm",
                   model: modelUsed,
                   provider: providerUsed,
                   score: scoreUsed,

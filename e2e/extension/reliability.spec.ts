@@ -1,5 +1,7 @@
 import { chromium, expect, test, type BrowserContext, type Worker } from "@playwright/test";
 import path from "node:path";
+import { readFileSync } from "node:fs";
+import vm from "node:vm";
 
 type Snapshot = { pp_token_session_v1: { tokens: [number, { conversationTokens: number; conversationId: string }][] } };
 let context: BrowserContext;
@@ -23,6 +25,9 @@ for (const editor of ["textarea", "contenteditable"]) {
     const tabId = await worker.evaluate(`chrome.tabs.query({}).then(tabs => tabs.find(t => t.url.includes('/c/fixture-one')).id)`);
     const result = await worker.evaluate(`chrome.tabs.sendMessage(${tabId}, {action:'injectEnhanced', enhanced:'Preserve this prompt'})`) as { success: boolean };
     expect(result.success).toBe(true);
+    await expect(page.getByRole("dialog", { name: "Review enhancement" })).toBeVisible();
+    await expect(page.locator("#pp-preview-tokens")).toContainText("Estimated tokens: 0 →");
+    await page.keyboard.press("Tab");
     if (editor === "textarea") await expect(page.locator("#prompt-textarea")).toHaveValue("Preserve this prompt");
     else await expect(page.locator("#prompt-textarea")).toHaveText("Preserve this prompt");
     await expect(page.locator("body")).not.toHaveAttribute("data-submitted", "yes");
@@ -72,3 +77,37 @@ test("popup compiles locally and copies when insertion is unavailable", async ()
   await popup.locator("#copy-btn").click();
   await expect(popup.getByText("Clipboard unavailable. Select and copy the result manually.")).toBeVisible();
 });
+
+for (const editor of ["textarea", "contenteditable"]) {
+  test(`reviews engine changes in ${editor}, rejects safely, and prevents stale acceptance`, async () => {
+    await context.route("https://chatgpt.com/**", route => route.fulfill({ contentType: "text/html", body: `<html><body><main><form onsubmit="event.preventDefault();document.body.dataset.submitted='yes'">${editor === "textarea" ? '<textarea id="prompt-textarea"></textarea>' : '<div id="prompt-textarea" contenteditable="true" role="textbox"></div>'}<button type="submit">Send</button></form></main></body></html>` }));
+    await context.route("https://prompt-plus-three.vercel.app/api/v1/extension/enhance", route => route.fulfill({ json: { enhanced: "Write a concise project update for the team.", provider: "engine", model: "promptplus-engine", source: "engine" } }));
+    const page = await context.newPage();
+    await page.goto("https://chatgpt.com/c/preview");
+    const input = page.locator("#prompt-textarea");
+    const read = () => editor === "textarea" ? input.inputValue() : input.innerText();
+    await expect(page.locator("#pp-dock-enhance")).toBeVisible();
+    await input.fill("Write a project update");
+    await page.locator("#pp-dock-enhance").click();
+    const dialog = page.getByRole("dialog", { name: "Review enhancement" });
+    await expect(dialog).toBeVisible();
+    expect(await read()).toBe("Write a project update");
+    await expect(dialog).toContainText("Deterministic engine");
+    await expect(dialog.locator("ins")).toContainText("concise");
+    const tokenizerContext = { PromptPlusTokenizer: undefined as undefined | { countTokens: (text: string) => number } };
+    vm.runInNewContext(readFileSync("extension/lib/tokenizer.js", "utf8"), tokenizerContext);
+    const counts = ["Write a project update", "Write a concise project update for the team."].map(text => tokenizerContext.PromptPlusTokenizer!.countTokens(text));
+    await expect(dialog.locator("#pp-preview-tokens")).toHaveText(`Estimated tokens: ${counts[0]} → ${counts[1]} (+${counts[1] - counts[0]})`);
+    await page.screenshot({ path: test.info().outputPath(`extension-preview-${editor}.png`) });
+    await page.keyboard.press("Escape");
+    await expect(dialog).not.toBeVisible();
+    expect(await read()).toBe("Write a project update");
+    await page.locator("#pp-dock-enhance").click();
+    await expect(dialog).toBeVisible();
+    await input.fill("My newer draft");
+    await dialog.locator("#pp-preview-accept").click();
+    expect(await read()).toBe("My newer draft");
+    await expect(dialog).not.toBeVisible();
+    await expect(page.locator("body")).not.toHaveAttribute("data-submitted", "yes");
+  });
+}

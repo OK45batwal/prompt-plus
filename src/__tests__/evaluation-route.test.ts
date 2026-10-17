@@ -15,7 +15,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.budget.mockResolvedValue({ allowed: true });
   mocks.provider.mockReturnValue("openrouter");
-  mocks.resolveKey.mockReturnValue({ apiKey: "", provider: "openrouter" });
+  mocks.resolveKey.mockReturnValue({ apiKey: "test-key", provider: "openrouter" });
   mocks.db.prompt.findFirst.mockResolvedValue({ id: "p" });
   mocks.db.usageLog.create.mockResolvedValue({});
   mocks.db.analytics.create.mockResolvedValue({});

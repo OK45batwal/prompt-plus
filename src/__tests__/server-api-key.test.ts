@@ -6,8 +6,8 @@ describe("providerForModel", () => {
     ["gpt-4o-mini", "openai"],
     ["gpt-4o", "openai"],
     ["claude-3-5-sonnet", "anthropic"],
-    ["google/gemini-2.0-flash-exp:free", "openrouter"],
-    ["deepseek/deepseek-r1:free", "openrouter"],
+    ["nvidia/nemotron-3.5-super-vl:free", "openrouter"],
+    ["xingchen-agi/xing4.0-29b-a4b:free", "openrouter"],
     ["meta/llama-3.1-8b-instruct", "nvidia"],
     ["nvidia/llama-3.1-nemotron-70b-instruct", "nvidia"],
     ["google/gemma-2-9b-it", "nvidia"],
@@ -17,7 +17,7 @@ describe("providerForModel", () => {
   });
 
   it("does not route an OpenRouter-only slug to NVIDIA", () => {
-    expect(providerForModel("anthropic/claude-3.5-sonnet")).toBe("anthropic");
+    expect(providerForModel("anthropic/claude-3.5-sonnet")).toBe("openrouter");
     expect(providerForModel("")).toBe("openai");
   });
 });

@@ -56,8 +56,12 @@ test("Studio shows genuine zero assessments and an inconclusive verification wit
   await page.goto("/dashboard/new");
   await page.getByRole("textbox", { name: "Your prompt", exact: true }).fill('What is 2+2? Return only "4"');
   await page.getByRole("button", { name: "Enhance Prompt", exact: true }).click();
+  await expect(page.getByText("→ Enhanced: 0/100")).not.toBeVisible();
+  await page.getByText("Cloud model enhancement", { exact: true }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: info.outputPath("studio-default-result.png"), fullPage: true });
+  await page.getByText("Developer details", { exact: true }).click();
   await expect(page.getByText("→ Enhanced: 0/100")).toBeVisible();
-  expect(mode).toBe("api");
+  expect(mode).toBe("auto");
   await page.getByRole("button", { name: "Verify with live models" }).click();
   await expect(page.getByText("The runs used different models or providers. No winner can be reported.")).toBeVisible();
   expect(evaluationBody).toMatchObject({ confirmLiveEvaluation: true, rubric: { exact: "4" }, promptId: "saved-prompt" });
@@ -71,4 +75,30 @@ test("marketing home ships no fabricated social proof or rating markup", async (
   expect(html).not.toMatch(/join thousands|trusted by \d|loved by \d|\d+x (better|faster)/i);
   expect(html).not.toMatch(/MIT[- ]?open[- ]?source/i);
   await expect(page.getByText(/\d[\d,]*\s+(developers|users|customers)\b/i)).toHaveCount(0);
+});
+
+test("keyless Studio defaults to the engine and keeps developer details collapsed", async ({ page }, info) => {
+  await session(page);
+  await page.route("**/api/v2/optimize", route => route.fulfill({ json: { data: {
+    source: "engine", model: "promptplus-engine", provider: "engine",
+    selectedCandidate: { id: "engine", renderedText: "Write a concise update for the team. Include progress, risks, and next steps." },
+    candidates: [], intent: { taskType: "writing", complexity: "low" }, security: { isSafe: true },
+  } } }));
+  await page.route("**/api/v1/prompts", route => route.fulfill({ json: { data: { id: "engine-prompt" } } }));
+  await page.route("**/api/v1/prompts/engine-prompt", route => route.fulfill({ json: { data: { id: "engine-prompt" } } }));
+  await page.goto("/dashboard/new");
+  await expect(page.getByText("Automatic enhancement", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "On-Device", exact: true })).toHaveCount(0);
+  await page.getByRole("textbox", { name: "Your prompt", exact: true }).fill("Write a project update");
+  await page.getByRole("button", { name: "Enhance Prompt", exact: true }).click();
+  await expect(page.getByText("Deterministic engine · no model ran", { exact: true })).toBeVisible();
+  await expect(page.getByText("Developer details", { exact: true })).toBeVisible();
+  await expect(page.getByText("Domain:", { exact: false })).not.toBeVisible();
+  expect(await page.locator("details").filter({ hasText: "Developer details" }).getAttribute("open")).toBeNull();
+  await page.getByText("Deterministic engine · no model ran", { exact: true }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: info.outputPath("studio-engine-desktop.png"), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByText("Deterministic engine · no model ran", { exact: true }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: info.outputPath("studio-engine-mobile.png"), fullPage: true });
 });

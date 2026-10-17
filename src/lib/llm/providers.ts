@@ -36,18 +36,6 @@ export class LLMError extends Error {
   }
 }
 
-const OPENROUTER_FREE_MODELS = [
-  "google/gemini-2.0-flash-exp:free",
-  "google/gemini-2.0-pro-exp-02-05:free",
-  "deepseek/deepseek-r1:free",
-  "deepseek/deepseek-chat:free",
-  "meta-llama/llama-3.3-70b-instruct:free",
-  "meta-llama/llama-3.1-8b-instruct:free",
-  "qwen/qwen-2.5-coder-32b-instruct:free",
-  "mistralai/mistral-small-3.1-24b-instruct:free",
-  "microsoft/phi-3.5-mini-128k-instruct:free",
-];
-
 interface CacheEntry {
   response: LLMResponse;
   expiresAt: number;
@@ -102,11 +90,7 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
     provider = detectProviderFromKey(apiKey, provider);
   }
 
-  // Auto-select free OpenRouter model if no API key is provided
-  if (!apiKey && provider !== "openrouter") {
-    provider = "openrouter";
-    options.model = "google/gemini-2.0-flash-exp:free";
-  }
+  if (!apiKey.trim()) throw new LLMError("An API key is required for cloud enhancement.", provider, 401);
 
   // Strip any internal suffix like ::openrouter, ::nvidia, ::openai, etc.
   let reqModel = options.model || "";
@@ -121,7 +105,7 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
   let model =
     reqModel ||
     (isOpenRouter
-      ? "google/gemini-2.0-flash-exp:free"
+      ? "nvidia/nemotron-3.5-super-vl:free"
       : isAnthropic
       ? "claude-3-5-sonnet-20241022"
       : isNvidia
@@ -143,25 +127,7 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
     }
   } else if (isOpenRouter) {
     const clean = model.toLowerCase();
-    if (!apiKey) {
-      // Free mode (no API key) — map to active 100% free OpenRouter models
-      if (clean.includes("deepseek") || clean.includes("r1")) {
-        model = "deepseek/deepseek-r1:free";
-      } else if (clean.includes("qwen") || clean.includes("coder")) {
-        model = "qwen/qwen-2.5-coder-32b-instruct:free";
-      } else if (clean.includes("mistral")) {
-        model = "mistralai/mistral-7b-instruct:free";
-      } else if (clean.includes("llama-3.1") || clean.includes("llama3")) {
-        model = "meta-llama/llama-3.1-8b-instruct:free";
-      } else {
-        model = "google/gemini-2.0-flash-exp:free";
-      }
-    } else {
-      // Paid mode (API key supplied) — use full model slugs
-      if (clean.includes("llama-3.3")) {
-        model = "meta-llama/llama-3.3-70b-instruct";
-      }
-    }
+    if (clean.includes("llama-3.3")) model = "meta-llama/llama-3.3-70b-instruct";
   }
 
   const cacheKey = createLLMCacheKey({ tenantId: options.tenantId, apiKey, provider, model, systemPrompt, userPrompt, temperature, maxTokens, responseFormatJson });
@@ -231,37 +197,13 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
   if (!res || !res.ok) {
     if (res?.status === 401) {
       const hint = isNvidia
-        ? "Invalid NVIDIA API Key. Check your key in API Vault or choose an OpenRouter free model."
+        ? "Invalid NVIDIA API Key. Check your key in API Vault."
         : isOpenRouter
         ? "Invalid OpenRouter API Key. Check your key in API Vault."
         : isAnthropic
         ? "Invalid Anthropic API Key. Check your key in API Vault."
         : "Invalid OpenAI API Key. Check your key in API Vault.";
       throw new LLMError(hint, provider, 401);
-    }
-
-    // Automatic Failover: Only attempt on depth 0 to avoid runaway cascade timeouts.
-    // Try at most 2 alternative free OpenRouter models in sequence.
-    const retryDepth = options._retryDepth || 0;
-    if (retryDepth === 0 && !options.disableFailover) {
-      const fallbackCandidates = OPENROUTER_FREE_MODELS.filter((m) => m !== model).slice(0, 2);
-      for (const fallbackModel of fallbackCandidates) {
-        try {
-          return await callLLM({
-            ...options,
-            userPrompt,
-            systemPrompt,
-            temperature,
-            maxTokens,
-            provider: "openrouter",
-            apiKey: "",
-            model: fallbackModel,
-            _retryDepth: retryDepth + 1,
-          });
-        } catch {
-          // Try next fallback model in list
-        }
-      }
     }
 
     throw new LLMError(lastErrMessage || `${provider} API error (${res?.status || 500})`, provider, res?.status);

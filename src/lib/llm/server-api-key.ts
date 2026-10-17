@@ -5,6 +5,7 @@ const FALLBACK_ORDER: ResolvableProvider[] = ["nvidia", "openrouter", "openai", 
 /** Which server provider serves this model id. Keeps the key and the model on the same provider. */
 export function providerForModel(model: string): ResolvableProvider {
   const m = (model || "").toLowerCase();
+  if (m.includes(":") || m.startsWith("anthropic/")) return "openrouter";
   if (/^(meta|nvidia)\//.test(m) || m.startsWith("google/gemma") || m.includes("mistral-7b")) return "nvidia";
   if (m.includes("claude")) return "anthropic";
   if (m.includes("/") || m.includes(":")) return "openrouter";
@@ -13,7 +14,7 @@ export function providerForModel(model: string): ResolvableProvider {
 
 export function resolveServerApiKey(
   preferred?: string
-): { apiKey: string; provider: ResolvableProvider } {
+): { apiKey: string; provider: ResolvableProvider } | null {
   const serverKeys: Record<ResolvableProvider, string | undefined> = {
     nvidia: process.env.NVIDIA_API_KEY,
     openrouter: process.env.OPENROUTER_API_KEY,
@@ -22,12 +23,15 @@ export function resolveServerApiKey(
   };
 
   const pref = (preferred || "") as ResolvableProvider;
-  if (serverKeys[pref]) return { apiKey: serverKeys[pref]!, provider: pref };
+  if (serverKeys[pref]?.trim()) return { apiKey: serverKeys[pref]!, provider: pref };
 
   for (const p of FALLBACK_ORDER) {
-    if (serverKeys[p]) return { apiKey: serverKeys[p]!, provider: p };
+    if (serverKeys[p]?.trim()) return { apiKey: serverKeys[p]!, provider: p };
   }
 
-  // Zero-key free fallback to OpenRouter free models
-  return { apiKey: "", provider: "openrouter" };
+  return null;
+}
+
+export function defaultModelForProvider(provider: string): string {
+  return ({ openai: "gpt-4o-mini", anthropic: "claude-sonnet-4-6", openrouter: "nvidia/nemotron-3.5-super-vl:free", nvidia: "meta/llama-3.3-70b-instruct" } as Record<string, string>)[provider] || "gpt-4o-mini";
 }

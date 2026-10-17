@@ -293,9 +293,9 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
               { icon: CircleDollarSign, label: "Free forever", desc: "No paywall, ever" },
-              { icon: Infinity, label: "No API key needed", desc: "Built-in engine" },
+              { icon: Infinity, label: "No API key required", desc: "Deterministic engine included" },
               { icon: ShieldCheck, label: "Encrypted at rest", desc: "AES-256-GCM" },
-              { icon: Lock, label: "Private by default", desc: "On-device AI option" },
+              { icon: Lock, label: "Review before use", desc: "You control every edit" },
             ].map((t) => (
               <div key={t.label} className="flex flex-col items-center gap-2 md:flex-row md:items-center md:justify-center md:gap-3 group">
                 <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 transition-transform group-hover:scale-110">

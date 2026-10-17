@@ -62,7 +62,7 @@ Email 3 (Final Check-in):
     title: "Next.js 16 API Route & Service Handler",
     description: "Production-grade Next.js App Router API route with Zod validation, error handling, and Prisma ORM logic.",
     category: "Code",
-    model: "meta-llama/llama-3.3-70b-instruct:free",
+    model: "nvidia/nemotron-3.5-super-vl:free",
     isOfficial: true,
     prompt: `You are a Senior Full-Stack Engineer specializing in Next.js 16 (App Router), TypeScript, and Prisma. Write a complete, production-ready API route for {{feature_description}}.
 
@@ -110,7 +110,7 @@ Sections:
     title: "SaaS Landing Page Hero & Feature Copy",
     description: "High-converting SaaS landing page copy including Hero H1, Subheadline, Feature Pillars, and Social Proof triggers.",
     category: "Marketing",
-    model: "meta-llama/llama-3.3-70b-instruct:free",
+    model: "nvidia/nemotron-3.5-super-vl:free",
     isOfficial: true,
     prompt: `You are an elite SaaS landing page conversion strategist. Write complete landing page copy for {{saas_product}} built for {{target_customer}}.
 
@@ -241,7 +241,7 @@ Include:
     title: "Comprehensive Vitest / Jest Unit Test Suite",
     description: "Generates thorough unit & integration test cases with mock handlers, edge cases, and 100% code coverage.",
     category: "Code",
-    model: "meta-llama/llama-3.3-70b-instruct:free",
+    model: "nvidia/nemotron-3.5-super-vl:free",
     isOfficial: true,
     prompt: `You are a Lead QA Automation Engineer. Write a comprehensive Vitest / Jest test suite for the following TypeScript module:
 

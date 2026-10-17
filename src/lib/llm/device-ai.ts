@@ -48,14 +48,12 @@ export async function checkDeviceAvailability(): Promise<"available" | "unavaila
 export async function enhanceWithDevice(options: DeviceEnhanceOptions): Promise<string> {
   const lm = getLanguageModel();
   if (!lm) {
-    const { synthesizeAlgorithmicPrompt } = await import("./algorithmic-enhancers");
-    return synthesizeAlgorithmicPrompt(options.text, options.level);
+    throw new Error("On-device AI is unavailable in this browser.");
   }
 
   const availability = await checkDeviceAvailability();
   if (availability === "unavailable") {
-    const { synthesizeAlgorithmicPrompt } = await import("./algorithmic-enhancers");
-    return synthesizeAlgorithmicPrompt(options.text, options.level);
+    throw new Error("On-device AI is unavailable in this browser.");
   }
 
   const session = await lm.create({ temperature: 0.1, topK: 1 });

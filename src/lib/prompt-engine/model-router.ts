@@ -33,20 +33,20 @@ export const MODEL_REGISTRY: Record<string, ModelProfile> = {
     strengths: ["Code generation", "Nuanced writing", "Large context window"],
     limitations: [],
   },
-  "google/gemini-2.0-flash-exp:free": {
+  "nvidia/nemotron-3.5-super-vl:free": {
     provider: "openrouter",
-    model: "google/gemini-2.0-flash-exp:free",
-    contextWindow: 1048576,
+    model: "nvidia/nemotron-3.5-super-vl:free",
+    contextWindow: 1000000,
     supportsReasoning: true,
     supportsStructuredOutput: true,
     supportsTools: true,
-    strengths: ["Ultra-fast latency", "Massive 1M token context", "100% Free"],
+    strengths: ["Multimodal input", "1M token context"],
     limitations: [],
   },
-  "deepseek/deepseek-r1:free": {
+  "xingchen-agi/xing4.0-29b-a4b:free": {
     provider: "openrouter",
-    model: "deepseek/deepseek-r1:free",
-    contextWindow: 64000,
+    model: "xingchen-agi/xing4.0-29b-a4b:free",
+    contextWindow: 262144,
     supportsReasoning: true,
     supportsStructuredOutput: false,
     supportsTools: false,
@@ -107,25 +107,25 @@ export function routeToOptimalModel(options: RouteRequestOptions): {
       };
     }
     return {
-      recommendedModel: MODEL_REGISTRY["google/gemini-2.0-flash-exp:free"],
-      rationale: "Selected Gemini 2.0 Flash for high-speed free tier code optimization.",
+      recommendedModel: MODEL_REGISTRY["nvidia/nemotron-3.5-super-vl:free"],
+      rationale: "Selected Nemotron 3.5 Super VL for code optimization (OpenRouter key required).",
     };
   }
 
   // Deep reasoning tasks
   if (taskType === "research" || taskType === "prompt_engineering" || complexity === "expert") {
     return {
-      recommendedModel: MODEL_REGISTRY["deepseek/deepseek-r1:free"],
+      recommendedModel: MODEL_REGISTRY["xingchen-agi/xing4.0-29b-a4b:free"],
       reasoningEffort: "high",
-      rationale: "Selected DeepSeek R1 for deep chain-of-thought reasoning.",
+      rationale: "Selected Xing4.0 for deep chain-of-thought reasoning.",
     };
   }
 
   // Fast / Default tasks
   return {
-    recommendedModel: MODEL_REGISTRY["google/gemini-2.0-flash-exp:free"],
+    recommendedModel: MODEL_REGISTRY["nvidia/nemotron-3.5-super-vl:free"],
     reasoningEffort: "medium",
     verbosity: "medium",
-    rationale: "Selected Gemini 2.0 Flash for balanced quality and low latency.",
+    rationale: "Selected Nemotron 3.5 Super VL for general tasks (OpenRouter key required).",
   };
 }

@@ -17,16 +17,8 @@ export interface ModelDefinition {
 }
 
 export const MODELS: ModelDefinition[] = [
-  // ─── Free (OpenRouter) ──────────────────────────────────────────────────
-  { id: "openrouter-gemini-flash-free", name: "Gemini 2.0 Flash", icon: "⚡", free: true, provider: "openrouter", rawModel: "google/gemini-2.0-flash-exp:free", contextWindow: 1_000_000, description: "Fastest Google multimodal model" },
-  { id: "openrouter-gemini-pro-free", name: "Gemini 2.0 Pro", icon: "✨", free: true, provider: "openrouter", rawModel: "google/gemini-2.0-pro-exp-02-05:free", contextWindow: 2_000_000, description: "Deep reasoning & coding" },
-  { id: "openrouter-deepseek-r1-free", name: "DeepSeek R1", icon: "🧠", free: true, provider: "openrouter", rawModel: "deepseek/deepseek-r1:free", contextWindow: 64_000, description: "Open-source reasoning champion" },
-  { id: "openrouter-deepseek-v3-free", name: "DeepSeek V3", icon: "💡", free: true, provider: "openrouter", rawModel: "deepseek/deepseek-chat:free", contextWindow: 64_000, description: "General conversation & coding" },
-  { id: "openrouter-llama33-70b-free", name: "Llama 3.3 70B", icon: "🦙", free: true, provider: "openrouter", rawModel: "meta-llama/llama-3.3-70b-instruct:free", contextWindow: 128_000, description: "State-of-the-art open weights" },
-  { id: "openrouter-llama31-free", name: "Llama 3.1 8B", icon: "🦙", free: true, provider: "openrouter", rawModel: "meta-llama/llama-3.1-8b-instruct:free", contextWindow: 128_000, description: "Ultra-compact fast model" },
-  { id: "openrouter-qwen-coder-free", name: "Qwen 2.5 Coder 32B", icon: "💻", free: true, provider: "openrouter", rawModel: "qwen/qwen-2.5-coder-32b-instruct:free", contextWindow: 32_768, description: "Best-in-class coding specialist" },
-  { id: "openrouter-mistral-small-free", name: "Mistral Small 24B", icon: "🌊", free: true, provider: "openrouter", rawModel: "mistralai/mistral-small-3.1-24b-instruct:free", contextWindow: 96_000, description: "Concise & precise European model" },
-  { id: "openrouter-phi35-mini-free", name: "Phi-3.5 Mini", icon: "🔬", free: true, provider: "openrouter", rawModel: "microsoft/phi-3.5-mini-128k-instruct:free", contextWindow: 128_000, description: "Microsoft lightweight reasoning" },
+  // Verified against https://openrouter.ai/api/v1/models on 2026-10-17. Requires an OpenRouter key.
+  { id: "openrouter-nemotron-free", name: "Nemotron 3.5 Super VL", icon: "⚡", free: true, provider: "openrouter", rawModel: "nvidia/nemotron-3.5-super-vl:free", contextWindow: 1_000_000, description: "Free OpenRouter model; API key required" },
 
   // ─── Free (NVIDIA NIM) ──────────────────────────────────────────────────
   { id: "nvidia-llama33-70b", name: "Llama 3.3 70B NIM", icon: "🟢", free: true, provider: "nvidia", rawModel: "meta/llama-3.3-70b-instruct", contextWindow: 128_000, description: "NVIDIA accelerated Llama 3.3" },
@@ -49,7 +41,7 @@ export const MODELS: ModelDefinition[] = [
   { id: "anthropic-claude-3-opus", name: "Claude 3 Opus", icon: "👑", free: false, provider: "anthropic", rawModel: "claude-3-opus-20240229", contextWindow: 200_000, description: "Deep nuanced long-form writing" },
 ];
 
-export const DEFAULT_MODEL_ID = "openrouter-gemini-flash-free";
+export const DEFAULT_MODEL_ID = "openrouter-nemotron-free";
 
 export function getModelById(id: string): ModelDefinition | undefined {
   return MODELS.find((m) => m.id === id);

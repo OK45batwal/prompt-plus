@@ -15,7 +15,14 @@ import { fileURLToPath } from "url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
+// Retired IDs checked against https://openrouter.ai/api/v1/models on 2026-10-17.
 const RULES = [
+  {
+    id: "dead-model-id",
+    pattern: /(?:google\/gemini-2\.0-(?:flash-exp|pro-exp-02-05)|deepseek\/(?:deepseek-r1|deepseek-chat)|meta-llama\/llama-3\.(?:1-8b|3-70b)-instruct|qwen\/qwen-2\.5-coder-32b-instruct|mistralai\/(?:mistral-small-3\.1-24b-instruct|mistral-7b-instruct)|microsoft\/phi-3\.5-mini-128k-instruct):free/,
+    include: [/^(src|extension)\/.*\.(?:tsx?|js)$/],
+    fix: "Use a verified listed model and a matching API key, or the deterministic engine.",
+  },
   {
     id: "fabricated-review-markup",
     // Invented star ratings in structured data mislead users and search engines.
@@ -82,7 +89,7 @@ function walk(dir) {
   return out;
 }
 
-const files = walk(path.join(root, "src"));
+const files = [...walk(path.join(root, "src")), ...walk(path.join(root, "extension"))];
 const violations = [];
 
 for (const file of files) {

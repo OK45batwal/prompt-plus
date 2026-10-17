@@ -89,7 +89,7 @@ export function evaluateOutputQuality(output: string, rubric?: OutputRubric): nu
 export async function runRealPromptEvaluation(
   originalPrompt: string,
   candidatePromptText: string,
-  targetModel = "google/gemini-2.0-flash-exp:free",
+  targetModel = "nvidia/nemotron-3.5-super-vl:free",
   options: { rubric?: OutputRubric; apiKey?: string; provider?: LLMOptions["provider"]; tenantId?: string } = {},
 ) {
   const settings = {

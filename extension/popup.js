@@ -907,7 +907,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (res?.success && res.data?.enhanced) {
           finalResult = res.data.enhanced;
-          resultSource = res.data.source === "local-template" ? "Local template (offline)" : "Cloud model";
+          resultSource = res.data.source === "engine" ? "Deterministic engine" : res.data.source === "local-template" ? "Local template (offline)" : "Cloud model";
         }
       } catch {}
     }
@@ -1006,8 +1006,8 @@ document.addEventListener("DOMContentLoaded", () => {
               showToast("Copied! Switch to ChatGPT/Claude/Gemini to paste (⌘V)", false);
               setTimeout(() => { useBtn.textContent = "Use in Active Tab"; }, 2500);
             } else {
-              useBtn.textContent = "✓ Injected!";
-              showToast("✓ Injected directly into active chat!", false);
+              useBtn.textContent = r.pendingReview ? "Review in Chat" : "✓ Injected!";
+              showToast(r.pendingReview ? "Review the changes in your chat before accepting." : "✓ Injected directly into active chat!", false);
               setTimeout(() => { useBtn.textContent = "Use in Active Tab"; }, 2000);
             }
           });

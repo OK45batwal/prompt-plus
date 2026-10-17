@@ -12,7 +12,7 @@ const SUPPORTED_PROVIDERS = ["openai", "anthropic", "openrouter", "nvidia"] as c
 const DEFAULT_MODELS: Record<(typeof SUPPORTED_PROVIDERS)[number], string> = {
   openai: "gpt-4o-mini",
   anthropic: "claude-3-5-sonnet-20241022",
-  openrouter: "meta-llama/llama-3.3-70b-instruct:free",
+  openrouter: "nvidia/nemotron-3.5-super-vl:free",
   nvidia: "meta/llama-3.3-70b-instruct",
 };
 
@@ -64,7 +64,7 @@ export const POST = withAuth(
         }
         if (!apiKey) {
           const serverKey = resolveServerApiKey(provider);
-          if (serverKey) apiKey = serverKey.apiKey;
+          if (serverKey?.provider === provider) apiKey = serverKey.apiKey;
         }
 
         const resolvedModel = model || DEFAULT_MODELS[provider];

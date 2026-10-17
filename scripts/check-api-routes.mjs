@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const apiDir = path.resolve(__dirname, "../src/app/api/v1");
+const apiDirs = ["v1", "v2"].map((version) => path.resolve(__dirname, `../src/app/api/${version}`));
 
 function getRouteFiles(dir) {
   let results = [];
@@ -23,7 +23,7 @@ function getRouteFiles(dir) {
 }
 
 const allMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
-const routeFiles = getRouteFiles(apiDir);
+const routeFiles = apiDirs.flatMap(getRouteFiles);
 let violations = [];
 
 routeFiles.forEach((filePath) => {
@@ -56,6 +56,6 @@ if (violations.length > 0) {
   console.error("Fix violations by wrapping handlers with withAuth() or adding '// @public-route'.\n");
   process.exit(1);
 } else {
-  console.log("✓ API Route Security Gate: All mutating API v1 routes strictly enforce withAuth & CSRF protection.");
+  console.log("✓ API Route Security Gate: API v1/v2 routes use withAuth or explicitly declare public access.");
   process.exit(0);
 }
