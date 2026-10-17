@@ -54,8 +54,8 @@ test("Studio shows genuine zero assessments and an inconclusive verification wit
     return route.fulfill({ json: { data: { status: "inconclusive", winner: null, improvementDelta: null, baselineScore: null, optimizedScore: null, originalOutput: "4", optimizedOutput: "4", runs: [{ model: "model-a", provider: "fixture" }, { model: "model-b", provider: "fixture" }] } } });
   });
   await page.goto("/dashboard/new");
-  await page.getByRole("textbox", { name: "Your prompt", exact: true }).fill('What is 2+2? Return only "4"');
-  await page.getByRole("button", { name: "Enhance Prompt", exact: true }).click();
+  await page.getByRole("textbox", { name: "What do you want the AI to do?", exact: true }).fill('What is 2+2? Return only "4"');
+  await page.getByRole("button", { name: "Enhance prompt", exact: true }).click();
   await expect(page.getByText("→ Enhanced: 0/100")).not.toBeVisible();
   await page.getByText("Cloud model enhancement", { exact: true }).scrollIntoViewIfNeeded();
   await page.screenshot({ path: info.outputPath("studio-default-result.png"), fullPage: true });
@@ -89,8 +89,8 @@ test("keyless Studio defaults to the engine and keeps developer details collapse
   await page.goto("/dashboard/new");
   await expect(page.getByText("Automatic enhancement", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "On-Device", exact: true })).toHaveCount(0);
-  await page.getByRole("textbox", { name: "Your prompt", exact: true }).fill("Write a project update");
-  await page.getByRole("button", { name: "Enhance Prompt", exact: true }).click();
+  await page.getByRole("textbox", { name: "What do you want the AI to do?", exact: true }).fill("Write a project update");
+  await page.getByRole("button", { name: "Enhance prompt", exact: true }).click();
   await expect(page.getByText("Deterministic engine · no model ran", { exact: true })).toBeVisible();
   await expect(page.getByText("Developer details", { exact: true })).toBeVisible();
   await expect(page.getByText("Domain:", { exact: false })).not.toBeVisible();

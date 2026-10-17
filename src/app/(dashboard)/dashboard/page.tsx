@@ -115,7 +115,7 @@ export default function DashboardPage() {
           <div className="double-bezel-inner p-4 sm:p-5 h-full flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Saved Prompts</span>
-              <div className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-500">
+              <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-500">
                 <Book className="h-4 w-4" />
               </div>
             </div>
@@ -248,17 +248,17 @@ export default function DashboardPage() {
             <div className="double-bezel-inner p-5 flex flex-col justify-between h-full">
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="p-2 rounded-xl bg-cyan-500/10 text-cyan-500 border border-cyan-500/20">
+                  <span className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
                     <GitCompare className="h-5 w-5" />
                   </span>
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-500 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">Multi-Model</span>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">Multi-Model</span>
                 </div>
                 <h4 className="font-bold text-sm mt-3">🔬 Side-by-Side Model Lab</h4>
                 <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
                   Test prompts simultaneously across GPT-4o, Claude 3.5 Sonnet, Gemini 2.0 Flash, and DeepSeek R1.
                 </p>
               </div>
-              <Link href="/dashboard/model-lab" className="mt-4 text-xs font-semibold text-cyan-500 hover:underline flex items-center gap-1">
+              <Link href="/dashboard/model-lab" className="mt-4 text-xs font-semibold text-indigo-500 hover:underline flex items-center gap-1">
                 Open Model Lab →
               </Link>
             </div>
@@ -328,17 +328,17 @@ export default function DashboardPage() {
             <div className="double-bezel-inner p-5 flex flex-col justify-between h-full">
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="p-2 rounded-xl bg-cyan-500/10 text-cyan-500 border border-cyan-500/20">
+                  <span className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
                     <LayoutTemplate className="h-5 w-5" />
                   </span>
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-500 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">v{EXTENSION_VERSION}</span>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">v{EXTENSION_VERSION}</span>
                 </div>
                 <h4 className="font-bold text-sm mt-3">🧩 Browser Extension Hub</h4>
                 <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
                   Install the v{EXTENSION_VERSION} Chrome &amp; Edge extension for in-page prompt enhancement on ChatGPT, Claude &amp; Gemini.
                 </p>
               </div>
-              <Link href="/extension" className="mt-4 text-xs font-semibold text-cyan-500 hover:underline flex items-center gap-1">
+              <Link href="/extension" className="mt-4 text-xs font-semibold text-indigo-500 hover:underline flex items-center gap-1">
                 Download Extension →
               </Link>
             </div>

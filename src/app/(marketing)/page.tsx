@@ -1,40 +1,117 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { PromptDemo } from "@/components/marketing/prompt-demo";
-import { LogoMarquee } from "@/components/marketing/logo-marquee";
-import { ChatGptLogo, ClaudeLogo, GeminiLogo, DeepSeekLogo } from "@/components/marketing/model-logos";
 import {
-  Sparkles,
-  ArrowRight,
-  ArrowUpRight,
-  ArrowDown,
-  BarChart3,
-  Layers,
-  Wand2,
-  Sliders,
-  Puzzle,
-  ShieldCheck,
-  Lock,
-  CheckCircle2,
-  CircleDollarSign,
-  MonitorSmartphone,
-  Repeat,
-  Infinity,
-} from "lucide-react";
+  ChatGptLogo,
+  ClaudeLogo,
+  GeminiLogo,
+  DeepSeekLogo,
+  GrokLogo,
+  PerplexityLogo,
+  CopilotLogo,
+  MetaLogo,
+} from "@/components/marketing/model-logos";
+import { ArrowRight, ArrowUpRight, Check, Download, Puzzle } from "lucide-react";
 
-const modelBadges = [
-  { name: "ChatGPT / GPT-4o", Logo: ChatGptLogo },
-  { name: "Claude 3.5 Sonnet", Logo: ClaudeLogo },
-  { name: "Gemini 1.5 Pro", Logo: GeminiLogo },
-  { name: "Llama 3 & DeepSeek", Logo: DeepSeekLogo },
+const EXTENSION_STORE_URL =
+  "https://chromewebstore.google.com/detail/gdfaohfmmjjmpiggdcankjjihpljoccn";
+
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+
+// Plain-text output, so this is a compatibility list, not a partner or endorsement list.
+const compatibility = [
+  { name: "ChatGPT", Logo: ChatGptLogo },
+  { name: "Claude", Logo: ClaudeLogo },
+  { name: "Gemini", Logo: GeminiLogo },
+  { name: "DeepSeek", Logo: DeepSeekLogo },
+  { name: "Grok", Logo: GrokLogo },
+  { name: "Perplexity", Logo: PerplexityLogo },
+  { name: "Copilot", Logo: CopilotLogo },
+  { name: "Llama", Logo: MetaLogo },
 ];
 
-const steps = [
-  { icon: MonitorSmartphone, title: "Type your idea", desc: "Paste or dictate any rough thought — a blog topic, a code request, a marketing brief. No formatting needed." },
-  { icon: Repeat, title: "Pick your level", desc: "Quick for concise structure, Deep for full role/context/steps, or Expert for chain-of-thought reasoning." },
-  { icon: CheckCircle2, title: "Use it anywhere", desc: "Copy, open in ChatGPT/Claude/Gemini with one click, or inject it live via the free Chrome extension." },
+const example = {
+  raw: "Fix bugs in my Python web scraper and optimize connection leaks",
+  enhanced: `[ROLE & PERSONA]
+Act as a senior Python systems engineer working with AsyncIO and Playwright.
+
+[TASK]
+Inspect the provided code, find the root causes of the timeouts and memory leaks, and fix the error handling rather than patching the symptoms.
+
+[CONSTRAINTS]
+- Return Python 3.12 code with inline comments.
+- Add exponential backoff retries and rotate the user agent.`,
+};
+
+const added = [
+  "A role: senior Python systems engineer, sized to the task.",
+  "A concrete task: find the root causes, not just the symptom.",
+  "Constraints: Python 3.12, inline comments, retries, user-agent rotation.",
+];
+
+const kept = [
+  "The subject: your Python web scraper.",
+  "The goal: fewer bugs and no connection leaks.",
+  "Your wording of the problem, kept in the request.",
+];
+
+const processingModes = [
+  {
+    name: "On-device",
+    where: "In your browser",
+    data: "Your prompt text stays on your device. It is not sent to our servers or to any provider.",
+    note: "Uses Chrome's built-in Gemini Nano, available in Chrome 138 and later.",
+    key: "No key needed",
+  },
+  {
+    name: "Built-in engine",
+    where: "On our server, no external model",
+    data: "Your prompt is sent to our server to build the result. It is not used to train models.",
+    note: "The default when no provider key is connected, and the mode behind the demo above.",
+    key: "No key needed",
+  },
+  {
+    name: "Your own key",
+    where: "Our server forwards to the provider you pick",
+    data: "Your prompt text leaves your device and is handled by that provider under their terms.",
+    note: "OpenAI, Anthropic, OpenRouter, or NVIDIA. The key is encrypted at rest with AES-256-GCM.",
+    key: "Key required",
+  },
+];
+
+const faqs = [
+  {
+    q: "Is Prompt+ free?",
+    a: "Yes. No credit card and no paid tier. Enhancements run on the built-in engine, on-device with Gemini Nano, or through a key you already have.",
+  },
+  {
+    q: "Do I need an account?",
+    a: "No. You can enhance a prompt on this page without signing in. An account saves your history and your reusable context blocks.",
+  },
+  {
+    q: "Does on-device mode need an API key?",
+    a: "No. On-device mode uses Chrome's built-in Gemini Nano and runs in your browser in Chrome 138 and later, so your prompt text stays on your device.",
+  },
+  {
+    q: "Which tools do the results work with?",
+    a: "The result is plain text, so you can paste it into any chat tool, including ChatGPT, Claude, Gemini, DeepSeek, Grok, Perplexity, Copilot, and Llama.",
+  },
+  {
+    q: "Is there a Chrome extension?",
+    a: "Yes. The free extension adds an Enhance button inside ChatGPT, Claude, Gemini, and DeepSeek. A setup guide covers installing the release build manually.",
+  },
+  {
+    q: "What happens to my prompts?",
+    a: "We do not sell, rent, or train on your prompts. In on-device mode your text never leaves your browser. In API mode it is sent only to the provider you chose to build the result. You can delete your account and data at any time.",
+  },
+  {
+    q: "Can I use my own API key?",
+    a: "Yes. Add an OpenAI, Anthropic, OpenRouter, or NVIDIA key in Settings for full model access. Keys are encrypted at rest. Without a key, the built-in engine handles the enhancement.",
+  },
 ];
 
 export default function LandingPage() {
@@ -64,16 +141,6 @@ export default function LandingPage() {
     return () => io.disconnect();
   }, []);
 
-  const faqs = [
-    { q: "Is Prompt+ really free?", a: "Yes — free to use, no credit card. Enhancements run on a built-in deterministic engine, or fully on-device with Chrome's Gemini Nano, so it costs us almost nothing to keep it free." },
-    { q: "Why not just ask ChatGPT to improve my prompt?", a: "When an LLM evaluates or improves its own prompt in the same conversation, it suffers from Same-Model Self-Evaluation Bias—it assumes its own implied context and inherits its own blind spots. Prompt+ uses an independent meta-architect engine with explicit structural rules (Role, Objective, Instructions, Constraints) so your prompt is completely unbiased and production-ready for any LLM." },
-    { q: "Does on-device AI require an API key?", a: "No. On-device mode uses Chrome 138+'s built-in Gemini Nano and runs entirely in your browser — private, offline, and free. Your prompt text never leaves your device." },
-    { q: "Which AI models does Prompt+ work with?", a: "The enhanced prompts work with any major model — ChatGPT, Claude, Gemini, DeepSeek, Grok, Perplexity, and Llama. API mode also lets you run enhancement itself on OpenRouter free models, NVIDIA, OpenAI, or Anthropic." },
-    { q: "Is there a Chrome extension?", a: "Yes. The free extension enhances prompts directly inside ChatGPT, Claude, Gemini, and DeepSeek with a floating button — no tab switching and no key required." },
-    { q: "What do you do with my prompts?", a: "Nothing — we never sell, rent, or train on your prompts. Your prompts and API keys (encrypted with AES-256-GCM) belong to you. You can delete your account and data at any time." },
-    { q: "Can I bring my own API key?", a: "Yes. Add OpenAI, Anthropic, OpenRouter, or NVIDIA keys in Settings for full model access. Keys are encrypted at rest. If you don't add one, the built-in deterministic engine handles it." },
-  ];
-
   return (
     <div className="relative overflow-hidden selection:bg-primary/20 selection:text-primary">
       {/* Ambient background glow */}
@@ -82,447 +149,366 @@ export default function LandingPage() {
         <div className="absolute top-40 right-1/4 w-105 h-105 rounded-full bg-primary/5 dark:bg-primary/10 blur-[150px] animate-drift-slow" />
       </div>
 
-      {/* Hero Section */}
-      <section className="pt-24 pb-12 sm:pt-28 sm:pb-20 px-4 sm:px-6 min-h-dvh flex flex-col justify-center">
+      {/* 1. Hero with the working demo */}
+      <section className="pt-24 pb-12 sm:pb-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            {/* Left Column: Left-aligned messaging stack */}
             <div className="lg:col-span-5 text-left" data-reveal>
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-xs font-semibold text-primary mb-6 shadow-2xs">
-                <Sparkles className="h-3.5 w-3.5" />
-                <span className="font-mono text-[11px] flex items-center gap-1.5">
-                  100% Free
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  No credit card
-                </span>
-              </div>
-
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-[-0.03em] leading-[1.08] text-balance">
-                Craft Flawless AI Prompts.{" "}
-                <span className="bg-linear-to-r from-primary via-primary/80 to-cyan-400 bg-clip-text text-transparent">
-                  Get Superior Outputs.
-                </span>
+                Make your next prompt clearer.
               </h1>
 
               <p className="mt-5 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-xl">
-                Transform rough text into precise instructions for ChatGPT, Claude, Gemini, and DeepSeek — 100% free, with API keys encrypted at rest.
+                Turn a rough request into clear instructions you can review, edit, and use in your AI
+                chat.
               </p>
 
-              {/* Deduplicated Single-Intent CTAs with Button-in-Button Trailing Icon */}
               <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <a
-                  href="https://chromewebstore.google.com/detail/gdfaohfmmjjmpiggdcankjjihpljoccn"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group h-12 inline-flex items-center justify-between rounded-full bg-primary text-primary-foreground pl-5 pr-2 text-sm font-semibold hover:bg-primary/90 transition-all duration-200 shadow-sm active:scale-[0.98]"
-                >
-                  <span className="flex items-center gap-2">
-                    <Puzzle className="h-4 w-4" />
-                    <span>Add to Chrome — Free</span>
-                  </span>
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20 text-primary-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                    <ArrowUpRight className="h-4 w-4" />
-                  </span>
-                </a>
                 <Link
                   href="/dashboard/new"
-                  className="group h-12 inline-flex items-center justify-between rounded-full border border-border/80 bg-card/70 px-5 text-sm font-semibold hover:bg-accent transition-all active:scale-[0.98] shadow-2xs"
+                  className={`group h-12 inline-flex items-center justify-between gap-3 rounded-full bg-primary text-primary-foreground pl-5 pr-2 text-sm font-semibold hover:bg-primary/90 transition-all duration-200 shadow-sm active:scale-[0.98] ${focusRing}`}
                 >
-                  <span>Open Sandbox</span>
-                  <ArrowRight className="h-4 w-4 ml-2 opacity-60 transition-transform group-hover:translate-x-1" />
+                  <span>Try Prompt+</span>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20 transition-transform group-hover:translate-x-0.5">
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
                 </Link>
-              </div>
-
-              <div className="mt-6 flex items-center gap-4 text-xs text-muted-foreground font-mono">
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                  <span>No API key required</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                  <span>Chrome, Edge & Brave</span>
-                </div>
+                <Link
+                  href="/extension"
+                  className={`group h-12 inline-flex items-center justify-between gap-3 rounded-full border border-border/80 bg-card/70 pl-5 pr-2 text-sm font-semibold hover:bg-accent transition-all active:scale-[0.98] shadow-2xs ${focusRing}`}
+                >
+                  <span>Get the extension</span>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground/5 dark:bg-foreground/10 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                    <ArrowUpRight className="h-4 w-4 opacity-70" />
+                  </span>
+                </Link>
               </div>
             </div>
 
-            {/* Right Column: Live Interactive Sandbox Widget */}
             <div className="lg:col-span-7 w-full">
               <PromptDemo />
             </div>
           </div>
-
-          {/* Logo Strip directly under Hero */}
-          <div className="mt-16 pt-8 border-t border-border/40">
-            <p className="text-[11px] font-mono text-muted-foreground uppercase tracking-[0.2em] text-center mb-5">
-              {"// Universal LLM Instruction Architecture"}
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-medium">
-              {modelBadges.map((m) => (
-                <div
-                  key={m.name}
-                  className="flex items-center gap-2.5 px-4 py-2 rounded-full border border-border/60 bg-card/50 text-foreground/80 hover:border-primary/40 hover:bg-primary/5 transition-all shadow-2xs"
-                >
-                  <m.Logo className="h-4 w-4 text-primary shrink-0" />
-                  <span>{m.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* Infinite Horizontal Logo Marquee */}
-      <LogoMarquee />
-
-      {/* Asymmetrical Bento Features Grid */}
-      <section className="py-20 sm:py-32 px-4 sm:px-6 border-t">
+      {/* 2. Before and after review */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 border-t">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-[-0.03em] text-balance">
-              Engineered for prompt precision
-            </h2>
-            <p className="text-muted-foreground mt-4 max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
-              Every feature designed to eliminate hallucination, enforce strict constraints, and produce deterministic outputs.
-            </p>
-          </div>
+          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-[-0.03em] text-balance">
+            See what changes, and what stays.
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm sm:text-base text-muted-foreground leading-relaxed">
+            One worked example. The enhancer adds structure around your request; it keeps the request
+            itself.
+          </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-6">
-            {/* Bento Item 1: 8 cols */}
-            <div
-              data-reveal
-              className="md:col-span-8 double-bezel-outer group hover:-translate-y-0.5 transition-all duration-300"
-            >
-              <div className="double-bezel-inner p-6 sm:p-8 h-full flex flex-col justify-between">
-                <div>
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-6 border border-primary/20 shadow-2xs group-hover:scale-105 transition-transform">
-                    <Wand2 className="h-6 w-6" strokeWidth={1.75} />
-                  </div>
-                  <h3 className="text-xl font-bold tracking-tight">Instant AI Instruction Compilation</h3>
-                  <p className="text-sm text-muted-foreground mt-2.5 leading-relaxed max-w-lg">
-                    Transform raw 5-word thoughts into structured Role, Context, Task, and Non-Negotiable Constraint blocks tailored for any LLM.
-                  </p>
+          <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
+            <div className="double-bezel-outer" data-reveal>
+              <div className="double-bezel-inner p-5 sm:p-6 h-full">
+                <div className="flex items-baseline justify-between gap-3">
+                  <h3 className="text-sm font-bold">Your request</h3>
+                  <span className="text-xs text-muted-foreground">Example</span>
                 </div>
-                <div className="mt-6 p-4 rounded-xl border border-border/60 bg-muted/20 font-mono text-xs text-muted-foreground flex items-center justify-between">
-                  <span>[ROLE] Act as Senior Cloud Architect...</span>
-                  <span className="text-muted-foreground font-semibold font-mono">Example output</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Bento Item 2: 4 cols */}
-            <div
-              data-reveal
-              style={{ transitionDelay: "70ms" }}
-              className="md:col-span-4 double-bezel-outer group hover:-translate-y-0.5 transition-all duration-300"
-            >
-              <div className="double-bezel-inner p-6 sm:p-8 h-full flex flex-col justify-between">
-                <div>
-                  <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-6 border border-amber-500/20 shadow-2xs group-hover:scale-105 transition-transform">
-                    <BarChart3 className="h-6 w-6" strokeWidth={1.75} />
-                  </div>
-                  <h3 className="text-lg font-bold tracking-tight">6-Dimension Quality Score</h3>
-                  <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                    Real-time scoring across clarity, specificity, constraints, role alignment, and token efficiency.
-                  </p>
-                </div>
-                <div className="mt-6 font-mono text-[11px] text-muted-foreground">
-                  Scored on every enhancement
-                </div>
-              </div>
-            </div>
-
-            {/* Bento Item 3: 4 cols */}
-            <div
-              data-reveal
-              style={{ transitionDelay: "120ms" }}
-              className="md:col-span-4 double-bezel-outer group hover:-translate-y-0.5 transition-all duration-300"
-            >
-              <div className="double-bezel-inner p-6 sm:p-8 h-full flex flex-col justify-between">
-                <div>
-                  <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center mb-6 border border-cyan-500/20 shadow-2xs group-hover:scale-105 transition-transform">
-                    <Sliders className="h-6 w-6" strokeWidth={1.75} />
-                  </div>
-                  <h3 className="text-lg font-bold tracking-tight">Side-by-Side Model Lab</h3>
-                  <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                    Compare outputs simultaneously across GPT-4o, Claude 3.5 Sonnet, Gemini 2.0, and DeepSeek.
-                  </p>
-                </div>
-                <div className="mt-6 flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
-                  <span className="px-2 py-1 rounded bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-semibold">4 Models</span>
-                  <span>Parallel Run</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Bento Item 4: 8 cols */}
-            <div
-              data-reveal
-              style={{ transitionDelay: "180ms" }}
-              className="md:col-span-8 double-bezel-outer group hover:-translate-y-0.5 transition-all duration-300"
-            >
-              <div className="double-bezel-inner p-6 sm:p-8 h-full flex flex-col justify-between">
-                <div>
-                  <div className="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-500 flex items-center justify-center mb-6 border border-teal-500/20 shadow-2xs group-hover:scale-105 transition-transform">
-                    <Layers className="h-6 w-6" strokeWidth={1.75} />
-                  </div>
-                  <h3 className="text-xl font-bold tracking-tight">Reusable Context Memory & Vault</h3>
-                  <p className="text-sm text-muted-foreground mt-2.5 leading-relaxed max-w-lg">
-                    Store project tech stacks, brand guidelines, and coding standards into persistent memory blocks automatically injected into prompts.
-                  </p>
-                </div>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  <span className="px-3 py-1 rounded-full border border-teal-500/30 bg-teal-500/10 text-teal-600 dark:text-teal-400 text-xs font-mono">
-                    #nextjs-tailwind
-                  </span>
-                  <span className="px-3 py-1 rounded-full border border-teal-500/30 bg-teal-500/10 text-teal-600 dark:text-teal-400 text-xs font-mono">
-                    #brand-voice-b2b
-                  </span>
-                  <span className="px-3 py-1 rounded-full border border-teal-500/30 bg-teal-500/10 text-teal-600 dark:text-teal-400 text-xs font-mono">
-                    #typescript-strict
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Trust Strip */}
-      <section className="border-t bg-card/40">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {[
-              { icon: CircleDollarSign, label: "Free forever", desc: "No paywall, ever" },
-              { icon: Infinity, label: "No API key required", desc: "Deterministic engine included" },
-              { icon: ShieldCheck, label: "Encrypted at rest", desc: "AES-256-GCM" },
-              { icon: Lock, label: "Review before use", desc: "You control every edit" },
-            ].map((t) => (
-              <div key={t.label} className="flex flex-col items-center gap-2 md:flex-row md:items-center md:justify-center md:gap-3 group">
-                <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 transition-transform group-hover:scale-110">
-                  <t.icon className="h-4 w-4" strokeWidth={2} />
-                </div>
-                <div className="text-center md:text-left">
-                  <div className="text-sm font-semibold leading-tight">{t.label}</div>
-                  <div className="text-[11px] text-muted-foreground leading-tight mt-0.5">{t.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="py-20 sm:py-32 px-4 sm:px-6 border-t bg-accent/20">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-[-0.03em] text-balance">
-              From rough idea to production prompt in 3 steps
-            </h2>
-            <p className="text-muted-foreground mt-3 max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
-              No prompt-engineering knowledge needed. Paste, choose your depth, and copy.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {steps.map((s, i) => (
-              <div key={s.title} data-reveal style={{ transitionDelay: `${i * 80}ms` }} className="double-bezel-outer group">
-                <div className="double-bezel-inner p-6 sm:p-7 h-full flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 group-hover:scale-105 transition-transform">
-                        <s.icon className="h-5 w-5" strokeWidth={1.75} />
-                      </div>
-                      <span className="font-mono text-xs font-bold text-muted-foreground/60">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                    </div>
-                    <h3 className="text-base font-bold tracking-tight">{s.title}</h3>
-                    <p className="text-xs text-muted-foreground mt-2 leading-relaxed text-pretty">{s.desc}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Browser Extension Section */}
-      <section className="py-20 sm:py-28 px-4 sm:px-6 border-t">
-        <div className="max-w-5xl mx-auto">
-          <div className="double-bezel-outer">
-            <div className="double-bezel-inner p-8 sm:p-12 flex flex-col sm:flex-row items-center gap-6 sm:gap-10">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20 shadow-xs">
-                <Puzzle className="h-8 w-8" strokeWidth={1.5} />
-              </div>
-              <div className="text-center sm:text-left flex-1">
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Use Prompt+ directly inside ChatGPT & Claude</h2>
-                <p className="text-sm text-muted-foreground mt-1.5 max-w-lg leading-relaxed text-pretty">
-                  Install the free Chrome extension to enhance prompts right in your active conversation with zero tab switching.
+                <p className="mt-4 rounded-xl border border-border/70 bg-muted/20 p-4 font-mono text-xs text-foreground/90 leading-relaxed">
+                  {example.raw}
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-                <a
-                  href="/api/v1/extension/download"
-                  download="prompt-plus-extension.zip"
-                  className="group h-11 w-full sm:w-auto inline-flex items-center justify-between rounded-full bg-primary text-primary-foreground pl-5 pr-2 text-xs sm:text-sm font-semibold hover:bg-primary/90 transition-all active:scale-[0.98] shadow-xs"
-                >
-                  <span className="flex items-center gap-2">
-                    <Puzzle className="h-3.5 w-3.5" />
-                    <span>Download ZIP</span>
-                  </span>
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-foreground/20 text-xs">
-                    <ArrowDown className="h-3.5 w-3.5" />
-                  </span>
-                </a>
-                <Link
-                  href="/extension"
-                  className="h-11 w-full sm:w-auto inline-flex items-center justify-center rounded-full border border-border/80 bg-background px-4 text-xs sm:text-sm font-semibold hover:bg-accent transition-colors gap-1.5 active:scale-[0.98]"
-                >
-                  Setup guide
-                  <ArrowUpRight className="h-3.5 w-3.5 opacity-70" />
-                </Link>
+            </div>
+
+            <div className="double-bezel-outer" data-reveal style={{ transitionDelay: "70ms" }}>
+              <div className="double-bezel-inner p-5 sm:p-6 h-full">
+                <div className="flex items-baseline justify-between gap-3">
+                  <h3 className="text-sm font-bold">The enhanced prompt</h3>
+                  <span className="text-xs text-muted-foreground">Example output</span>
+                </div>
+                <pre className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4 font-mono text-xs text-foreground/90 leading-relaxed whitespace-pre-wrap">
+                  {example.enhanced}
+                </pre>
               </div>
+            </div>
+          </div>
+
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-8">
+            <div data-reveal>
+              <h3 className="text-sm font-bold">Added</h3>
+              <ul className="mt-4 space-y-3">
+                {added.map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                    <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" strokeWidth={2} />
+                    <span className="leading-relaxed">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div data-reveal style={{ transitionDelay: "70ms" }}>
+              <h3 className="text-sm font-bold">Kept</h3>
+              <ul className="mt-4 space-y-3">
+                {kept.map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                    <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" strokeWidth={2} />
+                    <span className="leading-relaxed">{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Free Forever Pricing */}
-      <section className="py-20 sm:py-32 px-4 sm:px-6 border-t">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-[-0.03em] text-balance">
-              Free. Forever. No quotas, no paywall.
-            </h2>
-            <p className="text-muted-foreground mt-3 max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
-              Every competitor charges $9–19/month. Prompt+ is 100% free with no credit card and no daily caps.
-            </p>
-          </div>
+      {/* 3. Extension in context */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 border-t bg-accent/20">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-[-0.03em] text-balance">
+            Enhance inside the chat you already use.
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm sm:text-base text-muted-foreground leading-relaxed">
+            The extension adds an Enhance button to the prompt box. Write your request there, enhance
+            it in place, and keep going without switching tabs.
+          </p>
 
-          <div className="double-bezel-outer" data-reveal>
-            <div className="double-bezel-inner p-8 sm:p-12 relative overflow-hidden">
-              <div className="absolute -top-20 -right-20 w-56 h-56 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-              <div className="relative z-10">
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-border/60">
-                  <div>
-                    <h3 className="text-2xl font-extrabold">Prompt+ Complete</h3>
-                    <p className="text-4xl font-extrabold mt-1 text-primary">
-                      $0 <span className="text-sm font-normal text-muted-foreground font-mono">/ lifetime</span>
-                    </p>
-                  </div>
-                  <Link
-                    href="/signup"
-                    className="group h-11 inline-flex items-center justify-between gap-3 rounded-full bg-foreground text-background pl-6 pr-2 text-sm font-semibold hover:bg-foreground/90 transition-all active:scale-[0.98] shadow-xs"
-                  >
-                    <span>Get started free</span>
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-background/15 text-xs transition-transform group-hover:translate-x-0.5">
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </span>
-                  </Link>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 mt-8 text-sm">
-                  {[
-                    "Prompt enhancements included free",
-                    "On-device AI — free, private, offline",
-                    "Built-in deterministic engine — no key required",
-                    "6-dimension quality scoring",
-                    "Curated prompt library & templates",
-                    "Chrome extension — no key required",
-                    "Collections, versions & sharing",
-                    "Bring your own key for full model access",
-                  ].map((f) => (
-                    <div key={f} className="flex items-start gap-2.5">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" strokeWidth={2} />
-                      <span className="text-muted-foreground text-xs sm:text-sm">{f}</span>
-                    </div>
-                  ))}
+          <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <figure data-reveal>
+              <div className="double-bezel-outer">
+                <div className="double-bezel-inner overflow-hidden">
+                  <Image
+                    src="/screenshots/01-one-click-optimizer.png"
+                    alt="A rough prompt about a payment webhook typed in a chat composer, with the structured result shown below it after enhancing."
+                    width={1280}
+                    height={800}
+                    sizes="(min-width: 1024px) 560px, 100vw"
+                    className="w-full h-auto"
+                  />
                 </div>
               </div>
+              <figcaption className="mt-3 text-xs text-muted-foreground leading-relaxed">
+                A rough request enhanced in place, with the structured result underneath.
+              </figcaption>
+            </figure>
+
+            <figure data-reveal style={{ transitionDelay: "70ms" }}>
+              <div className="double-bezel-outer">
+                <div className="double-bezel-inner overflow-hidden">
+                  <Image
+                    src="/screenshots/04-extension-command-center.png"
+                    alt="The Prompt+ extension popup showing a list of prompt starters, a local and cloud toggle, and a link to settings."
+                    width={1280}
+                    height={800}
+                    sizes="(min-width: 1024px) 560px, 100vw"
+                    className="w-full h-auto"
+                  />
+                </div>
+              </div>
+              <figcaption className="mt-3 text-xs text-muted-foreground leading-relaxed">
+                The extension popup: prompt starters, a processing toggle, and settings.
+              </figcaption>
+            </figure>
+          </div>
+
+          <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <a
+              href={EXTENSION_STORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`group h-11 inline-flex items-center justify-between gap-3 rounded-full bg-primary text-primary-foreground pl-5 pr-2 text-sm font-semibold hover:bg-primary/90 transition-all active:scale-[0.98] shadow-xs ${focusRing}`}
+            >
+              <span className="flex items-center gap-2">
+                <Puzzle className="h-4 w-4" />
+                Add to Chrome
+              </span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-foreground/20 transition-transform group-hover:translate-x-0.5">
+                <ArrowUpRight className="h-4 w-4" />
+              </span>
+            </a>
+            <Link
+              href="/extension"
+              className={`h-11 inline-flex items-center justify-center rounded-full border border-border/80 bg-background px-5 text-sm font-semibold hover:bg-accent transition-colors active:scale-[0.98] ${focusRing}`}
+            >
+              Setup guide
+            </Link>
+            <a
+              href="/api/v1/extension/download"
+              download="prompt-plus-extension.zip"
+              className={`h-11 inline-flex items-center justify-center gap-2 rounded-full px-4 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors ${focusRing}`}
+            >
+              <Download className="h-4 w-4" />
+              Download the build
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Reusable context */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 border-t">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-[-0.03em] text-balance">
+            Save a preference once, reuse it in every prompt.
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm sm:text-base text-muted-foreground leading-relaxed">
+            A context block is a short note you keep, like a writing style or a stack. When you
+            enhance, the matching block is added to the instructions.
+          </p>
+
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] md:items-center gap-5 sm:gap-6">
+            <div className="rounded-2xl border border-border/70 bg-card p-5 sm:p-6" data-reveal>
+              <div className="flex items-baseline justify-between gap-3">
+                <h3 className="text-sm font-bold">Saved context block</h3>
+                <span className="text-xs text-muted-foreground">Example</span>
+              </div>
+              <p className="mt-4 text-sm text-foreground/90 leading-relaxed">
+                Write for B2B readers. Plain language, no hype.
+              </p>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Kept in your browser, next to the built-in blocks.
+              </p>
+            </div>
+
+            <div className="flex justify-center" aria-hidden="true">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-card text-primary">
+                <ArrowRight className="h-4 w-4 rotate-90 md:rotate-0" />
+              </span>
+            </div>
+
+            <div
+              className="rounded-2xl border border-primary/20 bg-primary/5 p-5 sm:p-6"
+              data-reveal
+              style={{ transitionDelay: "70ms" }}
+            >
+              <div className="flex items-baseline justify-between gap-3">
+                <h3 className="text-sm font-bold">In the result</h3>
+                <span className="text-xs text-muted-foreground">Example output</span>
+              </div>
+              <pre className="mt-4 font-mono text-xs text-foreground/90 leading-relaxed whitespace-pre-wrap">
+                {`[CONSTRAINTS]
+- Tone: plain, no hype.
+- Audience: B2B readers.`}
+              </pre>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Science & Research Backed Section */}
-      <section className="py-20 sm:py-32 px-4 sm:px-6 border-t">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-[-0.03em] text-balance">Empirically grounded prompt engineering</h2>
-            <p className="text-sm text-muted-foreground max-w-2xl mx-auto mt-3 leading-relaxed">
-              Prompt+ isn&apos;t based on guesswork. Our Architect Engine compiles prompts using peer-reviewed research from top AI laboratories.
-            </p>
-          </div>
-          <div className="space-y-4">
-            {[
-              { cite: "Wei et al. (2022)", title: "Chain-of-thought reasoning", desc: "Forces step-by-step intermediate reasoning paths before the final answer." },
-              { cite: "Zhou et al. (2023)", title: "Structural role boundaries", desc: "Establishes explicit Role, Context, Instructions, and Non-Negotiable Constraints to prevent context drift." },
-              { cite: "Brown et al. (2020)", title: "Few-shot in-context learning", desc: "Structures input variable placeholders and example ordering to maximize LLM adherence." },
-            ].map((c, i) => (
-              <div key={c.title} data-reveal style={{ transitionDelay: `${i * 70}ms` }} className="double-bezel-outer">
-                <div className="double-bezel-inner p-5 sm:p-6 flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6">
-                  <span className="font-mono text-xs text-primary font-semibold whitespace-nowrap">{c.cite}</span>
-                  <div>
-                    <h3 className="text-sm font-bold">{c.title}</h3>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed text-pretty">{c.desc}</p>
-                  </div>
-                </div>
+      {/* 5. How processing works */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 border-t bg-accent/20">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-[-0.03em] text-balance">
+            Where your prompt goes.
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm sm:text-base text-muted-foreground leading-relaxed">
+            Three processing modes. Which one runs decides whether your prompt leaves your device, and
+            whether a key is needed.
+          </p>
+
+          <dl className="mt-10 border-y border-border/60 divide-y divide-border/60">
+            {processingModes.map((mode) => (
+              <div key={mode.name} className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-6 py-6">
+                <dt className="md:col-span-3">
+                  <span className="text-base font-bold">{mode.name}</span>
+                  <span className="block text-xs text-muted-foreground mt-1">{mode.where}</span>
+                </dt>
+                <dd className="md:col-span-6 text-sm text-muted-foreground leading-relaxed">
+                  {mode.data}
+                  <span className="block mt-2 text-xs">{mode.note}</span>
+                </dd>
+                <dd className="md:col-span-3 text-sm font-semibold text-primary md:text-right">
+                  {mode.key}
+                </dd>
               </div>
             ))}
+          </dl>
+
+          <div className="mt-8 rounded-2xl border border-border/70 bg-card/60 p-5 sm:p-6">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+              {compatibility.map(({ name, Logo }) => (
+                <span key={name} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Logo className="h-4 w-4 text-primary shrink-0" />
+                  {name}
+                </span>
+              ))}
+            </div>
+            <p className="mt-4 text-xs text-muted-foreground leading-relaxed">
+              Compatibility only. The result is plain text, so these are tools you can paste it into.
+              Prompt+ is not affiliated with or endorsed by them.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="py-20 sm:py-32 px-4 sm:px-6 border-t bg-accent/20">
+      {/* 6. FAQ */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 border-t">
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-[-0.03em]">Questions? We&apos;ve got answers</h2>
-          </div>
-          <div className="divide-y divide-border/60" data-reveal>
-            {faqs.map((f, idx) => (
-              <div key={f.q} className="py-4">
-                <button
-                  type="button"
-                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                  className="w-full flex items-center justify-between gap-4 text-left py-1"
-                  aria-expanded={openFaq === idx}
-                >
-                  <span className="text-sm font-semibold">{f.q}</span>
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full border border-border/80 text-muted-foreground shrink-0 transition-transform text-xs font-mono">
-                    {openFaq === idx ? <span aria-hidden>-</span> : <span aria-hidden>+</span>}
-                  </span>
-                </button>
-                {openFaq === idx && (
-                  <p className="pr-10 pt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed text-pretty">{f.a}</p>
-                )}
-              </div>
-            ))}
+          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-[-0.03em]">
+            Questions, answered.
+          </h2>
+          <div className="mt-10 divide-y divide-border/60" data-reveal>
+            {faqs.map((f, idx) => {
+              const panelId = `faq-panel-${idx}`;
+              const buttonId = `faq-button-${idx}`;
+              const isOpen = openFaq === idx;
+              return (
+                <div key={f.q} className="py-4">
+                  <h3>
+                    <button
+                      type="button"
+                      id={buttonId}
+                      aria-expanded={isOpen}
+                      aria-controls={panelId}
+                      onClick={() => setOpenFaq(isOpen ? null : idx)}
+                      className={`w-full flex items-center justify-between gap-4 text-left py-1 rounded-lg ${focusRing}`}
+                    >
+                      <span className="text-sm font-semibold">{f.q}</span>
+                      <span
+                        aria-hidden="true"
+                        className="flex h-6 w-6 items-center justify-center rounded-full border border-border/80 text-muted-foreground shrink-0 text-xs font-mono"
+                      >
+                        {isOpen ? "-" : "+"}
+                      </span>
+                    </button>
+                  </h3>
+                  {isOpen && (
+                    <div id={panelId} role="region" aria-labelledby={buttonId}>
+                      <p className="pr-10 pt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed text-pretty">
+                        {f.a}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Final Call to Action Banner */}
-      <section className="py-20 sm:py-32 px-4 sm:px-6 border-t">
+      {/* Final action */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 border-t">
         <div className="max-w-4xl mx-auto text-center" data-reveal>
           <div className="double-bezel-outer">
             <div className="double-bezel-inner p-8 sm:p-14 relative overflow-hidden">
               <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
               <div className="relative z-10">
                 <h2 className="text-3xl sm:text-5xl font-extrabold tracking-[-0.03em] text-balance">
-                  Ready to upgrade your AI workflow?
+                  Ready to make your next prompt clearer?
                 </h2>
                 <p className="text-sm sm:text-base text-muted-foreground mt-3 max-w-lg mx-auto text-pretty">
-                  Start generating higher quality AI responses today with Prompt+. No credit card required.
+                  Start with the web editor, or add the extension and enhance prompts where you write
+                  them.
                 </p>
-                <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
                   <Link
-                    href="/signup"
-                    className="group h-12 w-full sm:w-auto inline-flex items-center justify-between gap-3 rounded-full bg-foreground text-background pl-6 pr-2 text-sm font-semibold hover:bg-foreground/90 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.98] shadow-sm"
+                    href="/dashboard/new"
+                    className={`group h-12 inline-flex items-center justify-between gap-3 rounded-full bg-primary text-primary-foreground pl-5 pr-2 text-sm font-semibold hover:bg-primary/90 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.98] shadow-sm ${focusRing}`}
                   >
-                    <span>Get started free</span>
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-background/15 transition-transform group-hover:translate-x-0.5">
+                    <span>Try Prompt+</span>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20 transition-transform group-hover:translate-x-0.5">
                       <ArrowRight className="h-4 w-4" />
                     </span>
+                  </Link>
+                  <Link
+                    href="/extension"
+                    className={`group h-12 inline-flex items-center justify-center gap-2 rounded-full border border-border/80 bg-card/70 px-5 text-sm font-semibold hover:bg-accent transition-all active:scale-[0.98] shadow-2xs ${focusRing}`}
+                  >
+                    Get the extension
+                    <ArrowUpRight className="h-4 w-4 opacity-70" />
                   </Link>
                 </div>
               </div>

@@ -27,7 +27,7 @@ function getProviderBadge(provider: ModelDefinition["provider"]) {
       );
     case "openai":
       return (
-        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 shrink-0">
+        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 shrink-0">
           OpenAI
         </span>
       );
@@ -186,7 +186,7 @@ export function ModelSelector({
 
               {/* OpenAI & Anthropic Premium Models */}
               <div className="border-t pt-1.5">
-                <div className="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 flex items-center justify-between">
+                <div className="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center justify-between">
                   <span>🔑 OpenAI & Anthropic Models</span>
                   <span className="text-[10px] opacity-75">Custom API Key</span>
                 </div>

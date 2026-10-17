@@ -27,7 +27,12 @@ for (const editor of ["textarea", "contenteditable"]) {
     expect(result.success).toBe(true);
     await expect(page.getByRole("dialog", { name: "Review enhancement" })).toBeVisible();
     await expect(page.locator("#pp-preview-tokens")).toContainText("Estimated tokens: 0 →");
+    // Tab moves focus into the panel normally; it must never apply the change.
     await page.keyboard.press("Tab");
+    await expect(page.locator("#pp-preview-accept")).toBeFocused();
+    if (editor === "textarea") await expect(page.locator("#prompt-textarea")).toHaveValue("");
+    else await expect(page.locator("#prompt-textarea")).toHaveText("");
+    await page.locator("#pp-preview-accept").click();
     if (editor === "textarea") await expect(page.locator("#prompt-textarea")).toHaveValue("Preserve this prompt");
     else await expect(page.locator("#prompt-textarea")).toHaveText("Preserve this prompt");
     await expect(page.locator("body")).not.toHaveAttribute("data-submitted", "yes");
@@ -98,6 +103,9 @@ for (const editor of ["textarea", "contenteditable"]) {
     // report additions only — nothing from the input was removed.
     await expect(dialog.locator("del")).toHaveCount(0);
     await expect(dialog.locator('[data-preview="original"]')).toHaveText("Write a project update");
+    // The diff carries text labels, so "changed" is not colour-only.
+    await expect(dialog.locator("#pp-preview-legend")).toContainText("Removed");
+    await expect(dialog.locator("#pp-preview-legend")).toContainText("Added");
     const tokenizerContext = { PromptPlusTokenizer: undefined as undefined | { countTokens: (text: string) => number } };
     vm.runInNewContext(readFileSync("extension/lib/tokenizer.js", "utf8"), tokenizerContext);
     const counts = ["Write a project update", "Write a concise project update for the team."].map(text => tokenizerContext.PromptPlusTokenizer!.countTokens(text));
@@ -112,6 +120,16 @@ for (const editor of ["textarea", "contenteditable"]) {
     await dialog.locator("#pp-preview-accept").click();
     expect(await read()).toBe("My newer draft");
     await expect(dialog).not.toBeVisible();
+    await expect(page.locator("body")).not.toHaveAttribute("data-submitted", "yes");
+    // Applying is reversible, and Undo is guarded by the same stale-edit check.
+    await page.locator("#pp-dock-enhance").click();
+    await expect(dialog).toBeVisible();
+    await dialog.locator("#pp-preview-accept").click();
+    const applied = page.locator("#pp-enhancement-preview");
+    await expect(applied.locator("#pp-preview-undo")).toBeVisible();
+    await applied.locator("#pp-preview-undo").click();
+    expect(await read()).toBe("My newer draft");
+    await expect(page.locator("#pp-enhancement-preview")).toHaveCount(0);
     await expect(page.locator("body")).not.toHaveAttribute("data-submitted", "yes");
   });
 }

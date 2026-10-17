@@ -1,0 +1,35 @@
+/*
+ * Prompt+ design tokens — the one place the brand is declared.
+ *
+ * Consumed by the Next.js app (src/app/globals.css) and by the extension
+ * (extension/popup.html). extension/content.js still inlines literals on
+ * purpose: it is injected into host pages, where a stylesheet cannot follow it.
+ */
+:root {
+  /* Brand — indigo. Every tint derives from --brand-rgb, so on-accent
+     surfaces can never drift from the hue. */
+  --brand-300: #a5b4fc;
+  --brand-400: #818cf8;
+  --brand-500: #6366f1;
+  --brand-600: #4f46e5;
+  --brand-700: #4338ca;
+  --brand-rgb: 99, 102, 241;
+
+  /* Semantic hues stay separate from the brand: red/green/amber mean
+     something, indigo only means "Prompt+ action". */
+  --success: #16a34a;
+  --danger: #dc2626;
+  --warning: #d97706;
+
+  /* Shape: inputs, panels and dialogs share one scale. */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+}
+
+/* Dark surfaces need the lighter end of each hue. Names stay identical. */
+.dark {
+  --success: #34d399;
+  --danger: #f87171;
+  --warning: #fbbf24;
+}

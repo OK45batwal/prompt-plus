@@ -151,6 +151,11 @@ assert(contentCode.includes("pp-dock-studio-btn"), "content.js has #pp-dock-stud
 assert(!contentCode.includes("window.PromptPlusRunwayOverlay.init()"), "content.js does NOT call obsolete PromptPlusRunwayOverlay.init()");
 assert(!contentCode.includes("window.PromptPlusRunwayOverlay.update("), "content.js does NOT call obsolete PromptPlusRunwayOverlay.update()");
 
+// The enhancement preview must not steal Tab, must offer Undo, and is deliberately non-modal.
+assert(!contentCode.includes('event.key === "Tab"'), "content.js does not hijack Tab in the enhancement preview");
+assert(contentCode.includes("pp-preview-undo"), "content.js offers an Undo action for applied enhancements");
+assert(!contentCode.includes('"aria-modal"'), "content.js keeps the enhancement preview non-modal (no aria-modal)");
+
 // -------------------------------------------------------------------
 // TEST SUITE 4: Popup Dimensions & Layout Ergonomics
 // -------------------------------------------------------------------

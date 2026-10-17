@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prompt+ Architect AI</title>
+  <link rel="stylesheet" href="design-tokens.css">
   <style>
     :root {
       --bg: #0a0b10;
@@ -14,12 +15,14 @@
       --border-subtle: rgba(255, 255, 255, 0.05);
       --border-highlight: rgba(255, 255, 255, 0.14);
       /* One accent, declared once: every tint below is derived from --accent-rgb. */
-      --accent-rgb: 6, 182, 212;
-      --accent-text: #67e8f9;
+      /* Brand values come from design-tokens.css, which the website imports
+         too: indigo is declared in one place for both products. */
+      --accent-rgb: var(--brand-rgb);
+      --accent-text: var(--brand-300);
       --border-active: rgba(var(--accent-rgb), 0.55);
-      --primary: #06b6d4;
-      --primary-hover: #22d3ee;
-      --primary-deep: #0d9488;
+      --primary: var(--brand-600);
+      --primary-hover: var(--brand-500);
+      --primary-deep: var(--brand-700);
       --glass-blur: blur(12px) saturate(160%);
       --emerald: #10b981;
       --amber: #f59e0b;
@@ -112,13 +115,13 @@
       min-width: 0;
     }
 
-    /* The website's P mark on the same cyan-to-teal gradient as the CTA. */
+    /* The website's P mark on the same indigo gradient as the CTA. */
     .brand-mark {
       width: 26px;
       height: 26px;
       border-radius: 8px;
-      background: linear-gradient(135deg, #06b6d4, #0d9488);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 2px 10px rgba(6, 182, 212, 0.26);
+      background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 2px 10px rgba(var(--accent-rgb), 0.26);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -365,10 +368,10 @@
     }
 
     .tone-pill-btn.active {
-      background: rgba(6, 182, 212, 0.15);
-      border-color: rgba(6, 182, 212, 0.45);
-      color: #67e8f9;
-      box-shadow: 0 0 8px rgba(6, 182, 212, 0.15);
+      background: rgba(var(--accent-rgb), 0.15);
+      border-color: rgba(var(--accent-rgb), 0.45);
+      color: var(--accent-text);
+      box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.15);
     }
 
     /* ---------- Input Bezel Card ---------- */
@@ -385,8 +388,8 @@
     }
 
     .input-bezel-card:focus-within {
-      border-color: rgba(6, 182, 212, 0.4);
-      box-shadow: 0 0 12px rgba(6, 182, 212, 0.12);
+      border-color: rgba(var(--accent-rgb), 0.4);
+      box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.12);
     }
 
     .input-bezel-header {
@@ -480,10 +483,10 @@
       height: 44px;
       padding: 0 10px 0 11px;
       border-radius: 11px;
-      border: 1px solid rgba(4, 20, 28, 0.22);
-      background: linear-gradient(180deg, #06b6d4 0%, #0d9488 100%);
-      /* Dark ink reads at 7.7:1 on this gradient; white is 2.4:1 and fails AA. */
-      color: #04141c;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+      background: linear-gradient(180deg, var(--brand-500) 0%, var(--brand-700) 100%);
+      /* White reads at 6.3:1 on this indigo gradient; dark ink is 3.4:1 and fails AA. */
+      color: #ffffff;
       font-size: 13px;
       font-weight: 800;
       letter-spacing: -0.01em;
@@ -492,7 +495,7 @@
       align-items: center;
       gap: 9px;
       /* Inset highlight rather than a glow, which washed out on the dark shell. */
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 3px 10px rgba(6, 182, 212, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 3px 10px rgba(var(--accent-rgb), 0.16);
       transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.16s ease, filter 0.16s ease;
       position: relative;
       overflow: hidden;
@@ -500,13 +503,13 @@
 
     .master-enhance-btn:hover:not(:disabled) {
       filter: brightness(1.08);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 5px 16px rgba(6, 182, 212, 0.26);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 5px 16px rgba(var(--accent-rgb), 0.26);
       transform: translateY(-1px);
     }
 
     .master-enhance-btn:active:not(:disabled) {
       transform: translateY(1px) scale(0.995);
-      box-shadow: inset 0 2px 6px rgba(4, 20, 28, 0.28);
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
       filter: none;
     }
 
@@ -561,7 +564,7 @@
       border-radius: 5px;
       background: rgba(255, 255, 255, 0.24);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
-      color: rgba(4, 20, 28, 0.82);
+      color: rgba(255, 255, 255, 0.92);
       line-height: 1;
       letter-spacing: 0;
       flex-shrink: 0;
@@ -708,6 +711,79 @@
     .advanced-tools-toggle:hover {
       background: rgba(255, 255, 255, 0.04);
       border-color: var(--border-highlight);
+    }
+
+    /* ---------- Compact context selector row ---------- */
+    .context-compact-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      width: 100%;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .context-compact-row:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: var(--border-highlight);
+      color: #fff;
+    }
+
+    .context-compact-row svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+
+    .context-compact-row strong {
+      color: var(--text-white);
+      font-weight: 700;
+    }
+
+    .context-compact-action {
+      margin-left: auto;
+      color: var(--accent-text);
+      font-weight: 700;
+    }
+
+    /* ---------- Quick links (recent work, studio) ---------- */
+    .quick-links {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .quick-link-btn {
+      height: 30px;
+      border-radius: 7px;
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s ease, color 0.12s ease;
+    }
+
+    .quick-link-btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+    }
+
+    /* Plain-language caption for a drawer control. */
+    .drawer-hint {
+      font-size: 10px;
+      color: var(--text-dim);
+      line-height: 1.4;
+      margin-top: -2px;
     }
 
     /* ---------- Usage ring & status ---------- */
@@ -862,7 +938,7 @@
     .ai-pill-btn[data-bot="gemini"] { border-left-color: #3b82f6; }
     .ai-pill-btn[data-bot="deepseek"] { border-left-color: #6366f1; }
     .ai-pill-btn[data-bot="grok"] { border-left-color: #ec4899; }
-    .ai-pill-btn[data-bot="perplexity"] { border-left-color: #06b6d4; }
+    .ai-pill-btn[data-bot="perplexity"] { border-left-color: #20808d; }
     .ai-pill-btn[data-bot="copilot"] { border-left-color: #0078d4; }
     .ai-pill-btn[data-bot="meta"] { border-left-color: #0668e1; }
 
@@ -975,12 +1051,16 @@
       -webkit-user-select: text;
     }
 
+    /* Strikethrough/underline carry the add/remove meaning on their own, so the
+       diff never depends on colour alone. */
     .diff-body del,
     .diff-body ins {
-      text-decoration: none;
       border-radius: 3px;
       padding: 0 2px;
     }
+
+    .diff-body del { text-decoration: line-through; }
+    .diff-body ins { text-decoration: underline; }
 
     .diff-body del { background: rgba(127, 29, 29, 0.85); color: #fecaca; }
     .diff-body ins { background: rgba(20, 83, 45, 0.9); color: #bbf7d0; }
@@ -1138,7 +1218,12 @@
       border: none;
       color: #ffffff;
       font-size: 11.5px;
-      outline: none;
+    }
+
+    /* Keyboard users need the focus ring back: `outline: none` used to hide it. */
+    .library-search-box:focus-within {
+      border-color: var(--border-active);
+      box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.25);
     }
 
     .library-grid {
@@ -1383,7 +1468,7 @@
       <span class="brand-mark" aria-hidden="true">
         <svg viewBox="0 0 100 100" fill="none">
           <path d="M22 90V28C22 16 32 10 52 10C72 10 85 22 85 40C85 58 72 68 52 68H42V90H22Z" fill="#ffffff"/>
-          <path d="M26 68L56 38M56 38H42M56 38V52" stroke="#04141c" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M26 68L56 38M56 38H42M56 38V52" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </span>
       <span class="brand-text">
@@ -1392,7 +1477,7 @@
           <span class="brand-version" id="header-version-pill"></span>
           <span class="brand-sep" aria-hidden="true"></span>
           <span class="sync-indicator-dot" id="sync-dot"></span>
-          <span id="sync-status-text">Not checked</span>
+          <span id="sync-status-text" aria-live="polite">Not checked</span>
           <span class="brand-latency" id="sync-latency-badge">—</span>
         </span>
       </span>
@@ -1412,7 +1497,7 @@
     </button>
     <button type="button" class="nav-tab-btn" id="tab-btn-library" role="tab" aria-selected="false" aria-controls="panel-library">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-      <span>Templates</span>
+      <span>Library</span>
     </button>
     <button type="button" class="nav-tab-btn" id="tab-btn-context" role="tab" aria-selected="false" aria-controls="panel-context">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
@@ -1426,43 +1511,8 @@
 
   <!-- Main Viewport -->
   <main class="main-viewport">
-    <!-- PANEL 1: ENHANCE -->
+    <!-- PANEL 1: ENHANCE — quick entry: write, enhance, review -->
     <div class="tab-content-panel" id="panel-enhance" role="tabpanel" aria-labelledby="tab-btn-enhance">
-      <!-- Usage: the one card that reports capacity, nothing duplicated -->
-      <div class="usage-card context-runway-card" id="context-runway-card">
-        <div class="usage-ring" title="Share of this model's context limit used in the chat">
-          <svg class="runway-svg-ring" viewBox="0 0 44 44" aria-hidden="true">
-            <circle class="runway-ring-bg" cx="22" cy="22" r="18" />
-            <circle class="runway-ring-fg" id="runway-ring-fg" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="113.1" />
-          </svg>
-          <span class="runway-ring-pct" id="runway-ring-pct">—</span>
-        </div>
-        <div class="usage-body">
-          <div class="usage-head">
-            <span class="sync-indicator-dot" id="runway-status-dot"></span>
-            <span class="usage-model" id="active-bot-pill">Universal AI</span>
-            <span class="runway-status-tag" id="runway-status-tag">Not measured</span>
-          </div>
-          <div class="usage-nums">
-            <span class="runway-rem-badge" id="runway-rem-badge">—</span>
-            <span class="runway-used-txt" id="runway-used-txt">Open a chat to measure it</span>
-          </div>
-          <div class="runway-track">
-            <div class="runway-fill" id="runway-fill" style="width: 0%;"></div>
-          </div>
-          <div class="usage-foot" id="runway-burn-rate">—</div>
-        </div>
-      </div>
-
-      <!-- Tone: same five names everywhere (popup, in-page dock, modal) -->
-      <div class="tone-selector-strip" role="group" aria-label="Tone">
-        <button type="button" class="tone-pill-btn active" data-tone="human">Natural</button>
-        <button type="button" class="tone-pill-btn" data-tone="code">Technical</button>
-        <button type="button" class="tone-pill-btn" data-tone="exec">Executive</button>
-        <button type="button" class="tone-pill-btn" data-tone="copy">Marketing</button>
-        <button type="button" class="tone-pill-btn" data-tone="deep">Reasoning</button>
-      </div>
-
       <!-- Prompt input -->
       <div class="input-bezel-card">
         <div class="input-bezel-header">
@@ -1490,30 +1540,77 @@
         </div>
       </div>
 
-      <!-- Primary action -->
+      <!-- Optional context: the rules added to every prompt -->
+      <button type="button" class="context-compact-row" id="context-picker-btn" title="Context rules are added to every prompt you enhance">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        <span>Context: <strong id="context-picker-count">—</strong></span>
+        <span class="context-compact-action">Choose</span>
+      </button>
+
+      <!-- The one action -->
       <button type="button" class="master-enhance-btn" id="enhance-btn">
         <span class="cta-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         </span>
         <span class="cta-center">
-          <span class="cta-label" id="btn-text">Enhance Prompt</span>
+          <span class="cta-label" id="btn-text">Enhance prompt</span>
           <span id="btn-timer">(0.0s)</span>
         </span>
         <kbd class="btn-kbd-pill" id="btn-kbd-pill">⌘↵</kbd>
       </button>
 
-      <!-- Toast Notification -->
+      <!-- Saved work and the full editor -->
+      <div class="quick-links">
+        <button type="button" class="quick-link-btn" id="quick-recent-btn">Recent work</button>
+        <button type="button" class="quick-link-btn" id="quick-studio-btn">Studio</button>
+      </div>
 
-      <!-- Advanced: engine, quota, and the other AI apps -->
-      <div class="advanced-tools-toggle" id="advanced-tools-toggle" role="button" tabindex="0" aria-expanded="false" aria-controls="advanced-tools-drawer" title="Engine, quota and other AI apps">
+      <!-- Secondary: one disclosure for engine, tone, capacity and other AI apps -->
+      <div class="advanced-tools-toggle" id="advanced-tools-toggle" role="button" tabindex="0" aria-expanded="false" aria-controls="advanced-tools-drawer" title="Engine, tone, chat capacity and other AI apps">
         <div style="display:flex; align-items:center; gap:6px;">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          <span style="font-weight:600; font-size:10.5px; color:#9a9aa3;">Advanced</span>
+          <span style="font-weight:600; font-size:10.5px; color:#9a9aa3;">More options</span>
         </div>
         <span class="advanced-arrow" id="advanced-arrow" style="font-size:11px; color:#71717a; transition:transform 0.2s ease;">▾</span>
       </div>
 
       <div class="advanced-tools-drawer" id="advanced-tools-drawer" style="display:none; flex-direction:column; gap:8px;">
+        <!-- Capacity: the one card that reports it, nothing duplicated -->
+        <div class="usage-card context-runway-card" id="context-runway-card">
+          <div class="usage-ring" title="Share of this model's context limit used in the chat">
+            <svg class="runway-svg-ring" viewBox="0 0 44 44" aria-hidden="true">
+              <circle class="runway-ring-bg" cx="22" cy="22" r="18" />
+              <circle class="runway-ring-fg" id="runway-ring-fg" cx="22" cy="22" r="18" stroke-dasharray="113.1" stroke-dashoffset="113.1" />
+            </svg>
+            <span class="runway-ring-pct" id="runway-ring-pct">—</span>
+          </div>
+          <div class="usage-body">
+            <div class="usage-head">
+              <span class="sync-indicator-dot" id="runway-status-dot"></span>
+              <span class="usage-model" id="active-bot-pill">Universal AI</span>
+              <span class="runway-status-tag" id="runway-status-tag">Not measured</span>
+            </div>
+            <div class="usage-nums">
+              <span class="runway-rem-badge" id="runway-rem-badge">—</span>
+              <span class="runway-used-txt" id="runway-used-txt">Open a chat to measure it</span>
+            </div>
+            <div class="runway-track">
+              <div class="runway-fill" id="runway-fill" style="width: 0%;"></div>
+            </div>
+            <div class="usage-foot" id="runway-burn-rate">—</div>
+          </div>
+        </div>
+
+        <!-- Tone: same five names everywhere (popup, in-page dock, modal) -->
+        <div class="tone-selector-strip" role="group" aria-label="Tone">
+          <button type="button" class="tone-pill-btn active" data-tone="human">Natural</button>
+          <button type="button" class="tone-pill-btn" data-tone="code">Technical</button>
+          <button type="button" class="tone-pill-btn" data-tone="exec">Executive</button>
+          <button type="button" class="tone-pill-btn" data-tone="copy">Marketing</button>
+          <button type="button" class="tone-pill-btn" data-tone="deep">Reasoning</button>
+        </div>
+        <p class="drawer-hint">Tone changes the wording. The capacity card shows how full the chat you have open is.</p>
+
         <!-- Engine: which model writes the prompt -->
         <div class="engine-segmented-box" role="group" aria-label="Engine">
           <button type="button" class="engine-segmented-tab active" id="mode-algo" aria-pressed="true" title="Runs instantly on this device. No network, no key.">
@@ -1529,6 +1626,7 @@
             <span>Chrome AI</span>
           </button>
         </div>
+        <p class="drawer-hint">Instant runs on this device with no network. Cloud key uses the API key saved in Settings. Chrome AI uses your browser's built-in model.</p>
 
         <!-- This app's own free quota, not the chat model's context -->
         <div class="promptplus-quota-row">
@@ -1586,8 +1684,8 @@
           <span>Back</span>
         </button>
         <div style="display: flex; gap: 5px; align-items: center;">
-          <span class="score-badge" id="quality-score-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.25); color:#34d399;">Not evaluated</span>
-          <span class="loop-badge" id="loop-telemetry-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(var(--accent-rgb),0.12); border:1px solid rgba(var(--accent-rgb),0.25); color:var(--accent-text);">Not measured</span>
+          <span class="score-badge" id="quality-score-badge" hidden></span>
+          <span class="loop-badge" id="loop-telemetry-badge" style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:5px; background:rgba(var(--accent-rgb),0.12); border:1px solid rgba(var(--accent-rgb),0.25); color:var(--accent-text);" aria-live="polite"></span>
         </div>
       </div>
 
@@ -1601,7 +1699,7 @@
       <div class="diff-pane" id="diff-pane">
         <p class="diff-label">Original</p>
         <div class="diff-body" id="diff-before"></div>
-        <p class="diff-label">Compiled</p>
+        <p class="diff-label">Enhanced</p>
         <div class="diff-body" id="diff-after"></div>
       </div>
 
@@ -1614,7 +1712,7 @@
         </button>
         <button type="button" class="action-btn btn-inject" id="use-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <span id="use-btn-label">Insert into chat</span>
+          <span id="use-btn-label">Apply</span>
         </button>
       </div>
 

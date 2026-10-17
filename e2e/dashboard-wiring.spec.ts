@@ -19,7 +19,7 @@ test("Studio hydrates the prompt from handoff query params", async ({ page }) =>
     route.fulfill({ json: { data: { id: "saved-123", originalText: "REFACTOR MY SCRAPER" } } })
   );
 
-  const promptBox = page.getByRole("textbox", { name: "Your prompt", exact: true });
+  const promptBox = page.getByRole("textbox", { name: "What do you want the AI to do?", exact: true });
 
   await page.goto("/dashboard/new?prompt=hello%20from%20the%20extension");
   await expect(promptBox).toHaveValue("hello from the extension");
