@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prompt+ Architect AI</title>
+  <link rel="stylesheet" href="design-tokens.css">
   <style>
     :root {
       --bg: #0a0b10;
@@ -14,12 +15,14 @@
       --border-subtle: rgba(255, 255, 255, 0.05);
       --border-highlight: rgba(255, 255, 255, 0.14);
       /* One accent, declared once: every tint below is derived from --accent-rgb. */
-      --accent-rgb: 6, 182, 212;
-      --accent-text: #67e8f9;
+      /* Brand values come from design-tokens.css, which the website imports
+         too: indigo is declared in one place for both products. */
+      --accent-rgb: var(--brand-rgb);
+      --accent-text: var(--brand-300);
       --border-active: rgba(var(--accent-rgb), 0.55);
-      --primary: #06b6d4;
-      --primary-hover: #22d3ee;
-      --primary-deep: #0d9488;
+      --primary: var(--brand-600);
+      --primary-hover: var(--brand-500);
+      --primary-deep: var(--brand-700);
       --glass-blur: blur(12px) saturate(160%);
       --emerald: #10b981;
       --amber: #f59e0b;
@@ -112,13 +115,13 @@
       min-width: 0;
     }
 
-    /* The website's P mark on the same cyan-to-teal gradient as the CTA. */
+    /* The website's P mark on the same indigo gradient as the CTA. */
     .brand-mark {
       width: 26px;
       height: 26px;
       border-radius: 8px;
-      background: linear-gradient(135deg, #06b6d4, #0d9488);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 2px 10px rgba(6, 182, 212, 0.26);
+      background: linear-gradient(135deg, #6366f1, #4338ca);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 2px 10px rgba(99, 102, 241, 0.26);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -365,10 +368,10 @@
     }
 
     .tone-pill-btn.active {
-      background: rgba(6, 182, 212, 0.15);
-      border-color: rgba(6, 182, 212, 0.45);
-      color: #67e8f9;
-      box-shadow: 0 0 8px rgba(6, 182, 212, 0.15);
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.45);
+      color: #a5b4fc;
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.15);
     }
 
     /* ---------- Input Bezel Card ---------- */
@@ -385,8 +388,8 @@
     }
 
     .input-bezel-card:focus-within {
-      border-color: rgba(6, 182, 212, 0.4);
-      box-shadow: 0 0 12px rgba(6, 182, 212, 0.12);
+      border-color: rgba(99, 102, 241, 0.4);
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.12);
     }
 
     .input-bezel-header {
@@ -480,10 +483,10 @@
       height: 44px;
       padding: 0 10px 0 11px;
       border-radius: 11px;
-      border: 1px solid rgba(4, 20, 28, 0.22);
-      background: linear-gradient(180deg, #06b6d4 0%, #0d9488 100%);
-      /* Dark ink reads at 7.7:1 on this gradient; white is 2.4:1 and fails AA. */
-      color: #04141c;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+      background: linear-gradient(180deg, #6366f1 0%, #4338ca 100%);
+      /* White reads at 6.3:1 on this indigo gradient; dark ink is 3.4:1 and fails AA. */
+      color: #ffffff;
       font-size: 13px;
       font-weight: 800;
       letter-spacing: -0.01em;
@@ -492,7 +495,7 @@
       align-items: center;
       gap: 9px;
       /* Inset highlight rather than a glow, which washed out on the dark shell. */
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 3px 10px rgba(6, 182, 212, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 3px 10px rgba(99, 102, 241, 0.16);
       transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.16s ease, filter 0.16s ease;
       position: relative;
       overflow: hidden;
@@ -500,13 +503,13 @@
 
     .master-enhance-btn:hover:not(:disabled) {
       filter: brightness(1.08);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 5px 16px rgba(6, 182, 212, 0.26);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 5px 16px rgba(99, 102, 241, 0.26);
       transform: translateY(-1px);
     }
 
     .master-enhance-btn:active:not(:disabled) {
       transform: translateY(1px) scale(0.995);
-      box-shadow: inset 0 2px 6px rgba(4, 20, 28, 0.28);
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
       filter: none;
     }
 
@@ -561,7 +564,7 @@
       border-radius: 5px;
       background: rgba(255, 255, 255, 0.24);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
-      color: rgba(4, 20, 28, 0.82);
+      color: rgba(255, 255, 255, 0.92);
       line-height: 1;
       letter-spacing: 0;
       flex-shrink: 0;
@@ -862,7 +865,7 @@
     .ai-pill-btn[data-bot="gemini"] { border-left-color: #3b82f6; }
     .ai-pill-btn[data-bot="deepseek"] { border-left-color: #6366f1; }
     .ai-pill-btn[data-bot="grok"] { border-left-color: #ec4899; }
-    .ai-pill-btn[data-bot="perplexity"] { border-left-color: #06b6d4; }
+    .ai-pill-btn[data-bot="perplexity"] { border-left-color: #20808d; }
     .ai-pill-btn[data-bot="copilot"] { border-left-color: #0078d4; }
     .ai-pill-btn[data-bot="meta"] { border-left-color: #0668e1; }
 
@@ -1383,7 +1386,7 @@
       <span class="brand-mark" aria-hidden="true">
         <svg viewBox="0 0 100 100" fill="none">
           <path d="M22 90V28C22 16 32 10 52 10C72 10 85 22 85 40C85 58 72 68 52 68H42V90H22Z" fill="#ffffff"/>
-          <path d="M26 68L56 38M56 38H42M56 38V52" stroke="#04141c" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M26 68L56 38M56 38H42M56 38V52" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </span>
       <span class="brand-text">

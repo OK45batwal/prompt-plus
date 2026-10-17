@@ -14,7 +14,7 @@ export function LoopTraceCard({ loopTrace }: LoopTraceCardProps) {
     <div className="p-4 rounded-xl border bg-card/60 backdrop-blur-md shadow-sm space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-500 border border-cyan-500/20">
+          <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
             <RefreshCw className="h-4 w-4 animate-spin-slow" />
           </div>
           <div>
@@ -66,7 +66,7 @@ export function LoopTraceCard({ loopTrace }: LoopTraceCardProps) {
       {loopTrace.improvementsApplied && loopTrace.improvementsApplied.length > 0 && (
         <div className="pt-2 border-t border-border/50">
           <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5 flex items-center gap-1">
-            <Sparkles className="h-3 w-3 text-cyan-400" /> Automated Optimizations Applied:
+            <Sparkles className="h-3 w-3 text-indigo-400" /> Automated Optimizations Applied:
           </span>
           <div className="flex flex-wrap gap-1.5">
             {loopTrace.improvementsApplied.map((imp, idx) => (
@@ -74,7 +74,7 @@ export function LoopTraceCard({ loopTrace }: LoopTraceCardProps) {
                 key={idx}
                 className="text-[10px] px-2 py-0.5 rounded-md bg-secondary/80 text-secondary-foreground border font-medium flex items-center gap-1"
               >
-                <ShieldCheck className="h-2.5 w-2.5 text-cyan-400" /> {imp}
+                <ShieldCheck className="h-2.5 w-2.5 text-indigo-400" /> {imp}
               </span>
             ))}
           </div>

@@ -135,7 +135,7 @@ export function NotificationBell() {
       case "optimization":
         return <Zap className="h-3.5 w-3.5 text-amber-500" />;
       case "extension":
-        return <Layers className="h-3.5 w-3.5 text-cyan-500" />;
+        return <Layers className="h-3.5 w-3.5 text-indigo-500" />;
       case "security":
         return <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />;
       default:

@@ -46,7 +46,7 @@ try {
     if (!fs.existsSync(path.join(extDir, file))) throw new Error(`Missing manifest asset: ${file}`);
   }
   if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
-  execFileSync("zip", ["-r", zipPath, "manifest.json", "background.js", "content.js", "web-bridge.js", "popup.html", "popup.js", "icons/", "adapters/", "lib/", "README.md"], { cwd: extDir, stdio: "inherit" });
+  execFileSync("zip", ["-r", zipPath, "manifest.json", "background.js", "content.js", "web-bridge.js", "popup.html", "popup.js", "design-tokens.css", "icons/", "adapters/", "lib/", "README.md"], { cwd: extDir, stdio: "inherit" });
   const entries = new Set(execFileSync("unzip", ["-Z1", zipPath], { encoding: "utf8" }).trim().split("\n"));
   for (const file of referenced) if (!entries.has(file)) throw new Error(`Archive missing ${file}`);
   if (isolatedOutput) {

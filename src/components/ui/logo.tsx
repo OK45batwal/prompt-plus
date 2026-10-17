@@ -21,8 +21,8 @@ export function Logo({ className = "", showText = true, size = 26 }: LogoProps) 
         >
           <defs>
             <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#06b6d4" />
-              <stop offset="100%" stopColor="#0d9488" />
+              <stop offset="0%" stopColor="#818cf8" />
+              <stop offset="100%" stopColor="#4338ca" />
             </linearGradient>
           </defs>
 
@@ -41,14 +41,14 @@ export function Logo({ className = "", showText = true, size = 26 }: LogoProps) 
           />
         </svg>
         {/* Animated outer ring on hover */}
-        <span className="absolute -inset-1 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity border border-cyan-400/50 animate-pulse pointer-events-none" style={{ animationDuration: "1.5s" }} />
+        <span className="absolute -inset-1 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity border border-indigo-400/50 animate-pulse pointer-events-none" style={{ animationDuration: "1.5s" }} />
       </span>
 
       {showText && (
         <span className="font-extrabold tracking-tight text-foreground text-lg flex items-center">
-          <span className="bg-gradient-to-r from-cyan-300 via-cyan-500 to-teal-600 bg-clip-text text-transparent">P</span>
+          <span className="bg-gradient-to-r from-indigo-300 via-indigo-500 to-indigo-600 bg-clip-text text-transparent">P</span>
           <span>rompt</span>
-          <span className="text-cyan-500 font-black text-xl ml-0.5 animate-pulse inline-block">+</span>
+          <span className="text-indigo-500 font-black text-xl ml-0.5 animate-pulse inline-block">+</span>
         </span>
       )}
     </div>

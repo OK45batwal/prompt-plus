@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { match: "gemini", name: "Gemini", maxContext: 1000000, color: "#3b82f6" },
     { match: "deepseek", name: "DeepSeek", maxContext: 128000, color: "#6366f1" },
     { match: "grok", name: "Grok", maxContext: 128000, color: "#ec4899" },
-    { match: "perplexity", name: "Perplexity", maxContext: 32000, color: "#06b6d4" },
+    { match: "perplexity", name: "Perplexity", maxContext: 32000, color: "#20808d" },
     { match: "copilot", name: "Copilot", maxContext: 128000, color: "#0078d4" },
     { match: "meta", name: "Meta AI", maxContext: 128000, color: "#0668e1" },
   ];

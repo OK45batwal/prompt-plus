@@ -99,7 +99,7 @@ export default function LandingPage() {
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-[-0.03em] leading-[1.08] text-balance">
                 Craft Flawless AI Prompts.{" "}
-                <span className="bg-linear-to-r from-primary via-primary/80 to-cyan-400 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-primary via-primary/80 to-indigo-400 bg-clip-text text-transparent">
                   Get Superior Outputs.
                 </span>
               </h1>
@@ -239,7 +239,7 @@ export default function LandingPage() {
             >
               <div className="double-bezel-inner p-6 sm:p-8 h-full flex flex-col justify-between">
                 <div>
-                  <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center mb-6 border border-cyan-500/20 shadow-2xs group-hover:scale-105 transition-transform">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center mb-6 border border-indigo-500/20 shadow-2xs group-hover:scale-105 transition-transform">
                     <Sliders className="h-6 w-6" strokeWidth={1.75} />
                   </div>
                   <h3 className="text-lg font-bold tracking-tight">Side-by-Side Model Lab</h3>
@@ -248,7 +248,7 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="mt-6 flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
-                  <span className="px-2 py-1 rounded bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-semibold">4 Models</span>
+                  <span className="px-2 py-1 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-semibold">4 Models</span>
                   <span>Parallel Run</span>
                 </div>
               </div>

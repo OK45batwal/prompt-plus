@@ -38,7 +38,7 @@ export function ContextMemoryPanel({
     <div className="p-3 rounded-lg border bg-accent/30 space-y-2">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold flex items-center gap-1.5">
-          <Brain className="h-3.5 w-3.5 text-cyan-500" /> Context Memory & System Rules
+          <Brain className="h-3.5 w-3.5 text-indigo-500" /> Context Memory & System Rules
         </span>
         <span className="text-[10px] text-muted-foreground">
           {selectedBlockIds.length} active block{selectedBlockIds.length !== 1 && "s"}
