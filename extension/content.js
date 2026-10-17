@@ -79,28 +79,38 @@
         align-items: center !important;
         gap: 5px !important;
         height: 22px !important;
-        padding: 0 7px 0 5px !important;
+        padding: 0 8px 0 5px !important;
         border-radius: 9999px !important;
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(79, 70, 229, 0.9) 100%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        /* Every stop keeps the white label at 4.5:1 or better. */
+        background: linear-gradient(180deg, #5b5ef0 0%, #4f46e5 55%, #4338ca 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.22) !important;
         color: #ffffff !important;
         cursor: pointer !important;
         font-size: 11px !important;
         font-weight: 700 !important;
         line-height: 1 !important;
-        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35) !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25),
+                    0 2px 8px rgba(79, 70, 229, 0.45) !important;
         transition: all 0.15s ease !important;
         flex-shrink: 0 !important;
       }
 
       .pp-dock-btn:hover {
-        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-        box-shadow: 0 3px 12px rgba(99, 102, 241, 0.5) !important;
+        background: linear-gradient(180deg, #6d70f7 0%, #5b5ef0 55%, #4f46e5 100%) !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                    0 3px 14px rgba(99, 102, 241, 0.6) !important;
         transform: translateY(-0.5px) !important;
       }
 
       .pp-dock-btn:active {
         transform: translateY(0.5px) !important;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3),
+                    0 1px 4px rgba(79, 70, 229, 0.4) !important;
+      }
+
+      .pp-dock-btn:focus-visible {
+        outline: 2px solid rgba(165, 180, 252, 0.9) !important;
+        outline-offset: 2px !important;
       }
 
       .pp-dock-icon {
