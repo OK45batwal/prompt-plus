@@ -6,11 +6,12 @@
  */
 
 import { PromptCandidate, TaskType, ComplexityLevel, SecurityScanResult } from "./types";
-import { parseTextToPromptIR } from "./prompt-ir";
+import { parseTextToPromptIR, addConstraint } from "./prompt-ir";
 import { extractIntent } from "./intent-engine";
+import { detectContextGaps, gapsToConstraintTexts } from "./gap-engine";
 import { generateCandidates } from "./candidate-generator";
 import { calculateHybridScore, HybridScoreBreakdown } from "./evaluation-engine";
-import { diagnosePromptFailures, repairPromptIR } from "./repair-engine";
+import { RepairDiagnosis, repairPromptIR } from "./repair-engine";
 import { cleanPromptResponse } from "./cleaner";
 import { scanPromptSecurity } from "./security-scanner";
 import { autocorrectText, AutoCorrectResult } from "./autocorrect";
@@ -66,8 +67,21 @@ export function executeLoopEngineering(
   const security = scanPromptSecurity(sanitizedText);
   const intent = extractIntent(sanitizedText);
 
-  // Parse Base IR & Generate Candidates
-  const baseIR = parseTextToPromptIR(sanitizedText);
+  // Parse Base IR, name what the request left open, then generate candidates
+  const gaps = detectContextGaps(sanitizedText, intent);
+  const assumptions = gapsToConstraintTexts(gaps);
+  let baseIR = parseTextToPromptIR(sanitizedText);
+  for (const assumption of assumptions) {
+    baseIR = addConstraint(baseIR, assumption, "high", "inferred");
+  }
+  if (assumptions.length > 0) {
+    improvementsApplied.push(`Stated ${assumptions.length} slot(s) the request left open`);
+  }
+  // Slots that were already extracted were previously discarded before they
+  // reached the prompt; carry the ones the request actually named.
+  if (intent.audience && !baseIR.audience) baseIR = { ...baseIR, audience: intent.audience };
+  if (intent.slots.tone && !baseIR.tone) baseIR = { ...baseIR, tone: intent.slots.tone };
+
   let candidates = generateCandidates(baseIR, intent.taskType, intent.complexity);
 
   // Score all generated candidates and select the highest-scoring candidate
@@ -89,9 +103,32 @@ export function executeLoopEngineering(
   while (!converged && cyclesRun < maxCycles) {
     cyclesRun++;
 
-    // Diagnose gaps in candidate
-    const failureDiagnoses = diagnosePromptFailures(activeCandidate, ["Output needs production guardrails"]);
-    const repairedIR = repairPromptIR(activeCandidate.ir, failureDiagnoses);
+    // Diagnose what this candidate is actually missing. The old version passed
+    // a hardcoded failure string, so every cycle "repaired" the same canned
+    // problem no matter what the candidate looked like.
+    const diagnoses: RepairDiagnosis[] = [];
+    if (!activeCandidate.ir.constraints.some((c) => c.priority === "critical")) {
+      diagnoses.push({
+        failureType: "CONSTRAINT_VIOLATION",
+        rootCause: "No critical rule constrains the output.",
+        recommendedRepair: "Add a critical guardrail.",
+      });
+    }
+    if (gaps.length > 0) {
+      diagnoses.push({
+        failureType: "MISSING_CONTEXT",
+        rootCause: `The request left ${gaps.length} slot(s) open.`,
+        recommendedRepair: "State the assumption inside the prompt.",
+      });
+    }
+    if (diagnoses.length === 0) {
+      diagnoses.push({
+        failureType: "INCOMPLETE",
+        rootCause: "Candidate scored below the target.",
+        recommendedRepair: "Mandate a reasoning pass.",
+      });
+    }
+    const repairedIR = repairPromptIR(activeCandidate.ir, diagnoses);
 
     // Re-generate candidates with repaired IR and evaluate best candidate
     const repairedCandidates = generateCandidates(repairedIR, intent.taskType, intent.complexity);

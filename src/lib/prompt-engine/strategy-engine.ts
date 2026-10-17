@@ -1,5 +1,8 @@
-import { PromptIR, TaskType, StrategyId } from "./types";
+import { PromptIR, TaskType, StrategyId, OutputContract } from "./types";
 import { addConstraint, setOutputContract, updateReasoning } from "./prompt-ir";
+import { PromptSlots, extractSlots } from "./slots";
+import { classifyTaskType } from "./intent-engine";
+import { selectFewShotExamples } from "./example-synthesizer";
 
 export interface Strategy {
   id: StrategyId;
@@ -12,11 +15,81 @@ export interface Strategy {
   apply(input: PromptIR): PromptIR;
 }
 
+const TASK_PERSONAS: Record<TaskType, string> = {
+  coding: "software engineer",
+  research: "research analyst",
+  writing: "editor",
+  rewriting: "editor",
+  summarization: "analyst",
+  analysis: "analyst",
+  education: "teacher",
+  marketing: "marketing strategist",
+  business: "strategy consultant",
+  data_analysis: "data analyst",
+  planning: "programme planner",
+  creative: "writer",
+  image_generation: "art director",
+  video_generation: "video director",
+  automation: "automation engineer",
+  prompt_engineering: "prompt engineer",
+  general: "subject-matter expert",
+};
+
+const ACTION_FOCUS: Record<string, string> = {
+  build: "implementation and system design",
+  write: "writing and editorial judgement",
+  debug: "debugging and failure analysis",
+  fix: "diagnosis and repair",
+  refactor: "refactoring and code health",
+  optimize: "performance analysis and tuning",
+  analyze: "analysis and evidence",
+  review: "critical review",
+  summarize: "summarisation",
+  explain: "clear explanation",
+  compare: "comparative analysis",
+  migrate: "migration and compatibility",
+  convert: "data transformation",
+  translate: "translation",
+  test: "testing and verification",
+  document: "technical documentation",
+  plan: "planning and sequencing",
+  design: "design",
+  generate: "generation",
+  rewrite: "rewriting and editing",
+  research: "research and source evaluation",
+  extract: "structured extraction",
+  deploy: "deployment and operations",
+  measure: "measurement and benchmarking",
+};
+
+/**
+ * Builds the role from what the request actually says. The old version mapped a
+ * keyword category to one frozen string, so every coding request -- a Node
+ * memory leak and a React component alike -- got the same persona.
+ */
+function composePersona(slots: PromptSlots, taskType: TaskType): string {
+  const base = TASK_PERSONAS[taskType] || TASK_PERSONAS.general;
+  const named = slots.entities.slice(0, 2).join(" and ");
+  const focus = slots.action ? ACTION_FOCUS[slots.action] : undefined;
+  return ["Senior", named ? `${named} ${base}` : base, focus ? `focused on ${focus}` : ""].filter(Boolean).join(" ");
+}
+
+const FORMAT_FOR_SLOT: Record<string, OutputContract["format"]> = {
+  json: "json",
+  csv: "custom",
+  yaml: "custom",
+  xml: "custom",
+  table: "table",
+  bullets: "bullets",
+  markdown: "markdown",
+  diagram: "custom",
+};
+
 export const StrategyRegistry: Record<StrategyId, Strategy> = {
   clarification: {
     id: "clarification",
     name: "Ambiguity Reduction & Intent Clarification",
-    description: "Expands implicit requirements and removes ambiguous phrasing from objective.",
+    description: "Strips conversational prefixes so the objective reads as a directive.",
     applicableTasks: ["general", "writing", "rewriting", "summarization"],
     prerequisites: [],
     risks: ["May add slight verbosity"],
@@ -45,26 +118,11 @@ export const StrategyRegistry: Record<StrategyId, Strategy> = {
     risks: [],
     estimatedTokenCost: 100,
     apply(input: PromptIR): PromptIR {
-      let role = input.role;
-      if (!role) {
-        const text = (input.objective || "").toLowerCase();
-        if (/\b(code|python|typescript|javascript|react|nextjs|api|sql|database|bug|refactor|function|class|backend|frontend)\b/i.test(text)) {
-          role = "Principal Software Architect & Lead Full-Stack Engineer";
-        } else if (/\b(research|paper|study|evidence|literature|analyze|analysis|scientific|hypothesis)\b/i.test(text)) {
-          role = "Senior Research Scientist & Quantitative Methodology Lead";
-        } else if (/\b(marketing|sales|copy|headline|pitch|campaign|growth|conversion|ad|audience)\b/i.test(text)) {
-          role = "Direct-Response Copywriter & Conversion Rate Optimization Lead";
-        } else if (/\b(business|strategy|executive|roadmap|kpi|roi|okr|plan|proposal|budget)\b/i.test(text)) {
-          role = "Executive Strategy Consultant & Enterprise Operations Director";
-        } else if (/\b(write|story|essay|blog|narrative|article|editorial|voice)\b/i.test(text)) {
-          role = "Master Editorial Director & Investigative Journalist";
-        } else {
-          role = "Senior Subject Matter Expert & Systems Architect";
-        }
-      }
+      if (input.role) return input;
+      const objective = input.objective || "";
       return {
         ...input,
-        role,
+        role: composePersona(extractSlots(objective), classifyTaskType(objective)),
       };
     },
   },
@@ -78,8 +136,23 @@ export const StrategyRegistry: Record<StrategyId, Strategy> = {
     risks: [],
     estimatedTokenCost: 60,
     apply(input: PromptIR): PromptIR {
+      const slots = extractSlots(input.objective || "");
       let updated = addConstraint(input, "ZERO ANNOUNCEMENT FILLER: Do not include introductory conversational intros ('Here is your answer') or outros.", "critical", "system");
-      updated = addConstraint(updated, "Maintain strict adherence to technical accuracy and specified formatting.", "high", "system");
+      if (slots.mentionsCode) {
+        updated = addConstraint(updated, "Handle the invalid-input and failure paths, not only the happy path.", "high", "system");
+      }
+      if (slots.formats.includes("json")) {
+        updated = addConstraint(updated, "Return only the JSON object, with no prose around it.", "critical", "system");
+      }
+      if (slots.modifiers.includes("concise")) {
+        updated = addConstraint(updated, "Do not restate the request and do not summarise what you did.", "high", "system");
+      }
+      if (slots.modifiers.includes("detailed")) {
+        updated = addConstraint(updated, "Cover the edge cases you considered and the options you rejected.", "high", "system");
+      }
+      if (slots.audience) {
+        updated = addConstraint(updated, `Write for ${slots.audience}; do not assume knowledge they were not described as having.`, "medium", "system");
+      }
       return updated;
     },
   },
@@ -93,13 +166,25 @@ export const StrategyRegistry: Record<StrategyId, Strategy> = {
     risks: [],
     estimatedTokenCost: 80,
     apply(input: PromptIR): PromptIR {
-      return setOutputContract(input, {
-        format: input.output?.format || "markdown",
-        styleNotes: [
-          "Use clear markdown headings (###) for distinct sub-sections.",
-          "Present code deliverables in complete, production-ready blocks without truncated placeholders.",
-        ],
-      });
+      const slots = extractSlots(input.objective || "");
+      const format = FORMAT_FOR_SLOT[slots.formats[0]] || input.output?.format || "markdown";
+      const styleNotes: string[] = [];
+      if (slots.mentionsCode) {
+        styleNotes.push("Return complete, runnable blocks -- never a placeholder or a truncated body.");
+      }
+      if (slots.modifiers.includes("concise")) {
+        styleNotes.push("Lead with the answer; keep the body as short as the task allows.");
+      }
+      if (slots.modifiers.includes("detailed")) {
+        styleNotes.push("Include the reasoning behind each decision you make.");
+      }
+      if (slots.modifiers.includes("tested")) {
+        styleNotes.push("Show the cases the result is expected to pass.");
+      }
+      if (slots.entities.length > 0) {
+        styleNotes.push(`Ground the answer in ${slots.entities.slice(0, 3).join(", ")}.`);
+      }
+      return setOutputContract(input, styleNotes.length > 0 ? { format, styleNotes } : { format });
     },
   },
 
@@ -112,26 +197,13 @@ export const StrategyRegistry: Record<StrategyId, Strategy> = {
     risks: ["Consumes tokens"],
     estimatedTokenCost: 150,
     apply(input: PromptIR): PromptIR {
-      if (input.examples.length === 0) {
-        const text = (input.objective || "").toLowerCase();
-        let example = {
-          input: "Analyze quarterly user retention trends.",
-          output: "### Executive Summary\n- 90-day retention increased to 68% (+4% YoY).\n\n### Primary Drivers\n1. In-app onboarding activation rate improved by 12%.\n2. Push notification re-engagement campaign reached 45% CTR.",
-          explanation: "Demonstrates required concise, data-driven executive summary structure.",
-        };
-        if (/\b(code|python|typescript|javascript|api|sql|bug|function)\b/i.test(text)) {
-          example = {
-            input: "Implement an idempotent token bucket rate limiter in TypeScript.",
-            output: "```typescript\ninterface TokenBucket {\n  tokens: number;\n  lastRefill: number;\n}\n\nexport class RateLimiter {\n  // Production-ready thread-safe sliding window implementation\n}\n```",
-            explanation: "Demonstrates production-grade TypeScript syntax with zero conversational preamble.",
-          };
-        }
-        return {
-          ...input,
-          examples: [example],
-        };
-      }
-      return input;
+      if (input.examples.length > 0) return input;
+      // One source of truth for examples; this strategy used to carry a second
+      // hardcoded pair that could not be kept in step with the library.
+      return {
+        ...input,
+        examples: selectFewShotExamples(classifyTaskType(input.objective || ""), input.objective || ""),
+      };
     },
   },
 
@@ -223,7 +295,11 @@ export const StrategyRegistry: Record<StrategyId, Strategy> = {
     risks: [],
     estimatedTokenCost: 40,
     apply(input: PromptIR): PromptIR {
-      return addConstraint(input, "Provide concrete, specific examples rather than abstract generalizations.", "medium", "system");
+      const slots = extractSlots(input.objective || "");
+      const rule = slots.entities.length > 0
+        ? `Stay on ${slots.entities.slice(0, 2).join(" and ")}; do not drift into unrelated alternatives.`
+        : "Give concrete specifics instead of general claims.";
+      return addConstraint(input, rule, "medium", "system");
     },
   },
 };

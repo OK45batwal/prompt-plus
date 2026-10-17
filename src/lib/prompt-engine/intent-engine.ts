@@ -1,9 +1,12 @@
 import { TaskType, IntentExtractionResult, PromptIR } from "./types";
+import { PromptSlots, extractSlots } from "./slots";
 
 export function classifyTaskType(input: string): TaskType {
   const text = (input || "").toLowerCase();
 
-  if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|refactor|error|fix|architecture|component|git|endpoint|database|prisma|html|css|app|mobile|software|build)\b/i.test(text)) {
+  // Only domain nouns here. "fix" and "build" are ordinary English verbs --
+  // "tell me what to fix" in a CSV request classified it as a coding task.
+  if (/\b(code|python|javascript|typescript|react|nextjs|node|api|sql|db|bug|function|refactor|error|architecture|component|git|endpoint|database|prisma|html|css|app|mobile|software)\b/i.test(text)) {
     return "coding";
   }
   if (/\b(research|study|paper|investigate|literature|sources|evidence|citations|academic|findings|survey)\b/i.test(text)) {
@@ -55,10 +58,22 @@ export function classifyTaskType(input: string): TaskType {
   return "general";
 }
 
+/**
+ * The goal is the request's own opening clause, not the first 120 characters:
+ * a long request used to be cut mid-word, which made the goal unreadable in the
+ * API response and mis-scored intent preservation.
+ */
+function buildGoal(slots: PromptSlots, clean: string): string {
+  if (!slots.actionWord || !slots.subject) return clean.slice(0, 120);
+  const verb = slots.actionWord.charAt(0).toUpperCase() + slots.actionWord.slice(1);
+  return `${verb} ${slots.subject}`.slice(0, 160);
+}
+
 export function extractIntent(input: string): IntentExtractionResult {
   const taskType = classifyTaskType(input);
   const clean = input ? input.trim() : "";
-  const wordCount = clean.split(/\s+/).filter(Boolean).length;
+  const slots = extractSlots(clean);
+  const wordCount = slots.wordCount;
 
   let complexity: IntentExtractionResult["complexity"] = "low";
   if (wordCount > 50 || /\b(architecture|framework|multi-step|comprehensive|enterprise|system|integration)\b/i.test(clean)) {
@@ -76,13 +91,6 @@ export function extractIntent(input: string): IntentExtractionResult {
   else if (taskType === "data_analysis") domain = "data_science";
   else if (taskType === "research") domain = "academic_research";
   else if (taskType === "image_generation" || taskType === "video_generation") domain = "digital_media";
-
-  // Target audience extraction
-  let audience: string | undefined;
-  if (/\bstudent(s)?\b/i.test(clean)) audience = "students";
-  else if (/\bexecutive(s)?|ceo|cto|manager\b/i.test(clean)) audience = "executives";
-  else if (/\bdeveloper(s)?|engineer(s)?\b/i.test(clean)) audience = "developers";
-  else if (/\bcustomer(s)?|client(s)?|user(s)?\b/i.test(clean)) audience = "end_users";
 
   // Identify unknowns & assumptions
   const assumptions: string[] = [];
@@ -106,12 +114,13 @@ export function extractIntent(input: string): IntentExtractionResult {
   return {
     domain,
     taskType,
-    goal: clean.slice(0, 120),
-    audience,
+    goal: buildGoal(slots, clean),
+    audience: slots.audience ?? undefined,
     complexity,
     outputType: taskType === "coding" ? "source_code_and_docs" : "markdown_document",
     assumptions,
     unknowns,
+    slots,
   };
 }
 
