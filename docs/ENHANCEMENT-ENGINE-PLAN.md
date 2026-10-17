@@ -7,7 +7,7 @@ Phase 13 remains parked: no new server credentials or database migrations are in
 The extension retains its explicitly labeled offline template for network failures; server requests
 now use the full deterministic engine. Model defaults were checked against the OpenRouter catalog
 on 2026-10-17. Studio selects the engine automatically and hides diagnostics under Developer details.
-Extension 3.1.0 previews changes with estimated token counts, Tab to accept, and Esc to keep the draft.
+Extension 2.1.4 previews changes with estimated token counts, Tab to accept, and Esc to keep the draft.
 
 This responds to the external audit proposing a unified engine, context profiles, a Studio
 redesign, and an extension overhaul. The audit's instincts are right, but it misdiagnoses the

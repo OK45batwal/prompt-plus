@@ -762,12 +762,12 @@ export default function SettingsPage() {
               </div>
 
               {/* Cross-AI Extension Handoff & Sync Hub Card */}
-              <div className="p-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/5 space-y-3 text-xs shadow-xs">
+              <div className="p-4 rounded-2xl border border-cyan-500/30 bg-cyan-500/5 space-y-3 text-xs shadow-xs">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-indigo-500 flex items-center gap-1.5">
+                  <span className="font-bold text-cyan-500 flex items-center gap-1.5">
                     Cross-AI Context Bridge &amp; Cloud Sync
                   </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 font-bold">
                     Extension v{EXTENSION_VERSION}
                   </span>
                 </div>
@@ -777,7 +777,7 @@ export default function SettingsPage() {
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   <a
                     href="/api/v1/extension/download"
-                    className="h-8 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs inline-flex items-center gap-1.5 transition-colors shadow-xs"
+                    className="h-8 px-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-semibold text-xs inline-flex items-center gap-1.5 transition-colors shadow-xs"
                   >
                     <UploadCloud className="h-3.5 w-3.5" /> Download Extension v{EXTENSION_VERSION} (.zip)
                   </a>
@@ -789,7 +789,7 @@ export default function SettingsPage() {
                         toast("Broadcasted sync trigger to Chrome Extension!", "success");
                       }
                     }}
-                    className="h-8 px-3 rounded-lg border border-indigo-500/30 hover:bg-indigo-500/10 text-indigo-400 font-medium text-xs inline-flex items-center gap-1.5 transition-colors"
+                    className="h-8 px-3 rounded-lg border border-cyan-500/30 hover:bg-cyan-500/10 text-cyan-400 font-medium text-xs inline-flex items-center gap-1.5 transition-colors"
                   >
                     <Zap className="h-3.5 w-3.5" /> Force Sync Extension
                   </button>
@@ -912,8 +912,8 @@ export default function SettingsPage() {
           {/* 3. API KEYS TAB */}
           {activeTab === "api-keys" && (
             <div className="space-y-6">
-              <div className="p-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 text-xs space-y-1 shadow-xs">
-                <div className="flex items-center gap-2 font-bold text-indigo-600 dark:text-indigo-400">
+              <div className="p-4 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 text-xs space-y-1 shadow-xs">
+                <div className="flex items-center gap-2 font-bold text-cyan-600 dark:text-cyan-400">
                   <Key className="h-4 w-4" />
                   <span>API-Based Prompt Enhancing Engine</span>
                 </div>
@@ -922,8 +922,8 @@ export default function SettingsPage() {
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl border border-blue-500/30 bg-blue-500/5 text-xs space-y-1.5 shadow-xs">
-                <div className="flex items-center gap-2 font-bold text-blue-600 dark:text-blue-400">
+              <div className="p-4 rounded-2xl border border-cyan-500/30 bg-cyan-500/5 text-xs space-y-1.5 shadow-xs">
+                <div className="flex items-center gap-2 font-bold text-cyan-600 dark:text-cyan-400">
                   <ShieldCheck className="h-4 w-4" />
                   <span>Cross-Device Cloud Sync Guarantee</span>
                 </div>

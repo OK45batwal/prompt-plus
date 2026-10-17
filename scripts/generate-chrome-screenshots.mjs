@@ -5,6 +5,10 @@ import { execSync } from "child_process";
 const OUT_DIR = path.resolve("promo-screenshots");
 const PUBLIC_DIR = path.resolve("public/screenshots");
 
+// Read the shipped version rather than hardcoding it, so the listing art cannot
+// drift from the manifest it advertises.
+const EXT_VERSION = JSON.parse(fs.readFileSync(path.resolve("extension/manifest.json"), "utf8")).version;
+
 if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
 if (!fs.existsSync(PUBLIC_DIR)) fs.mkdirSync(PUBLIC_DIR, { recursive: true });
 
@@ -26,35 +30,30 @@ function baseLayout({ badge, headline, subheadline, contentSvg }) {
   <defs>
     <!-- Gradients -->
     <radialGradient id="bgGlow" cx="50%" cy="0%" r="85%">
-      <stop offset="0%" stop-color="#1e1b4b" stop-opacity="0.65"/>
+      <stop offset="0%" stop-color="#083344" stop-opacity="0.65"/>
       <stop offset="50%" stop-color="#09090b" stop-opacity="0.95"/>
       <stop offset="100%" stop-color="#09090b" stop-opacity="1"/>
     </radialGradient>
-    <radialGradient id="purpleAura" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.25"/>
-      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    <radialGradient id="accentAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6366f1"/>
-      <stop offset="100%" stop-color="#4f46e5"/>
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#0d9488"/>
     </linearGradient>
     <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#ffffff"/>
       <stop offset="100%" stop-color="#cbd5e1"/>
     </linearGradient>
-    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#a5b4fc"/>
-      <stop offset="50%" stop-color="#818cf8"/>
-      <stop offset="100%" stop-color="#c084fc"/>
-    </linearGradient>
     <linearGradient id="telemetryGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="0%" stop-color="#06b6d4"/>
       <stop offset="100%" stop-color="#10b981"/>
     </linearGradient>
     <!-- Window Border Gradient -->
     <linearGradient id="windowBorder" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
-      <stop offset="50%" stop-color="rgba(99,102,241,0.3)"/>
+      <stop offset="50%" stop-color="rgba(6,182,212,0.3)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0.08)"/>
     </linearGradient>
 
@@ -66,11 +65,11 @@ function baseLayout({ badge, headline, subheadline, contentSvg }) {
     <!-- Drop Shadows -->
     <filter id="windowShadow" x="-10%" y="-10%" width="130%" height="130%">
       <feDropShadow dx="0" dy="24" stdDeviation="32" flood-color="#000000" flood-opacity="0.8"/>
-      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#6366f1" flood-opacity="0.2"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#06b6d4" flood-opacity="0.2"/>
     </filter>
     <filter id="pillShadow" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.6"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#6366f1" flood-opacity="0.35"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#06b6d4" flood-opacity="0.35"/>
     </filter>
   </defs>
 
@@ -84,13 +83,13 @@ function baseLayout({ badge, headline, subheadline, contentSvg }) {
   <rect width="${WIDTH}" height="${HEIGHT}" fill="#09090b"/>
   <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#bgGlow)"/>
   <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#gridDots)"/>
-  <circle cx="640" cy="500" r="450" fill="url(#purpleAura)"/>
+  <circle cx="640" cy="500" r="450" fill="url(#accentAura)"/>
 
   <!-- Top Marketing Header -->
   <g transform="translate(640, 56)" text-anchor="middle">
     <!-- Category Pill Badge -->
-    <rect x="-110" y="0" width="220" height="26" rx="13" fill="rgba(99, 102, 241, 0.12)" stroke="rgba(99, 102, 241, 0.4)" stroke-width="1"/>
-    <text x="0" y="17" class="font-title" font-size="10.5" fill="#a5b4fc" letter-spacing="1.5">${escapeXml(badge)}</text>
+    <rect x="-110" y="0" width="220" height="26" rx="13" fill="rgba(6, 182, 212, 0.12)" stroke="rgba(6, 182, 212, 0.4)" stroke-width="1"/>
+    <text x="0" y="17" class="font-title" font-size="10.5" fill="#67e8f9" letter-spacing="1.5">${escapeXml(badge)}</text>
 
     <!-- Main Headline -->
     <text x="0" y="60" class="font-title" font-size="33" fill="url(#textGrad)" letter-spacing="-0.5">${escapeXml(headline)}</text>
@@ -136,7 +135,7 @@ const s1Content = `
 
     <!-- Raw Prompt Input Box -->
     <g transform="translate(50, 150)">
-      <rect width="960" height="110" rx="14" fill="rgba(0,0,0,0.5)" stroke="rgba(99,102,241,0.35)" stroke-width="1.5"/>
+      <rect width="960" height="110" rx="14" fill="rgba(0,0,0,0.5)" stroke="rgba(6,182,212,0.35)" stroke-width="1.5"/>
       <text x="20" y="32" class="font-mono" font-size="13" fill="#e2e8f0">build a resilient payment webhook handler with stripe, postgres, and nextjs</text>
       <text x="20" y="55" class="font-mono" font-size="12" fill="#64748b">make sure it handles idempotency and replay attacks</text>
 
@@ -147,7 +146,7 @@ const s1Content = `
 
       <!-- NEW PROMPT+ FLOATING POP BUTTON (Active Expanded) -->
       <g transform="translate(710, -18)" filter="url(#pillShadow)">
-        <rect width="236" height="34" rx="17" fill="rgba(12,12,16,0.95)" stroke="rgba(99,102,241,0.6)" stroke-width="1.2"/>
+        <rect width="236" height="34" rx="17" fill="rgba(12,12,16,0.95)" stroke="rgba(6,182,212,0.6)" stroke-width="1.2"/>
 
         <!-- Sparkle Circle Icon -->
         <circle cx="17" cy="17" r="11" fill="url(#primaryGrad)"/>
@@ -173,7 +172,7 @@ const s1Content = `
     <!-- Transformed Output Card (Below Input) -->
     <g transform="translate(50, 290)">
       <!-- Transformation Banner Indicator -->
-      <rect width="960" height="255" rx="14" fill="rgba(16,18,27,0.9)" stroke="rgba(99,102,241,0.4)" stroke-width="1"/>
+      <rect width="960" height="255" rx="14" fill="rgba(16,18,27,0.9)" stroke="rgba(6,182,212,0.4)" stroke-width="1"/>
 
       <!-- Output Header Tag -->
       <rect x="20" y="16" width="168" height="24" rx="6" fill="rgba(16,185,129,0.15)" stroke="rgba(16,185,129,0.3)" stroke-width="1"/>
@@ -184,15 +183,15 @@ const s1Content = `
 
       <!-- Markdown Output Display -->
       <g transform="translate(20, 52)" class="font-mono">
-        <text x="0" y="16" font-size="11.5" fill="#818cf8" font-weight="bold">### ROLE &amp; PERSONA</text>
+        <text x="0" y="16" font-size="11.5" fill="#22d3ee" font-weight="bold">### ROLE &amp; PERSONA</text>
         <text x="0" y="34" font-size="11" fill="#e2e8f0">You are a Principal Distributed Systems &amp; FinTech Security Architect.</text>
 
-        <text x="0" y="62" font-size="11.5" fill="#818cf8" font-weight="bold">### SPECIFICATIONS &amp; ARCHITECTURAL CONSTRAINTS</text>
+        <text x="0" y="62" font-size="11.5" fill="#22d3ee" font-weight="bold">### SPECIFICATIONS &amp; ARCHITECTURAL CONSTRAINTS</text>
         <text x="0" y="80" font-size="11" fill="#94a3b8">• Subject: Stripe Webhook Pipeline with PostgreSQL Idempotency</text>
         <text x="0" y="98" font-size="11" fill="#94a3b8">• Tone: Technically Rigorous, Production-Grade, Zero Robotic Buzzwords</text>
         <text x="0" y="116" font-size="11" fill="#94a3b8">• Security: Replay attack prevention via signature verification &amp; timestamp drift checks</text>
 
-        <text x="0" y="144" font-size="11.5" fill="#818cf8" font-weight="bold">### IMPLEMENTATION PROTOCOL</text>
+        <text x="0" y="144" font-size="11.5" fill="#22d3ee" font-weight="bold">### IMPLEMENTATION PROTOCOL</text>
         <text x="0" y="162" font-size="11" fill="#e2e8f0">1. Raw-body validation using standard Web Crypto / Stripe SDK without intermediate parser corruption.</text>
         <text x="0" y="180" font-size="11" fill="#e2e8f0">2. Atomic SQL transaction with SELECT FOR UPDATE on event idempotency ledger table.</text>
       </g>
@@ -221,7 +220,7 @@ const s2Content = `
 
     <!-- PROMPT+ STUDIO MODAL (Centered Showcase) -->
     <g transform="translate(300, 70)" filter="url(#windowShadow)">
-      <rect width="460" height="420" rx="16" fill="rgba(12,12,16,0.98)" stroke="rgba(99,102,241,0.5)" stroke-width="1.2"/>
+      <rect width="460" height="420" rx="16" fill="rgba(12,12,16,0.98)" stroke="rgba(6,182,212,0.5)" stroke-width="1.2"/>
 
       <!-- Modal Header -->
       <g transform="translate(20, 22)">
@@ -263,8 +262,8 @@ const s2Content = `
         <text x="45" y="27" text-anchor="middle" class="font-body" font-size="9.5" font-weight="600" fill="#cbd5e1">Natural Human</text>
 
         <!-- Tech Architect (Active) -->
-        <rect x="96" y="10" width="94" height="26" rx="6" fill="rgba(99,102,241,0.25)" stroke="rgba(99,102,241,0.7)" stroke-width="1.2"/>
-        <text x="143" y="27" text-anchor="middle" class="font-title" font-size="9.5" fill="#e0e7ff">Tech Architect</text>
+        <rect x="96" y="10" width="94" height="26" rx="6" fill="rgba(6,182,212,0.25)" stroke="rgba(6,182,212,0.7)" stroke-width="1.2"/>
+        <text x="143" y="27" text-anchor="middle" class="font-title" font-size="9.5" fill="#cffafe">Tech Architect</text>
 
         <!-- Conversion Copy -->
         <rect x="196" y="10" width="102" height="26" rx="6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
@@ -283,10 +282,10 @@ const s2Content = `
       <g transform="translate(20, 222)">
         <rect width="420" height="116" rx="9" fill="rgba(0,0,0,0.55)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
         <g class="font-mono" font-size="10.5">
-          <text x="14" y="20" fill="#818cf8">&lt;role_and_objective&gt;</text>
+          <text x="14" y="20" fill="#22d3ee">&lt;role_and_objective&gt;</text>
           <text x="14" y="38" fill="#e2e8f0">  &lt;persona&gt;Senior Staff Distributed Systems Architect&lt;/persona&gt;</text>
           <text x="14" y="56" fill="#e2e8f0">  &lt;task&gt;Design fault-tolerant event streams with Kafka&lt;/task&gt;</text>
-          <text x="14" y="74" fill="#818cf8">&lt;/role_and_objective&gt;</text>
+          <text x="14" y="74" fill="#22d3ee">&lt;/role_and_objective&gt;</text>
           <text x="14" y="94" fill="#94a3b8">&lt;anti_cliche_mandate&gt;Zero preamble, direct execution&lt;/anti_cliche_mandate&gt;</text>
         </g>
       </g>
@@ -311,7 +310,7 @@ const s2Content = `
     <!-- Side Highlights -->
     <g transform="translate(60, 160)">
       <rect width="180" height="90" rx="10" fill="rgba(20,20,30,0.8)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-      <text x="16" y="24" class="font-title" font-size="11" fill="#a5b4fc">ANTI-CLICHÉ ENGINE</text>
+      <text x="16" y="24" class="font-title" font-size="11" fill="#67e8f9">ANTI-CLICHÉ ENGINE</text>
       <text x="16" y="46" class="font-body" font-size="10.5" fill="#94a3b8">Bans generic AI slop:</text>
       <text x="16" y="64" class="font-mono" font-size="9.5" fill="#f87171">"delve into, tapestry..."</text>
     </g>
@@ -353,7 +352,7 @@ const s3Content = `
         <text x="392" y="37" text-anchor="middle" class="font-title" font-size="10" fill="#93c5fd">1,000,000 TOKENS</text>
 
         <rect x="20" y="70" width="430" height="6" rx="3" fill="rgba(255,255,255,0.06)"/>
-        <rect x="20" y="70" width="418" height="6" rx="3" fill="#3b82f6"/>
+        <rect x="20" y="70" width="418" height="6" rx="3" fill="#06b6d4"/>
         <text x="20" y="98" class="font-mono" font-size="10.5" fill="#64748b">Remaining: 988.4K tokens free (98.8%)</text>
         <text x="450" y="98" text-anchor="end" class="font-mono" font-size="10.5" fill="#10b981">Optimal Load</text>
       </g>
@@ -404,7 +403,7 @@ const s3Content = `
         <text x="400" y="37" text-anchor="middle" class="font-title" font-size="10" fill="#c7d2fe">128,000 TOKENS</text>
 
         <rect x="20" y="70" width="430" height="6" rx="3" fill="rgba(255,255,255,0.06)"/>
-        <rect x="20" y="70" width="375" height="6" rx="3" fill="#6366f1"/>
+        <rect x="20" y="70" width="375" height="6" rx="3" fill="#06b6d4"/>
         <text x="20" y="98" class="font-mono" font-size="10.5" fill="#64748b">Remaining: 122.1K tokens free (95.4%)</text>
         <text x="450" y="98" text-anchor="end" class="font-mono" font-size="10.5" fill="#10b981">Optimal Load</text>
       </g>
@@ -433,21 +432,21 @@ const s4Content = `
     <circle cx="24" cy="21" r="5.5" fill="#ef4444"/>
     <circle cx="42" cy="21" r="5.5" fill="#eab308"/>
     <circle cx="60" cy="21" r="5.5" fill="#22c55e"/>
-    <text x="530" y="26" text-anchor="middle" class="font-title" font-size="12" fill="#94a3b8">Chrome Extension Command Hub (v2.1.3.2)</text>
+    <text x="530" y="26" text-anchor="middle" class="font-title" font-size="12" fill="#94a3b8">Chrome Extension Command Hub (v${EXT_VERSION})</text>
 
     <!-- Chrome Browser Header Simulation -->
     <g transform="translate(40, 56)">
       <!-- Extension Action Popup Mockup -->
       <g transform="translate(340, 10)" filter="url(#windowShadow)">
-        <rect width="380" height="440" rx="14" fill="#09090d" stroke="rgba(99,102,241,0.45)" stroke-width="1.2"/>
+        <rect width="380" height="440" rx="14" fill="#09090d" stroke="rgba(6,182,212,0.45)" stroke-width="1.2"/>
 
         <!-- Popup Header -->
         <g transform="translate(20, 20)">
           <circle cx="12" cy="12" r="12" fill="url(#primaryGrad)"/>
           <text x="12" y="16" text-anchor="middle" class="font-title" font-size="12" fill="#ffffff">P+</text>
           <text x="34" y="17" class="font-title" font-size="14.5" fill="#ffffff">Prompt+ Engine</text>
-          <rect x="156" y="3" width="58" height="18" rx="4" fill="rgba(99,102,241,0.2)" stroke="rgba(99,102,241,0.4)" stroke-width="1"/>
-          <text x="185" y="15" text-anchor="middle" class="font-title" font-size="9" fill="#c7d2fe">v2.1.3.2</text>
+          <rect x="156" y="3" width="58" height="18" rx="4" fill="rgba(6,182,212,0.2)" stroke="rgba(6,182,212,0.4)" stroke-width="1"/>
+          <text x="185" y="15" text-anchor="middle" class="font-title" font-size="9" fill="#a5f3fc">v${EXT_VERSION}</text>
 
           <!-- Status Indicator -->
           <circle cx="330" cy="12" r="4" fill="#10b981"/>
@@ -457,8 +456,8 @@ const s4Content = `
         <!-- Mode Toggle Switch -->
         <g transform="translate(20, 60)">
           <rect width="340" height="34" rx="8" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-          <rect x="4" y="4" width="162" height="26" rx="6" fill="#6366f1"/>
-          <text x="85" y="21" text-anchor="middle" class="font-title" font-size="10.5" fill="#ffffff">⚡ Instant Local</text>
+          <rect x="4" y="4" width="162" height="26" rx="6" fill="#06b6d4"/>
+          <text x="85" y="21" text-anchor="middle" class="font-title" font-size="10.5" fill="#04141c">⚡ Instant Local</text>
           <text x="250" y="21" text-anchor="middle" class="font-body" font-size="10.5" font-weight="600" fill="#71717a">☁️ Cloud AI 2.0</text>
         </g>
 
@@ -470,24 +469,24 @@ const s4Content = `
           <g transform="translate(0, 10)">
             <rect width="340" height="42" rx="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
             <text x="14" y="25" class="font-title" font-size="11.5" fill="#ffffff">🏗️ System Architecture &amp; Scalability</text>
-            <rect x="290" y="10" width="40" height="22" rx="4" fill="rgba(99,102,241,0.2)"/>
-            <text x="310" y="25" text-anchor="middle" class="font-title" font-size="10" fill="#a5b4fc">Use</text>
+            <rect x="290" y="10" width="40" height="22" rx="4" fill="rgba(6,182,212,0.2)"/>
+            <text x="310" y="25" text-anchor="middle" class="font-title" font-size="10" fill="#67e8f9">Use</text>
           </g>
 
           <!-- Blueprint 2 -->
           <g transform="translate(0, 60)">
             <rect width="340" height="42" rx="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
             <text x="14" y="25" class="font-title" font-size="11.5" fill="#ffffff">🛡️ Security &amp; OWASP Deep Audit</text>
-            <rect x="290" y="10" width="40" height="22" rx="4" fill="rgba(99,102,241,0.2)"/>
-            <text x="310" y="25" text-anchor="middle" class="font-title" font-size="10" fill="#a5b4fc">Use</text>
+            <rect x="290" y="10" width="40" height="22" rx="4" fill="rgba(6,182,212,0.2)"/>
+            <text x="310" y="25" text-anchor="middle" class="font-title" font-size="10" fill="#67e8f9">Use</text>
           </g>
 
           <!-- Blueprint 3 -->
           <g transform="translate(0, 110)">
             <rect width="340" height="42" rx="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
             <text x="14" y="25" class="font-title" font-size="11.5" fill="#ffffff">⚡ High-Performance DB &amp; Indexing</text>
-            <rect x="290" y="10" width="40" height="22" rx="4" fill="rgba(99,102,241,0.2)"/>
-            <text x="310" y="25" text-anchor="middle" class="font-title" font-size="10" fill="#a5b4fc">Use</text>
+            <rect x="290" y="10" width="40" height="22" rx="4" fill="rgba(6,182,212,0.2)"/>
+            <text x="310" y="25" text-anchor="middle" class="font-title" font-size="10" fill="#67e8f9">Use</text>
           </g>
         </g>
 
@@ -503,7 +502,7 @@ const s4Content = `
         <!-- Footer -->
         <g transform="translate(20, 375)">
           <text x="0" y="16" class="font-body" font-size="10" fill="#64748b">⌘ + Shift + P: Global In-Page Launcher</text>
-          <text x="340" y="16" text-anchor="end" class="font-title" font-size="10" fill="#818cf8">Settings &amp; Web Bridge →</text>
+          <text x="340" y="16" text-anchor="end" class="font-title" font-size="10" fill="#22d3ee">Settings &amp; Web Bridge →</text>
         </g>
       </g>
     </g>
@@ -511,7 +510,7 @@ const s4Content = `
     <!-- Side Annotations -->
     <g transform="translate(60, 160)">
       <rect width="220" height="120" rx="12" fill="rgba(20,20,30,0.8)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-      <text x="18" y="26" class="font-title" font-size="11.5" fill="#a5b4fc">TWO ENGINES IN ONE</text>
+      <text x="18" y="26" class="font-title" font-size="11.5" fill="#67e8f9">TWO ENGINES IN ONE</text>
       <text x="18" y="52" class="font-body" font-size="11" fill="#cbd5e1">• Local Synthesis: Zero latency, unlimited usage, fully private</text>
       <text x="18" y="88" class="font-body" font-size="11" fill="#cbd5e1">• Cloud AI: Deep multimodal reasoning &amp; auto-repair</text>
     </g>
@@ -576,8 +575,8 @@ const s5Content = `
 
     <!-- Bottom Highlights -->
     <g transform="translate(60, 520)">
-      <rect width="940" height="36" rx="8" fill="rgba(99,102,241,0.1)" stroke="rgba(99,102,241,0.3)" stroke-width="1"/>
-      <text x="470" y="22" text-anchor="middle" class="font-title" font-size="11.5" fill="#c7d2fe">
+      <rect width="940" height="36" rx="8" fill="rgba(6,182,212,0.1)" stroke="rgba(6,182,212,0.3)" stroke-width="1"/>
+      <text x="470" y="22" text-anchor="middle" class="font-title" font-size="11.5" fill="#a5f3fc">
         Zero Configuration Required · Installs in 5 Seconds · Automatically Detects Host AI Framework
       </text>
     </g>

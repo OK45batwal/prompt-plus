@@ -76,7 +76,7 @@ export default function AdminPage() {
       <div>
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Users</h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard label="Total" value={stats.users.total} icon={Users} color="text-blue-500" sub={`${stats.users.signups7d} this week`} />
+          <StatCard label="Total" value={stats.users.total} icon={Users} color="text-cyan-500" sub={`${stats.users.signups7d} this week`} />
           <StatCard label="Verified" value={stats.users.verified} icon={Users} color="text-green-500" />
           <StatCard label="Unverified" value={stats.users.unverified} icon={Users} color="text-amber-500" />
           <StatCard label="Deleted" value={stats.users.deleted} icon={AlertTriangle} color="text-red-500" />
@@ -87,7 +87,7 @@ export default function AdminPage() {
       <div>
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" /> Prompts</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <StatCard label="Total" value={stats.prompts.total} icon={FileText} color="text-violet-500" />
+          <StatCard label="Total" value={stats.prompts.total} icon={FileText} color="text-teal-500" />
           <StatCard label="Enhanced" value={stats.prompts.enhanced} icon={FileText} color="text-emerald-500" sub={`${stats.prompts.total ? Math.round(stats.prompts.enhanced / stats.prompts.total * 100) : 0}% of total`} />
           <StatCard label="Avg Score" value={typeof stats.prompts.avgScore === 'number' ? Math.round(stats.prompts.avgScore) : '—'} icon={Activity} color="text-amber-500" />
         </div>
@@ -100,8 +100,8 @@ export default function AdminPage() {
           <StatCard label="Today" value={stats.usage.daily} icon={Activity} color="text-cyan-500" />
           <StatCard label="This Week" value={stats.usage.weekly} icon={Activity} color="text-cyan-500" />
           <StatCard label="This Month" value={stats.usage.monthly} icon={Activity} color="text-cyan-500" />
-          <StatCard label="Tokens In" value={(stats.usage.tokensIn / 1000).toFixed(0) + 'K'} icon={Database} color="text-purple-500" />
-          <StatCard label="Tokens Out" value={(stats.usage.tokensOut / 1000).toFixed(0) + 'K'} icon={Database} color="text-purple-500" />
+          <StatCard label="Tokens In" value={(stats.usage.tokensIn / 1000).toFixed(0) + 'K'} icon={Database} color="text-teal-500" />
+          <StatCard label="Tokens Out" value={(stats.usage.tokensOut / 1000).toFixed(0) + 'K'} icon={Database} color="text-teal-500" />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">

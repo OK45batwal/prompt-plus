@@ -1,8 +1,11 @@
 /**
- * Prompt+ Architect AI Extension v3.0.0
- * High-Performance Prompt Compiler, Real-Time Context Runway, Multi-AI Bridge & Bi-Directional Web Sync.
+ * Prompt+ Architect AI — popup.
+ * Compile a prompt with the on-device engine or a cloud key, review the result, then insert it.
  */
 document.addEventListener("DOMContentLoaded", () => {
+  const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+  const ENTER_HINT = isMac ? "⌘↵" : "Ctrl+Enter";
+  const PASTE_HINT = isMac ? "⌘V" : "Ctrl+V";
   // Core Compiler Elements
   const input = document.getElementById("input");
   const charCount = document.getElementById("char-count");
@@ -10,14 +13,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const enhanceBtn = document.getElementById("enhance-btn");
   const btnText = document.getElementById("btn-text");
   const btnTimer = document.getElementById("btn-timer");
+  const btnKbdPill = document.getElementById("btn-kbd-pill");
   const toastMsg = document.getElementById("toast-msg");
   const panelResult = document.getElementById("panel-result");
   const resultBody = document.getElementById("result-body");
+  const reviewSwitch = document.getElementById("review-switch");
+  const reviewTabDiff = document.getElementById("review-tab-diff");
+  const reviewTabResult = document.getElementById("review-tab-result");
+  const diffBefore = document.getElementById("diff-before");
+  const diffAfter = document.getElementById("diff-after");
   const scoreBadge = document.getElementById("quality-score-badge");
   const loopBadge = document.getElementById("loop-telemetry-badge");
   const copyBtn = document.getElementById("copy-btn");
   const useBtn = document.getElementById("use-btn");
   const saveCloudBtn = document.getElementById("save-cloud-btn");
+  // Labels live in their own spans so swapping text never deletes the button icon.
+  const copyBtnLabel = document.getElementById("copy-btn-label");
+  const useBtnLabel = document.getElementById("use-btn-label");
+  const saveCloudBtnLabel = document.getElementById("save-cloud-btn-label");
+  const resultTokenDelta = document.getElementById("result-token-delta");
   const openStudioBtn = document.getElementById("open-studio-btn");
   const backToEditBtn = document.getElementById("back-to-edit-btn");
   const pasteBtn = document.getElementById("paste-btn");
@@ -32,24 +46,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const syncDot = document.getElementById("sync-dot");
   const syncLatencyBadge = document.getElementById("sync-latency-badge");
 
-  // Context Runway Widget Elements
+  // Usage card elements
   const runwayRingFg = document.getElementById("runway-ring-fg");
   const runwayRingPct = document.getElementById("runway-ring-pct");
   const activeBotPill = document.getElementById("active-bot-pill");
   const runwayStatusTag = document.getElementById("runway-status-tag");
   const runwayUsedTxt = document.getElementById("runway-used-txt");
   const runwayRemBadge = document.getElementById("runway-rem-badge");
-  const runwayEstMsgs = document.getElementById("runway-est-msgs");
   const runwayBurnRate = document.getElementById("runway-burn-rate");
   const runwayFill = document.getElementById("runway-fill");
-  const runwayDrawerToggle = document.getElementById("runway-drawer-toggle");
-  const runwayDrawerDetails = document.getElementById("runway-drawer-details");
-  const runwayBreakdownSummary = document.getElementById("runway-breakdown-summary");
-  const runwayToggleArrow = document.getElementById("runway-toggle-arrow");
-  const runwayUserTok = document.getElementById("runway-user-tok");
-  const runwayAiTok = document.getElementById("runway-ai-tok");
-  const runwayAvgTurn = document.getElementById("runway-avg-turn");
-  const runwayMaxTurn = document.getElementById("runway-max-turn");
 
   // Prompt+ Quota Elements
   const tokenRemainingBadge = document.getElementById("token-remaining-badge");
@@ -85,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveKeyBtn = document.getElementById("save-key-btn");
   const bridgeSendAll = document.getElementById("bridge-send-all");
 
-  let currentMode = "api";
+  let currentMode = "algo";
   let currentTone = "human";
   let enhancedResult = "";
   let rawPromptMemory = "";
@@ -93,7 +98,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let recognitionInstance = null;
   let compileTimerInterval = null;
   let compileStartTime = 0;
-  let isDrawerOpen = false;
   let liveTokenData = null;
 
   let userQuota = null;
@@ -132,24 +136,37 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   ];
 
+  // Vendor names only. The exact model is reported live by the page adapter when it can be read.
   const BOT_PROFILES = [
-    { match: "chatgpt", name: "ChatGPT · GPT-4o", maxContext: 128000, color: "#10a37f" },
-    { match: "claude", name: "Claude 3.5 Sonnet", maxContext: 200000, color: "#d97706" },
-    { match: "gemini", name: "Gemini 2.0 Flash", maxContext: 1000000, color: "#3b82f6" },
-    { match: "deepseek", name: "DeepSeek R1", maxContext: 128000, color: "#6366f1" },
-    { match: "grok", name: "Grok 3", maxContext: 128000, color: "#ec4899" },
-    { match: "perplexity", name: "Perplexity AI", maxContext: 32000, color: "#06b6d4" },
-    { match: "copilot", name: "Microsoft Copilot", maxContext: 128000, color: "#0078d4" },
-    { match: "meta", name: "Meta AI (Llama 3)", maxContext: 128000, color: "#0668e1" },
+    { match: "chatgpt", name: "ChatGPT", maxContext: 128000, color: "#10a37f" },
+    { match: "claude", name: "Claude", maxContext: 200000, color: "#d97706" },
+    { match: "gemini", name: "Gemini", maxContext: 1000000, color: "#3b82f6" },
+    { match: "deepseek", name: "DeepSeek", maxContext: 128000, color: "#6366f1" },
+    { match: "grok", name: "Grok", maxContext: 128000, color: "#ec4899" },
+    { match: "perplexity", name: "Perplexity", maxContext: 32000, color: "#06b6d4" },
+    { match: "copilot", name: "Copilot", maxContext: 128000, color: "#0078d4" },
+    { match: "meta", name: "Meta AI", maxContext: 128000, color: "#0668e1" },
   ];
 
   let activeBot = { name: "Universal AI", maxContext: 128000, color: "#6366f1" };
+
+  // Canonical tone names. The in-page dock and modal use the same words.
+  const TONE_LABELS = { human: "Natural", code: "Technical", exec: "Executive", copy: "Marketing", deep: "Reasoning" };
 
   function formatK(num) {
     if (num == null) return "0";
     if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
     if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, "") + "K";
     return String(num);
+  }
+
+  // Single token-count path for the whole popup, with the same fallback the content script uses.
+  function countTokens(text) {
+    if (!text) return 0;
+    if (window.PromptPlusTokenizer && typeof window.PromptPlusTokenizer.count === "function") {
+      return window.PromptPlusTokenizer.count(text);
+    }
+    return Math.ceil(text.length / 3.8);
   }
 
   function escapeHtml(str) {
@@ -162,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/'/g, "&#39;");
   }
 
-  // ---------- 1. Live Context Runway & Tab Token State ----------
+  // ---------- 1. Live chat usage & tab token state ----------
   function applyLiveTokenState(data) {
     if (!data) return;
     liveTokenData = data;
@@ -170,30 +187,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const limit = data.contextLimit || activeBot.maxContext || 128000;
     const used = data.conversationTokens || 0;
     const remaining = data.tokensRemaining != null ? data.tokensRemaining : Math.max(0, limit - used);
-    const pct = !data.contextLimitKnown ? 0 : data.percentUsed != null ? data.percentUsed : Math.min(100, (used / limit) * 100);
+    const known = !!data.contextLimitKnown;
+    const pct = !known ? 0 : data.percentUsed != null ? data.percentUsed : Math.min(100, (used / limit) * 100);
 
-    // Update active bot label
     if (activeBotPill) {
       activeBotPill.textContent = data.modelName || activeBot.name;
     }
 
-    // Color tier calibration
     let color = "#10b981";
-    let statusText = data.contextLimitKnown ? "Estimated" : "Limit unknown";
-    let remBadgeStyle = "background: rgba(16, 185, 129, 0.12); color: #34d399;";
+    let statusText = known ? "Estimated" : "Not measured";
 
     if (pct >= 95) {
       color = "#dc2626";
-      statusText = "🚨 Critical Limit";
-      remBadgeStyle = "background: rgba(220, 38, 38, 0.25); color: #fca5a5; font-weight: 800;";
+      statusText = "Nearly full";
     } else if (pct >= 80) {
       color = "#ef4444";
-      statusText = "⚠ 80% Full";
-      remBadgeStyle = "background: rgba(239, 68, 68, 0.2); color: #f87171;";
+      statusText = "80% full";
     } else if (pct >= 60) {
       color = "#f59e0b";
-      statusText = "Filling Up";
-      remBadgeStyle = "background: rgba(245, 158, 11, 0.16); color: #fbbf24;";
+      statusText = "Filling up";
     }
 
     if (runwayStatusTag) {
@@ -202,16 +214,15 @@ document.addEventListener("DOMContentLoaded", () => {
       runwayStatusTag.style.borderColor = color + "40";
     }
 
-    // Animate Circular SVG Ring (Circumference = 2 * PI * 18 ≈ 113.1)
+    // Ring circumference = 2 * PI * 18 ≈ 113.1
     if (runwayRingFg) {
       const circumference = 113.1;
-      const offset = circumference - (pct / 100) * circumference;
-      runwayRingFg.style.strokeDashoffset = offset;
+      runwayRingFg.style.strokeDashoffset = circumference - (pct / 100) * circumference;
       runwayRingFg.style.stroke = color;
     }
 
     if (runwayRingPct) {
-      runwayRingPct.textContent = data.contextLimitKnown ? `~${Math.round(pct)}%` : "—";
+      runwayRingPct.textContent = known ? `${Math.round(pct)}%` : "—";
     }
 
     if (runwayFill) {
@@ -219,33 +230,24 @@ document.addEventListener("DOMContentLoaded", () => {
       runwayFill.style.background = color;
     }
 
-    if (runwayUsedTxt) {
-      runwayUsedTxt.textContent = `~${formatK(used)} visible tokens`;
-    }
-
     if (runwayRemBadge) {
-      runwayRemBadge.textContent = data.contextLimitKnown ? `~${formatK(remaining)} remaining` : "Capacity unknown";
-      runwayRemBadge.style.cssText = remBadgeStyle;
+      // Nothing to say when the limit is unknown: the ring already shows "—".
+      runwayRemBadge.textContent = known ? `~${formatK(remaining)} left` : "";
+      runwayRemBadge.style.color = known ? color : "var(--text-dim)";
     }
 
-    if (runwayEstMsgs) {
-      const msgs = data.estimatedMessagesLeft != null ? data.estimatedMessagesLeft : Math.floor(remaining / 800);
-      runwayEstMsgs.textContent = data.contextLimitKnown ? `~${msgs} exchanges left` : "Visible messages only";
+    if (runwayUsedTxt) {
+      runwayUsedTxt.textContent = known
+        ? `~${formatK(used)} of ${formatK(limit)} used`
+        : used > 0 ? `~${formatK(used)} tokens visible` : "Open a chat to measure it";
     }
 
     if (runwayBurnRate) {
-      const burn = data.burnRate ? `${data.burnRate.charAt(0).toUpperCase() + data.burnRate.slice(1)} burn` : "Steady burn";
-      runwayBurnRate.textContent = `· ${burn}`;
+      const PACE = { steady: "Steady pace", heavy: "Heavy usage", accelerating: "Growing faster", decelerating: "Slowing down" };
+      const pace = PACE[data.burnRate] || "";
+      const turns = data.turnCount ? `${data.turnCount} turns` : "";
+      runwayBurnRate.textContent = [pace, turns].filter(Boolean).join(" · ");
     }
-
-    // Breakdown Details
-    if (runwayBreakdownSummary) {
-      runwayBreakdownSummary.textContent = `You: ${formatK(data.userTokens || 0)} · AI: ${formatK(data.aiTokens || 0)} · ${data.turnCount || 0} turns`;
-    }
-    if (runwayUserTok) runwayUserTok.textContent = `${(data.userTokens || 0).toLocaleString()} tok`;
-    if (runwayAiTok) runwayAiTok.textContent = `${(data.aiTokens || 0).toLocaleString()} tok`;
-    if (runwayAvgTurn) runwayAvgTurn.textContent = `${(data.avgTokensPerTurn || 0).toLocaleString()} tok`;
-    if (runwayMaxTurn) runwayMaxTurn.textContent = `${(data.largestTurnTokens || 0).toLocaleString()} tok`;
   }
 
   // Fetch initial token state from background
@@ -281,13 +283,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   } catch {}
-
-  // Toggle Breakdown Accordion
-  runwayDrawerToggle?.addEventListener("click", () => {
-    isDrawerOpen = !isDrawerOpen;
-    if (runwayDrawerDetails) runwayDrawerDetails.style.display = isDrawerOpen ? "block" : "none";
-    if (runwayToggleArrow) runwayToggleArrow.textContent = isDrawerOpen ? "▴" : "▾";
-  });
 
   // ---------- 2. Active Tab & Bot Detection ----------
   function detectActiveChatbot() {
@@ -328,36 +323,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   checkOpenAITabs();
 
-  // ---------- 3. Dynamic Typing Token Calculator ----------
+  // ---------- 3. Typing cost ----------
   function updateTokenMetrics() {
     const raw = input ? input.value : "";
-    const len = raw.length;
+    const estTokens = countTokens(raw);
 
-    // Use fast tokenizer if available
-    let estTokens = 0;
-    if (window.PromptPlusTokenizer && typeof window.PromptPlusTokenizer.count === "function") {
-      estTokens = window.PromptPlusTokenizer.count(raw);
-    } else {
-      estTokens = Math.ceil(len / 3.8);
-    }
+    if (charCount) charCount.textContent = `${raw.length} char${raw.length === 1 ? "" : "s"}`;
+    if (tokenEstimate) tokenEstimate.textContent = `~${estTokens} tokens`;
+    if (tokenNeededTxt) tokenNeededTxt.textContent = `~${estTokens} tok in`;
 
-    if (charCount) charCount.textContent = `${len} char${len === 1 ? "" : "s"}`;
-    if (tokenEstimate) tokenEstimate.textContent = `~${estTokens} Tokens`;
-    if (tokenNeededTxt) tokenNeededTxt.textContent = `~${estTokens} tok input`;
-
-    // Dynamic Context Headroom adjustment
-    if (liveTokenData) {
-      const dynamicRemaining = Math.max(0, liveTokenData.tokensRemaining - estTokens);
-      if (runwayRemBadge) {
-        runwayRemBadge.textContent = liveTokenData.contextLimitKnown ? `~${formatK(dynamicRemaining)} remaining` : "Capacity unknown";
-      }
-    } else {
-      if (runwayRemBadge) {
-        runwayRemBadge.textContent = "Capacity unknown";
-      }
-    }
-
-    // Prompt+ Quota Fill
     if (tokenMeterFill && userQuota) {
       const fillPct = Math.max(0, Math.min(100, Math.round((userQuota.remaining / userQuota.monthlyLimit) * 100)));
       tokenMeterFill.style.width = `${fillPct}%`;
@@ -368,31 +342,46 @@ document.addEventListener("DOMContentLoaded", () => {
     input.addEventListener("input", updateTokenMetrics);
   }
 
-  // ---------- 4. Button Mode Switcher with Dynamic Labels ----------
+  // ---------- 4. Engine Switcher ----------
+  const ENGINE_LABELS = { algo: "Enhance Prompt", device: "Enhance with Chrome AI", api: "Enhance with cloud key" };
+
   function updateEnhanceButtonLabel() {
     if (!btnText) return;
-    if (currentMode === "algo") {
-      btnText.textContent = "⚡ Turbo Local IR (⌘↵)";
-    } else if (currentMode === "device") {
-      btnText.textContent = "⚡ Gemini Nano Compile (⌘↵)";
-    } else {
-      btnText.textContent = "⚡ Compile via Cloud AI (⌘↵)";
+    btnText.textContent = ENGINE_LABELS[currentMode] || ENGINE_LABELS.algo;
+    if (enhanceBtn) enhanceBtn.title = `Shortcut: ${ENTER_HINT}`;
+    if (btnKbdPill) {
+      btnKbdPill.textContent = ENTER_HINT;
+      btnKbdPill.hidden = false;
     }
   }
 
   function setMode(mode) {
     currentMode = mode;
-    [modeApi, modeAlgo, modeDevice].forEach((b) => b?.classList.remove("active"));
-    if (mode === "api" && modeApi) modeApi.classList.add("active");
-    else if (mode === "algo" && modeAlgo) modeAlgo.classList.add("active");
-    else if (mode === "device" && modeDevice) modeDevice.classList.add("active");
+    [[modeApi, "api"], [modeAlgo, "algo"], [modeDevice, "device"]].forEach(([btn, m]) => {
+      if (!btn) return;
+      btn.classList.toggle("active", mode === m);
+      btn.setAttribute("aria-pressed", String(mode === m));
+    });
     updateEnhanceButtonLabel();
   }
 
   if (modeApi) modeApi.addEventListener("click", () => setMode("api"));
   if (modeAlgo) modeAlgo.addEventListener("click", () => setMode("algo"));
   if (modeDevice) modeDevice.addEventListener("click", () => setMode("device"));
-  updateEnhanceButtonLabel();
+
+  // Chrome's on-device model is not in every build. Hide the option instead of offering a dead end.
+  (async () => {
+    try {
+      const lm = window.LanguageModel || window.ai?.languageModel;
+      if (!lm || (await lm.availability()) === "unavailable") {
+        if (modeDevice) modeDevice.style.display = "none";
+      }
+    } catch {
+      if (modeDevice) modeDevice.style.display = "none";
+    }
+  })();
+
+  setMode(currentMode);
 
   // ---------- 5. Tab Navigation ----------
   const tabs = [
@@ -405,20 +394,28 @@ document.addEventListener("DOMContentLoaded", () => {
   function switchTab(targetBtn, targetPanel) {
     tabs.forEach(({ btn, panel }) => {
       btn?.classList.remove("active");
+      btn?.setAttribute("aria-selected", "false");
       if (panel) panel.style.display = "none";
     });
     if (panelResult) panelResult.style.display = "none";
     targetBtn?.classList.add("active");
+    targetBtn?.setAttribute("aria-selected", "true");
     if (targetPanel) targetPanel.style.display = "flex";
     if (targetPanel === panelLibrary) renderLibrary();
     if (targetPanel === panelContext) renderContextVault();
     if (targetPanel === panelSettings) renderSettings();
   }
 
-  tabBtnEnhance?.addEventListener("click", () => switchTab(tabBtnEnhance, panelEnhance));
-  tabBtnLibrary?.addEventListener("click", () => switchTab(tabBtnLibrary, panelLibrary));
-  tabBtnContext?.addEventListener("click", () => switchTab(tabBtnContext, panelContext));
-  tabBtnSettings?.addEventListener("click", () => switchTab(tabBtnSettings, panelSettings));
+  tabs.forEach(({ btn, panel }, i) => {
+    btn?.addEventListener("click", () => switchTab(btn, panel));
+    btn?.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      e.preventDefault();
+      const next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+      switchTab(next.btn, next.panel);
+      next.btn?.focus();
+    });
+  });
 
   // Tone Chips & Pills
   document.querySelectorAll(".tone-pill-btn, .tone-chip").forEach((chip) => {
@@ -435,10 +432,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const advancedArrow = document.getElementById("advanced-arrow");
   let isAdvancedOpen = false;
 
-  advancedToggle?.addEventListener("click", () => {
+  function toggleAdvanced() {
     isAdvancedOpen = !isAdvancedOpen;
     if (advancedDrawer) advancedDrawer.style.display = isAdvancedOpen ? "flex" : "none";
     if (advancedArrow) advancedArrow.textContent = isAdvancedOpen ? "▴" : "▾";
+    advancedToggle?.setAttribute("aria-expanded", String(isAdvancedOpen));
+  }
+
+  advancedToggle?.addEventListener("click", toggleAdvanced);
+  advancedToggle?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleAdvanced();
+    }
   });
 
   // Action Buttons
@@ -627,16 +633,17 @@ document.addEventListener("DOMContentLoaded", () => {
   async function syncWithWebPlatform() {
     return new Promise((resolve) => {
       chrome.runtime.sendMessage({ action: "syncAuth" }, (authData) => {
+        // This path owns identity and quota. The connection label has exactly one
+        // owner, the health probe: writing "Offline" here meant every signed-out
+        // user was told the server was unreachable while it was healthy.
         if (authData?.authenticated && authData.user) {
-          if (syncStatusText) syncStatusText.textContent = "Connected";
-          if (syncDot) syncDot.classList.remove("offline");
-          if (userName) userName.textContent = authData.user.name ? authData.user.name.split(" ")[0] : "Studio";
+          if (userName) userName.textContent = authData.user.name ? authData.user.name.split(" ")[0] : "Account";
           if (userAvatar && authData.user.avatar) userAvatar.src = authData.user.avatar;
 
           if (authData.quota) {
             userQuota = authData.quota;
             if (tokenRemainingBadge) {
-              tokenRemainingBadge.textContent = `${userQuota.remaining} / ${userQuota.monthlyLimit} units`;
+              tokenRemainingBadge.textContent = `${userQuota.remaining}/${userQuota.monthlyLimit} left`;
             }
           }
           if (authData.savedBlocks && authData.savedBlocks.length > 0) {
@@ -650,8 +657,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }));
           }
         } else {
-          if (syncStatusText) syncStatusText.textContent = "Local Mode";
-          if (syncDot) syncDot.classList.add("offline");
           if (userName) userName.textContent = "Guest";
         }
         updateTokenMetrics();
@@ -672,12 +677,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (settingsUserName) settingsUserName.textContent = authData.user.name || authData.user.email;
         if (settingsQuotaTxt && authData.quota) {
-          settingsQuotaTxt.textContent = `${authData.quota.remaining} / ${authData.quota.monthlyLimit} Units`;
+          settingsQuotaTxt.textContent = `${authData.quota.remaining} of ${authData.quota.monthlyLimit} left this month`;
         }
       } else {
         if (settingsAuthStatus) {
-          settingsAuthStatus.textContent = "Local Mode";
-          settingsAuthStatus.style.color = "#a1a1aa";
+          settingsAuthStatus.textContent = "Not connected";
+          settingsAuthStatus.style.color = "var(--text-muted)";
         }
       }
     });
@@ -690,12 +695,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   manualSyncBtn?.addEventListener("click", async () => {
-    manualSyncBtn.textContent = "Syncing with Web...";
+    manualSyncBtn.textContent = "Syncing…";
     await syncWithWebPlatform();
     renderSettings();
     setTimeout(() => {
-      manualSyncBtn.textContent = "Sync Complete";
-      setTimeout(() => { manualSyncBtn.textContent = "Force Sync with Web Account"; }, 1800);
+      manualSyncBtn.textContent = "Synced";
+      setTimeout(() => { manualSyncBtn.textContent = "Sync with web account"; }, 1800);
     }, 400);
   });
 
@@ -703,7 +708,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const rawKey = customApiKeyInput ? customApiKeyInput.value.trim() : "";
     chrome.runtime.sendMessage({ action: "saveApiKey", apiKey: rawKey }, (r) => {
       if (r?.success) {
-        showToast("API Key encrypted & saved!");
+        showToast("Key encrypted and saved on this device.");
       }
     });
   });
@@ -735,12 +740,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       historyTimelineList.innerHTML = list.map((item) => `
-        <div style="background: rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:7px; padding:7px 9px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <div style="min-width:0; flex:1;">
-            <div style="font-size:10.5px; font-weight:600; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(item.original)}</div>
-            <div style="font-size:9.5px; color:#a1a1aa; margin-top:2px;">${item.timestamp} · Structure estimate: ${item.score ?? "Not assessed"} · Tone: ${item.tone}</div>
+        <div class="history-item">
+          <div class="history-item-main">
+            <div class="history-item-title">${escapeHtml(item.original)}</div>
+            <div class="history-item-meta">${item.timestamp} · Structure ${item.score ?? "—"}/100 · ${escapeHtml(TONE_LABELS[item.tone] || item.tone || "")}</div>
           </div>
-          <button type="button" class="load-hist-btn" data-id="${item.id}" style="background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.4); color:#c7d2fe; font-size:9.5px; font-weight:700; border-radius:5px; padding:2px 7px; cursor:pointer;">Load</button>
+          <button type="button" class="load-hist-btn" data-id="${item.id}">Load</button>
         </div>
       `).join("");
 
@@ -784,7 +789,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="library-card-desc">${escapeHtml(tpl.text)}</div>
         <div class="library-card-footer">
-          <button type="button" class="use-blueprint-btn" data-text="${escapeHtml(tpl.text)}">Insert Blueprint</button>
+          <button type="button" class="use-blueprint-btn" data-text="${escapeHtml(tpl.text)}">Insert</button>
         </div>
       </div>
     `).join("");
@@ -808,11 +813,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!contextVaultList) return;
     contextVaultList.innerHTML = contextRules.map((rule) => `
       <div class="context-rule-card ${rule.active ? "active" : ""}" data-id="${rule.id}">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <strong style="font-size:11.5px; color:#fff;">${escapeHtml(rule.name)}</strong>
-          <input type="checkbox" class="rule-toggle" ${rule.active ? "checked" : ""} data-id="${rule.id}" style="cursor:pointer;" />
+        <div class="context-rule-head">
+          <strong class="context-rule-name">${escapeHtml(rule.name)}</strong>
+          <input type="checkbox" class="rule-toggle" ${rule.active ? "checked" : ""} data-id="${rule.id}" aria-label="${escapeHtml(rule.name)}" />
         </div>
-        <div style="font-size:10px; color:#a1a1aa; margin-top:2px;">${escapeHtml(rule.desc)}</div>
+        <div class="context-rule-desc">${escapeHtml(rule.desc)}</div>
       </div>
     `).join("");
 
@@ -854,10 +859,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Start animated loading state
     if (enhanceBtn) {
       enhanceBtn.disabled = true;
-      enhanceBtn.classList.remove("is-success", "is-error");
+      enhanceBtn.classList.remove("is-success");
       enhanceBtn.classList.add("is-loading");
     }
-    if (btnText) btnText.textContent = "Compiling Master Prompt...";
+    if (btnText) btnText.textContent = "Compiling…";
     if (btnTimer) {
       btnTimer.style.display = "inline";
       btnTimer.textContent = "(0.0s)";
@@ -876,14 +881,14 @@ document.addEventListener("DOMContentLoaded", () => {
       finalResult = synthesizeLocalPrompt(rawText);
     }
 
-    // Mode 2: Chrome On-Device Gemini Nano
+    // Mode 2: Chrome's on-device model
     if (!finalResult && currentMode === "device") {
       try {
         const w = window;
         const lm = w.LanguageModel || w.ai?.languageModel;
         if (lm && (await lm.availability()) !== "unavailable") {
           const session = await lm.create({ temperature: 0.1, topK: 1 });
-          const promptText = `Transform into a structured Master Prompt with Role, Specs, and Steps:\n\n"${rawText}"`;
+          const promptText = `Rewrite this into a structured prompt with role, specs and steps:\n\n"${rawText}"`;
           finalResult = await session.prompt(promptText);
           resultSource = "On-device model";
           session.destroy();
@@ -895,7 +900,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!finalResult) {
       try {
         const res = await new Promise((resolve) => {
-          const timer = setTimeout(() => resolve(null), 55000);
+          // shortcut: 30s cap with no cancel button. Raise it only if cloud generations routinely exceed it.
+          const timer = setTimeout(() => resolve(null), 30000);
           chrome.runtime.sendMessage(
             { action: "enhancePrompt", text: rawText, mode: currentMode, tone: currentTone },
             (r) => {
@@ -929,7 +935,7 @@ document.addEventListener("DOMContentLoaded", () => {
       enhanceBtn.disabled = false;
       enhanceBtn.classList.remove("is-loading");
       enhanceBtn.classList.add("is-success");
-      if (btnText) btnText.textContent = "✓ Master Prompt Compiled!";
+      if (btnText) btnText.textContent = "✓ Enhanced";
 
       setTimeout(() => {
         enhanceBtn.classList.remove("is-success");
@@ -940,34 +946,72 @@ document.addEventListener("DOMContentLoaded", () => {
     // Save to history timeline
     saveToHistory(rawText, finalResult, currentTone, qScore);
 
-    showResultView(finalResult, qScore, `${Math.max(0, elapsedMs)}ms`);
+    // The structure score stays on screen. It used to be overwritten by the source label a line later.
+    showResultView(finalResult, qScore, `${Math.max(0, elapsedMs)}ms`, resultSource);
     showToast(resultSource);
-    if (scoreBadge) scoreBadge.textContent = resultSource;
   }
 
   if (enhanceBtn) {
     enhanceBtn.addEventListener("click", triggerCompilation);
   }
 
-  // Keyboard Shortcuts: Cmd+Enter to compile, Esc to edit
+  // Cmd/Ctrl+Enter enhances. Escape only leaves the result view when it is actually open,
+  // so it stops swallowing the key while the user is typing.
   document.addEventListener("keydown", (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
       e.preventDefault();
       triggerCompilation();
-    } else if (e.key === "Escape") {
+    } else if (e.key === "Escape" && panelResult && panelResult.style.display !== "none") {
       showEditView();
     }
   });
 
   // ---------- 12. Result View Management ----------
-  function showResultView(text, score, latency) {
+  // Review step first: the compiled prompt is shown as a diff against the input,
+  // so what the compiler changed is visible before it gets inserted.
+  function setReviewMode(mode) {
+    if (!panelResult) return;
+    const showingDiff = mode !== "result";
+    panelResult.classList.toggle("mode-diff", showingDiff);
+    panelResult.classList.toggle("mode-result", !showingDiff);
+    [reviewTabDiff, reviewTabResult].forEach((tab) => {
+      if (!tab) return;
+      const active = tab === (showingDiff ? reviewTabDiff : reviewTabResult);
+      tab.classList.toggle("active", active);
+      tab.setAttribute("aria-pressed", String(active));
+    });
+  }
+
+  reviewTabDiff?.addEventListener("click", () => setReviewMode("diff"));
+  reviewTabResult?.addEventListener("click", () => setReviewMode("result"));
+
+  function showResultView(text, score, latency, source) {
     enhancedResult = text;
     if (panelEnhance) panelEnhance.style.display = "none";
     if (panelResult) {
       panelResult.style.display = "flex";
-      if (resultBody) resultBody.textContent = text;
+      if (resultBody) {
+        resultBody.textContent = text;
+        resultBody.classList.remove("flash-in");
+        void resultBody.offsetWidth; // reflow so a repeat compile replays the flash
+        resultBody.classList.add("flash-in");
+      }
+      if (reviewSwitch && diffBefore && diffAfter && window.PromptPlusDiff) {
+        const review = window.PromptPlusDiff.highlight(rawPromptMemory, text);
+        diffBefore.innerHTML = review.before;
+        diffAfter.innerHTML = review.after;
+        reviewSwitch.hidden = !review.changed;
+        setReviewMode(review.changed ? "diff" : "result");
+      }
       if (scoreBadge) scoreBadge.textContent = `Structure estimate: ${score}/100`;
-      if (loopBadge) loopBadge.textContent = `⚡ ${latency}`;
+      if (loopBadge) loopBadge.textContent = [source, latency].filter(Boolean).join(" · ");
+      if (resultTokenDelta) {
+        const before = countTokens(rawPromptMemory);
+        const after = countTokens(text);
+        resultTokenDelta.textContent = before > 0
+          ? `${before} → ${after} tokens (${after - before >= 0 ? "+" : ""}${after - before})`
+          : `${after} tokens`;
+      }
     }
   }
 
@@ -979,66 +1023,73 @@ document.addEventListener("DOMContentLoaded", () => {
 
   backToEditBtn?.addEventListener("click", showEditView);
 
-  copyBtn?.addEventListener("click", async () => {
-    if (enhancedResult) {
-      try { await navigator.clipboard.writeText(enhancedResult); } catch { showToast("Clipboard unavailable. Select and copy the result manually.", true); return; }
-      copyBtn.textContent = "Copied!";
-      setTimeout(() => { copyBtn.textContent = "Copy Prompt"; }, 2000);
+  const setCopyLabel = (s) => { if (copyBtnLabel) copyBtnLabel.textContent = s; };
+  const setUseLabel = (s) => { if (useBtnLabel) useBtnLabel.textContent = s; };
+  const setSaveLabel = (s) => { if (saveCloudBtnLabel) saveCloudBtnLabel.textContent = s; };
+
+  // One clipboard path, so every failure surfaces the same honest message.
+  async function copyResultToClipboard() {
+    try {
+      if (!navigator.clipboard) throw new Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(enhancedResult);
+      return true;
+    } catch {
+      showToast("Clipboard unavailable. Select and copy the result manually.", true);
+      return false;
     }
+  }
+
+  copyBtn?.addEventListener("click", async () => {
+    if (!enhancedResult) return;
+    if (!(await copyResultToClipboard())) return;
+    setCopyLabel("Copied");
+    setTimeout(() => setCopyLabel("Copy"), 2000);
   });
 
   useBtn?.addEventListener("click", () => {
-    if (enhancedResult) {
-      chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
-        const tab = tabs?.[0];
-        if (tab?.id) {
-          chrome.tabs.sendMessage(tab.id, { action: "injectEnhanced", enhanced: enhancedResult }, async (r) => {
-            if (chrome.runtime?.lastError || !r?.success) {
-              // Copy to clipboard fallback if tab is not inject-eligible (e.g. chrome:// or store)
-              try {
-                if (!navigator.clipboard) throw new Error("Clipboard unavailable");
-                await navigator.clipboard?.writeText(enhancedResult);
-              } catch {
-                showToast("Clipboard unavailable. Select and copy the result manually.", true);
-                return;
-              }
-              useBtn.textContent = "Copied to Clipboard!";
-              showToast("Copied! Switch to ChatGPT/Claude/Gemini to paste (⌘V)", false);
-              setTimeout(() => { useBtn.textContent = "Use in Active Tab"; }, 2500);
-            } else {
-              useBtn.textContent = r.pendingReview ? "Review in Chat" : "✓ Injected!";
-              showToast(r.pendingReview ? "Review the changes in your chat before accepting." : "✓ Injected directly into active chat!", false);
-              setTimeout(() => { useBtn.textContent = "Use in Active Tab"; }, 2000);
-            }
-          });
+    if (!enhancedResult) return;
+    chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs?.[0];
+      if (!tab?.id) {
+        void copyResultToClipboard();
+        return;
+      }
+      chrome.tabs.sendMessage(tab.id, { action: "injectEnhanced", enhanced: enhancedResult }, async (r) => {
+        if (chrome.runtime?.lastError || !r?.success) {
+          // No injectable page (chrome://, the extension itself): copy instead, and say so.
+          if (!(await copyResultToClipboard())) return;
+          setUseLabel("Copied to Clipboard!");
+          showToast(`Copied. Paste it into the chat (${PASTE_HINT}).`);
+          setTimeout(() => setUseLabel("Insert into chat"), 2500);
         } else {
-          navigator.clipboard?.writeText(enhancedResult);
-          showToast("Copied to clipboard!", false);
+          setUseLabel(r.pendingReview ? "Review in chat" : "✓ Inserted");
+          showToast(r.pendingReview ? "Review the changes in your chat before accepting." : "Inserted into the active chat.");
+          setTimeout(() => setUseLabel("Insert into chat"), 2000);
         }
       });
-    }
+    });
   });
 
   saveCloudBtn?.addEventListener("click", () => {
     if (!enhancedResult) return;
-    saveCloudBtn.textContent = "Saving...";
+    setSaveLabel("Saving…");
     chrome.runtime.sendMessage(
       {
         action: "saveToCloudPrompt",
         originalText: rawPromptMemory || enhancedResult.slice(0, 100),
         enhancedText: enhancedResult,
-        category: "Extension v3.0",
+        category: `Extension v${chrome.runtime.getManifest().version}`,
         tone: currentTone,
       },
       (r) => {
         if (r?.success) {
-          saveCloudBtn.textContent = "Saved!";
-          showToast("Saved to Prompt+ Cloud Library!");
+          setSaveLabel("Saved");
+          showToast("Saved to your Prompt+ library.");
         } else {
-          saveCloudBtn.textContent = "Save to Cloud";
-          showToast(r?.error || "Login to Prompt+ Web required to sync cloud.", true);
+          setSaveLabel("Save to library");
+          showToast(r?.error || "Sign in to Prompt+ to save to your library.", true);
         }
-        setTimeout(() => { saveCloudBtn.textContent = "Save to Cloud"; }, 2500);
+        setTimeout(() => setSaveLabel("Save to library"), 2500);
       }
     );
   });

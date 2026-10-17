@@ -136,6 +136,9 @@ assert(manifest.permissions.includes("storage"), "Manifest has storage permissio
 const contentScriptEntry = manifest.content_scripts[0];
 assert(contentScriptEntry.js.includes("content.js"), "content.js is present in content_scripts");
 assert(contentScriptEntry.js.includes("lib/tokenizer.js"), "tokenizer.js is loaded before content.js");
+// One diff renderer, shared by the in-page review panel and the popup review step.
+assert(contentScriptEntry.js.includes("lib/diff.js"), "diff.js is loaded in the content script");
+assert(contentScriptEntry.js.indexOf("lib/diff.js") < contentScriptEntry.js.indexOf("content.js"), "diff.js loads before content.js");
 
 // Check content.js for unified dock markup & absence of duplicate overlay calls
 const contentCode = fs.readFileSync(path.join(__dirname, "content.js"), "utf8");
@@ -193,7 +196,15 @@ assert(contentCode.includes("isCmdEnter"), "content.js implements in-chat Cmd+En
 assert(popupJs.includes("if (panelResult) panelResult.style.display = \"none\";"), "popup.js cleans up panelResult on tab switching");
 assert(popupJs.includes(".tone-pill-btn"), "popup.js queries .tone-pill-btn selector for tone switching");
 assert(popupJs.includes("advanced-tools-toggle"), "popup.js hooks up expandable advanced tools toggle");
-assert(popupJs.includes("navigator.clipboard?.writeText(enhancedResult)"), "popup.js implements clipboard fallback on tab injection edge cases");
+assert(popupJs.includes("copyResultToClipboard") && popupJs.includes("navigator.clipboard.writeText(enhancedResult)"), "popup.js implements clipboard fallback on tab injection edge cases");
+
+// The connection label has exactly one owner: the health probe. Two writers
+// drifting apart is how every signed-out user came to be told "Offline".
+assert((popupJs.match(/syncStatusText\.textContent\s*=/g) || []).length === 1, "popup.js writes the connection label in exactly one place");
+assert(!/if \(authData\?\.authenticated[^]*?syncStatusText/.test(popupJs), "popup.js does not let the auth-sync result override the connection label");
+
+const backgroundJs = fs.readFileSync(path.join(__dirname, "background.js"), "utf8");
+assert(backgroundJs.includes('cachedHealthState.status === "unknown" ? await pingServerHealth()'), "background.js probes before answering getHealthStatus on a cold worker");
 
 // -------------------------------------------------------------------
 // SUMMARY

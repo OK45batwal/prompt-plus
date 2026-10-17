@@ -149,7 +149,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         for (const baseUrl of targetUrls) {
           // Route based on user selected mode:
-          // "algo": Sub-30ms offline algorithmic IR endpoint
+          // "algo": the offline deterministic engine
           // "api" or default: Multi-model LLM enhancement engine, with fallback to algorithmic if offline
           const endpoints = request.mode === "algo"
             ? [`${baseUrl}/api/v2/extension/optimize`]
@@ -362,7 +362,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   // ---------- Connection Health & Latency Monitor ----------
   if (request.action === "getHealthStatus") {
-    sendResponse({ health: cachedHealthState });
+    (async () => {
+      // The popup asks once and never re-polls, so a cold worker must probe now
+      // rather than answer "unknown" and leave the header reading "Not checked".
+      const health = cachedHealthState.status === "unknown" ? await pingServerHealth() : cachedHealthState;
+      sendResponse({ health });
+    })();
     return true;
   }
 

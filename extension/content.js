@@ -1,9 +1,20 @@
 (function () {
   let modalEl = null;
-  let selectedTone = "code";
+  let selectedTone = "human";
 
   const isMac = typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
   const kbdShortcut = isMac ? "⌘↵" : "Ctrl+↵";
+
+  // One tone vocabulary for the dock, the modal and the popup.
+  const TONE_OPTIONS = [
+    { key: "human", label: "Natural", short: "Natural" },
+    { key: "code", label: "Technical", short: "Tech" },
+    { key: "exec", label: "Executive", short: "Exec" },
+    { key: "copy", label: "Marketing", short: "Marketing" },
+    { key: "deep", label: "Reasoning", short: "Reasoning" },
+  ];
+  const PACE = { steady: "Steady pace", heavy: "Heavy usage", accelerating: "Growing faster", decelerating: "Slowing down" };
+  const paceLabel = (rate) => PACE[rate] || "Pace unknown";
 
   const ICONS = {
     sparkle: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>`,
@@ -13,16 +24,8 @@
     close: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
   };
 
-  function escapeHtml(str) {
-    if (!str) return "";
-    return String(str).replace(/[&<>'"]/g, (c) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      "'": "&#39;",
-      '"': "&quot;",
-    }[c]));
-  }
+  // The shared review renderer owns escaping and diffing for both hosts.
+  const { escapeHtml, highlight } = window.PromptPlusDiff;
 
 
 
@@ -59,8 +62,8 @@
 
       .pp-unified-dock:hover,
       .pp-floating-trigger:hover {
-        border-color: rgba(99, 102, 241, 0.55) !important;
-        box-shadow: 0 6px 26px rgba(0, 0, 0, 0.6), 0 0 16px rgba(99, 102, 241, 0.25) !important;
+        border-color: rgba(6, 182, 212, 0.55) !important;
+        box-shadow: 0 6px 26px rgba(0, 0, 0, 0.6), 0 0 16px rgba(6, 182, 212, 0.25) !important;
       }
 
       .pp-dock-btn {
@@ -68,28 +71,38 @@
         align-items: center !important;
         gap: 5px !important;
         height: 22px !important;
-        padding: 0 7px 0 5px !important;
+        padding: 0 8px 0 5px !important;
         border-radius: 9999px !important;
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(79, 70, 229, 0.9) 100%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.18) !important;
-        color: #ffffff !important;
+        /* Dark ink on cyan reads at 8:1; white on cyan is 2.4:1 and fails. */
+        background: linear-gradient(180deg, #06b6d4 0%, #0d9488 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.35) !important;
+        color: #04141c !important;
         cursor: pointer !important;
         font-size: 11px !important;
         font-weight: 700 !important;
         line-height: 1 !important;
-        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35) !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                    0 2px 8px rgba(6, 182, 212, 0.45) !important;
         transition: all 0.15s ease !important;
         flex-shrink: 0 !important;
       }
 
       .pp-dock-btn:hover {
-        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-        box-shadow: 0 3px 12px rgba(99, 102, 241, 0.5) !important;
+        background: linear-gradient(180deg, #22d3ee 0%, #14b8a6 100%) !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5),
+                    0 3px 14px rgba(6, 182, 212, 0.6) !important;
         transform: translateY(-0.5px) !important;
       }
 
       .pp-dock-btn:active {
         transform: translateY(0.5px) !important;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3),
+                    0 1px 4px rgba(6, 182, 212, 0.4) !important;
+      }
+
+      .pp-dock-btn:focus-visible {
+        outline: 2px solid rgba(103, 232, 249, 0.9) !important;
+        outline-offset: 2px !important;
       }
 
       .pp-dock-icon {
@@ -106,7 +119,7 @@
         border-radius: 3px !important;
         background: rgba(0, 0, 0, 0.28) !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        color: #e0e7ff !important;
+        color: rgba(255, 255, 255, 0.85) !important;
         line-height: 1 !important;
         font-weight: 600 !important;
       }
@@ -122,20 +135,11 @@
         display: inline-flex !important;
         align-items: center !important;
         gap: 5px !important;
-        padding: 0 7px !important;
+        padding: 0 4px !important;
         height: 22px !important;
-        border-radius: 9999px !important;
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        cursor: pointer !important;
-        transition: all 0.15s ease !important;
+        cursor: default !important;
         white-space: nowrap !important;
         flex-shrink: 0 !important;
-      }
-
-      .pp-dock-runway:hover {
-        background: rgba(255, 255, 255, 0.1) !important;
-        border-color: rgba(255, 255, 255, 0.18) !important;
       }
 
       .pp-runway-dot {
@@ -190,9 +194,9 @@
       }
 
       .pp-dock-tone.active {
-        background: rgba(99, 102, 241, 0.25) !important;
-        border-color: rgba(99, 102, 241, 0.45) !important;
-        color: #c7d2fe !important;
+        background: rgba(6, 182, 212, 0.25) !important;
+        border-color: rgba(6, 182, 212, 0.45) !important;
+        color: #67e8f9 !important;
       }
 
       .pp-dock-studio-btn {
@@ -223,8 +227,8 @@
         width: 380px !important;
         max-width: calc(100vw - 32px) !important;
         background: rgba(12, 12, 16, 0.96) !important;
-        border: 1px solid rgba(99, 102, 241, 0.45) !important;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 24px rgba(99, 102, 241, 0.25) !important;
+        border: 1px solid rgba(6, 182, 212, 0.45) !important;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 24px rgba(6, 182, 212, 0.25) !important;
         backdrop-filter: blur(24px) saturate(160%) !important;
         -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
         border-radius: 14px !important;
@@ -320,10 +324,10 @@
         border-color: rgba(255, 255, 255, 0.18) !important;
       }
       .pp-tone-chip.active {
-        background: rgba(99, 102, 241, 0.25) !important;
-        border-color: rgba(99, 102, 241, 0.65) !important;
-        color: #c7d2fe !important;
-        box-shadow: 0 0 10px rgba(99, 102, 241, 0.25) !important;
+        background: rgba(6, 182, 212, 0.25) !important;
+        border-color: rgba(6, 182, 212, 0.65) !important;
+        color: #67e8f9 !important;
+        box-shadow: 0 0 10px rgba(6, 182, 212, 0.25) !important;
       }
 
       .pp-modal-preview {
@@ -349,9 +353,9 @@
         flex: 1 !important;
         height: 36px !important;
         border-radius: 8px !important;
-        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        color: #ffffff !important;
+        background: linear-gradient(180deg, #06b6d4 0%, #0d9488 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        color: #04141c !important;
         font-size: 11.5px !important;
         font-weight: 700 !important;
         cursor: pointer !important;
@@ -359,7 +363,7 @@
         align-items: center !important;
         justify-content: center !important;
         gap: 6px !important;
-        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4) !important;
         transition: all 0.15s ease !important;
       }
       .pp-modal-btn-primary:hover {
@@ -389,6 +393,16 @@
       .pp-modal-btn-sub:hover {
         background: rgba(255, 255, 255, 0.12) !important;
       }
+
+      /* Shared review diff. Scoped by panel id so host page <del>/<ins> are untouched. */
+      #pp-enhancement-preview del,
+      #pp-enhancement-preview ins {
+        text-decoration: none !important;
+        border-radius: 3px !important;
+        padding: 0 2px !important;
+      }
+      #pp-enhancement-preview del { background: #7f1d1d !important; color: #fecaca !important; }
+      #pp-enhancement-preview ins { background: #14532d !important; color: #bbf7d0 !important; }
     `;
     (document.head || document.documentElement).appendChild(style);
   }
@@ -697,23 +711,14 @@
     const beforeTokens = window.PromptPlusTokenizer.countTokens(original);
     const afterTokens = window.PromptPlusTokenizer.countTokens(enhanced);
     const delta = afterTokens - beforeTokens;
-    // Highlight the changed span while preserving common prefix/suffix words.
-    const before = original.split(/(\s+)/);
-    const after = enhanced.split(/(\s+)/);
-    let prefix = 0, suffix = 0;
-    while (prefix < before.length && prefix < after.length && before[prefix] === after[prefix]) prefix++;
-    while (suffix < before.length - prefix && suffix < after.length - prefix && before[before.length - 1 - suffix] === after[after.length - 1 - suffix]) suffix++;
-    const diff = (words, tag, color) => {
-      const end = words.length - suffix;
-      return escapeHtml(words.slice(0, prefix).join("")) + `<${tag} style="background:${color};color:inherit">` + escapeHtml(words.slice(prefix, end).join("")) + `</${tag}>` + escapeHtml(words.slice(end).join(""));
-    };
+    const diff = highlight(original, enhanced);
     panel.innerHTML = `
       <strong style="font-size:16px">Review enhancement</strong>
       <p style="color:#cbd5e1;margin:6px 0">${escapeHtml(source)}</p>
       <p id="pp-preview-tokens" style="margin:8px 0">Estimated tokens: ${beforeTokens} → ${afterTokens} (${delta > 0 ? "+" : ""}${delta})</p>
       <div style="max-height:38vh;overflow:auto">
-        <p style="font-weight:600">Original</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="original">${diff(before, "del", "#7f1d1d")}</div>
-        <p style="font-weight:600;margin-top:12px">Enhanced</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="enhanced">${diff(after, "ins", "#14532d")}</div>
+        <p style="font-weight:600">Original</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="original">${diff.before}</div>
+        <p style="font-weight:600;margin-top:12px">Enhanced</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="enhanced">${diff.after}</div>
       </div>
       <div style="display:flex;gap:12px;margin-top:16px">
         <button type="button" id="pp-preview-accept" style="padding:8px 14px;border-radius:8px;background:#f1f5f9;color:#111318">Accept · Tab</button>
@@ -814,7 +819,7 @@
 
   let latestAnalysis = null;
 
-  // Open Floating Optimizer & Context Runway Studio Modal
+  // Open the in-page panel
   function openFloatingModal(inputEl) {
     if (modalEl) {
       modalEl.remove();
@@ -842,8 +847,8 @@
     modalEl.innerHTML = `
       <div class="pp-modal-header">
         <div class="pp-modal-title">
-          <span class="pp-dock-icon" style="width:16px;height:16px;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;">${ICONS.sparkle}</span>
-          <span>Prompt+ Studio & Runway</span>
+          <span class="pp-dock-icon" style="width:16px;height:16px;background:linear-gradient(135deg,#06b6d4,#0d9488);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;">${ICONS.sparkle}</span>
+          <span>Prompt+</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span class="pp-model-badge" style="color:${color};">
@@ -854,32 +859,28 @@
         </div>
       </div>
 
-      <!-- Real-Time Context Runway Card -->
+      <!-- Live chat usage for the open conversation -->
       <div style="background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;">
         <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;">
           <div style="display:flex;align-items:center;gap:6px;">
-            <span style="font-weight:700;color:#ffffff;letter-spacing:-0.01em;">Context Runway</span>
-            <span id="pp-modal-burn-badge" style="font-size:9.5px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,0.08);color:#94a3b8;">${burn} burn</span>
+            <span style="font-weight:700;color:#ffffff;letter-spacing:-0.01em;">Chat usage</span>
+            <span id="pp-modal-burn-badge" style="font-size:9.5px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,0.08);color:#94a3b8;">${paceLabel(burn)}</span>
           </div>
-          <span id="pp-modal-rem-badge" style="font-weight:700;color:${color};background:${color}22;padding:1.5px 7px;border-radius:4px;border:1px solid ${color}44;">Capacity unknown (Estimated visible usage)</span>
+          <span id="pp-modal-rem-badge" style="font-weight:700;color:${color};background:${color}22;padding:1.5px 7px;border-radius:4px;border:1px solid ${color}44;">Visible messages only</span>
         </div>
         <div style="width:100%;height:4.5px;border-radius:9999px;background:rgba(255,255,255,0.1);overflow:hidden;">
           <div id="pp-modal-runway-bar" style="height:100%;border-radius:9999px;background:${color};width:${Math.min(100, Math.max(3, pct))}%;box-shadow:0 0 8px ${color}80;transition:width 0.3s ease;"></div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:9.5px;color:#a1a1aa;text-align:center;">
           <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 0;">Used: <strong id="pp-modal-used-tok" style="color:#fff;">${formatK(totalTokens)}</strong></div>
-          <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 0;">Limit: <strong style="color:#fff;">${latestAnalysis?.contextLimitKnown ? formatK(limit) : "Unknown"}</strong></div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 0;">Limit: <strong style="color:#fff;">${latestAnalysis?.contextLimitKnown ? formatK(limit) : "—"}</strong></div>
           <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 0;">Turns: <strong id="pp-modal-turn-count" style="color:#fff;">${turnCount}</strong></div>
-          <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 0;">Left: <strong id="pp-modal-est-msgs" style="color:#34d399;">Unknown</strong></div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:2px 0;">Left: <strong id="pp-modal-est-msgs" style="color:#34d399;">—</strong></div>
         </div>
       </div>
 
-      <div class="pp-tone-row">
-        <div class="pp-tone-chip ${selectedTone === "human" ? "active" : ""}" data-tone="human">Natural Human</div>
-        <div class="pp-tone-chip ${selectedTone === "code" ? "active" : ""}" data-tone="code">Tech Architect</div>
-        <div class="pp-tone-chip ${selectedTone === "copy" ? "active" : ""}" data-tone="copy">Conversion Copy</div>
-        <div class="pp-tone-chip ${selectedTone === "exec" ? "active" : ""}" data-tone="exec">Executive Brief</div>
-        <div class="pp-tone-chip ${selectedTone === "deep" ? "active" : ""}" data-tone="deep">Deep Reasoner</div>
+      <div class="pp-tone-row" role="group" aria-label="Tone">
+        ${TONE_OPTIONS.map((t) => `<div class="pp-tone-chip ${selectedTone === t.key ? "active" : ""}" data-tone="${t.key}">${t.label}</div>`).join("")}
       </div>
 
       <div class="pp-modal-preview" id="pp-modal-preview" contenteditable="true" spellcheck="false" placeholder="Type prompt idea or click Optimize...">
@@ -892,7 +893,7 @@
           <span>Optimize & Review</span>
           <kbd class="pp-trigger-kbd" style="margin-left: 4px; background: rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.2); color: #ffffff;">${kbdShortcut}</kbd>
         </button>
-        <button type="button" class="pp-modal-btn-sub" id="pp-modal-copy-btn" title="Copy Master Prompt">
+        <button type="button" class="pp-modal-btn-sub" id="pp-modal-copy-btn" title="Copy result">
           ${ICONS.copy}
           <span>Copy</span>
         </button>
@@ -1080,23 +1081,21 @@
 
       <div class="pp-dock-sep"></div>
 
-      <div class="pp-dock-runway" id="pp-dock-runway" title="Context Runway: Click for conversation token telemetry">
+      <div class="pp-dock-runway" id="pp-dock-runway" title="Tokens visible in this conversation">
         <span class="pp-runway-dot" id="pp-runway-dot"></span>
         <span class="pp-runway-model" id="pp-runway-model">${escapeHtml(activeModelName)}</span>
-        <span class="pp-runway-tokens" id="pp-runway-tokens">Capacity unknown</span>
-        <span class="pp-runway-pct" id="pp-runway-pct">Limit unknown</span>
+        <span class="pp-runway-tokens" id="pp-runway-tokens">measuring…</span>
+        <span class="pp-runway-pct" id="pp-runway-pct"></span>
       </div>
 
       <div class="pp-dock-sep"></div>
 
       <div class="pp-dock-tones">
-        <button type="button" class="pp-dock-tone ${selectedTone === 'code' ? 'active' : ''}" data-tone="code" title="Tech Architect Tone">Tech</button>
-        <button type="button" class="pp-dock-tone ${selectedTone === 'human' ? 'active' : ''}" data-tone="human" title="Natural Human Tone">Human</button>
-        <button type="button" class="pp-dock-tone ${selectedTone === 'exec' ? 'active' : ''}" data-tone="exec" title="Executive Strategy Tone">Exec</button>
+        ${TONE_OPTIONS.slice(0, 3).map((t) => `<button type="button" class="pp-dock-tone ${selectedTone === t.key ? "active" : ""}" data-tone="${t.key}" title="${t.label} tone">${t.short}</button>`).join("")}
       </div>
 
-      <button type="button" class="pp-dock-studio-btn" id="pp-dock-studio-btn" title="Open Studio & Telemetry Panel" aria-label="Open Studio">
-        <span>Studio</span>
+      <button type="button" class="pp-dock-studio-btn" id="pp-dock-studio-btn" title="Chat usage, tone and enhance" aria-label="Open panel">
+        <span>More</span>
         ${ICONS.chevron}
       </button>
     `;
@@ -1113,7 +1112,7 @@
         const curLimit = latestAnalysis?.contextLimit || model.maxContext;
         const curUsed = (latestAnalysis?.totalTokens || 0) + typedTokens;
         const curRem = Math.max(0, curLimit - curUsed);
-        tokEl.textContent = !latestAnalysis?.contextLimitKnown ? `~${formatK(curUsed)} visible tokens` : typedTokens > 0 ? `${formatK(curRem)} left (~${typedTokens} tok)` : `${formatK(curRem)} left`;
+        tokEl.textContent = !latestAnalysis?.contextLimitKnown ? `~${formatK(curUsed)} tokens visible` : typedTokens > 0 ? `${formatK(curRem)} left · +${formatK(typedTokens)} tok` : `${formatK(curRem)} left`;
       }
     };
     input.addEventListener("input", updateTypingTokens);
@@ -1125,12 +1124,12 @@
       toneBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const newTone = toneBtn.getAttribute("data-tone") || "human";
-        selectedTone = newTone;
+        selectedTone = toneBtn.getAttribute("data-tone") || "human";
         dock.querySelectorAll(".pp-dock-tone").forEach((b) => b.classList.remove("active"));
         toneBtn.classList.add("active");
 
-        showToast(`Tone set to ${newTone.toUpperCase()}`);
+        const tone = TONE_OPTIONS.find((t) => t.key === selectedTone);
+        showToast(`Tone: ${tone ? tone.label : selectedTone}`);
       });
     });
 
@@ -1147,14 +1146,7 @@
       }
     });
 
-    // Runway click
-    dock.querySelector("#pp-dock-runway")?.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      openFloatingModal(input);
-    });
-
-    // Studio open button
+    // One opener for the panel. The usage readout above is not a button.
     dock.querySelector("#pp-dock-studio-btn")?.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -1248,7 +1240,7 @@
 
     trigger.addEventListener("mousedown", (e) => {
       if (e.button !== 0) return;
-      if (e.target.closest("button") || e.target.closest(".pp-dock-btn") || e.target.closest(".pp-dock-runway")) {
+      if (e.target.closest("button") || e.target.closest(".pp-dock-btn")) {
         return;
       }
       isDragging = true;
@@ -1348,7 +1340,7 @@
     }
 
     if (tokEl) {
-      tokEl.textContent = analysis.contextLimitKnown ? `~${remainingK} left` : `~${formatK(analysis.totalTokens || 0)} visible tokens`;
+      tokEl.textContent = analysis.contextLimitKnown ? `~${remainingK} left` : `~${formatK(analysis.totalTokens || 0)} tokens visible`;
       if (pct >= 80) {
         tokEl.style.color = "#f87171";
       } else if (pct >= 60) {
@@ -1359,7 +1351,7 @@
     }
 
     if (pctEl) {
-      pctEl.textContent = analysis.contextLimitKnown ? `~${pct}%` : "Limit unknown";
+      pctEl.textContent = analysis.contextLimitKnown ? `~${pct}%` : "";
       pctEl.style.color = pct >= 80 ? "#f87171" : pct >= 60 ? "#fbbf24" : "#94a3b8";
     }
 
@@ -1387,7 +1379,7 @@
       const color = pct >= 80 ? "#ef4444" : pct >= 60 ? "#f59e0b" : "#10b981";
 
       if (modalRemBadge) {
-        modalRemBadge.textContent = analysis.contextLimitKnown ? `~${remainingK} left (~${pct}% used)` : "Capacity unknown; visible messages only";
+        modalRemBadge.textContent = analysis.contextLimitKnown ? `~${remainingK} left (~${pct}% used)` : "Visible messages only";
         modalRemBadge.style.color = color;
         modalRemBadge.style.background = `${color}22`;
         modalRemBadge.style.borderColor = `${color}44`;
@@ -1398,8 +1390,8 @@
       }
       if (modalUsed) modalUsed.textContent = formatK(analysis.totalTokens || 0);
       if (modalTurns) modalTurns.textContent = String(analysis.turnCount || 0);
-      if (modalLeft) modalLeft.textContent = !analysis.contextLimitKnown ? "Unknown" : `~${analysis.estimatedMessagesLeft || 100}`;
-      if (modalBurn && analysis.burnRate) modalBurn.textContent = `${analysis.burnRate} burn`;
+      if (modalLeft) modalLeft.textContent = !analysis.contextLimitKnown ? "—" : `~${analysis.estimatedMessagesLeft || 100}`;
+      if (modalBurn && analysis.burnRate) modalBurn.textContent = paceLabel(analysis.burnRate);
     }
   }
 

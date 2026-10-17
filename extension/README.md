@@ -1,44 +1,42 @@
-# Prompt+ Browser Extension (Manifest V3) — v3.0.0
+# Prompt+ Browser Extension (Manifest V3) — v2.1.4
 
-Enterprise-grade AI Prompt Compiler, Live Context Runway, Real-Time Token Tracker & Multi-AI Launcher for ChatGPT, Claude, Gemini, DeepSeek, Grok, Perplexity, Copilot, and Meta AI.
+Enhance a prompt, review the change, then insert it — plus a visible-message token estimate, a prompt history and a launcher for eight AI sites.
 
-## Major Innovations in v3.0.0
+## What it does
 
-### 1. Visible conversation token estimates
+### 1. Enhance, review, insert
+- The **Instant** engine runs on your device: no network call, no API key, works offline.
+- **Cloud key** uses your own saved API key. **Chrome AI** uses the browser's built-in model when the build provides it.
+- The result is shown as a diff with the measured token change before you accept it. Insert it into the active chat, or copy it.
+
+### 2. Visible conversation token estimates
 - Counts visible DOM messages with a lightweight approximate tokenizer; hidden/system context is excluded.
 - Shows per-role estimates, turn count and largest visible turn.
-- Chat-product capacity is unknown; legacy adapter API limits are not treated as confirmed chat limits. Remaining-token/exchange claims and threshold notifications are disabled until a limit is verified.
-- Minimal counters and alert metadata survive service-worker restarts in session storage. Raw conversation text is not persisted in that state.
+- Chat-product capacity is unknown; legacy adapter API limits are not treated as confirmed chat limits. Remaining-token/exchange claims are disabled until a limit is verified, and the UI says so instead of guessing.
+- Minimal counters survive service-worker restarts in session storage. Raw conversation text is not persisted in that state.
 
-### 2. Button & Floating Trigger Overhaul
-- **Animated Loading State**: Master Enhance button displays shimmer gradient sweep and elapsed timer counter (`Compiling... 1.2s`).
-- **Dynamic Mode-Aware Labels**: Button text reflects execution mode (`⚡ Compile via Cloud AI`, `⚡ Turbo Local IR`, `⚡ Gemini Nano`).
-- **Tactile State Transitions**: Spring-scale bounce on click, green success checkmark on completion, error shake on failure.
-- **Draggable Floating Trigger**: Persistent custom position stored in local storage, live token badge in the pill, and platform-tailored accent colors.
+### 3. In-page dock
+- Appears next to the chat input on supported sites: enhance in place, a live usage readout, three quick tones, and one button that opens the full panel.
 
-### 3. Cross-Platform AI Launcher (8 Platforms)
-- Expanded from 4 to **8 AI platforms**: ChatGPT, Claude, Gemini, DeepSeek, Grok, Perplexity, Copilot, and Meta AI.
-- Dedicated brand color accents and active tab presence indicators (green dot if that AI tab is already open).
-- **"Send to All" Dispatcher**: Opens primary platforms simultaneously with your compiled master prompt.
+### 4. Cross-platform launcher (8 platforms)
+- ChatGPT, Claude, Gemini, DeepSeek, Grok, Perplexity, Copilot, and Meta AI.
+- "Open in all" opens the listed platforms with the compiled prompt.
 
-### 4. Enterprise Connection Health System
-- **Real-Time Heartbeat**: Regular background telemetry pings `/api/health` with round-trip latency tracking.
-- **Measured Health Indicator**: starts Not checked, then reports Connected, Degraded or Offline with measured latency.
-- **Manual Ping & Force Sync**: In-popup diagnostic controls to test cloud latency and reconcile user session data instantly.
+### 5. Connection health
+- The indicator starts at **Not checked** and then reports Connected, Degraded or Offline with measured latency. It does not claim health it has not measured.
 
-### 5. Prompt History Timeline
-- Persistent chronological record of the last 20 compiled prompts with original snippet, tone, quality score, and timestamp.
-- One-click "Load" button to restore any previous compilation directly into the compiler.
+### 6. Prompt history
+- Last 20 compiled prompts with the original snippet, tone, structure score, and time. One-click **Load** to restore one.
 
 ---
 
-## Quick Install
+## Quick install
 
 1. Open `chrome://extensions` in Google Chrome or Brave.
 2. Toggle **Developer mode** in the top-right corner.
 3. Click **Load unpacked**.
 4. Select the `extension/` directory from this repository.
-5. Navigate to any supported AI platform (e.g. [ChatGPT](https://chatgpt.com), [Claude](https://claude.ai), [Gemini](https://gemini.google.com), [DeepSeek](https://chat.deepseek.com)) to see the **Context Runway Bar** and Prompt+ trigger in action!
+5. Open a supported AI site (e.g. [ChatGPT](https://chatgpt.com), [Claude](https://claude.ai), [Gemini](https://gemini.google.com), [DeepSeek](https://chat.deepseek.com)) to see the dock and the popup.
 
 ## Verification
 
