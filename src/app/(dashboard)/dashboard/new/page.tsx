@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, Suspense } from "react";
+import { useState, useRef, useEffect, Suspense, type KeyboardEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Sparkles,
@@ -16,6 +16,7 @@ import {
   Shield,
   Target,
   Code,
+  ChevronDown,
 } from "lucide-react";
 import { getSavedContextBlocks, ContextBlock } from "@/lib/context-memory";
 import { estimateTokenCount, calculateCostEstimates } from "@/lib/token-calculator";
@@ -30,6 +31,15 @@ import { isScore } from "@/lib/score-summary";
 import { ScoreBreakdown } from "@/components/studio/score-breakdown";
 import { ExportCodeModal } from "@/components/prompts/export-code-modal";
 import { LoopTraceCard } from "@/components/studio/loop-trace-card";
+import { PromptDiff } from "@/components/studio/prompt-diff";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { LoopTrace } from "@/lib/prompt-engine/loop-engine";
 
 interface V2Intent {
@@ -75,6 +85,7 @@ interface EnhancedResult {
   promptId?: string;
   source: string;
   model?: string;
+  saved?: boolean;
   dimensions?: { clarity: number; specificity: number; structure: number; context: number; actionability: number };
   original: { text: string; score: number | null };
   enhanced: { text: string; score: number | null };
@@ -118,6 +129,13 @@ const enhanceLevels: { id: EnhanceLevel; label: string; hint: string }[] = [
   { id: "expert", label: "Expert", hint: "Detailed constraints & examples" },
 ];
 
+const resultTabs = [
+  { id: "output", label: "Output" },
+  { id: "changes", label: "Changes" },
+] as const;
+
+const DRAFT_KEY = "pp_studio_draft";
+
 function PromptBuilderPage() {
   const { toast } = useToast();
 
@@ -133,11 +151,15 @@ function PromptBuilderPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [result, setResult] = useState<EnhancedResult | null>(null);
+  const [resultView, setResultView] = useState<"output" | "changes">("output");
   const [copied, setCopied] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showCostBreakdown, setShowCostBreakdown] = useState(false);
   const [enhanceLevel, setEnhanceLevel] = useState<EnhanceLevel>("deep");
   const [isListening, setIsListening] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
+  const resultRef = useRef<HTMLElement>(null);
 
   const loadPrefs = () => {
     try {
@@ -183,12 +205,67 @@ function PromptBuilderPage() {
     );
   };
 
-  const getCombinedPromptWithContext = () => {
+  const getContextPrefix = () => {
     const activeBlocks = availableBlocks.filter((b) => selectedBlockIds.includes(b.id));
-    if (activeBlocks.length === 0) return prompt;
-    const contextPrefix = activeBlocks.map((b) => `[Context Memory: ${b.name}]\n${b.content}`).join("\n\n");
+    if (activeBlocks.length === 0) return "";
+    return activeBlocks.map((b) => `[Context Memory: ${b.name}]\n${b.content}`).join("\n\n");
+  };
+
+  const getCombinedPromptWithContext = () => {
+    const contextPrefix = getContextPrefix();
+    if (!contextPrefix) return prompt;
     return `${contextPrefix}\n\n[User Prompt]:\n${prompt}`;
   };
+
+  // Restore the in-progress draft so navigating away (or a sign-in round trip) does
+  // not lose what the user typed. A handoff prompt/ID always wins over the draft.
+  // Deferred past hydration so the server-rendered editor is not clobbered mid-hydrate.
+  useEffect(() => {
+    if (handoffPrompt || handoffPromptId) return;
+    const timer = setTimeout(() => {
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return;
+        const draft = JSON.parse(raw);
+        if (typeof draft.text === "string") setPrompt(draft.text);
+        if (typeof draft.tone === "string" && tones.includes(draft.tone)) setSelectedTone(draft.tone);
+        if (typeof draft.length === "string") setSelectedLength(draft.length);
+        if (typeof draft.category === "string") setSelectedCategory(draft.category);
+        if (draft.level === "quick" || draft.level === "deep" || draft.level === "expert") setEnhanceLevel(draft.level);
+        if (typeof draft.model === "string" && MODELS.some((m) => m.id === draft.model)) setSelectedModel(draft.model);
+        if (Array.isArray(draft.blockIds)) setSelectedBlockIds(draft.blockIds);
+        setDraftSaved(true);
+      } catch {
+        // A corrupt or blocked draft must never break the editor.
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [handoffPrompt, handoffPromptId]);
+
+  // Persist the draft, and only report "Saved" once the write actually succeeds.
+  useEffect(() => {
+    if (!prompt.trim()) return;
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          DRAFT_KEY,
+          JSON.stringify({
+            text: prompt,
+            tone: selectedTone,
+            length: selectedLength,
+            category: selectedCategory,
+            level: enhanceLevel,
+            model: selectedModel,
+            blockIds: selectedBlockIds,
+          })
+        );
+        setDraftSaved(true);
+      } catch {
+        setDraftSaved(false);
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [prompt, selectedTone, selectedLength, selectedCategory, enhanceLevel, selectedModel, selectedBlockIds]);
 
   const [savedKeys, setSavedKeys] = useState<Record<string, boolean>>({});
 
@@ -273,6 +350,7 @@ function PromptBuilderPage() {
       }
 
       let promptId: string | undefined;
+      let savedToLibrary = false;
       // Save the actual pair before requesting a server-owned assessment.
       try {
         const createRes = await fetch("/api/v1/prompts", {
@@ -289,6 +367,7 @@ function PromptBuilderPage() {
         });
         if (!saved.ok) throw new Error("Save failed");
         promptId = created.data.id;
+        savedToLibrary = true;
       } catch {
         setErrorNotice("Your result is ready, but could not be saved to your account. Copy it before leaving.");
       }
@@ -310,9 +389,11 @@ function PromptBuilderPage() {
           }
         } catch { /* Enhancement remains usable when assessment is unavailable. */ }
       }
-      setResult({ promptId, source: enhanceProvider, model: json.data.model, dimensions,
+      setResult({ promptId, source: enhanceProvider, model: json.data.model, saved: savedToLibrary, dimensions,
         original: { text: fullPrompt, score: originalScore },
         enhanced: { text: finalEnhancedText, score: enhancedScore }, v2: v2Data });
+      setResultView("output");
+      setAnnouncement(enhanceProvider === "engine" ? "Enhanced prompt ready. The built-in engine created it; no model ran." : "Enhanced prompt ready.");
       toast(enhanceProvider === "engine" ? "Deterministic enhancement ready. No model ran." : "Enhanced prompt ready.", "success");
       try {
         const existing = JSON.parse(localStorage.getItem("pp_local_history") || "[]");
@@ -345,12 +426,59 @@ function PromptBuilderPage() {
     }
   };
 
+  // A manual edit invalidates anything measured or saved against the old text.
+  const handleOutputChange = (text: string) => {
+    setResult((prev) =>
+      prev
+        ? {
+            ...prev,
+            saved: false,
+            dimensions: undefined,
+            enhanced: { text, score: null },
+          }
+        : null
+    );
+  };
+
+  const handleRestoreOriginal = () => {
+    if (!result) return;
+    setPrompt(result.original.text);
+    toast("Restored the original prompt into the editor.", "info");
+  };
+
+  const jumpToResult = () => {
+    resultRef.current?.focus({ preventScroll: true });
+    resultRef.current?.scrollIntoView({ block: "start" });
+  };
+
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    const current = resultTabs.findIndex((tab) => tab.id === resultView);
+    const next =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+        ? resultTabs.length - 1
+        : event.key === "ArrowRight"
+        ? (current + 1) % resultTabs.length
+        : (current - 1 + resultTabs.length) % resultTabs.length;
+    setResultView(resultTabs[next].id);
+  };
+
   const handleReset = () => {
     setPrompt("");
     setResult(null);
     setSelectedTone("");
     setSelectedLength("");
     setSelectedCategory("");
+    setResultView("output");
+    setDraftSaved(false);
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      // Browser storage may be disabled.
+    }
   };
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -461,72 +589,135 @@ function PromptBuilderPage() {
     openAIPlatform(target, text, (msg, type) => toast(msg, type));
   };
 
+  const sourceLabel =
+    result?.source === "api"
+      ? "Cloud model enhancement"
+      : result?.source === "device"
+      ? "On-device model (Gemini Nano)"
+      : "Deterministic engine · no model ran";
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <p aria-live="polite" className="sr-only">{announcement}</p>
+
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="font-semibold text-sm">Prompt Builder</h2>
-          <p className="text-xs text-muted-foreground">Transform your ideas into optimized prompts</p>
+          <p className="text-xs text-muted-foreground">Turn a rough request into a structured prompt you can reuse.</p>
         </div>
-        <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          100% Free — No API Key Required
+        <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          Free — no API key required
         </span>
       </div>
 
       {errorNotice && (
         <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-700 dark:text-amber-300 flex items-center justify-between">
-          <span>⚠️ {errorNotice}</span>
+          <span role="alert">⚠️ {errorNotice}</span>
           <button onClick={() => setErrorNotice(null)} className="text-xs underline ml-2">Dismiss</button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column: Input & Context Engine */}
-        <div className="space-y-4">
-          {/* Modular Model Selector */}
-          <ModelSelector
-            selectedModel={selectedModel}
-            onSelectModel={setSelectedModel}
-            savedKeys={savedKeys}
-          />
-
-          {/* Enhancement Level Selector with Pill Design */}
-          <div className="double-bezel-outer">
-            <div className="double-bezel-inner p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold flex items-center gap-1.5 font-mono">
-                  <Zap className="h-3.5 w-3.5 text-amber-500" /> Enhancement Level
-                </span>
-                <span className="text-[10px] text-muted-foreground font-mono">
-                  {enhanceLevels.find((l) => l.id === enhanceLevel)?.hint}
-                </span>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                {enhanceLevels.map((l) => (
-                  <button
-                    key={l.id}
-                    type="button"
-                    onClick={() => setEnhanceLevel(l.id)}
-                    className={`h-8 rounded-full border text-xs font-semibold transition-all active:scale-95 ${
-                      enhanceLevel === l.id
-                        ? "bg-primary text-primary-foreground border-primary shadow-2xs"
-                        : "bg-background text-muted-foreground border-border/80 hover:bg-accent hover:text-foreground"
-                    }`}
-                  >
-                    {l.label}
-                  </button>
-                ))}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        {/* Input region */}
+        <div className="space-y-6">
+          {/* Editor — first thing in the workspace. */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <label htmlFor="studio-prompt" className="text-sm font-medium">
+                What do you want the AI to do?
+              </label>
+              <div className="flex items-center gap-3">
+                {draftSaved && (
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Check className="h-3 w-3" /> Draft saved
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={handleVoiceInput}
+                  aria-pressed={isListening}
+                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] transition-all ${
+                    isListening
+                      ? "border-red-500/50 bg-red-500/10 font-semibold text-red-600 dark:text-red-400"
+                      : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+                  }`}
+                >
+                  {isListening ? (
+                    <>
+                      <MicOff className="h-3 w-3" />
+                      <span>Stop listening</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="h-3 w-3" />
+                      <span>Voice input</span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
+            <textarea
+              id="studio-prompt"
+              value={prompt}
+              disabled={isEnhancing}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Describe the task, the audience, and anything the answer must include."
+              className="h-44 w-full resize-none rounded-xl border border-border bg-background p-3.5 font-mono text-xs text-foreground outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+            />
+
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="flex items-center gap-1 font-medium text-foreground">
+                  <Zap className="h-3.5 w-3.5" /> ~{estimatedTokens} tokens
+                </span>
+                <span>{prompt.split(/\s+/).filter(Boolean).length} words</span>
+                <span>{prompt.length} chars</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  aria-expanded={showCostBreakdown}
+                  onClick={() => setShowCostBreakdown(!showCostBreakdown)}
+                  className="flex items-center gap-1 text-primary hover:underline"
+                >
+                  <Calculator className="h-3 w-3" /> Cost estimates
+                </button>
+                <button
+                  type="button"
+                  disabled={isEnhancing}
+                  onClick={handleReset}
+                  className="flex items-center gap-1 hover:text-foreground hover:underline"
+                >
+                  <RotateCcw className="h-3 w-3" /> Reset
+                </button>
+              </div>
+            </div>
+
+            {showCostBreakdown && (
+              <div className="space-y-1.5 border-t border-border/50 pt-2 text-[11px]">
+                <p className="text-xs text-muted-foreground">
+                  Verify pricing with your provider before running paid requests. Unverified prices are not quoted here.
+                </p>
+                <div className="grid grid-cols-2 gap-2 font-mono">
+                  {costEstimates.map((c) => (
+                    <div key={c.modelId} className="flex items-center justify-between rounded-lg border border-border/60 bg-accent/40 p-2">
+                      <span className="mr-1 truncate font-medium">{c.modelName}</span>
+                      <span className="font-semibold text-foreground">{c.formattedCost}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Modular Context Memory Panel */}
+          {/* Selected context: removable items plus a preview of exactly what is sent. */}
           <ContextMemoryPanel
             availableBlocks={availableBlocks}
             selectedBlockIds={selectedBlockIds}
             onToggleBlock={toggleContextBlock}
+            contextPrefix={getContextPrefix()}
             onAddBlock={(block) => {
               setAvailableBlocks((prev) => [...prev, block]);
               setSelectedBlockIds((prev) => [...prev, block.id]);
@@ -537,338 +728,354 @@ function PromptBuilderPage() {
             }}
           />
 
-          {/* Prompt Input Double-Bezel Container */}
-          <div className="double-bezel-outer">
-            <div className="double-bezel-inner p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-mono">Your Prompt</label>
-                <button
-                  type="button"
-                  onClick={handleVoiceInput}
-                  className={`text-[11px] flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all ${
-                    isListening
-                      ? "bg-red-500/15 border-red-500/50 text-red-500 font-semibold shadow-xs animate-pulse"
-                      : "text-muted-foreground border-border/80 hover:text-foreground hover:bg-accent"
-                  }`}
-                  title={isListening ? "Click to stop dictation" : "Click to start voice dictation"}
+          {/* Optional controls — always below the editor, never before it. */}
+          <div className="space-y-4 border-t border-border/60 pt-5">
+            <p className="text-xs font-medium text-muted-foreground">Options — optional</p>
+
+            <ModelSelector
+              selectedModel={selectedModel}
+              onSelectModel={setSelectedModel}
+              savedKeys={savedKeys}
+            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label htmlFor="studio-tone" className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                  Tone
+                </label>
+                <select
+                  id="studio-tone"
+                  value={selectedTone}
+                  onChange={(e) => setSelectedTone(e.target.value)}
+                  className="h-9 w-full rounded-xl border border-border bg-background px-2.5 text-xs font-medium outline-none focus:border-ring"
                 >
-                  {isListening ? (
-                    <>
-                      <span className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
-                      <MicOff className="h-3 w-3 text-red-500" />
-                      <span>Stop Listening</span>
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="h-3 w-3" />
-                      <span>Voice input</span>
-                    </>
-                  )}
-                </button>
+                  <option value="">Any</option>
+                  {tones.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
               </div>
-              <textarea
-                value={prompt}
-                aria-label="Your prompt"
-                disabled={isEnhancing}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Enter your prompt here... Context Memory blocks above will be automatically included."
-                className="w-full h-40 p-3.5 rounded-xl border border-border/70 bg-background/80 font-mono text-xs text-foreground resize-none outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all shadow-2xs"
-              />
+              <div>
+                <label htmlFor="studio-length" className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                  Length
+                </label>
+                <select
+                  id="studio-length"
+                  value={selectedLength}
+                  onChange={(e) => setSelectedLength(e.target.value)}
+                  className="h-9 w-full rounded-xl border border-border bg-background px-2.5 text-xs font-medium outline-none focus:border-ring"
+                >
+                  <option value="">Any</option>
+                  {lengths.map((l) => (
+                    <option key={l} value={l}>{l}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="studio-category" className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                  Category
+                </label>
+                <select
+                  id="studio-category"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="h-9 w-full rounded-xl border border-border bg-background px-2.5 text-xs font-medium outline-none focus:border-ring"
+                >
+                  <option value="">Auto</option>
+                  {categories.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-              {/* Real-Time Token & Cost Estimation Counter */}
-              <div className="pt-2.5 border-t border-border/50 text-xs space-y-2">
-                <div className="flex flex-wrap items-center justify-between text-muted-foreground gap-1">
-                  <div className="flex flex-wrap items-center gap-3 font-mono text-[11px]">
-                    <span className="flex items-center gap-1 font-semibold text-foreground">
-                      <Zap className="h-3.5 w-3.5 text-amber-500" /> ~{estimatedTokens} Tokens
-                    </span>
-                    <span>{prompt.split(/\s+/).filter(Boolean).length} words</span>
-                    <span>{prompt.length} chars</span>
-                  </div>
+            <div role="group" aria-label="Enhancement level" className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Enhancement level</span>
+                <span className="text-[11px] text-muted-foreground">
+                  {enhanceLevels.find((l) => l.id === enhanceLevel)?.hint}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {enhanceLevels.map((l) => (
                   <button
+                    key={l.id}
                     type="button"
-                    onClick={() => setShowCostBreakdown(!showCostBreakdown)}
-                    className="text-[11px] font-mono text-primary hover:underline flex items-center gap-1"
+                    aria-pressed={enhanceLevel === l.id}
+                    onClick={() => setEnhanceLevel(l.id)}
+                    className={`h-8 rounded-full border text-xs font-medium transition-all active:scale-95 ${
+                      enhanceLevel === l.id
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
+                    }`}
                   >
-                    <Calculator className="h-3 w-3" /> Cost Breakdown
+                    {l.label}
                   </button>
-                </div>
-
-                {/* Side-by-Side Model Cost Comparison Table */}
-                {showCostBreakdown && (
-                  <div className="pt-2 border-t border-border/40 space-y-1.5 text-[11px]">
-                    <p className="text-xs text-muted-foreground">Verify pricing with your provider before running paid requests. Unverified prices are not quoted here.</p>
-                    <div className="grid grid-cols-2 gap-2 font-mono">
-                      {costEstimates.map((c) => (
-                        <div key={c.modelId} className="flex justify-between items-center p-2 rounded-lg bg-accent/40 border border-border/60">
-                          <span className="font-medium truncate mr-1">{c.modelName}</span>
-                          <span className="text-emerald-600 dark:text-emerald-400 font-bold">{c.formattedCost}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center justify-end pt-1">
-                <button disabled={isEnhancing} onClick={handleReset} className="text-xs font-mono text-muted-foreground hover:text-foreground flex items-center gap-1 hover:underline">
-                  <RotateCcw className="h-3 w-3" /> Reset
-                </button>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Options */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 block font-mono">Tone</label>
-              <select
-                value={selectedTone}
-                onChange={(e) => setSelectedTone(e.target.value)}
-                className="w-full h-9 px-2.5 rounded-xl border border-border/80 bg-background text-xs font-medium outline-none focus:border-ring"
-              >
-                <option value="">Any</option>
-                {tones.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 block font-mono">Length</label>
-              <select
-                value={selectedLength}
-                onChange={(e) => setSelectedLength(e.target.value)}
-                className="w-full h-9 px-2.5 rounded-xl border border-border/80 bg-background text-xs font-medium outline-none focus:border-ring"
-              >
-                <option value="">Any</option>
-                {lengths.map((l) => (
-                  <option key={l} value={l}>{l}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 block font-mono">Category</label>
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full h-9 px-2.5 rounded-xl border border-border/80 bg-background text-xs font-medium outline-none focus:border-ring"
-              >
-                <option value="">Auto</option>
-                {categories.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Tactile Pill Enhance CTA Button with Button-in-Button Trailing Icon */}
           <button
             onClick={handleEnhance}
             disabled={!prompt.trim() || isEnhancing}
-            className="w-full h-12 rounded-full bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-between pl-6 pr-2 shadow-sm hover:bg-primary/90 transition-all active:scale-[0.98] disabled:opacity-50 group"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50"
           >
-            <span>
-              {isEnhancing
-                ? "Enhancing your prompt..."
-                : "Enhance Prompt"}
-            </span>
-            <span className="w-8 h-8 rounded-full bg-white/20 dark:bg-black/20 flex items-center justify-center shrink-0 transition-transform group-hover:scale-105">
-              {isEnhancing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            </span>
+            {isEnhancing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            {isEnhancing ? "Enhancing…" : "Enhance prompt"}
           </button>
+
+          {result && !isEnhancing && (
+            <button
+              type="button"
+              onClick={jumpToResult}
+              className="h-10 w-full rounded-xl border border-border text-sm font-medium hover:bg-accent lg:hidden"
+            >
+              View result
+            </button>
+          )}
         </div>
 
-        {/* Right Column: Results & Analysis */}
-        <div className="space-y-4">
+        {/* Result region */}
+        <section ref={resultRef} tabIndex={-1} aria-label="Result" className="space-y-4 outline-none">
           {!result && !isEnhancing && (
-            <div className="double-bezel-outer h-full min-h-[300px]">
-              <div className="double-bezel-inner h-full p-8 flex flex-col items-center justify-center text-center">
-                <div className="p-3 rounded-2xl bg-primary/10 text-primary mb-3">
-                  <Sparkles className="h-6 w-6" />
-                </div>
-                <h3 className="font-bold text-sm">Ready for Enhancement</h3>
-                <p className="text-xs text-muted-foreground max-w-sm mt-1 leading-relaxed">
-                  Enter your prompt on the left, select any Context Memory blocks, and click &quot;Enhance Prompt&quot; to review the enhanced result.
-                </p>
-              </div>
+            <div className="rounded-xl border border-dashed border-border p-6 text-center sm:p-8">
+              <h3 className="text-sm font-medium">Your enhanced prompt will appear here</h3>
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+                Use <span className="font-medium text-foreground">Output</span> for the finished prompt — editable and
+                ready to copy. Use <span className="font-medium text-foreground">Changes</span> for a word-by-word
+                comparison with your original. Nothing is scored until you run a check.
+              </p>
             </div>
           )}
 
           {isEnhancing && (
-            <div className="double-bezel-outer h-full min-h-[300px]">
-              <div className="double-bezel-inner h-full p-8 flex flex-col items-center justify-center text-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
-                <h3 className="font-bold text-sm">Enhancing your prompt...</h3>
-                <p className="text-xs text-muted-foreground mt-1 font-mono">Preserving your intent and refining the structure</p>
-              </div>
+            <div className="rounded-xl border border-border p-6 text-center sm:p-8">
+              <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-primary" />
+              <h3 className="text-sm font-medium">Enhancing your prompt…</h3>
+              <p className="mt-1 text-xs text-muted-foreground">Preserving your intent and refining the structure</p>
             </div>
           )}
 
           {result && !isEnhancing && (
             <>
-              <p className="text-xs text-muted-foreground">{result.source === "api" ? "Cloud model enhancement" : "Deterministic engine · no model ran"}</p>
-              <details className="rounded-xl border p-3">
-                <summary className="cursor-pointer text-xs font-semibold">Developer details</summary>
-                <div className="mt-3 space-y-3">
-              {/* V2 Engine Analysis Badges */}
-              {result.v2 && (
-                <div className="double-bezel-outer">
-                  <div className="double-bezel-inner p-3.5 space-y-2 text-xs">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 font-semibold text-primary">
-                        <Target className="h-3.5 w-3.5" />
-                        <span className="font-mono text-xs">Domain: <strong className="capitalize text-foreground">{result.v2.intent.domain || "General"}</strong></span>
-                        <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-primary/10 text-primary capitalize font-mono font-semibold border border-primary/20">
-                          {result.v2.intent.taskType} · {result.v2.intent.complexity}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[11px] font-mono">
-                        <Shield className={`h-3.5 w-3.5 ${result.v2.security.isSafe ? "text-emerald-500" : "text-amber-500"}`} />
-                        <span className={result.v2.security.isSafe ? "text-emerald-600 dark:text-emerald-400 font-semibold" : "text-amber-600 font-semibold"}>
-                          {result.v2.security.isSafe ? "Security Scan Passed" : "Security Alert"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Score Comparison with Dimension Breakdown */}
-              <ScoreBreakdown
-                originalScore={result.original.score}
-                enhancedScore={result.enhanced.score}
-                dimensions={result.dimensions}
-                v2HybridScore={result.v2?.selectedCandidate?.hybridScore}
-              />
-
-              {/* Loop Engineering Telemetry Card */}
-              {result.v2?.loopTrace && (
-                <LoopTraceCard loopTrace={result.v2.loopTrace} />
-              )}
-
-              {/* V2 Candidates Switcher */}
-              {result.v2 && result.v2.candidates.length > 0 && (
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground block uppercase font-mono text-[10px]">Select Candidate Strategy</label>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    {result.v2.candidates.map((cand) => {
-                      const isSelected = result.enhanced.text === cand.renderedText;
-                      return (
-                        <button
-                          key={cand.id}
-                          type="button"
-                          onClick={() => {
-                            setResult((prev) =>
-                              prev
-                                ? {
-                                    ...prev,
-                                    promptId: undefined,
-                                    source: "engine",
-                                    dimensions: undefined,
-                                    original: { ...prev.original, score: null },
-                                    enhanced: {
-                                      text: cand.renderedText,
-                                      score: null,
-                                    },
-                                  }
-                                : null
-                            );
-                          }}
-                          className={`p-2.5 rounded-xl border text-left transition-all active:scale-95 ${
-                            isSelected
-                              ? "bg-primary/10 border-primary text-foreground shadow-2xs font-semibold"
-                              : "bg-card text-muted-foreground border-border/80 hover:bg-accent hover:text-foreground"
-                          }`}
-                        >
-                          <p className="text-[11px] font-semibold truncate">{cand.name}</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{cand.estimatedTokens} tokens</p>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-                </div>
-              </details>
-
-              {/* Enhanced Prompt Result with Double-Bezel */}
-              <div className="double-bezel-outer">
-                <div className="double-bezel-inner p-4 space-y-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs font-bold font-mono uppercase">Optimized Prompt</label>
-                      {result.source === "api" ? (
-                        <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold text-[10px] border border-indigo-500/20 font-mono">
-                          ☁️ {result.model || selectedModelData?.name || selectedModel}
-                        </span>
-                      ) : result.source === "device" ? (
-                        <span className="px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold text-[10px] border border-teal-500/20 font-mono">
-                          🧠 Gemini Nano
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-[10px] border border-amber-500/20 font-mono">
-                          ⚡ Rule Engine
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={handleRefine}
-                        className="text-xs font-semibold text-primary hover:bg-primary/10 px-2.5 py-1 rounded-full flex items-center gap-1 border border-primary/30 active:scale-95 transition-all"
-                        title="Load this prompt back into input for further refinement"
-                      >
-                        <RotateCcw className="h-3 w-3" /> Refine
-                      </button>
-                      <div className="flex items-center gap-1">
-                        {(["chatgpt", "claude", "gemini"] as const).map((t) => (
-                          <button
-                            key={t}
-                            type="button"
-                            onClick={() => openInTarget(t)}
-                            className="text-[10px] font-mono text-muted-foreground hover:text-foreground hover:bg-accent px-2 py-1 rounded-full flex items-center gap-0.5 capitalize border border-border/60 active:scale-95 transition-all"
-                            title={`Open in ${t}`}
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            {t}
-                          </button>
-                        ))}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowExportModal(true)}
-                        className="text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent px-2.5 py-1 rounded-full flex items-center gap-1 border border-border/80 active:scale-95 transition-all"
-                        title="Export optimized prompt to Python, Node.js, cURL, or LangChain code"
-                      >
-                        <Code className="h-3 w-3" /> Export
-                      </button>
-                      <button
-                        onClick={handleCopy}
-                        className="text-xs font-semibold px-3 py-1 rounded-full bg-foreground text-background hover:bg-foreground/90 flex items-center gap-1.5 active:scale-95 transition-all shadow-2xs"
-                      >
-                        {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-                        <span>{copied ? "Copied!" : "Copy"}</span>
-                      </button>
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-xl border border-border/70 bg-background/90 text-xs font-mono leading-relaxed whitespace-pre-wrap max-h-[360px] overflow-y-auto shadow-2xs">
-                    {result.enhanced.text}
-                  </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs text-muted-foreground">{sourceLabel}</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  {result.model && <p className="text-xs text-muted-foreground">{result.model}</p>}
+                  {result.saved && (
+                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Check className="h-3 w-3" /> Saved to your library
+                    </p>
+                  )}
                 </div>
               </div>
+
+              <div
+                role="tablist"
+                aria-label="Result view"
+                onKeyDown={handleTabKeyDown}
+                className="inline-flex rounded-lg border border-border p-0.5"
+              >
+                {resultTabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    id={`result-tab-${tab.id}`}
+                    aria-selected={resultView === tab.id}
+                    aria-controls={`result-panel-${tab.id}`}
+                    tabIndex={resultView === tab.id ? 0 : -1}
+                    onClick={() => setResultView(tab.id)}
+                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                      resultView === tab.id
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {resultView === "output" && (
+                <div
+                  role="tabpanel"
+                  id="result-panel-output"
+                  aria-labelledby="result-tab-output"
+                  className="space-y-2"
+                >
+                  <label htmlFor="studio-output" className="sr-only">Enhanced prompt</label>
+                  <textarea
+                    id="studio-output"
+                    value={result.enhanced.text}
+                    onChange={(e) => handleOutputChange(e.target.value)}
+                    className="h-[320px] w-full resize-y rounded-xl border border-border bg-background/90 p-4 font-mono text-xs leading-relaxed text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+                  />
+                </div>
+              )}
+
+              {resultView === "changes" && (
+                <div
+                  role="tabpanel"
+                  id="result-panel-changes"
+                  aria-labelledby="result-tab-changes"
+                  className="space-y-3"
+                >
+                  <PromptDiff before={result.original.text} after={result.enhanced.text} />
+                  <button
+                    type="button"
+                    onClick={handleRestoreOriginal}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-medium hover:bg-accent active:scale-[0.98]"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" /> Restore original into editor
+                  </button>
+                </div>
+              )}
+
+              {/* Primary actions, always in reach of the result. */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98]"
+                >
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copied ? "Copied" : "Copy prompt"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRefine}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-medium transition-all hover:bg-accent active:scale-[0.98]"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" /> Refine
+                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-medium outline-none transition-all hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring data-popup-open:bg-accent active:scale-[0.98]">
+                    More actions <ChevronDown className="h-3.5 w-3.5" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuLabel>Open in</DropdownMenuLabel>
+                    {(
+                      [
+                        ["chatgpt", "ChatGPT"],
+                        ["claude", "Claude"],
+                        ["gemini", "Gemini"],
+                      ] as const
+                    ).map(([target, label]) => (
+                      <DropdownMenuItem key={target} onClick={() => openInTarget(target)} className="gap-2">
+                        <ExternalLink className="h-3.5 w-3.5" /> {label}
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setShowExportModal(true)} className="gap-2">
+                      <Code className="h-3.5 w-3.5" /> Export as code
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Developer details stay collapsed by default. */}
+              <details className="rounded-xl border border-border">
+                <summary className="cursor-pointer px-4 py-3 text-sm font-medium">Developer details</summary>
+                <div className="space-y-4 border-t border-border px-4 py-4">
+                  {result.v2 && (
+                    <div className="space-y-2 text-xs">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 font-medium text-primary">
+                          <Target className="h-3.5 w-3.5" />
+                          <span className="font-mono text-xs">
+                            Domain: <strong className="capitalize text-foreground">{result.v2.intent.domain || "General"}</strong>
+                          </span>
+                          <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 font-mono text-[10px] font-medium capitalize text-primary">
+                            {result.v2.intent.taskType} · {result.v2.intent.complexity}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[11px] font-mono">
+                          <Shield className={`h-3.5 w-3.5 ${result.v2.security.isSafe ? "text-emerald-500" : "text-amber-500"}`} />
+                          <span className={result.v2.security.isSafe ? "font-medium text-emerald-600 dark:text-emerald-400" : "font-medium text-amber-600"}>
+                            {result.v2.security.isSafe ? "Security scan passed" : "Security alert"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Only show assessments that actually ran. */}
+                  {(result.v2?.selectedCandidate?.hybridScore || result.enhanced.score !== null) && (
+                    <ScoreBreakdown
+                      originalScore={result.original.score}
+                      enhancedScore={result.enhanced.score}
+                      dimensions={result.dimensions}
+                      v2HybridScore={result.v2?.selectedCandidate?.hybridScore}
+                    />
+                  )}
+
+                  {result.v2?.loopTrace && <LoopTraceCard loopTrace={result.v2.loopTrace} />}
+
+                  {result.v2 && result.v2.candidates.length > 0 && (
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-medium text-muted-foreground">Candidate strategy</label>
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                        {result.v2.candidates.map((cand) => {
+                          const isSelected = result.enhanced.text === cand.renderedText;
+                          return (
+                            <button
+                              key={cand.id}
+                              type="button"
+                              aria-pressed={isSelected}
+                              onClick={() => {
+                                setResult((prev) =>
+                                  prev
+                                    ? {
+                                        ...prev,
+                                        promptId: undefined,
+                                        saved: false,
+                                        source: "engine",
+                                        dimensions: undefined,
+                                        original: { ...prev.original, score: null },
+                                        enhanced: {
+                                          text: cand.renderedText,
+                                          score: null,
+                                        },
+                                      }
+                                    : null
+                                );
+                              }}
+                              className={`rounded-xl border p-2.5 text-left transition-all active:scale-95 ${
+                                isSelected
+                                  ? "border-primary bg-primary/10 font-semibold text-foreground"
+                                  : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground"
+                              }`}
+                            >
+                              <p className="truncate text-[11px] font-medium">{cand.name}</p>
+                              <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">{cand.estimatedTokens} tokens</p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <LiveEvaluation
+                    key={result.enhanced.text}
+                    originalPrompt={result.original.text}
+                    candidateText={result.enhanced.text}
+                    promptId={result.promptId}
+                    targetModel={selectedModelData?.rawModel || selectedModel}
+                  />
+                </div>
+              </details>
             </>
           )}
-        </div>
+        </section>
       </div>
-
-      {result && <LiveEvaluation key={result.enhanced.text} originalPrompt={result.original.text} candidateText={result.enhanced.text} promptId={result.promptId} targetModel={selectedModelData?.rawModel || selectedModel} />}
 
       {result && (
         <ExportCodeModal
           isOpen={showExportModal}
           onClose={() => setShowExportModal(false)}
-          title="Optimized Prompt"
+          title="Enhanced Prompt"
           promptText={result.enhanced.text}
         />
       )}
