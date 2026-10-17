@@ -11,7 +11,7 @@
       --surface-1: rgba(12, 17, 30, 0.82);
       --surface-2: rgba(18, 24, 38, 0.88);
       --surface-inner: rgba(0, 0, 0, 0.35);
-      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-subtle: rgba(255, 255, 255, 0.05);
       --border-highlight: rgba(255, 255, 255, 0.14);
       /* One accent, declared once: every tint below is derived from --accent-rgb. */
       --accent-rgb: 6, 182, 212;
@@ -19,9 +19,9 @@
       --border-active: rgba(var(--accent-rgb), 0.55);
       --primary: #06b6d4;
       --primary-hover: #22d3ee;
-      --primary-glow: rgba(var(--accent-rgb), 0.28);
+      --primary-deep: #0d9488;
+      --glass-blur: blur(12px) saturate(160%);
       --emerald: #10b981;
-      --emerald-glow: rgba(16, 185, 129, 0.18);
       --amber: #f59e0b;
       --red: #ef4444;
       --text-white: #ffffff;
@@ -105,61 +105,72 @@
       z-index: 50;
     }
 
-    .header-left {
+    .header-brand {
       display: flex;
       align-items: center;
       gap: 9px;
+      min-width: 0;
     }
 
-    .header-logo-badge {
-      width: 28px;
-      height: 28px;
+    /* The website's P mark on the same cyan-to-teal gradient as the CTA. */
+    .brand-mark {
+      width: 26px;
+      height: 26px;
       border-radius: 8px;
       background: linear-gradient(135deg, #06b6d4, #0d9488);
-      box-shadow: 0 0 16px var(--primary-glow);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 2px 10px rgba(6, 182, 212, 0.26);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #fff;
-      font-weight: 800;
-      font-size: 13px;
       flex-shrink: 0;
     }
 
-    .header-title-group {
+    .brand-mark svg {
+      width: 19px;
+      height: 19px;
+    }
+
+    .brand-text {
       display: flex;
       flex-direction: column;
+      gap: 1px;
+      min-width: 0;
     }
 
-    .header-title-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .header-title {
+    .brand-name {
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 800;
       color: var(--text-white);
       letter-spacing: -0.02em;
+      line-height: 1.15;
     }
 
-    .v2-pill {
-      font-size: 9px;
-      font-weight: 700;
-      padding: 1px 6px;
-      border-radius: var(--radius-pill);
-      background: rgba(var(--accent-rgb), 0.15);
-      border: 1px solid rgba(var(--accent-rgb), 0.35);
-      color: var(--accent-text);
-    }
-
-    .header-sync-row {
+    /* Version and connection state live here, so the row above stays pure brand. */
+    .brand-meta-row {
       display: flex;
       align-items: center;
       gap: 5px;
-      font-size: 10.5px;
+      font-size: 10px;
       color: var(--text-muted);
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .brand-version {
+      font-weight: 700;
+      color: var(--accent-text);
+    }
+
+    .brand-sep {
+      width: 1px;
+      height: 9px;
+      background: var(--border-highlight);
+      flex-shrink: 0;
+    }
+
+    .brand-latency {
+      font-variant-numeric: tabular-nums;
+      color: var(--text-dim);
     }
 
     .sync-indicator-dot {
@@ -167,25 +178,20 @@
       height: 6px;
       border-radius: 50%;
       background: var(--emerald);
-      box-shadow: 0 0 8px var(--emerald-glow);
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.45);
       animation: statusPulse 2s ease-in-out infinite;
+      flex-shrink: 0;
     }
 
     @keyframes statusPulse {
-      0%, 100% { box-shadow: 0 0 8px var(--emerald-glow); }
-      50% { box-shadow: 0 0 14px rgba(16, 185, 129, 0.55); }
+      0%, 100% { box-shadow: 0 0 6px rgba(16, 185, 129, 0.30); }
+      50% { box-shadow: 0 0 11px rgba(16, 185, 129, 0.70); }
     }
 
     .sync-indicator-dot.offline {
       background: var(--text-dim);
       box-shadow: none;
       animation: none;
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
 
     .user-pill-btn {
@@ -199,7 +205,8 @@
       color: var(--text-main);
       text-decoration: none;
       cursor: pointer;
-      transition: all 0.15s ease;
+      flex-shrink: 0;
+      transition: background 0.15s ease, border-color 0.15s ease;
     }
 
     .user-pill-btn:hover {
@@ -218,6 +225,10 @@
       font-size: 11px;
       font-weight: 600;
       color: #e4e4e7;
+      max-width: 84px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* ---------- Navigation Tabs Bar ---------- */
@@ -354,9 +365,10 @@
     }
 
     .tone-pill-btn.active {
-      background: rgba(var(--accent-rgb), 0.2);
-      border-color: rgba(var(--accent-rgb), 0.45);
-      color: var(--accent-text);
+      background: rgba(6, 182, 212, 0.15);
+      border-color: rgba(6, 182, 212, 0.45);
+      color: #67e8f9;
+      box-shadow: 0 0 8px rgba(6, 182, 212, 0.15);
     }
 
     /* ---------- Input Bezel Card ---------- */
@@ -367,12 +379,14 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      transition: border-color 0.15s ease;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
     }
 
     .input-bezel-card:focus-within {
-      border-color: var(--border-active);
-      box-shadow: 0 0 12px var(--primary-glow);
+      border-color: rgba(6, 182, 212, 0.4);
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.12);
     }
 
     .input-bezel-header {
@@ -459,103 +473,133 @@
     }
 
     /* ---------- Master Enhance Action Button ---------- */
-    /* Dark ink on cyan reads at 8:1; white on cyan is 2.4:1 and fails. */
+    /* No entrance animation here: any fill-mode that persists keeps `transform`
+       applied and silently cancels the :hover lift and :active press below. */
     .master-enhance-btn {
       width: 100%;
       height: 44px;
-      border-radius: 10px;
-      border: 1.5px solid rgba(var(--accent-rgb), 0.5);
+      padding: 0 10px 0 11px;
+      border-radius: 11px;
+      border: 1px solid rgba(4, 20, 28, 0.22);
       background: linear-gradient(180deg, #06b6d4 0%, #0d9488 100%);
+      /* Dark ink reads at 7.7:1 on this gradient; white is 2.4:1 and fails AA. */
       color: #04141c;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 800;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+      letter-spacing: -0.01em;
       cursor: pointer;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3),
-                  0 2px 10px rgba(0, 0, 0, 0.4),
-                  0 0 14px var(--primary-glow);
-      transition: all 0.18s var(--ease-spring);
+      gap: 9px;
+      /* Inset highlight rather than a glow, which washed out on the dark shell. */
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 3px 10px rgba(6, 182, 212, 0.16);
+      transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.16s ease, filter 0.16s ease;
       position: relative;
       overflow: hidden;
     }
 
     .master-enhance-btn:hover:not(:disabled) {
-      background: linear-gradient(180deg, #22d3ee 0%, #14b8a6 100%);
-      border-color: rgba(var(--accent-rgb), 0.75);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45),
-                  0 4px 16px rgba(0, 0, 0, 0.5),
-                  0 0 18px var(--primary-glow);
+      filter: brightness(1.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 5px 16px rgba(6, 182, 212, 0.26);
       transform: translateY(-1px);
     }
 
     .master-enhance-btn:active:not(:disabled) {
-      transform: translateY(0.5px) scale(0.99);
-      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3),
-                  0 0 10px var(--primary-glow);
+      transform: translateY(1px) scale(0.995);
+      box-shadow: inset 0 2px 6px rgba(4, 20, 28, 0.28);
+      filter: none;
+    }
+
+    .master-enhance-btn:focus-visible {
+      outline: 2px solid var(--accent-text);
+      outline-offset: 2px;
+    }
+
+    /* Light tints, not dark: the label and icon are dark ink, so a dark well
+       would leave the bolt nearly invisible against its own panel. */
+    .cta-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.28);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .cta-center {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* Ellipsises instead of running under the keyboard hint. */
+    .cta-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #btn-timer {
+      display: none;
+      font-size: 10.5px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      opacity: 0.62;
+      flex-shrink: 0;
+    }
+
+    .btn-kbd-pill {
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 3px 6px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.24);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+      color: rgba(4, 20, 28, 0.82);
+      line-height: 1;
+      letter-spacing: 0;
+      flex-shrink: 0;
     }
 
     .master-enhance-btn.is-loading {
-      background: linear-gradient(90deg, #0d9488 20%, #06b6d4 50%, #0d9488 80%);
-      background-size: 200% 100%;
-      animation: btnShimmer 1.8s infinite linear;
-      border-color: rgba(var(--accent-rgb), 0.6);
       cursor: wait;
     }
 
-    /* Platform-aware hint, kept out of flow so the label stays centred. */
-    .btn-kbd-pill {
+    /* Sweeps a highlight across without fighting the gradient. */
+    .master-enhance-btn.is-loading::after {
+      content: "";
       position: absolute;
-      right: 9px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 9px;
-      padding: 2px 5px;
-      border-radius: 4px;
-      background: rgba(0, 0, 0, 0.28);
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      color: rgba(255, 255, 255, 0.85);
-      font-weight: 700;
-      letter-spacing: 0;
-      line-height: 1;
+      inset: 0;
+      background: linear-gradient(100deg, transparent 35%, rgba(255, 255, 255, 0.34) 50%, transparent 65%);
+      animation: ctaShimmer 1.5s linear infinite;
+      pointer-events: none;
     }
 
-    @keyframes btnShimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
+    @keyframes ctaShimmer {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(100%); }
     }
 
     .master-enhance-btn.is-success {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-      border-color: #34d399 !important;
-      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
-    }
-
-    .master-enhance-btn.is-error {
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-      border-color: #f87171 !important;
-      animation: btnShake 0.4s ease;
-    }
-
-    @keyframes btnShake {
-      0%, 100% { transform: translateX(0); }
-      20%, 60% { transform: translateX(-4px); }
-      40%, 80% { transform: translateX(4px); }
+      background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+      border-color: rgba(5, 150, 105, 0.5);
     }
 
     /* Dimming is for "unavailable", not for the running shimmer. */
     .master-enhance-btn:disabled:not(.is-loading) {
-      opacity: 0.6;
+      opacity: 0.55;
       cursor: not-allowed;
     }
 
     .master-enhance-btn svg {
-      width: 14px;
-      height: 14px;
+      width: 15px;
+      height: 15px;
     }
 
     /* ---------- Usage Card (single source of truth for capacity) ---------- */
@@ -567,6 +611,8 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
     }
 
     .usage-ring {
@@ -983,6 +1029,8 @@
       min-height: 180px;
       overflow-y: auto;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
     }
 
     /* Brief accent flash so a fresh result is noticed without a toast. */
@@ -1109,6 +1157,8 @@
       display: flex;
       flex-direction: column;
       gap: 5px;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
     }
 
     .library-card:hover {
@@ -1185,6 +1235,8 @@
       display: flex;
       flex-direction: column;
       gap: 2px;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
     }
 
     .context-rule-card.active {
@@ -1254,6 +1306,8 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
     }
 
     .sync-card-row {
@@ -1325,27 +1379,29 @@
 <body>
   <!-- Header -->
   <header class="header">
-    <div class="header-left">
-      <div class="header-logo-badge" aria-hidden="true">✦</div>
-      <div class="header-title-group">
-        <div class="header-title-row">
-          <span class="header-title">Prompt+</span>
-          <span class="v2-pill" id="header-version-pill"></span>
-        </div>
-        <div class="header-sync-row">
+    <div class="header-brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 100 100" fill="none">
+          <path d="M22 90V28C22 16 32 10 52 10C72 10 85 22 85 40C85 58 72 68 52 68H42V90H22Z" fill="#ffffff"/>
+          <path d="M26 68L56 38M56 38H42M56 38V52" stroke="#04141c" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span class="brand-name">Prompt+</span>
+        <span class="brand-meta-row">
+          <span class="brand-version" id="header-version-pill"></span>
+          <span class="brand-sep" aria-hidden="true"></span>
           <span class="sync-indicator-dot" id="sync-dot"></span>
           <span id="sync-status-text">Not checked</span>
-          <span id="sync-latency-badge" style="font-size:9.5px; color:#8b8b95; margin-left:4px;">—</span>
-        </div>
-      </div>
+          <span class="brand-latency" id="sync-latency-badge">—</span>
+        </span>
+      </span>
     </div>
 
-    <div class="header-right">
-      <a href="https://prompt-plus-three.vercel.app/dashboard" target="_blank" class="user-pill-btn" id="user-profile-link" title="Open the web dashboard">
-        <img src="icons/icon48.png" class="user-avatar-img" id="user-avatar" alt="" />
-        <span class="user-name-label" id="user-name">Account</span>
-      </a>
-    </div>
+    <a href="https://prompt-plus-three.vercel.app/dashboard" target="_blank" class="user-pill-btn" id="user-profile-link" title="Open the web dashboard">
+      <img src="icons/icon48.png" class="user-avatar-img" id="user-avatar" alt="" />
+      <span class="user-name-label" id="user-name">Account</span>
+    </a>
   </header>
 
   <!-- Top Navigation Tabs Bar -->
@@ -1436,10 +1492,14 @@
 
       <!-- Primary action -->
       <button type="button" class="master-enhance-btn" id="enhance-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        <span id="btn-text">Enhance Prompt</span>
-        <span id="btn-timer" style="display:none; font-size:10px; opacity:0.8; font-weight:600;">(0.0s)</span>
-        <span class="btn-kbd-pill" id="btn-kbd-pill" hidden></span>
+        <span class="cta-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </span>
+        <span class="cta-center">
+          <span class="cta-label" id="btn-text">Enhance Prompt</span>
+          <span id="btn-timer">(0.0s)</span>
+        </span>
+        <kbd class="btn-kbd-pill" id="btn-kbd-pill">⌘↵</kbd>
       </button>
 
       <!-- Toast Notification -->

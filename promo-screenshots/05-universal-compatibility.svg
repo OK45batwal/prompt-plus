@@ -2,35 +2,30 @@
   <defs>
     <!-- Gradients -->
     <radialGradient id="bgGlow" cx="50%" cy="0%" r="85%">
-      <stop offset="0%" stop-color="#1e1b4b" stop-opacity="0.65"/>
+      <stop offset="0%" stop-color="#083344" stop-opacity="0.65"/>
       <stop offset="50%" stop-color="#09090b" stop-opacity="0.95"/>
       <stop offset="100%" stop-color="#09090b" stop-opacity="1"/>
     </radialGradient>
-    <radialGradient id="purpleAura" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.25"/>
-      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    <radialGradient id="accentAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6366f1"/>
-      <stop offset="100%" stop-color="#4f46e5"/>
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#0d9488"/>
     </linearGradient>
     <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#ffffff"/>
       <stop offset="100%" stop-color="#cbd5e1"/>
     </linearGradient>
-    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#a5b4fc"/>
-      <stop offset="50%" stop-color="#818cf8"/>
-      <stop offset="100%" stop-color="#c084fc"/>
-    </linearGradient>
     <linearGradient id="telemetryGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="0%" stop-color="#06b6d4"/>
       <stop offset="100%" stop-color="#10b981"/>
     </linearGradient>
     <!-- Window Border Gradient -->
     <linearGradient id="windowBorder" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
-      <stop offset="50%" stop-color="rgba(99,102,241,0.3)"/>
+      <stop offset="50%" stop-color="rgba(6,182,212,0.3)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0.08)"/>
     </linearGradient>
 
@@ -42,11 +37,11 @@
     <!-- Drop Shadows -->
     <filter id="windowShadow" x="-10%" y="-10%" width="130%" height="130%">
       <feDropShadow dx="0" dy="24" stdDeviation="32" flood-color="#000000" flood-opacity="0.8"/>
-      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#6366f1" flood-opacity="0.2"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#06b6d4" flood-opacity="0.2"/>
     </filter>
     <filter id="pillShadow" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.6"/>
-      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#6366f1" flood-opacity="0.35"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#06b6d4" flood-opacity="0.35"/>
     </filter>
   </defs>
 
@@ -60,13 +55,13 @@
   <rect width="1280" height="800" fill="#09090b"/>
   <rect width="1280" height="800" fill="url(#bgGlow)"/>
   <rect width="1280" height="800" fill="url(#gridDots)"/>
-  <circle cx="640" cy="500" r="450" fill="url(#purpleAura)"/>
+  <circle cx="640" cy="500" r="450" fill="url(#accentAura)"/>
 
   <!-- Top Marketing Header -->
   <g transform="translate(640, 56)" text-anchor="middle">
     <!-- Category Pill Badge -->
-    <rect x="-110" y="0" width="220" height="26" rx="13" fill="rgba(99, 102, 241, 0.12)" stroke="rgba(99, 102, 241, 0.4)" stroke-width="1"/>
-    <text x="0" y="17" class="font-title" font-size="10.5" fill="#a5b4fc" letter-spacing="1.5">UNIVERSAL COMPATIBILITY</text>
+    <rect x="-110" y="0" width="220" height="26" rx="13" fill="rgba(6, 182, 212, 0.12)" stroke="rgba(6, 182, 212, 0.4)" stroke-width="1"/>
+    <text x="0" y="17" class="font-title" font-size="10.5" fill="#67e8f9" letter-spacing="1.5">UNIVERSAL COMPATIBILITY</text>
 
     <!-- Main Headline -->
     <text x="0" y="60" class="font-title" font-size="33" fill="url(#textGrad)" letter-spacing="-0.5">Universal Coverage Across 12+ Leading AI Platforms</text>
@@ -238,8 +233,8 @@
 
     <!-- Bottom Highlights -->
     <g transform="translate(60, 520)">
-      <rect width="940" height="36" rx="8" fill="rgba(99,102,241,0.1)" stroke="rgba(99,102,241,0.3)" stroke-width="1"/>
-      <text x="470" y="22" text-anchor="middle" class="font-title" font-size="11.5" fill="#c7d2fe">
+      <rect width="940" height="36" rx="8" fill="rgba(6,182,212,0.1)" stroke="rgba(6,182,212,0.3)" stroke-width="1"/>
+      <text x="470" y="22" text-anchor="middle" class="font-title" font-size="11.5" fill="#a5f3fc">
         Zero Configuration Required · Installs in 5 Seconds · Automatically Detects Host AI Framework
       </text>
     </g>

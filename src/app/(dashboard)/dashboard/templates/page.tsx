@@ -124,9 +124,9 @@ export default function TemplatesPage() {
 
   const getIcon = (category: string) => {
     switch (category) {
-      case "Blog Post": return <FileText className="h-5 w-5 text-blue-500" />;
+      case "Blog Post": return <FileText className="h-5 w-5 text-cyan-500" />;
       case "Email": return <Mail className="h-5 w-5 text-green-500" />;
-      case "Code": return <Code className="h-5 w-5 text-purple-500" />;
+      case "Code": return <Code className="h-5 w-5 text-teal-500" />;
       case "Social Media": return <Share2 className="h-5 w-5 text-pink-500" />;
       case "Tutorial": return <Book className="h-5 w-5 text-amber-500" />;
       case "Marketing": return <ShoppingBag className="h-5 w-5 text-orange-500" />;
@@ -187,7 +187,7 @@ export default function TemplatesPage() {
                 : "bg-background text-muted-foreground hover:text-foreground"
             }`}
           >
-            <BadgeCheck className="h-3.5 w-3.5 text-blue-400" />
+            <BadgeCheck className="h-3.5 w-3.5 text-cyan-400" />
             Official Only
           </button>
         </div>
@@ -236,7 +236,7 @@ export default function TemplatesPage() {
                         <div className="flex items-center gap-1.5">
                           <h3 className="font-medium text-sm">{template.title}</h3>
                           {template.isOfficial && (
-                            <BadgeCheck className="h-4 w-4 text-blue-500 shrink-0" />
+                            <BadgeCheck className="h-4 w-4 text-cyan-500 shrink-0" />
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground">{template.category}</p>

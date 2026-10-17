@@ -799,11 +799,11 @@ function PromptBuilderPage() {
                     <div className="flex items-center gap-2">
                       <label className="text-xs font-bold font-mono uppercase">Optimized Prompt</label>
                       {result.source === "api" ? (
-                        <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-[10px] border border-blue-500/20 font-mono">
+                        <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-bold text-[10px] border border-cyan-500/20 font-mono">
                           ☁️ {result.model || selectedModelData?.name || selectedModel}
                         </span>
                       ) : result.source === "device" ? (
-                        <span className="px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold text-[10px] border border-purple-500/20 font-mono">
+                        <span className="px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold text-[10px] border border-teal-500/20 font-mono">
                           🧠 Gemini Nano
                         </span>
                       ) : (

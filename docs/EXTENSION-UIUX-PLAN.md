@@ -221,5 +221,31 @@ The `2.1.4` rebuild changed the skin. This pass changed the layout, following th
 | --- | --- |
 | Three named pillars replacing the tab bar | The four tabs are pinned by 100+ structural assertions and the ids are load-bearing. Churn, no benefit. |
 | A two-axis refiner (tone **and** intensity) | It needs a real engine parameter. `synthesizeLocalPrompt` and the cloud route take `tone` + `context` only; adding a control the engine ignores is a fabricated capability. |
-| Their shield mark, name, tagline | Trade dress. `✦` stays. |
+| Their shield mark, name, tagline | Trade dress. The header badge is Prompt+'s own P mark (§9), never their shield. |
+
+## 9. One accent — the extension's cyan becomes the brand colour
+
+The extension shipped cyan (`#06b6d4`) while the website shipped indigo (`#6366f1`). Two accents for one product. The extension's cyan won, so the website, the toolbar icons, and the store mockups move instead.
+
+**The rule used for the website.** A shade-preserving family swap, applied by class name and never by hand: `blue-N` → `cyan-N`, `indigo-N` → `cyan-N`, `purple-N` → `teal-N`, `violet-N` → `teal-N`. Teal is the extension's own second gradient hue, so cyan + teal read as one accent family rather than two. 16 files changed, plus `globals.css` tokens, and two dead glow-pill rules were deleted.
+
+**The token split was necessary, not cosmetic.** `text-primary` is used 101 times, so the light and dark themes needed different values for the same token to keep AA contrast on both backgrounds:
+
+| Theme | `--primary` / `--ring` | `--primary-fg` | Contrast |
+| --- | --- | --- | --- |
+| Light | `#0e7490` (cyan-700) | `#ffffff` | 5.3:1 |
+| Dark | `#06b6d4` (cyan-500) | `#04141c` | 7.7:1 |
+
+**Two verified defects this pass fixed.**
+
+1. The popup's Enhance button painted `#ffffff` on the cyan gradient — 2.4:1, a WCAG AA failure. The in-page dock pill already used `#04141c`. Both now use dark ink (7.7:1).
+2. `animation: sentryBtnEntrance … both` on `.master-enhance-btn` kept `transform: translateY(0)` applied forever, so the `:hover` lift and `:active` press were dead code. Measured: `none` at rest, `matrix(1,0,0,1,0,-1)` on hover. The animation is gone and a comment records why not to re-add it.
+
+**Header.** `.header-brand` / `.brand-mark` / `.brand-text` / `.brand-name` / `.brand-meta-row` / `.brand-version` / `.brand-sep` / `.brand-latency` replace the old two-column header. The version pill left the title row and joined the sync dot, status and latency in one meta row under the name. The badge is now the same P mark the website uses — the previous generic shield SVG was replaced, not restyled.
+
+**Enhance button.** Three flex zones — a tinted icon well, the centred label, and the shortcut pill — replacing an absolutely-positioned pill. Height is pinned at 44px so the verified 560px popup fit does not move. `text-transform: uppercase` removed; the shimmer moved to `::after` so it no longer fights the gradient. Both the well and the pill are *light* tints because the label and icon are dark ink; a dark well would have hidden the bolt against its own panel.
+
+**Also moved.** `icons/icon16|48|128.png` were blue, not indigo, and `icon48.png` is the header's avatar fallback. They were recoloured by hue remap (blue family → cyan→teal) with a white-to-brand coverage blend, so the white plate stays clean instead of speckling. The DeepSeek card in the store mockups keeps its indigo, because that is DeepSeek's brand colour — the same indigo is theme chrome everywhere else and became cyan. The mockups' hardcoded `v2.1.3.2` now reads the manifest.
+
+**Verified, not assumed.** Built CSS contains 0 `indigo`/`purple`/`violet`/`blue` utilities and 10 `cyan` + 5 `teal`. A per-element sweep of `/`, `/features` and `/login` in both themes found no remaining blue-family computed colour. No text element falls below its contrast threshold. Popup: header 410/410 with no overflow, hover transform live, long labels ellipsise instead of colliding with the shortcut pill, 560/560 body with zero overflow, no console errors.
 

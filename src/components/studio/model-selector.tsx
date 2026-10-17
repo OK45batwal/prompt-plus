@@ -15,7 +15,7 @@ function getProviderBadge(provider: ModelDefinition["provider"]) {
   switch (provider) {
     case "openrouter":
       return (
-        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 shrink-0">
+        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30 shrink-0">
           OpenRouter
         </span>
       );
@@ -27,7 +27,7 @@ function getProviderBadge(provider: ModelDefinition["provider"]) {
       );
     case "openai":
       return (
-        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 shrink-0">
+        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 shrink-0">
           OpenAI
         </span>
       );
@@ -108,7 +108,7 @@ export function ModelSelector({
             <div className="absolute z-50 w-full mt-1.5 bg-background/95 backdrop-blur-md border rounded-2xl shadow-xl p-1.5 max-h-80 overflow-y-auto scrollbar-thin space-y-2 animate-in fade-in zoom-in-95">
               {/* OpenRouter Group */}
               <div>
-                <div className="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 flex items-center justify-between">
+                <div className="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 flex items-center justify-between">
                   <span>⚡ OpenRouter Free Models</span>
                   <span className="text-[10px] opacity-75">Needs OpenRouter key</span>
                 </div>
@@ -186,7 +186,7 @@ export function ModelSelector({
 
               {/* OpenAI & Anthropic Premium Models */}
               <div className="border-t pt-1.5">
-                <div className="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center justify-between">
+                <div className="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 flex items-center justify-between">
                   <span>🔑 OpenAI & Anthropic Models</span>
                   <span className="text-[10px] opacity-75">Custom API Key</span>
                 </div>

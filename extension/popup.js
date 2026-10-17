@@ -860,10 +860,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Start animated loading state
     if (enhanceBtn) {
       enhanceBtn.disabled = true;
-      enhanceBtn.classList.remove("is-success", "is-error");
+      enhanceBtn.classList.remove("is-success");
       enhanceBtn.classList.add("is-loading");
     }
-    if (btnText) btnText.textContent = "Enhancing…";
+    if (btnText) btnText.textContent = "Compiling…";
     if (btnTimer) {
       btnTimer.style.display = "inline";
       btnTimer.textContent = "(0.0s)";
