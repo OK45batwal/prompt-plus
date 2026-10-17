@@ -4,20 +4,20 @@ import { ModelSeoPage } from "@/components/marketing/model-seo-page";
 export const metadata: Metadata = {
   title: "Claude Prompt Enhancer — Structure Prompts for Claude | Prompt+",
   description:
-    "Free Claude prompt enhancer. Get structured, constraint-rich prompts optimized for Claude 3.5 Sonnet and Claude.ai. Open the result in Claude with one click.",
+    "Free prompt enhancer for Claude. Get a structured, constraint-rich prompt you can review and edit before you send it. Open the result in Claude with one click.",
 };
 
 export default function ClaudeEnhancerPage() {
   return (
     <ModelSeoPage
       model="Claude"
-      tagline="Build clear, constraint-rich prompts that make the most of Claude's long context and careful reasoning."
+      tagline="Build clear, constraint-rich prompts for Claude, with a role, context, and step-by-step instructions."
       perks={[
-        "Adds explicit role, context, and step-by-step instructions Claude follows reliably",
-        "One-click open your enhanced prompt in Claude",
-        "Free Chrome extension that enhances right inside claude.ai",
-        "Expert level adds chain-of-thought reasoning for complex tasks",
-        "No limits, no credit card — genuinely free forever",
+        "Adds an explicit role, context, and step-by-step instructions",
+        "Open your enhanced prompt in Claude with one click",
+        "Free Chrome extension that enhances inside claude.ai",
+        "Reusable context rules you keep and add to each prompt",
+        "Free to use, no credit card",
       ]}
     />
   );

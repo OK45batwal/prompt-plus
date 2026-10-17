@@ -242,10 +242,10 @@ export default function LoginPage() {
                 <span>Web + Browser Extension</span>
               </div>
               <h2 className="text-3xl font-extrabold tracking-tight mb-3">
-                Seamless AI Meta-Prompt Compilation
+                Turn rough requests into clear instructions
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                Log in to sync your saved prompts, custom model API keys, and workspace collections seamlessly across web and browser extension.
+                Log in to sync your saved prompts, custom model API keys, and workspace collections across the web app and the browser extension.
               </p>
             </div>
 

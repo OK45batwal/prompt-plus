@@ -30,15 +30,15 @@ export const metadata: Metadata = {
     template: "%s | Prompt+ Architect AI",
   },
   description:
-    "Transform simple 3-word prompts into production-grade master engineering specs. 100% Free Chrome extension & Web App with On-Device Gemini Nano AI, zero API key requirement, and Cross-AI conversation memory bridge.",
+    "Turn a rough request into clearer instructions you can review, edit, and use in your AI chat. Free to use, with on-device and built-in processing.",
   keywords: [
-    "ChatGPT prompt generator",
+    "ChatGPT prompt enhancer",
     "Claude prompt enhancer",
-    "Gemini prompt API",
+    "Gemini prompt enhancer",
     "AI prompt engineering tool",
-    "On-Device AI extension",
     "free prompt optimizer",
-    "cross-AI context bridge",
+    "reusable prompt context",
+    "prompt writing assistant",
     "prompt engineering guide",
     "prompt cost calculator",
   ],
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     url: "https://prompt-plus-three.vercel.app",
     title: "Prompt+ — Free AI Prompt Architect for ChatGPT, Claude & Gemini",
     description:
-      "Transform simple prompts into master engineering specs directly inside ChatGPT & Claude. 100% Free — On-Device AI & zero API key required.",
+      "Turn a rough request into clearer instructions you can review, edit, and use. Free to use, with on-device and built-in processing options.",
     siteName: "Prompt+ Architect AI",
     images: [
       {
@@ -77,7 +77,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Prompt+ — Free AI Prompt Architect & Extension",
     description:
-      "100% Free AI Prompt Engineering tool & Chrome Extension. On-Device Gemini Nano execution + Cross-AI context bridge.",
+      "Turn a rough request into a clearer prompt you can review and edit. Free to use, with on-device and built-in processing options.",
     images: ["/prompt-plus-logo.png"],
   },
   robots: {
@@ -107,7 +107,7 @@ const jsonLd = {
     priceCurrency: "USD",
   },
   description:
-    "Free AI prompt engineering tool & browser extension that turns simple inputs into production-grade prompts for ChatGPT, Claude, and Gemini.",
+    "Free prompt writing tool and browser extension. Turn a rough request into clearer instructions you can review, edit, and use in ChatGPT, Claude, Gemini, and other AI chat tools.",
   url: "https://prompt-plus-three.vercel.app",
 };
 

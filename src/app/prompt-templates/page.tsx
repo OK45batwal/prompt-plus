@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Curated AI Prompt Templates — Prompt+",
-  description: "Browse curated, production-grade prompt templates for Coding, Marketing, Writing, and Data Analysis.",
+  description: "Browse prompt templates for coding, marketing, writing, and data analysis that you can copy or open in the editor.",
 };
 
 export const revalidate = 3600;
@@ -18,7 +18,7 @@ const TEMPLATES = [
   {
     category: "Marketing & Strategy",
     title: "SaaS Value Proposition Generator",
-    description: "Generates high-converting landing page headlines and hook stories.",
+    description: "Generates landing page headlines and value propositions for the audience you describe.",
     prompt: "You are a Tech Marketing Director. Craft 3 distinct landing page headlines and value propositions for the target audience below..."
   },
   {
@@ -43,7 +43,8 @@ export default function PromptTemplatesPage() {
           Curated AI Prompt Templates
         </h1>
         <p className="text-muted-foreground max-w-xl mx-auto">
-          Battle-tested system prompt templates for ChatGPT, Claude, and Gemini. Free to copy and customize.
+          Prompt starters you can copy and adapt, or open in the Prompt+ editor. Plain text, so they
+          work in ChatGPT, Claude, Gemini, and other AI chat tools.
         </p>
       </div>
 
@@ -51,7 +52,7 @@ export default function PromptTemplatesPage() {
         {TEMPLATES.map((tpl, i) => (
           <div key={i} className="p-6 rounded-xl border bg-card/50 flex flex-col justify-between">
             <div>
-              <span className="text-xs font-semibold text-primary uppercase tracking-wider">
+              <span className="text-xs font-semibold text-primary">
                 {tpl.category}
               </span>
               <h2 className="text-lg font-bold mt-1 mb-2">{tpl.title}</h2>

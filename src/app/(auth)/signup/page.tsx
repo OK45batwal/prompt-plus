@@ -162,8 +162,8 @@ export default function SignupPage() {
                 <div className="flex items-start gap-3 p-3 rounded-xl bg-background/40 border border-border/40">
                   <div className="w-6 h-6 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center flex-shrink-0 mt-0.5">📦</div>
                   <div>
-                    <strong className="text-foreground block mb-0.5">Context Bucket Cross-Chat Sync</strong>
-                    <span className="text-muted-foreground">Transfer conversation history seamlessly between ChatGPT and Claude.</span>
+                    <strong className="text-foreground block mb-0.5">Reusable context</strong>
+                    <span className="text-muted-foreground">Save the preferences you keep repeating &mdash; tone, audience, rules &mdash; and apply them to every enhancement.</span>
                   </div>
                 </div>
               </div>
