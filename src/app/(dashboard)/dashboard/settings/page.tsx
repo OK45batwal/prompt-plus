@@ -29,7 +29,7 @@ import { useToast } from "@/components/ui/toast";
 import { MODELS, DEFAULT_MODEL_ID, getModelDisplayLabel } from "@/lib/models";
 import { UserPreferences } from "@/app/api/v1/user/preferences/route";
 
-type SettingsTab = "profile" | "engine" | "api-keys" | "preferences" | "notifications";
+type SettingsTab = "profile" | "engine" | "api-keys" | "preferences" | "privacy" | "extension" | "notifications";
 
 type ProviderInfo = { id: "openai" | "anthropic" | "google" | "openrouter" | "nvidia"; name: string; placeholder: string; url: string };
 const providers: ProviderInfo[] = [
@@ -49,12 +49,15 @@ const developerRoles = [
   "Security Specialist",
 ];
 
-function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+function ToggleSwitch({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) {
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
       onClick={onChange}
-      className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 cursor-pointer ${
+      className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
         checked ? "bg-primary" : "bg-muted"
       }`}
     >
@@ -103,6 +106,7 @@ function ChangePasswordForm() {
     <form onSubmit={handleSubmit} className="space-y-3">
       <input
         type="password"
+        aria-label="Current password"
         placeholder="Current password"
         value={currentPassword}
         onChange={(e) => setCurrentPassword(e.target.value)}
@@ -111,6 +115,7 @@ function ChangePasswordForm() {
       />
       <input
         type="password"
+        aria-label="New password (8 or more characters)"
         placeholder="New password (8+ characters)"
         value={newPassword}
         onChange={(e) => setNewPassword(e.target.value)}
@@ -167,6 +172,7 @@ function DeleteAccountSection() {
       </p>
       <input
         type="text"
+        aria-label="Type DELETE to confirm account deletion"
         placeholder='Type "DELETE" to confirm'
         value={confirmText}
         onChange={(e) => setConfirmText(e.target.value)}
@@ -197,12 +203,9 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [name, setName] = useState(session?.user?.name || "");
   const [email, setEmail] = useState(session?.user?.email || "");
-  const [avatar, setAvatar] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("pp_user_avatar") || "";
-    }
-    return "";
-  });
+  // Starts empty so the server and first client render agree; the stored avatar is
+  // read after mount.
+  const [avatar, setAvatar] = useState<string>("");
   const [developerRole, setDeveloperRole] = useState("Prompt Architect");
 
   // API Keys state
@@ -280,6 +283,17 @@ export default function SettingsPage() {
     return () => {
       active = false;
     };
+  }, []);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      try {
+        const stored = localStorage.getItem("pp_user_avatar");
+        if (stored) setAvatar(stored);
+      } catch {
+        // A blocked storage read just leaves the avatar empty.
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -545,9 +559,11 @@ export default function SettingsPage() {
 
   const tabs: { id: SettingsTab; label: string; icon: typeof User }[] = [
     { id: "profile", label: "Profile", icon: User },
-    { id: "engine", label: "AI Engine", icon: Cpu },
+    { id: "engine", label: "Processing", icon: Cpu },
     { id: "api-keys", label: "API Keys", icon: Key },
-    { id: "preferences", label: "Preferences", icon: Palette },
+    { id: "preferences", label: "Theme", icon: Palette },
+    { id: "privacy", label: "Privacy", icon: ShieldCheck },
+    { id: "extension", label: "Extension", icon: Zap },
     { id: "notifications", label: "Notifications", icon: Bell },
   ];
 
@@ -557,7 +573,7 @@ export default function SettingsPage() {
       <div className="flex items-center justify-between border-b pb-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Settings & Engine Control</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Manage your developer profile, engine defaults, and notification channels</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Profile, processing preferences, API keys, theme, privacy, and extension connection</p>
         </div>
         <button
           type="button"
@@ -583,8 +599,9 @@ export default function SettingsPage() {
             <button
               key={tab.id}
               type="button"
+              aria-pressed={activeTab === tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                 activeTab === tab.id
                   ? "bg-primary text-primary-foreground shadow-xs"
                   : "hover:bg-accent text-muted-foreground hover:text-foreground"
@@ -610,7 +627,7 @@ export default function SettingsPage() {
                 {/* Profile Image & Avatar Customization */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-semibold text-foreground block">Profile Avatar & Custom Photo</label>
+                    <p className="text-xs font-semibold text-foreground block">Profile Avatar & Custom Photo</p>
                     <span className="text-[11px] text-muted-foreground">Upload your own photo or choose a preset</span>
                   </div>
 
@@ -706,6 +723,7 @@ export default function SettingsPage() {
                       <div>
                         <input
                           type="text"
+                          aria-label="External image URL"
                           value={avatar}
                           onChange={(e) => handleSelectAvatar(e.target.value)}
                           placeholder="Or paste external image URL (https://...)"
@@ -719,8 +737,9 @@ export default function SettingsPage() {
                 <hr className="border-border/50" />
 
                 <div>
-                  <label className="text-xs font-semibold text-foreground mb-1.5 block">Full Name</label>
+                  <label htmlFor="settings-full-name" className="text-xs font-semibold text-foreground mb-1.5 block">Full Name</label>
                   <input
+                    id="settings-full-name"
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -730,9 +749,10 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-foreground mb-1.5 block">Email Address</label>
+                  <label htmlFor="settings-email" className="text-xs font-semibold text-foreground mb-1.5 block">Email Address</label>
                   <div className="relative">
                     <input
+                      id="settings-email"
                       type="email"
                       value={email}
                       disabled
@@ -745,8 +765,9 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-foreground mb-1.5 block">Developer Persona / Primary Role</label>
+                  <label htmlFor="settings-developer-role" className="text-xs font-semibold text-foreground mb-1.5 block">Developer Persona / Primary Role</label>
                   <select
+                    id="settings-developer-role"
                     value={developerRole}
                     onChange={(e) => setDeveloperRole(e.target.value)}
                     className="h-9 w-full rounded-xl border bg-background px-3 text-sm outline-none focus:border-ring font-medium"
@@ -756,43 +777,8 @@ export default function SettingsPage() {
                     ))}
                   </select>
                   <p className="text-[11px] text-muted-foreground mt-1">
-                    Used to automatically calibrate domain assumptions in PromptIR synthesis.
+                    Used to calibrate the assumptions in the prompts you generate.
                   </p>
-                </div>
-              </div>
-
-              {/* Cross-AI Extension Handoff & Sync Hub Card */}
-              <div className="p-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/5 space-y-3 text-xs shadow-xs">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-indigo-500 flex items-center gap-1.5">
-                    Cross-AI Context Bridge &amp; Cloud Sync
-                  </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 font-bold">
-                    Extension v{EXTENSION_VERSION}
-                  </span>
-                </div>
-                <p className="text-muted-foreground leading-relaxed">
-                  Carry active chat memory between ChatGPT, Claude 3.5 Sonnet, Gemini 2.0 Flash, and DeepSeek R1 seamlessly. Prompts optimized in the browser extension are automatically synchronized with your Cloud Library.
-                </p>
-                <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <a
-                    href="/api/v1/extension/download"
-                    className="h-8 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs inline-flex items-center gap-1.5 transition-colors shadow-xs"
-                  >
-                    <UploadCloud className="h-3.5 w-3.5" /> Download Extension v{EXTENSION_VERSION} (.zip)
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (typeof window !== "undefined") {
-                        window.dispatchEvent(new CustomEvent("promptplus:request_sync"));
-                        toast("Broadcasted sync trigger to Chrome Extension!", "success");
-                      }
-                    }}
-                    className="h-8 px-3 rounded-lg border border-indigo-500/30 hover:bg-indigo-500/10 text-indigo-400 font-medium text-xs inline-flex items-center gap-1.5 transition-colors"
-                  >
-                    <Zap className="h-3.5 w-3.5" /> Force Sync Extension
-                  </button>
                 </div>
               </div>
 
@@ -802,8 +788,22 @@ export default function SettingsPage() {
                 <h4 className="font-semibold text-sm mb-3">Change Password</h4>
                 <ChangePasswordForm />
               </div>
+            </div>
+          )}
 
-              <hr className="border-border/60" />
+          {/* 1b. PRIVACY TAB */}
+          {activeTab === "privacy" && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-semibold text-sm">Privacy and data</h3>
+                <p className="text-xs text-muted-foreground">What Prompt+ stores, and where</p>
+              </div>
+
+              <div className="p-4 rounded-2xl border bg-card/60 shadow-xs">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Your API keys are encrypted with AES-256-GCM on the server and loaded on any device you sign in to. Your account, saved prompts, and usage history live in your Prompt+ account. The browser extension keeps its sign-in state in your browser, so you can sign out of it independently.
+                </p>
+              </div>
 
               <div>
                 <h4 className="font-semibold text-sm mb-3 text-red-600">Danger Zone</h4>
@@ -812,19 +812,55 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* 2. AI ENGINE POWER TAB */}
+          {/* 1c. EXTENSION CONNECTION TAB */}
+          {activeTab === "extension" && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-semibold text-sm">Extension connection</h3>
+                <p className="text-xs text-muted-foreground">Install the browser extension and keep it connected to this account</p>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-primary/30 bg-primary/5 space-y-3 text-xs shadow-xs">
+                <p className="text-muted-foreground leading-relaxed">
+                  The extension works alongside ChatGPT, Claude, Gemini, and DeepSeek: compile a prompt there and insert it into the open chat. A compiled prompt is added to your Cloud Library when you click <span className="font-semibold text-foreground">Save to library</span>. Signing in to Prompt+ connects the extension to your account, quota, and library.
+                </p>
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <a
+                    href="/api/v1/extension/download"
+                    className="h-8 px-3 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs inline-flex items-center gap-1.5 transition-colors shadow-xs"
+                  >
+                    <UploadCloud className="h-3.5 w-3.5" /> Download Extension v{EXTENSION_VERSION} (.zip)
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        window.dispatchEvent(new CustomEvent("promptplus:request_sync"));
+                        toast("Asked the extension to sync.", "success");
+                      }
+                    }}
+                    className="h-8 px-3 rounded-lg border border-primary/30 hover:bg-primary/10 text-primary font-medium text-xs inline-flex items-center gap-1.5 transition-colors"
+                  >
+                    <Zap className="h-3.5 w-3.5" /> Sync extension now
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 2. PROCESSING TAB */}
           {activeTab === "engine" && (
             <div className="space-y-6">
               <div>
-                <h3 className="font-semibold text-sm">Prompt+ AI Engine Defaults</h3>
-                <p className="text-xs text-muted-foreground">Configure the compiler strategy, Loop Engineering cycles, and auto-cleaners</p>
+                <h3 className="font-semibold text-sm">Processing preferences</h3>
+                <p className="text-xs text-muted-foreground">Choose the default engine, prompt strategy, output format, and cleanup rules Prompt+ applies</p>
               </div>
 
               <div className="space-y-4">
                 {/* Engine Mode Selection */}
                 <div className="p-4 rounded-2xl border bg-card/60 space-y-2.5 shadow-xs">
-                  <label className="text-xs font-semibold text-foreground block">Default Enhancement Engine Mode</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <p className="text-xs font-semibold text-foreground">Default Enhancement Engine Mode</p>
+                  <div role="group" aria-label="Default enhancement engine mode" className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     {[
                       { id: "api", name: "☁️ API Based", desc: "Cloud AI with Auto-Fallback" },
                       { id: "algorithmic", name: "⚙️ No-API Engine", desc: "100% Offline Rule Compiler" },
@@ -833,6 +869,7 @@ export default function SettingsPage() {
                       <button
                         key={m.id}
                         type="button"
+                        aria-pressed={engineMode === m.id}
                         onClick={() => setEngineMode(m.id as "api" | "algorithmic" | "device")}
                         className={`p-3 rounded-xl border text-left transition-all ${
                           engineMode === m.id
@@ -850,8 +887,9 @@ export default function SettingsPage() {
                 {/* Default Strategy & Output Format */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-4 rounded-2xl border bg-card/60 space-y-2 shadow-xs">
-                    <label className="text-xs font-semibold text-foreground block">Default Prompt Strategy</label>
+                    <label htmlFor="settings-default-strategy" className="text-xs font-semibold text-foreground block">Default Prompt Strategy</label>
                     <select
+                      id="settings-default-strategy"
                       value={defaultStrategy}
                       onChange={(e) => setDefaultStrategy(e.target.value as "structured" | "concise" | "model_tuned" | "detailed")}
                       className="h-9 w-full rounded-xl border bg-background px-3 text-xs outline-none focus:border-ring font-medium"
@@ -864,8 +902,9 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="p-4 rounded-2xl border bg-card/60 space-y-2 shadow-xs">
-                    <label className="text-xs font-semibold text-foreground block">Preferred Output Contract Format</label>
+                    <label htmlFor="settings-default-format" className="text-xs font-semibold text-foreground block">Preferred Output Contract Format</label>
                     <select
+                      id="settings-default-format"
                       value={defaultFormat}
                       onChange={(e) => setDefaultFormat(e.target.value as "markdown" | "xml" | "json")}
                       className="h-9 w-full rounded-xl border bg-background px-3 text-xs outline-none focus:border-ring font-medium"
@@ -884,9 +923,9 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between py-1">
                     <div>
                       <p className="text-xs font-semibold text-foreground">AutoCorrect Developer Typos</p>
-                      <p className="text-[11px] text-muted-foreground">Automatically fixes 150+ developer terms (e.g. imrpove → improve, scrpaer → scraper)</p>
+                      <p className="text-[11px] text-muted-foreground">Automatically fixes common developer typos (for example imrpove → improve, scrpaer → scraper)</p>
                     </div>
-                    <ToggleSwitch checked={autoCorrectEnabled} onChange={() => setAutoCorrectEnabled(!autoCorrectEnabled)} />
+                    <ToggleSwitch checked={autoCorrectEnabled} onChange={() => setAutoCorrectEnabled(!autoCorrectEnabled)} label="AutoCorrect developer typos" />
                   </div>
 
                   <div className="flex items-center justify-between py-1 border-t border-border/50 pt-3">
@@ -894,7 +933,7 @@ export default function SettingsPage() {
                       <p className="text-xs font-semibold text-foreground">Zero-Fluff Meta Sanitizer</p>
                       <p className="text-[11px] text-muted-foreground">Eliminates Prompt IDs, dates, and introductory conversational filler</p>
                     </div>
-                    <ToggleSwitch checked={zeroFluffEnabled} onChange={() => setZeroFluffEnabled(!zeroFluffEnabled)} />
+                    <ToggleSwitch checked={zeroFluffEnabled} onChange={() => setZeroFluffEnabled(!zeroFluffEnabled)} label="Zero-Fluff Meta Sanitizer" />
                   </div>
 
                   <div className="flex items-center justify-between py-1 border-t border-border/50 pt-3">
@@ -902,7 +941,7 @@ export default function SettingsPage() {
                       <p className="text-xs font-semibold text-foreground">Compilation Sound Effects</p>
                       <p className="text-[11px] text-muted-foreground">Play subtle tactile audio tick upon Loop Engineering convergence</p>
                     </div>
-                    <ToggleSwitch checked={soundEffectsEnabled} onChange={() => setSoundEffectsEnabled(!soundEffectsEnabled)} />
+                    <ToggleSwitch checked={soundEffectsEnabled} onChange={() => setSoundEffectsEnabled(!soundEffectsEnabled)} label="Compilation sound effects" />
                   </div>
                 </div>
               </div>
@@ -912,29 +951,9 @@ export default function SettingsPage() {
           {/* 3. API KEYS TAB */}
           {activeTab === "api-keys" && (
             <div className="space-y-6">
-              <div className="p-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 text-xs space-y-1 shadow-xs">
-                <div className="flex items-center gap-2 font-bold text-indigo-600 dark:text-indigo-400">
-                  <Key className="h-4 w-4" />
-                  <span>API-Based Prompt Enhancing Engine</span>
-                </div>
-                <p className="text-muted-foreground leading-relaxed">
-                  To power AI prompt enhancements, connect at least one valid API key below. Keys are securely stored in the cloud so you can use Prompt+ from any device or browser without re-entering them.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/5 text-xs space-y-1.5 shadow-xs">
-                <div className="flex items-center gap-2 font-bold text-indigo-600 dark:text-indigo-400">
-                  <ShieldCheck className="h-4 w-4" />
-                  <span>Cross-Device Cloud Sync Guarantee</span>
-                </div>
-                <p className="text-muted-foreground leading-relaxed text-[11px]">
-                  All saved API keys are encrypted with AES-256 on your account. When you log in on any new device or computer, Prompt+ automatically loads and uses your connected keys in the background without exposing raw secret tokens on screen.
-                </p>
-              </div>
-
               <div>
-                <h3 className="font-semibold text-sm">Custom API Credentials</h3>
-                <p className="text-xs text-muted-foreground">Connect your personal API keys (OpenAI, Anthropic, Google, OpenRouter, or NVIDIA)</p>
+                <h3 className="font-semibold text-sm">API keys</h3>
+                <p className="text-xs text-muted-foreground">Connect at least one provider key (OpenAI, Anthropic, Google, OpenRouter, or NVIDIA) to power AI enhancements. Keys are encrypted with AES-256-GCM on the server and load on any device you sign in to, so you never re-enter them.</p>
               </div>
 
               <div className="space-y-4">
@@ -943,7 +962,7 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-foreground">{p.name}</span>
-                        <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                        <a href={p.url} target="_blank" rel="noopener noreferrer" aria-label={`Get a ${p.name} API key`} className="text-muted-foreground hover:text-foreground">
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       </div>
@@ -963,6 +982,7 @@ export default function SettingsPage() {
                       <div className="relative flex-1">
                         <input
                           type={showKeys[p.id] ? "text" : "password"}
+                          aria-label={`${p.name} API key`}
                           value={apiKeysInput[p.id] || ""}
                           onChange={(e) => setApiKeysInput({ ...apiKeysInput, [p.id]: e.target.value })}
                           placeholder={savedKeys[p.id] ? `Enter new key to replace (${savedKeyHints[p.id] || "Encrypted & Active"})` : p.placeholder}
@@ -970,6 +990,7 @@ export default function SettingsPage() {
                         />
                         <button
                           type="button"
+                          aria-label={showKeys[p.id] ? `Hide ${p.name} API key` : `Show ${p.name} API key`}
                           onClick={() => toggleKeyVisibility(p.id)}
                           className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
@@ -1004,6 +1025,7 @@ export default function SettingsPage() {
                         <button
                           type="button"
                           onClick={() => handleDeleteApiKey(p.id)}
+                          aria-label={`Remove ${p.name} API key`}
                           className="h-9 px-2.5 rounded-xl border hover:bg-accent text-red-500 transition-colors"
                           title="Remove key"
                         >
@@ -1024,43 +1046,16 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* 4. PREFERENCES TAB */}
+          {/* 4. THEME TAB */}
           {activeTab === "preferences" && (
             <div className="space-y-6">
               <div>
-                <h3 className="font-semibold text-sm">Theme & Interface Preferences</h3>
-                <p className="text-xs text-muted-foreground">Customize your visual studio theme and models</p>
+                <h3 className="font-semibold text-sm">Theme</h3>
+                <p className="text-xs text-muted-foreground">Dark mode, plus the model and tone new prompts start with</p>
               </div>
 
-              <div className="p-4 rounded-2xl border bg-card/60 space-y-4 shadow-xs">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1.5 block">Default Target Model</label>
-                  <select
-                    value={defaultModel}
-                    onChange={(e) => setDefaultModel(e.target.value)}
-                    className="h-9 w-full rounded-xl border bg-background px-3 text-xs outline-none focus:border-ring font-medium"
-                  >
-                    {MODELS.map((m) => (
-                      <option key={m.id} value={m.id}>{getModelDisplayLabel(m)}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1.5 block">Default Prompt Tone</label>
-                  <select
-                    value={defaultTone}
-                    onChange={(e) => setDefaultTone(e.target.value)}
-                    className="h-9 w-full rounded-xl border bg-background px-3 text-xs outline-none focus:border-ring font-medium"
-                  >
-                    <option value="">Auto (Default)</option>
-                    {["Professional", "Casual", "Friendly", "Formal", "Technical", "Creative"].map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex items-center justify-between p-3.5 rounded-xl border bg-background">
+              <div className="p-4 rounded-2xl border bg-card/60 shadow-xs">
+                <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold text-foreground">Dark Theme Mode</p>
                     <p className="text-[11px] text-muted-foreground">Toggle light/dark appearance</p>
@@ -1068,7 +1063,42 @@ export default function SettingsPage() {
                   <ToggleSwitch
                     checked={resolvedTheme === "dark"}
                     onChange={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                    label="Dark theme mode"
                   />
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-sm mb-3">Prompt defaults</h4>
+                <div className="p-4 rounded-2xl border bg-card/60 space-y-4 shadow-xs">
+                  <div>
+                    <label htmlFor="settings-default-model" className="text-xs font-semibold text-foreground mb-1.5 block">Default Target Model</label>
+                    <select
+                      id="settings-default-model"
+                      value={defaultModel}
+                      onChange={(e) => setDefaultModel(e.target.value)}
+                      className="h-9 w-full rounded-xl border bg-background px-3 text-xs outline-none focus:border-ring font-medium"
+                    >
+                      {MODELS.map((m) => (
+                        <option key={m.id} value={m.id}>{getModelDisplayLabel(m)}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="settings-default-tone" className="text-xs font-semibold text-foreground mb-1.5 block">Default Prompt Tone</label>
+                    <select
+                      id="settings-default-tone"
+                      value={defaultTone}
+                      onChange={(e) => setDefaultTone(e.target.value)}
+                      className="h-9 w-full rounded-xl border bg-background px-3 text-xs outline-none focus:border-ring font-medium"
+                    >
+                      <option value="">Auto (Default)</option>
+                      {["Professional", "Casual", "Friendly", "Formal", "Technical", "Creative"].map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1088,7 +1118,7 @@ export default function SettingsPage() {
                     <p className="text-xs font-semibold text-foreground">Email Notifications</p>
                     <p className="text-[11px] text-muted-foreground">Receive critical email notifications regarding your account</p>
                   </div>
-                  <ToggleSwitch checked={notifEmail} onChange={() => setNotifEmail(!notifEmail)} />
+                  <ToggleSwitch checked={notifEmail} onChange={() => setNotifEmail(!notifEmail)} label="Email notifications" />
                 </div>
 
                 <div className="flex items-center justify-between py-1 border-t border-border/50 pt-3">
@@ -1096,7 +1126,7 @@ export default function SettingsPage() {
                     <p className="text-xs font-semibold text-foreground">Optimization & Quota Alerts</p>
                     <p className="text-[11px] text-muted-foreground">Get notified when reaching monthly free quota milestones</p>
                   </div>
-                  <ToggleSwitch checked={notifUsage} onChange={() => setNotifUsage(!notifUsage)} />
+                  <ToggleSwitch checked={notifUsage} onChange={() => setNotifUsage(!notifUsage)} label="Optimization and quota alerts" />
                 </div>
 
                 <div className="flex items-center justify-between py-1 border-t border-border/50 pt-3">
@@ -1104,7 +1134,7 @@ export default function SettingsPage() {
                     <p className="text-xs font-semibold text-foreground">Weekly Intelligence Digest</p>
                     <p className="text-[11px] text-muted-foreground">Receive a weekly summary of your prompt velocity and model efficiency</p>
                   </div>
-                  <ToggleSwitch checked={notifDigest} onChange={() => setNotifDigest(!notifDigest)} />
+                  <ToggleSwitch checked={notifDigest} onChange={() => setNotifDigest(!notifDigest)} label="Weekly intelligence digest" />
                 </div>
 
                 <div className="flex items-center justify-between py-1 border-t border-border/50 pt-3">
@@ -1112,7 +1142,7 @@ export default function SettingsPage() {
                     <p className="text-xs font-semibold text-foreground">Product & Extension Updates</p>
                     <p className="text-[11px] text-muted-foreground">Receive announcements when new AI models or extension versions are released</p>
                   </div>
-                  <ToggleSwitch checked={notifUpdates} onChange={() => setNotifUpdates(!notifUpdates)} />
+                  <ToggleSwitch checked={notifUpdates} onChange={() => setNotifUpdates(!notifUpdates)} label="Product and extension updates" />
                 </div>
 
                 <div className="flex items-center justify-between py-1 border-t border-border/50 pt-3">
@@ -1120,7 +1150,7 @@ export default function SettingsPage() {
                     <p className="text-xs font-semibold text-foreground">Security & Login Alerts</p>
                     <p className="text-[11px] text-muted-foreground">Get alerted upon new device logins and password updates</p>
                   </div>
-                  <ToggleSwitch checked={notifSecurity} onChange={() => setNotifSecurity(!notifSecurity)} />
+                  <ToggleSwitch checked={notifSecurity} onChange={() => setNotifSecurity(!notifSecurity)} label="Security and login alerts" />
                 </div>
               </div>
             </div>

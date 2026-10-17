@@ -18,6 +18,7 @@ export default function CollectionsPage() {
   const { toast } = useToast();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [showNewModal, setShowNewModal] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
@@ -26,8 +27,11 @@ export default function CollectionsPage() {
   const cancelRenameRef = useRef(false);
 
   const fetchCollections = async () => {
+    setLoading(true);
+    setLoadError(false);
     try {
       const res = await fetch("/api/v1/collections");
+      if (!res.ok) throw new Error("Failed to load collections");
       const json = await res.json();
       const data: Collection[] = (json.data || []).map((item: Record<string, unknown>) => ({
         id: item.id,
@@ -41,6 +45,7 @@ export default function CollectionsPage() {
       setCollections(data);
     } catch {
       setCollections([]);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -145,11 +150,29 @@ export default function CollectionsPage() {
             </div>
           ))}
         </div>
+      ) : loadError ? (
+        <div role="alert" className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-700 dark:text-amber-300 flex items-center justify-between gap-3">
+          <span>Could not load your collections.</span>
+          <button
+            type="button"
+            onClick={() => fetchCollections()}
+            className="font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+          >
+            Try again
+          </button>
+        </div>
       ) : collections.length === 0 ? (
         <div className="text-center py-12">
           <Folder className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">No collections yet</p>
-          <p className="text-xs text-muted-foreground mt-1">Create your first collection to organize prompts</p>
+          <p className="text-xs text-muted-foreground mt-1">Create your first collection to group prompts by topic.</p>
+          <button
+            type="button"
+            onClick={() => setShowNewModal(true)}
+            className="mt-4 inline-flex h-8 items-center gap-1.5 rounded-lg bg-foreground text-background px-3 text-xs font-medium transition-colors hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Plus className="h-3.5 w-3.5" /> New Collection
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -186,7 +209,7 @@ export default function CollectionsPage() {
                             setRenamingId(null);
                           }
                         }}
-                        className="h-7 w-full rounded-md border bg-background px-2 text-sm outline-none focus:border-ring"
+                        className="h-7 w-full rounded-md border bg-background px-2 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring"
                       />
                     ) : (
                       <h3 className="font-medium text-sm">{collection.name}</h3>
@@ -235,17 +258,31 @@ export default function CollectionsPage() {
 
       {showNewModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-sm bg-background rounded-lg border p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="new-collection-title"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setShowNewModal(false);
+            }}
+            className="w-full max-w-sm bg-background rounded-lg border p-4"
+          >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-sm">New Collection</h2>
-              <button onClick={() => setShowNewModal(false)} className="p-1 hover:bg-accent rounded">
+              <h2 id="new-collection-title" className="font-semibold text-sm">New Collection</h2>
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={() => setShowNewModal(false)}
+                className="p-1 hover:bg-accent rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Name</label>
+                <label htmlFor="collection-name" className="text-xs font-medium text-muted-foreground mb-1 block">Name</label>
                 <input
+                  id="collection-name"
                   type="text"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
@@ -254,8 +291,9 @@ export default function CollectionsPage() {
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">Description</label>
+                <label htmlFor="collection-description" className="text-xs font-medium text-muted-foreground mb-1 block">Description</label>
                 <input
+                  id="collection-description"
                   type="text"
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}

@@ -1,18 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Sparkles, X, CheckCircle2, ArrowRight } from "lucide-react";
 
 export function OnboardingTour() {
-  const [dismissed, setDismissed] = useState<boolean>(() => {
-    if (typeof window === "undefined") return true;
-    try {
-      return localStorage.getItem("pp_onboarding_dismissed") === "true";
-    } catch {
-      return false;
-    }
-  });
+  // Starts dismissed so the server and the first client render agree; the real
+  // value is read from storage after mount.
+  const [dismissed, setDismissed] = useState(true);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      try {
+        setDismissed(localStorage.getItem("pp_onboarding_dismissed") === "true");
+      } catch {
+        setDismissed(false);
+      }
+    });
+  }, []);
 
   const handleDismiss = () => {
     setDismissed(true);
@@ -40,7 +45,7 @@ export function OnboardingTour() {
         <span className="p-1.5 rounded-lg bg-primary text-primary-foreground">
           <Sparkles className="h-4 w-4" />
         </span>
-        <h3 className="font-bold text-sm tracking-tight">Quick Start — Master Prompt+ in 3 Steps</h3>
+        <h3 className="font-bold text-sm tracking-tight">Quick start: three steps</h3>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
@@ -57,20 +62,20 @@ export function OnboardingTour() {
         <div className="p-3.5 rounded-xl border bg-card/80 space-y-1.5">
           <div className="flex items-center gap-2 text-xs font-semibold text-indigo-500">
             <span className="h-5 w-5 rounded-full bg-indigo-500/10 flex items-center justify-center font-bold text-[11px]">2</span>
-            <span>Attach Context Memory</span>
+            <span>Add your context</span>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Toggle <strong>Context Memory</strong> blocks to auto-inject tech stacks or brand rules.
+            Turn on saved <strong>context rules</strong> &mdash; tone, audience, constraints &mdash; so every enhancement already knows them.
           </p>
         </div>
 
         <div className="p-3.5 rounded-xl border bg-card/80 space-y-1.5">
           <div className="flex items-center gap-2 text-xs font-semibold text-emerald-500">
             <span className="h-5 w-5 rounded-full bg-emerald-500/10 flex items-center justify-center font-bold text-[11px]">3</span>
-            <span>1-Click Platform Launch</span>
+            <span>Enhance, then review</span>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Click <strong>ChatGPT, Claude, or Gemini</strong> to auto-copy & open target apps instantly.
+            Compare <strong>Output</strong> against <strong>Changes</strong>, then copy the prompt &mdash; or apply it into the chat from the extension.
           </p>
         </div>
       </div>
