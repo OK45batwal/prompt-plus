@@ -429,7 +429,7 @@ export default function DashboardPage() {
                 </p>
               </div>
               <Link href="/extension" className="mt-4 text-xs font-semibold text-primary hover:underline flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded">
-                Download extension <ArrowRight className="h-3 w-3" />
+                Get the extension <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
           </div>

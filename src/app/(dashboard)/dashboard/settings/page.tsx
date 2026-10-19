@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { EXTENSION_VERSION } from "@/lib/version";
+import { EXTENSION_STORE_URL } from "@/lib/version";
 import {
   User,
   Key,
@@ -826,10 +826,12 @@ export default function SettingsPage() {
                 </p>
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   <a
-                    href="/api/v1/extension/download"
+                    href={EXTENSION_STORE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="h-8 px-3 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs inline-flex items-center gap-1.5 transition-colors shadow-xs"
                   >
-                    <UploadCloud className="h-3.5 w-3.5" /> Download Extension v{EXTENSION_VERSION} (.zip)
+                    <ExternalLink className="h-3.5 w-3.5" /> Install from the Chrome Web Store
                   </a>
                   <button
                     type="button"

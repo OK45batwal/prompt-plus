@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ExternalLink, Puzzle, CheckCircle2 } from "lucide-react";
-
-const CHROME_STORE_URL = "https://chromewebstore.google.com/detail/gdfaohfmmjjmpiggdcankjjihpljoccn";
+import { EXTENSION_STORE_URL } from "@/lib/version";
 
 const capabilities = [
   "An Enhance control in the prompt box on ChatGPT, Claude, Gemini, DeepSeek, Grok, Perplexity, Copilot, and Meta AI",
@@ -29,7 +28,7 @@ export default function ExtensionPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
-              href={CHROME_STORE_URL}
+              href={EXTENSION_STORE_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="h-12 inline-flex items-center justify-center rounded-xl bg-primary text-primary-foreground px-6 text-sm font-semibold hover:bg-primary/90 transition-all gap-2.5 group active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -54,8 +53,8 @@ export default function ExtensionPage() {
           </h2>
           <ol className="space-y-4 text-sm text-muted-foreground leading-relaxed list-decimal pl-5">
             <li>
-              Install the extension from the Chrome Web Store, or load the release build. It is a
-              Manifest V3 extension for Chrome and Edge.
+              Install the extension from the Chrome Web Store. It is a Manifest V3 extension for
+              Chrome and Edge.
             </li>
             <li>Open a supported chat and write a rough request in the prompt box.</li>
             <li>
@@ -98,7 +97,7 @@ export default function ExtensionPage() {
           <h2 className="text-lg font-bold">Add it to your browser</h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
-              href={CHROME_STORE_URL}
+              href={EXTENSION_STORE_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="h-11 inline-flex items-center justify-center rounded-xl bg-primary text-primary-foreground px-6 text-sm font-semibold hover:bg-primary/90 transition-all gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
