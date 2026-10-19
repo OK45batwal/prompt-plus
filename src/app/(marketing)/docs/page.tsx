@@ -95,23 +95,13 @@ export default function DocsPage() {
             <h2 id="installing-extension" className="text-xl font-bold mb-3">
               3. Installing the extension
             </h2>
-            <p className="text-muted-foreground leading-relaxed mb-4">
-              There are two ways to install it.
+            <p className="text-muted-foreground leading-relaxed">
+              Open the{" "}
+              <Link href="/extension" className="text-primary hover:underline">
+                extension page
+              </Link>{" "}
+              and choose <strong>Add to Chrome</strong>. It installs from the Chrome Web Store.
             </p>
-            <ul className="space-y-4 text-muted-foreground leading-relaxed list-disc pl-5">
-              <li>
-                <strong>From the Chrome Web Store.</strong> Open the{" "}
-                <Link href="/extension" className="text-primary hover:underline">
-                  extension page
-                </Link>{" "}
-                and choose Add to Chrome.
-              </li>
-              <li>
-                <strong>From the release build.</strong> Download the ZIP, unzip it, open{" "}
-                <code>chrome://extensions</code>, turn on <strong>Developer mode</strong>, choose{" "}
-                <strong>Load unpacked</strong>, and select the unzipped folder.
-              </li>
-            </ul>
             <p className="text-muted-foreground leading-relaxed mt-4">
               Once it is installed, open a supported chat. A small dock appears next to the prompt box
               with an <strong>Enhance</strong> button, three quick tone switches, a token readout for

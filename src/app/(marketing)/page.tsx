@@ -102,7 +102,7 @@ const faqs = [
   },
   {
     q: "Is there a Chrome extension?",
-    a: "Yes. The free extension adds an Enhance button inside ChatGPT, Claude, Gemini, and DeepSeek. A setup guide covers installing the release build manually.",
+    a: "Yes. The free extension adds an Enhance button inside ChatGPT, Claude, Gemini, and DeepSeek. A setup guide covers installing it from the Chrome Web Store.",
   },
   {
     q: "What happens to my prompts?",
