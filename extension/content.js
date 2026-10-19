@@ -40,64 +40,66 @@
         display: inline-flex !important;
         align-items: center !important;
         box-sizing: border-box !important;
-        height: 30px !important;
+        height: 34px !important;
+        padding: 0 5px 0 4px !important;
+        gap: 6px !important;
         border-radius: 9999px !important;
-        background: rgba(13, 14, 22, 0.94) !important;
-        border: 1px solid rgba(255, 255, 255, 0.14) !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04) !important;
-        backdrop-filter: blur(24px) saturate(180%) !important;
-        -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+        background: rgba(10, 12, 18, 0.92) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif !important;
         z-index: 99999999 !important;
         user-select: none !important;
-        color: #ffffff !important;
-        padding: 3px 5px 3px 4px !important;
-        gap: 5px !important;
+        color: #f4f4f5 !important;
         font-size: 11px !important;
         letter-spacing: -0.01em !important;
-        transition: border-color 0.2s ease,
-                    box-shadow 0.2s ease,
+        transition: border-color 0.2s ease, box-shadow 0.2s ease,
                     transform 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
       }
 
       .pp-unified-dock:hover,
       .pp-floating-trigger:hover {
-        border-color: rgba(6, 182, 212, 0.55) !important;
-        box-shadow: 0 6px 26px rgba(0, 0, 0, 0.6), 0 0 16px rgba(6, 182, 212, 0.25) !important;
+        border-color: rgba(34, 211, 238, 0.45) !important;
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.6), 0 0 18px rgba(6, 182, 212, 0.18),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
       }
 
+      /* One filled action; the rest are quiet ghosts, so the dock has hierarchy. */
       .pp-dock-btn {
         display: inline-flex !important;
         align-items: center !important;
-        gap: 5px !important;
-        height: 22px !important;
-        padding: 0 8px 0 5px !important;
+        gap: 6px !important;
+        height: 26px !important;
+        padding: 0 9px 0 7px !important;
         border-radius: 9999px !important;
         /* Dark ink reads at 7.7:1 on this cyan gradient; white is 2.4:1 and fails. */
-        background: linear-gradient(180deg, #06b6d4 0%, #0e7490 100%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.35) !important;
+        background: linear-gradient(180deg, #22d3ee 0%, #0891b2 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
         color: #04141c !important;
         cursor: pointer !important;
         font-size: 11px !important;
         font-weight: 700 !important;
         line-height: 1 !important;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4),
-                    0 2px 8px rgba(6, 182, 212, 0.45) !important;
-        transition: all 0.15s ease !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45),
+                    0 3px 12px rgba(6, 182, 212, 0.32) !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease !important;
         flex-shrink: 0 !important;
       }
 
       .pp-dock-btn:hover {
-        background: linear-gradient(180deg, #22d3ee 0%, #06b6d4 100%) !important;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5),
-                    0 3px 14px rgba(6, 182, 212, 0.6) !important;
-        transform: translateY(-0.5px) !important;
+        filter: brightness(1.06) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55),
+                    0 6px 18px rgba(6, 182, 212, 0.5) !important;
       }
 
       .pp-dock-btn:active {
-        transform: translateY(0.5px) !important;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3),
-                    0 1px 4px rgba(6, 182, 212, 0.4) !important;
+        transform: translateY(0) !important;
+        filter: brightness(0.98) !important;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25),
+                    0 1px 4px rgba(6, 182, 212, 0.3) !important;
       }
 
       .pp-dock-btn:focus-visible {
@@ -113,30 +115,32 @@
         height: 13px !important;
       }
 
+      /* Dark-ink chip, so the shortcut reads as part of the button it sits in. */
       .pp-dock-kbd {
-        font-size: 8.5px !important;
-        padding: 1px 3.5px !important;
-        border-radius: 3px !important;
-        background: rgba(0, 0, 0, 0.28) !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        color: rgba(255, 255, 255, 0.85) !important;
+        font-size: 9px !important;
+        padding: 2px 4px !important;
+        border-radius: 5px !important;
+        background: rgba(4, 20, 28, 0.16) !important;
+        border: 1px solid rgba(4, 20, 28, 0.16) !important;
+        color: #04141c !important;
+        opacity: 0.82 !important;
         line-height: 1 !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
       }
 
       .pp-dock-sep {
         width: 1px !important;
-        height: 14px !important;
-        background: rgba(255, 255, 255, 0.14) !important;
+        height: 16px !important;
+        background: rgba(255, 255, 255, 0.1) !important;
         flex-shrink: 0 !important;
       }
 
       .pp-dock-runway {
         display: inline-flex !important;
         align-items: center !important;
-        gap: 5px !important;
-        padding: 0 4px !important;
-        height: 22px !important;
+        gap: 6px !important;
+        padding: 0 2px !important;
+        height: 26px !important;
         cursor: default !important;
         white-space: nowrap !important;
         flex-shrink: 0 !important;
@@ -146,78 +150,101 @@
         width: 6px !important;
         height: 6px !important;
         border-radius: 50% !important;
-        background: #10b981 !important;
-        box-shadow: 0 0 8px rgba(16, 185, 129, 0.6) !important;
+        background: #34d399 !important;
+        box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.14) !important;
         flex-shrink: 0 !important;
       }
 
       .pp-runway-model {
         font-size: 10.5px !important;
-        font-weight: 700 !important;
-        color: #f1f5f9 !important;
+        font-weight: 600 !important;
+        color: rgba(244, 244, 245, 0.86) !important;
       }
 
       .pp-runway-tokens {
         font-size: 10px !important;
         font-weight: 600 !important;
-        color: #34d399 !important;
+        color: #67e8f9 !important;
       }
 
       .pp-runway-pct {
         font-size: 9.5px !important;
         font-weight: 700 !important;
-        color: #94a3b8 !important;
+        color: rgba(244, 244, 245, 0.5) !important;
       }
 
+      /* Tone switches read as one control rather than three loose labels. */
       .pp-dock-tones {
         display: inline-flex !important;
         align-items: center !important;
         gap: 2px !important;
+        padding: 2px !important;
+        border-radius: 9999px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
         flex-shrink: 0 !important;
       }
 
       .pp-dock-tone {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        height: 20px !important;
+        padding: 0 8px !important;
+        border-radius: 9999px !important;
         background: transparent !important;
         border: 1px solid transparent !important;
-        color: #94a3b8 !important;
-        font-size: 9.5px !important;
+        color: rgba(244, 244, 245, 0.62) !important;
+        font-size: 10px !important;
         font-weight: 600 !important;
-        padding: 1.5px 5px !important;
-        border-radius: 4px !important;
+        line-height: 1 !important;
         cursor: pointer !important;
-        transition: all 0.12s ease !important;
+        transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease !important;
       }
 
       .pp-dock-tone:hover {
-        background: rgba(255, 255, 255, 0.08) !important;
+        background: rgba(255, 255, 255, 0.1) !important;
         color: #ffffff !important;
       }
 
       .pp-dock-tone.active {
-        background: rgba(6, 182, 212, 0.25) !important;
-        border-color: rgba(6, 182, 212, 0.45) !important;
+        background: rgba(6, 182, 212, 0.22) !important;
+        border-color: rgba(34, 211, 238, 0.45) !important;
         color: #67e8f9 !important;
       }
 
       .pp-dock-studio-btn {
         display: inline-flex !important;
         align-items: center !important;
-        gap: 3px !important;
+        gap: 4px !important;
+        height: 26px !important;
+        padding: 0 9px !important;
+        border-radius: 9999px !important;
         background: transparent !important;
-        border: none !important;
-        padding: 2px 5px !important;
-        border-radius: 4px !important;
-        color: #94a3b8 !important;
-        font-size: 10px !important;
+        border: 1px solid transparent !important;
+        color: rgba(244, 244, 245, 0.66) !important;
+        font-size: 10.5px !important;
         font-weight: 600 !important;
         cursor: pointer !important;
-        transition: all 0.12s ease !important;
+        transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease !important;
         flex-shrink: 0 !important;
       }
 
       .pp-dock-studio-btn:hover {
-        color: #ffffff !important;
         background: rgba(255, 255, 255, 0.08) !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+      }
+
+      /* Motion here is decoration, so it yields to the user's setting. */
+      @media (prefers-reduced-motion: reduce) {
+        .pp-unified-dock,
+        .pp-floating-trigger,
+        .pp-dock-btn,
+        .pp-dock-tone,
+        .pp-dock-studio-btn {
+          transition: none !important;
+        }
       }
 
       /* Floating Modal Studio */
@@ -1263,7 +1290,7 @@
       return;
     }
 
-    const dockHeight = 30;
+    const dockHeight = 34;
     const viewportWidth = window.innerWidth;
 
     // Ergonomic placement: docked 8px directly above the top-right edge of the chat input
