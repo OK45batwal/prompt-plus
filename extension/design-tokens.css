@@ -6,17 +6,17 @@
  * purpose: it is injected into host pages, where a stylesheet cannot follow it.
  */
 :root {
-  /* Brand — indigo. Every tint derives from --brand-rgb, so on-accent
+  /* Brand — cyan. Every tint derives from --brand-rgb, so on-accent
      surfaces can never drift from the hue. */
-  --brand-300: #a5b4fc;
-  --brand-400: #818cf8;
-  --brand-500: #6366f1;
-  --brand-600: #4f46e5;
-  --brand-700: #4338ca;
-  --brand-rgb: 99, 102, 241;
+  --brand-300: #67e8f9;
+  --brand-400: #22d3ee;
+  --brand-500: #06b6d4;
+  --brand-600: #0891b2;
+  --brand-700: #0e7490;
+  --brand-rgb: 6, 182, 212;
 
   /* Semantic hues stay separate from the brand: red/green/amber mean
-     something, indigo only means "Prompt+ action". */
+     something, cyan only means "Prompt+ action". */
   --success: #16a34a;
   --danger: #dc2626;
   --warning: #d97706;

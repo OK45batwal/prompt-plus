@@ -461,7 +461,7 @@ export default function SettingsPage() {
 
   const handleRemoveAvatar = () => {
     const defaultSeed = name ? encodeURIComponent(name) : "Architect";
-    const defaultUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${defaultSeed}&backgroundColor=6366f1`;
+    const defaultUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${defaultSeed}&backgroundColor=06b6d4`;
     setAvatar(defaultUrl);
     if (typeof window !== "undefined") {
       localStorage.setItem("pp_user_avatar", defaultUrl);
@@ -692,13 +692,13 @@ export default function SettingsPage() {
                         <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block">Or select an AI Developer Preset:</span>
                         <div className="flex flex-wrap gap-2">
                           {[
-                            { name: "Cyber Architect", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Architect&backgroundColor=6366f1" },
+                            { name: "Cyber Architect", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Architect&backgroundColor=06b6d4" },
                             { name: "Quantum Neural", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Quantum&backgroundColor=10b981" },
                             { name: "Deep Tech Bot", url: "https://api.dicebear.com/7.x/bottts/svg?seed=DeepTech&backgroundColor=3b82f6" },
                             { name: "Matrix Hacker", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Matrix&backgroundColor=f59e0b" },
                             { name: "Neon Synth", url: "https://api.dicebear.com/7.x/bottts/svg?seed=Synth&backgroundColor=ec4899" },
                             { name: "Pixel Dev", url: "https://api.dicebear.com/7.x/bottts/svg?seed=PixelDev&backgroundColor=8b5cf6" },
-                            { name: "Neural AI", url: "https://api.dicebear.com/7.x/bottts/svg?seed=NeuralPulse&backgroundColor=4f46e5" },
+                            { name: "Neural AI", url: "https://api.dicebear.com/7.x/bottts/svg?seed=NeuralPulse&backgroundColor=06b6d4" },
                             { name: "Apex Lead", url: "https://api.dicebear.com/7.x/bottts/svg?seed=ApexLead&backgroundColor=f43f5e" },
                           ].map((preset) => (
                             <button

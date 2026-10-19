@@ -60,8 +60,8 @@ export function OnboardingTour() {
         </div>
 
         <div className="p-3.5 rounded-xl border bg-card/80 space-y-1.5">
-          <div className="flex items-center gap-2 text-xs font-semibold text-indigo-500">
-            <span className="h-5 w-5 rounded-full bg-indigo-500/10 flex items-center justify-center font-bold text-[11px]">2</span>
+          <div className="flex items-center gap-2 text-xs font-semibold text-cyan-500">
+            <span className="h-5 w-5 rounded-full bg-cyan-500/10 flex items-center justify-center font-bold text-[11px]">2</span>
             <span>Add your context</span>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">

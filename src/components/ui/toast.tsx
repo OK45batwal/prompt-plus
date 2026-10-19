@@ -63,7 +63,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                   ? "bg-emerald-950/90 border-emerald-500/40 text-emerald-100 shadow-emerald-950/50"
                   : t.type === "error"
                   ? "bg-rose-950/90 border-rose-500/40 text-rose-100 shadow-rose-950/50"
-                  : "bg-slate-900/90 border-indigo-500/40 text-slate-100 shadow-slate-950/50"
+                  : "bg-slate-900/90 border-cyan-500/40 text-slate-100 shadow-slate-950/50"
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
@@ -73,7 +73,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                       ? "text-emerald-400"
                       : t.type === "error"
                       ? "text-rose-400"
-                      : "text-indigo-400"
+                      : "text-cyan-400"
                   }`}
                 />
                 <span className="leading-snug break-words">{t.message}</span>
