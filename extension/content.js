@@ -21,7 +21,8 @@
     chevron: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>`,
     zap: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
     copy: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`,
-    close: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
+    close: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+    transfer: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>`
   };
 
   // The shared review renderer owns escaping and diffing for both hosts.
@@ -213,6 +214,7 @@
         color: #67e8f9 !important;
       }
 
+      .pp-dock-ghost-btn,
       .pp-dock-studio-btn {
         display: inline-flex !important;
         align-items: center !important;
@@ -230,10 +232,98 @@
         flex-shrink: 0 !important;
       }
 
+      .pp-dock-ghost-btn:hover,
       .pp-dock-studio-btn:hover {
         background: rgba(255, 255, 255, 0.08) !important;
         border-color: rgba(255, 255, 255, 0.1) !important;
         color: #ffffff !important;
+      }
+
+      /* Context menu. The dock lives on the composer's bottom edge, so this opens upward. */
+      .pp-dock-menu {
+        position: absolute !important;
+        bottom: calc(100% + 8px) !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 272px !important;
+        max-width: calc(100vw - 24px) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+        padding: 10px !important;
+        border-radius: 14px !important;
+        background: rgba(12, 12, 16, 0.97) !important;
+        border: 1px solid rgba(6, 182, 212, 0.4) !important;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7) !important;
+        backdrop-filter: blur(20px) saturate(160%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+        z-index: 100000000 !important;
+        font-size: 11px !important;
+        text-align: left !important;
+      }
+
+      .pp-dock-menu[hidden] {
+        display: none !important;
+      }
+
+      .pp-dock-menu-title {
+        margin: 0 !important;
+        font-size: 9.5px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.08em !important;
+        text-transform: uppercase !important;
+        color: rgba(244, 244, 245, 0.45) !important;
+      }
+
+      .pp-dock-menu-status {
+        margin: 0 !important;
+        color: rgba(244, 244, 245, 0.72) !important;
+        line-height: 1.5 !important;
+      }
+
+      .pp-dock-menu-note {
+        margin: 0 !important;
+        color: rgba(244, 244, 245, 0.4) !important;
+        line-height: 1.45 !important;
+      }
+
+      .pp-dock-menu-item {
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+        min-height: 30px !important;
+        padding: 0 10px !important;
+        border-radius: 9px !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        color: #f4f4f5 !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        font-family: inherit !important;
+        text-align: left !important;
+        cursor: pointer !important;
+        transition: background 0.12s ease, border-color 0.12s ease !important;
+      }
+
+      .pp-dock-menu-item:hover:not([disabled]) {
+        background: rgba(6, 182, 212, 0.16) !important;
+        border-color: rgba(34, 211, 238, 0.4) !important;
+      }
+
+      .pp-dock-menu-item:focus-visible {
+        outline: 2px solid rgba(103, 232, 249, 0.9) !important;
+        outline-offset: 1px !important;
+      }
+
+      .pp-dock-menu-item[disabled] {
+        opacity: 0.42 !important;
+        cursor: default !important;
+      }
+
+      .pp-dock-menu-item.primary {
+        background: linear-gradient(180deg, #22d3ee 0%, #0891b2 100%) !important;
+        border-color: rgba(255, 255, 255, 0.3) !important;
+        color: #04141c !important;
       }
 
       /* Motion here is decoration, so it yields to the user's setting. */
@@ -242,7 +332,9 @@
         .pp-floating-trigger,
         .pp-dock-btn,
         .pp-dock-tone,
-        .pp-dock-studio-btn {
+        .pp-dock-ghost-btn,
+        .pp-dock-studio-btn,
+        .pp-dock-menu-item {
           transition: none !important;
         }
       }
@@ -704,6 +796,59 @@
     }, 2800);
   }
 
+  // ---------- Chat context handoff ----------
+  // One saved conversation, reused on another chatbot. The saved copy holds only
+  // text an adapter could read from the page, so attachments never travel.
+  const CONTEXT_KEY = "pp_chat_context_v1";
+  let savedContext = null;
+
+  function loadSavedContext(cb) {
+    try {
+      chrome.storage.local.get(CONTEXT_KEY, (res) => {
+        savedContext = !chrome.runtime.lastError && res && res[CONTEXT_KEY] ? res[CONTEXT_KEY] : null;
+        cb(savedContext);
+      });
+    } catch {
+      cb(null);
+    }
+  }
+
+  function saveChatContext(ctx, cb) {
+    try {
+      chrome.storage.local.set({ [CONTEXT_KEY]: ctx }, () => {
+        if (chrome.runtime.lastError) {
+          cb(chrome.runtime.lastError.message || "storage unavailable");
+          return;
+        }
+        savedContext = ctx;
+        cb(null);
+      });
+    } catch (err) {
+      cb(err && err.message ? err.message : "storage unavailable");
+    }
+  }
+
+  function clearSavedContext(cb) {
+    try {
+      chrome.storage.local.remove(CONTEXT_KEY, () => { savedContext = null; cb(); });
+    } catch {
+      savedContext = null;
+      cb();
+    }
+  }
+
+  function buildContextText(ctx) {
+    const when = new Date(ctx.savedAt).toLocaleString();
+    const head =
+      "Prompt+ chat context\n" +
+      `From ${ctx.platformName} — ${ctx.turns.length} visible message${ctx.turns.length === 1 ? "" : "s"}, saved ${when}\n` +
+      "Text visible in that tab only. Attachments and files are not included.";
+    const body = ctx.turns
+      .map((t) => `${t.role === "user" ? "Me" : "Assistant"}: ${String(t.text).trim()}`)
+      .join("\n\n");
+    return `${head}\n\n---\n\n${body}`;
+  }
+
   function synthesizeLocalPrompt(text, tone) {
     return globalThis.PromptPlusSynthesis.synthesizeLocalPrompt(text, { tone });
   }
@@ -732,14 +877,26 @@
   // aria-modal is the non-modal form of dialog, so aria-modal and focus
   // containment are deliberately omitted here.
   let closeEnhancementPreview = null;
-  function showEnhancementPreview(input, original, enhanced, source) {
+  // One review renderer for every insert path, so the diff, token estimate and
+  // guarded Undo behave identically whether a model or a saved context filled it.
+  const REVIEW_LABELS = {
+    title: "Review enhancement",
+    acceptLabel: "Apply enhancement",
+    appliedTitle: "Enhancement applied",
+    undoneTitle: "Enhancement undone",
+    originalLabel: "Original",
+    enhancedLabel: "Enhanced",
+  };
+
+  function showEnhancementPreview(input, original, enhanced, source, labels) {
+    const copy = { ...REVIEW_LABELS, ...(labels || {}) };
     closeEnhancementPreview?.();
     // Escape/dismiss returns focus to whatever held it before the panel opened.
     const previouslyFocused = document.activeElement;
     const panel = document.createElement("section");
     panel.id = "pp-enhancement-preview";
     panel.setAttribute("role", "dialog");
-    panel.setAttribute("aria-label", "Review enhancement");
+    panel.setAttribute("aria-label", copy.title);
     panel.setAttribute("aria-keyshortcuts", "Escape");
     panel.tabIndex = -1;
     Object.assign(panel.style, {
@@ -760,16 +917,16 @@
          </p>`
       : "";
     panel.innerHTML = `
-      <strong style="font-size:16px">Review enhancement</strong>
+      <strong style="font-size:16px">${copy.title}</strong>
       <p style="color:#cbd5e1;margin:6px 0">${escapeHtml(source)}</p>
       <p id="pp-preview-tokens" style="margin:8px 0">Estimated tokens: ${beforeTokens} → ${afterTokens} (${delta > 0 ? "+" : ""}${delta})</p>
       ${legend}
       <div style="max-height:38vh;overflow:auto">
-        <p style="font-weight:600">Original</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="original">${diff.before}</div>
-        <p style="font-weight:600;margin-top:12px">Enhanced</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="enhanced">${diff.after}</div>
+        <p style="font-weight:600">${copy.originalLabel}</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="original">${diff.before}</div>
+        <p style="font-weight:600;margin-top:12px">${copy.enhancedLabel}</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="enhanced">${diff.after}</div>
       </div>
       <div style="display:flex;gap:12px;margin-top:16px">
-        <button type="button" id="pp-preview-accept" style="padding:8px 14px;border-radius:8px;background:#06b6d4;color:#04141c">Apply enhancement</button>
+        <button type="button" id="pp-preview-accept" style="padding:8px 14px;border-radius:8px;background:#06b6d4;color:#04141c">${copy.acceptLabel}</button>
         <button type="button" id="pp-preview-keep" style="padding:8px 14px;border-radius:8px;background:#334155;color:#fff">Keep original · Esc</button>
       </div>`;
     const close = () => {
@@ -780,29 +937,34 @@
       if (previouslyFocused && previouslyFocused.isConnected && typeof previouslyFocused.focus === "function") previouslyFocused.focus();
       else if (input.isConnected) input.focus();
     };
+    // Host composers normalise whitespace (a contenteditable turns blank lines
+    // into paragraphs), so Undo is guarded against what the composer really holds
+    // after our write, not against the string we asked it to hold.
+    let applied = enhanced;
     const accept = () => {
       if (!input.isConnected || getText(input) !== original) {
         close();
-        showToast("Your input changed. Enhance again to review your latest text.");
+        showToast("Your input changed. Review your latest text again before applying.");
         return;
       }
       setText(input, enhanced);
+      applied = getText(input);
       showApplied();
-      showToast("Enhancement applied");
+      showToast(copy.appliedTitle);
     };
     const undo = () => {
       close();
-      if (!input.isConnected || getText(input) !== enhanced) {
+      if (!input.isConnected || getText(input) !== applied) {
         showToast("Your input changed. Undo skipped to protect your edits.");
         return;
       }
       setText(input, original);
-      showToast("Enhancement undone");
+      showToast(copy.undoneTitle);
     };
     function showApplied() {
-      panel.setAttribute("aria-label", "Enhancement applied");
+      panel.setAttribute("aria-label", copy.appliedTitle);
       panel.innerHTML = `
-        <strong style="font-size:16px">Enhancement applied</strong>
+        <strong style="font-size:16px">${copy.appliedTitle}</strong>
         <p style="color:#cbd5e1;margin:6px 0">${escapeHtml(source)}</p>
         <div style="display:flex;gap:12px;margin-top:16px">
           <button type="button" id="pp-preview-undo" style="padding:8px 14px;border-radius:8px;background:#06b6d4;color:#04141c">Undo</button>
@@ -1158,6 +1320,13 @@
 
       <div class="pp-dock-sep"></div>
 
+      <button type="button" class="pp-dock-ghost-btn" id="pp-dock-context-btn" aria-haspopup="true" aria-expanded="false" title="Save this chat's context, or load context saved from another chatbot">
+        <span class="pp-dock-icon">${ICONS.transfer}</span>
+        <span class="pp-dock-label">Context</span>
+      </button>
+
+      <div class="pp-dock-sep"></div>
+
       <div class="pp-dock-runway" id="pp-dock-runway" title="Tokens visible in this conversation">
         <span class="pp-runway-dot" id="pp-runway-dot"></span>
         <span class="pp-runway-model" id="pp-runway-model">${escapeHtml(activeModelName)}</span>
@@ -1175,6 +1344,8 @@
         <span>More</span>
         ${ICONS.chevron}
       </button>
+
+      <div class="pp-dock-menu" id="pp-dock-menu" role="group" aria-label="Chat context" hidden></div>
     `;
 
     document.body.appendChild(dock);
@@ -1194,7 +1365,129 @@
     };
     input.addEventListener("input", updateTypingTokens);
 
-    setupDraggable(dock);
+    // ---------- Chat context: save this chat, load it into another chatbot ----------
+    const contextMenu = dock.querySelector("#pp-dock-menu");
+    const contextBtn = dock.querySelector("#pp-dock-context-btn");
+    let contextMenuOpen = false;
+
+    const closeContextMenu = () => {
+      if (!contextMenuOpen) return;
+      contextMenuOpen = false;
+      contextMenu.hidden = true;
+      contextBtn.setAttribute("aria-expanded", "false");
+      document.removeEventListener("click", onContextOutsideClick, true);
+      document.removeEventListener("keydown", onContextMenuKey, true);
+    };
+
+    function onContextOutsideClick(event) {
+      if (!contextMenu.contains(event.target) && !contextBtn.contains(event.target)) closeContextMenu();
+    }
+
+    function onContextMenuKey(event) {
+      if (event.key !== "Escape") return;
+      event.stopPropagation();
+      closeContextMenu();
+      contextBtn.focus();
+    }
+
+    const readVisibleTurns = () => {
+      const adapter = getActiveAdapter();
+      const turns = adapter && typeof adapter.getConversationTurns === "function" ? adapter.getConversationTurns() : [];
+      return (Array.isArray(turns) ? turns : []).filter((t) => t && typeof t.text === "string" && t.text.trim());
+    };
+
+    const turnLabel = (n) => `${n} visible message${n === 1 ? "" : "s"}`;
+
+    const renderContextMenu = () => {
+      const turns = readVisibleTurns();
+      const saved = savedContext;
+      contextMenu.innerHTML = `
+        <p class="pp-dock-menu-title">Chat context</p>
+        <p class="pp-dock-menu-status">This chat: ${escapeHtml(activeModelName)} · ${turns.length ? turnLabel(turns.length) : "no visible messages"}</p>
+        <button type="button" class="pp-dock-menu-item primary" id="pp-ctx-save" ${turns.length ? "" : "disabled"}>Save this chat's context</button>
+        <p class="pp-dock-menu-status">${saved ? `Saved: ${escapeHtml(saved.platformName)} · ${turnLabel(saved.turns.length)} · ${escapeHtml(new Date(saved.savedAt).toLocaleString())}` : "Nothing saved yet."}</p>
+        <button type="button" class="pp-dock-menu-item" id="pp-ctx-load" ${saved ? "" : "disabled"}>Insert saved context here</button>
+        ${saved ? `<button type="button" class="pp-dock-menu-item" id="pp-ctx-clear">Clear saved context</button>` : ""}
+        <p class="pp-dock-menu-note">Only text visible in the page is copied — attachments and files are not. Saved in this browser.</p>
+      `;
+
+      contextMenu.querySelector("#pp-ctx-save")?.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const live = readVisibleTurns();
+        if (!live.length) {
+          showToast("No visible messages to save on this page.");
+          return;
+        }
+        saveChatContext(
+          { turns: live, platformName: activeModelName, savedAt: Date.now() },
+          (error) => {
+            if (error) {
+              showToast(`Could not save context: ${error}`);
+              return;
+            }
+            showToast(`Saved ${turnLabel(live.length)} from ${activeModelName}`);
+            renderContextMenu();
+          }
+        );
+      });
+
+      contextMenu.querySelector("#pp-ctx-load")?.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const saved = savedContext;
+        if (!saved) return;
+        closeContextMenu();
+        showEnhancementPreview(
+          input,
+          getText(input),
+          buildContextText(saved),
+          `Saved context from ${saved.platformName} · ${turnLabel(saved.turns.length)}`,
+          {
+            title: "Review context transfer",
+            acceptLabel: "Insert context",
+            appliedTitle: "Context inserted",
+            undoneTitle: "Context insert undone",
+            originalLabel: "Your draft",
+            enhancedLabel: "Context to insert",
+          }
+        );
+      });
+
+      contextMenu.querySelector("#pp-ctx-clear")?.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        clearSavedContext(() => {
+          showToast("Saved context cleared");
+          renderContextMenu();
+        });
+      });
+    };
+
+    const openContextMenu = () => {
+      contextMenuOpen = true;
+      renderContextMenu();
+      contextMenu.hidden = false;
+      contextBtn.setAttribute("aria-expanded", "true");
+      // The dock sits on the composer's bottom edge, so open upward unless that
+      // would push the panel off screen.
+      contextMenu.style.removeProperty("bottom");
+      contextMenu.style.removeProperty("top");
+      const flipDown = contextMenu.getBoundingClientRect().top < 8;
+      contextMenu.style.setProperty("bottom", flipDown ? "auto" : "calc(100% + 8px)", "important");
+      contextMenu.style.setProperty("top", flipDown ? "calc(100% + 8px)" : "auto", "important");
+      // Another tab may have saved a context after this page loaded.
+      loadSavedContext(() => { if (contextMenuOpen) renderContextMenu(); });
+      document.addEventListener("click", onContextOutsideClick, true);
+      document.addEventListener("keydown", onContextMenuKey, true);
+    };
+
+    contextBtn.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (contextMenuOpen) closeContextMenu();
+      else openContextMenu();
+    });
 
     // Quick Tone Switcher Handlers
     dock.querySelectorAll(".pp-dock-tone").forEach((toneBtn) => {
@@ -1214,7 +1507,6 @@
     dock.querySelector("#pp-dock-enhance")?.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (dock._hasMoved && dock._hasMoved()) return;
       const raw = getText(input).trim();
       if (raw) {
         void enhanceInPlace(input, raw, selectedTone);
@@ -1267,22 +1559,6 @@
       return;
     }
 
-    const customPosStr = localStorage.getItem("pp_dock_custom_pos");
-    if (customPosStr) {
-      try {
-        const pos = JSON.parse(customPosStr);
-        if (typeof pos.top === "number" && typeof pos.left === "number") {
-          const clampedTop = Math.max(8, Math.min(window.innerHeight - 40, pos.top));
-          const clampedLeft = Math.max(8, Math.min(window.innerWidth - 220, pos.left));
-          trigger.style.removeProperty("right");
-          trigger.style.setProperty("top", `${clampedTop}px`, "important");
-          trigger.style.setProperty("left", `${clampedLeft}px`, "important");
-          trigger.style.setProperty("display", "inline-flex", "important");
-          return;
-        }
-      } catch {}
-    }
-
     const capsule = resolveChatCapsule(input) || input;
     const rect = capsule.getBoundingClientRect();
     if (!rect || rect.width === 0 || rect.height === 0 || rect.bottom <= 0 || rect.top >= window.innerHeight) {
@@ -1292,81 +1568,21 @@
 
     const dockHeight = 34;
     const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
 
-    // Ergonomic placement: docked 8px directly above the top-right edge of the chat input
-    let top = rect.top - dockHeight - 8;
-    if (top < 10) {
-      top = rect.top + 8;
-    }
-
-    const rightOffset = Math.max(12, Math.min(viewportWidth - 40, viewportWidth - rect.right + 4));
-
-    trigger.style.removeProperty("left");
-    trigger.style.setProperty("right", `${Math.round(rightOffset)}px`, "important");
-    trigger.style.setProperty("top", `${Math.round(top)}px`, "important");
+    // One fixed home: the dock rides the composer's bottom edge, horizontally
+    // centred. The host's own bottom-row controls sit at the composer's left and
+    // right edges, so the middle band is the only place that stays clickable.
+    // There is no drag and no remembered position.
+    trigger.style.removeProperty("right");
     trigger.style.setProperty("display", "inline-flex", "important");
-  }
 
-  function setupDraggable(trigger) {
-    let isDragging = false;
-    let startX = 0;
-    let startY = 0;
-    let initialLeft = 0;
-    let initialTop = 0;
-    let moved = false;
+    const dockWidth = trigger.offsetWidth || 320;
+    const left = Math.max(8, Math.min(viewportWidth - dockWidth - 8, rect.left + (rect.width - dockWidth) / 2));
+    const top = Math.max(8, Math.min(viewportHeight - dockHeight - 8, rect.bottom - Math.round(dockHeight / 2)));
 
-    trigger.addEventListener("mousedown", (e) => {
-      if (e.button !== 0) return;
-      if (e.target.closest("button") || e.target.closest(".pp-dock-btn")) {
-        return;
-      }
-      isDragging = true;
-      moved = false;
-      startX = e.clientX;
-      startY = e.clientY;
-      const rect = trigger.getBoundingClientRect();
-      initialLeft = rect.left;
-      initialTop = rect.top;
-      trigger.style.transition = "none";
-    });
-
-    document.addEventListener("mousemove", (e) => {
-      if (!isDragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
-        moved = true;
-      }
-      const newLeft = Math.max(8, Math.min(window.innerWidth - trigger.offsetWidth - 8, initialLeft + dx));
-      const newTop = Math.max(8, Math.min(window.innerHeight - trigger.offsetHeight - 8, initialTop + dy));
-      trigger.style.removeProperty("right");
-      trigger.style.setProperty("left", `${newLeft}px`, "important");
-      trigger.style.setProperty("top", `${newTop}px`, "important");
-    });
-
-    document.addEventListener("mouseup", () => {
-      if (!isDragging) return;
-      isDragging = false;
-      trigger.style.transition = "";
-      if (moved) {
-        const rect = trigger.getBoundingClientRect();
-        localStorage.setItem("pp_dock_custom_pos", JSON.stringify({ top: rect.top, left: rect.left }));
-      }
-    });
-
-    trigger.addEventListener("dblclick", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      localStorage.removeItem("pp_dock_custom_pos");
-      localStorage.removeItem("pp_btn_custom_pos");
-      trigger.style.removeProperty("left");
-      showToast("✓ Dock position reset to default");
-      if (trigger._targetInput) {
-        positionFloatingButton(trigger, trigger._targetInput);
-      }
-    });
-
-    trigger._hasMoved = () => moved;
+    trigger.style.setProperty("left", `${Math.round(left)}px`, "important");
+    trigger.style.setProperty("top", `${Math.round(top)}px`, "important");
   }
 
   // Keyboard shortcut listener:
@@ -1614,6 +1830,8 @@
       });
     }
   }
+
+  loadSavedContext(() => {});
 
   if (document.body) {
     initConversationRunway();
