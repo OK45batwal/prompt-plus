@@ -14,10 +14,8 @@ import {
   CopilotLogo,
   MetaLogo,
 } from "@/components/marketing/model-logos";
-import { ArrowRight, ArrowUpRight, Check, Download, Puzzle } from "lucide-react";
-
-const EXTENSION_STORE_URL =
-  "https://chromewebstore.google.com/detail/gdfaohfmmjjmpiggdcankjjihpljoccn";
+import { ArrowRight, ArrowUpRight, Check, Puzzle } from "lucide-react";
+import { EXTENSION_STORE_URL } from "@/lib/version";
 
 const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
@@ -118,26 +116,22 @@ export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   useEffect(() => {
+    const targets = document.querySelectorAll("[data-reveal]");
     if (!("IntersectionObserver" in window)) {
-      document.querySelectorAll("[data-reveal]").forEach((el) => {
-        el.classList.add("is-visible");
-        el.classList.remove("reveal");
-      });
+      targets.forEach((el) => el.classList.add("is-visible"));
       return;
     }
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            setTimeout(() => entry.target.classList.remove("reveal"), 1300);
-            io.unobserve(entry.target);
-          }
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-visible");
+          io.unobserve(entry.target);
         });
       },
       { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
     );
-    document.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
+    targets.forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
 
@@ -326,14 +320,6 @@ export default function LandingPage() {
             >
               Setup guide
             </Link>
-            <a
-              href="/api/v1/extension/download"
-              download="prompt-plus-extension.zip"
-              className={`h-11 inline-flex items-center justify-center gap-2 rounded-full px-4 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors ${focusRing}`}
-            >
-              <Download className="h-4 w-4" />
-              Download the build
-            </a>
           </div>
         </div>
       </section>

@@ -234,21 +234,26 @@ body {
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
 }
 
-/* ---- Taste motion: scroll reveal (premium bezier, blur-fade-up) ---- */
-.reveal {
+/* ---- Taste motion: scroll reveal. Opacity + transform only, so the whole
+   animation stays on the compositor and holds 60Hz on a busy page ---- */
+[data-reveal] {
   opacity: 0;
   transform: translateY(20px);
-  filter: blur(4px);
   transition:
     opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-    filter 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform, filter;
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.reveal.is-visible {
+[data-reveal].is-visible {
   opacity: 1;
-  transform: translateY(0);
-  filter: blur(0);
+  transform: none;
+}
+
+/* Without JS nothing would ever add .is-visible, so show the content */
+@media (scripting: none) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ---- Taste motion: slow ambient drift for background orbs ---- */
@@ -257,8 +262,8 @@ body {
   33% { transform: translate(40px, -30px) scale(1.08); }
   66% { transform: translate(-32px, 22px) scale(0.94); }
 }
-.animate-drift { animation: drift 26s ease-in-out infinite; }
-.animate-drift-slow { animation: drift 38s ease-in-out infinite; }
+.animate-drift { animation: drift 26s ease-in-out infinite; will-change: transform; }
+.animate-drift-slow { animation: drift 38s ease-in-out infinite; will-change: transform; }
 
 @keyframes marquee {
   0% { transform: translateX(0%); }
@@ -274,10 +279,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal {
+  [data-reveal] {
     opacity: 1;
     transform: none;
-    filter: none;
   }
   .animate-marquee {
     animation: none !important;

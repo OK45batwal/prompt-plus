@@ -6,3 +6,7 @@ import manifest from "../../extension/manifest.json";
  * already drifted to four different values across the app).
  */
 export const EXTENSION_VERSION: string = manifest.version;
+
+/** The one place to install the extension from. Nothing offers a build download. */
+export const EXTENSION_STORE_URL =
+  "https://chromewebstore.google.com/detail/gdfaohfmmjjmpiggdcankjjihpljoccn";
