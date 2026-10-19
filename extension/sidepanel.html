@@ -13,12 +13,12 @@
       --surface-inner: rgba(0, 0, 0, 0.35);
       --border-subtle: rgba(255, 255, 255, 0.05);
       --border-highlight: rgba(255, 255, 255, 0.14);
-      /* Same brand aliases as popup.html: indigo is declared once in design-tokens.css. */
+      /* Same brand aliases as popup.html: the brand is declared once in design-tokens.css. */
       --accent-rgb: var(--brand-rgb);
       --accent-text: var(--brand-300);
       --border-active: rgba(var(--accent-rgb), 0.55);
-      --primary: var(--brand-600);
-      --primary-hover: var(--brand-500);
+      --primary: var(--brand-500);
+      --primary-hover: var(--brand-400);
       --primary-deep: var(--brand-700);
       --text-white: #ffffff;
       --text-main: #ededf0;
@@ -199,7 +199,8 @@
       border-radius: 11px;
       border: 1px solid rgba(0, 0, 0, 0.25);
       background: linear-gradient(180deg, var(--brand-500) 0%, var(--brand-700) 100%);
-      color: #ffffff;
+      /* Dark ink on brand cyan: white would be 2.4:1 and fail AA. */
+      color: #04141c;
       font-size: 13.5px; font-weight: 800; letter-spacing: -0.01em;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -295,7 +296,8 @@
     .btn-apply {
       background: var(--primary);
       border: 1px solid rgba(var(--accent-rgb), 0.5);
-      color: #ffffff;
+      /* Dark ink on brand cyan: white would be 2.4:1 and fail AA. */
+      color: #04141c;
     }
     .btn-apply:hover:not(:disabled) { background: var(--primary-hover); }
 

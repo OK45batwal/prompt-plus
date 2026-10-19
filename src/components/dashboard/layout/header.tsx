@@ -43,8 +43,8 @@ export function Header({ onMenuClick }: HeaderProps) {
     userAvatar ||
     session?.user?.image ||
     (session?.user?.name
-      ? `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(session.user.name)}&backgroundColor=6366f1`
-      : "https://api.dicebear.com/7.x/bottts/svg?seed=Architect&backgroundColor=6366f1");
+      ? `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(session.user.name)}&backgroundColor=06b6d4`
+      : "https://api.dicebear.com/7.x/bottts/svg?seed=Architect&backgroundColor=06b6d4");
 
   useEffect(() => {
     const syncAvatar = () => {
