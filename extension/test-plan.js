@@ -164,6 +164,8 @@ assert(contentCode.includes("getConversationTurns") && contentCode.includes("bui
 assert(contentCode.includes("chrome.storage.local"), "the saved chat context is persisted in extension storage");
 assert(!contentCode.includes("setupDraggable"), "content.js no longer makes the dock draggable");
 assert(!contentCode.includes("pp_dock_custom_pos"), "content.js no longer remembers a dragged dock position");
+assert(contentCode.includes("function resolveComposerBox"), "content.js anchors the dock to the whole composer box, not the input's wrapper");
+assert(contentCode.includes("rect.bottom + 8"), "content.js places the dock under the composer's bottom edge");
 assert(!contentCode.includes("window.PromptPlusRunwayOverlay.init()"), "content.js does NOT call obsolete PromptPlusRunwayOverlay.init()");
 assert(!contentCode.includes("window.PromptPlusRunwayOverlay.update("), "content.js does NOT call obsolete PromptPlusRunwayOverlay.update()");
 
@@ -192,6 +194,10 @@ assert(popupJs.includes("tokenUpdate"), "popup.js listens for live tab token upd
 // The side panel keeps the popup and the Studio as alternatives, and reuses the
 // same local synthesizer, enhance endpoint and brand stylesheet.
 assert(popupJs.includes("chrome.sidePanel"), "popup.js feature-detects the side panel API before showing the control");
+// The same chat handoff the dock offers, driven from the popup's Context panel.
+assert(popupHtml.includes("chat-context-save-btn") && popupHtml.includes("chat-context-insert-btn"), "popup offers the chat-context save and insert controls");
+assert(popupJs.includes("pp_chat_context_v1"), "popup reads the same saved chat context the dock writes");
+assert(popupJs.includes('action: "insertSavedContext"'), "popup asks the active tab to insert the saved context");
 const sidepanelHtml = fs.readFileSync(path.join(__dirname, "sidepanel.html"), "utf8");
 const sidepanelJs = fs.readFileSync(path.join(__dirname, "sidepanel.js"), "utf8");
 assert(sidepanelHtml.includes('href="design-tokens.css"'), "Panel links the shared design tokens");
@@ -210,6 +216,9 @@ assert(contentCode.includes("chrome.runtime.onMessage.addListener"), "content.js
 assert(contentCode.includes("request.action === \"injectEnhanced\""), "content.js handles injectEnhanced action");
 assert(contentCode.includes("request.action === \"enhanceSelection\""), "content.js handles enhanceSelection action");
 assert(contentCode.includes("request.action === \"openEnhancePanel\""), "content.js handles openEnhancePanel action");
+assert(contentCode.includes("request.action === \"getChatContext\""), "content.js handles the popup's getChatContext action");
+assert(contentCode.includes("request.action === \"saveChatContext\""), "content.js handles the popup's saveChatContext action");
+assert(contentCode.includes("request.action === \"insertSavedContext\""), "content.js handles the popup's insertSavedContext action");
 assert(contentCode.includes("Object.getOwnPropertyDescriptor(proto, \"value\")") || contentCode.includes("getOwnPropertyDescriptor"), "content.js uses native descriptor setter for React 18/19 input/textarea");
 
 const chatgptCode = fs.readFileSync(path.join(__dirname, "adapters", "chatgpt.js"), "utf8");

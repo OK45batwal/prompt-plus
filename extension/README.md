@@ -1,4 +1,4 @@
-# Prompt+ Browser Extension (Manifest V3) — v2.1.5
+# Prompt+ Browser Extension (Manifest V3) — v2.1.6
 
 Enhance a prompt, review the change, then insert it — plus a visible-message token estimate, a prompt history and a launcher for eight AI sites.
 
@@ -16,8 +16,9 @@ Enhance a prompt, review the change, then insert it — plus a visible-message t
 - Minimal counters survive service-worker restarts in session storage. Raw conversation text is not persisted in that state.
 
 ### 3. In-page dock
-- Pinned to the bottom edge of the chat input on supported sites: enhance in place, a live usage readout, three quick tones, and one button that opens the full panel. It does not float or drag.
+- Sits directly under the composer on supported sites: enhance in place, a live usage readout, three quick tones, and one button that opens the full panel. It does not float and cannot be dragged, and it never covers the input, the attachment tray or the host's own controls.
 - **Context** saves the visible messages of the current chat and inserts them into another chatbot's input, after the same review step used for enhancements. Only text visible in the page is copied; attachments and files are not. The saved copy stays in this browser.
+- The popup's **Context** tab moves that same saved copy: save on the chat you are reading, open the other chatbot, then insert it there.
 
 ### 4. Cross-platform launcher (8 platforms)
 - ChatGPT, Claude, Gemini, DeepSeek, Grok, Perplexity, Copilot, and Meta AI.

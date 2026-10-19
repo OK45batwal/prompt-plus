@@ -482,7 +482,7 @@ document.addEventListener("DOMContentLoaded", () => {
     targetBtn?.setAttribute("aria-selected", "true");
     if (targetPanel) targetPanel.style.display = "flex";
     if (targetPanel === panelLibrary) renderLibrary();
-    if (targetPanel === panelContext) renderContextVault();
+    if (targetPanel === panelContext) { renderContextVault(); renderChatContext(); }
     if (targetPanel === panelSettings) renderSettings();
   }
 
@@ -905,6 +905,71 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   libSearch?.addEventListener("input", renderLibrary);
+
+  // ---------- Chat context handoff, driven from the popup ----------
+  // The same single saved copy the in-page dock writes. This popup only reads and
+  // clears it; saving and inserting happen in the tab the user is on, so the page
+  // (not the popup) owns what travels.
+  const CONTEXT_KEY = "pp_chat_context_v1";
+  const chatContextThis = document.getElementById("chat-context-this");
+  const chatContextSaved = document.getElementById("chat-context-saved");
+  const chatContextSaveBtn = document.getElementById("chat-context-save-btn");
+  const chatContextInsertBtn = document.getElementById("chat-context-insert-btn");
+  const chatContextClearBtn = document.getElementById("chat-context-clear-btn");
+
+  function askActiveTab(message, done) {
+    try {
+      chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
+        const tabId = tabs?.[0]?.id;
+        if (tabId == null) { done(null); return; }
+        chrome.tabs.sendMessage(tabId, message, (r) => done(chrome.runtime?.lastError ? null : r || null));
+      });
+    } catch { done(null); }
+  }
+
+  function renderChatContext() {
+    if (!chatContextThis) return;
+    chatContextThis.textContent = "Checking…";
+    chatContextSaveBtn.disabled = true;
+    chrome.storage.local.get(CONTEXT_KEY, (data) => {
+      const saved = data?.[CONTEXT_KEY];
+      const count = saved?.turns?.length || 0;
+      chatContextSaved.textContent = saved ? `${saved.platformName} · ${count} message${count === 1 ? "" : "s"}` : "Nothing yet";
+      chatContextSaved.title = saved ? new Date(saved.savedAt).toLocaleString() : "";
+      chatContextInsertBtn.disabled = !saved;
+      chatContextClearBtn.disabled = !saved;
+    });
+    askActiveTab({ action: "getChatContext" }, (r) => {
+      if (!r?.success) {
+        chatContextThis.textContent = "No chat box here";
+        return;
+      }
+      const turns = r.visibleTurns || 0;
+      chatContextThis.textContent = turns ? `${r.platformName} · ${turns} visible` : `${r.platformName} · no messages`;
+      chatContextSaveBtn.disabled = turns === 0;
+    });
+  }
+
+  chatContextSaveBtn?.addEventListener("click", () => {
+    askActiveTab({ action: "saveChatContext" }, (r) => {
+      if (!r?.success) { showToast(r?.error || "Could not read this tab.", true); return; }
+      showToast(`Saved ${r.turnCount} message${r.turnCount === 1 ? "" : "s"} from ${r.platformName}`);
+      renderChatContext();
+    });
+  });
+
+  chatContextInsertBtn?.addEventListener("click", () => {
+    askActiveTab({ action: "insertSavedContext" }, (r) => {
+      if (!r?.success) { showToast(r?.error || "Nothing to insert here.", true); return; }
+      // The review panel opens in the page behind this popup.
+      showToast(`Inserted ${r.turnCount} message${r.turnCount === 1 ? "" : "s"} — review it in the page`);
+      setTimeout(() => { try { window.close(); } catch {} }, 700);
+    });
+  });
+
+  chatContextClearBtn?.addEventListener("click", () => {
+    chrome.storage.local.remove(CONTEXT_KEY, () => renderChatContext());
+  });
 
   function renderContextVault() {
     if (!contextVaultList) return;

@@ -1423,6 +1423,22 @@
       color: #fff;
     }
 
+    .sync-card-btn.ghost {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--border-subtle);
+      color: var(--text-muted);
+    }
+
+    .sync-card-btn.ghost:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .sync-card-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
     /* ---------- Toast Notification ---------- */
     .toast-msg {
       position: fixed;
@@ -1753,6 +1769,25 @@
 
     <!-- PANEL 3: CONTEXT -->
     <div class="tab-content-panel" id="panel-context" role="tabpanel" aria-labelledby="tab-btn-context" style="display: none;">
+      <!-- Move the conversation you are reading to whichever chatbot you want -->
+      <div class="sync-card-box">
+        <div class="sync-card-row">
+          <span style="font-weight:700; color:#fff;">Move this chat to another AI</span>
+        </div>
+        <div class="sync-card-row">
+          <span style="color:var(--text-muted);">This tab</span>
+          <strong id="chat-context-this" style="color:#cbd5e1;">Checking…</strong>
+        </div>
+        <button type="button" class="sync-card-btn" id="chat-context-save-btn" disabled>Save this chat's context</button>
+        <div class="sync-card-row">
+          <span style="color:var(--text-muted);">Saved copy</span>
+          <strong id="chat-context-saved" style="color:#cbd5e1;">Nothing yet</strong>
+        </div>
+        <button type="button" class="sync-card-btn ghost" id="chat-context-insert-btn" disabled>Insert it into this tab</button>
+        <button type="button" class="sync-card-btn ghost" id="chat-context-clear-btn" disabled>Clear saved context</button>
+        <div style="font-size:9.5px; color:var(--text-dim); line-height:1.45;">Saves the text visible in the page and inserts it into the chat you open next. Attachments and files stay behind. Stored in this browser only.</div>
+      </div>
+
       <div style="font-size: 11px; color: var(--text-muted); line-height: 1.45;">
         Rules added to every prompt you compile here.
       </div>

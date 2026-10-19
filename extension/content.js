@@ -849,6 +849,60 @@
     return `${head}\n\n---\n\n${body}`;
   }
 
+  const turnLabel = (n) => `${n} visible message${n === 1 ? "" : "s"}`;
+
+  function readVisibleTurns() {
+    const adapter = getActiveAdapter();
+    const turns = adapter && typeof adapter.getConversationTurns === "function" ? adapter.getConversationTurns() : [];
+    return (Array.isArray(turns) ? turns : []).filter((t) => t && typeof t.text === "string" && t.text.trim());
+  }
+
+  // What the dock, the popup and the review panel all call the chat you are on.
+  // Taken from the chat family rather than the live audit, so a context saved
+  // before the first audit and one saved after it describe themselves the same way.
+  function chatPlatformLabel() {
+    const info = getModelContextInfo();
+    return (info && info.name) || (latestAnalysis && latestAnalysis.modelName) || "This chat";
+  }
+
+  function saveThisChatContext(cb) {
+    const turns = readVisibleTurns();
+    if (!turns.length) {
+      cb({ ok: false, reason: "No visible messages on this page." });
+      return;
+    }
+    const ctx = { turns, platformName: chatPlatformLabel(), savedAt: Date.now() };
+    saveChatContext(ctx, (error) => cb(error ? { ok: false, reason: error } : { ok: true, ctx }));
+  }
+
+  // One review step for every handoff, whether it starts in the dock or the popup:
+  // the page's own draft on the left, the saved conversation on the right.
+  function openContextTransfer(input, saved) {
+    if (!input || !saved || !Array.isArray(saved.turns) || !saved.turns.length) return false;
+    showEnhancementPreview(
+      input,
+      getText(input),
+      buildContextText(saved),
+      `Saved context from ${saved.platformName} · ${turnLabel(saved.turns.length)}`,
+      {
+        title: "Review context transfer",
+        acceptLabel: "Insert context",
+        appliedTitle: "Context inserted",
+        undoneTitle: "Context insert undone",
+        originalLabel: "Your draft",
+        enhancedLabel: "Context to insert",
+      }
+    );
+    return true;
+  }
+
+  // The popup writes the same key, so a save there must show up in an open dock menu.
+  try {
+    chrome.storage.onChanged?.addListener((changes, area) => {
+      if (area === "local" && changes[CONTEXT_KEY]) savedContext = changes[CONTEXT_KEY].newValue || null;
+    });
+  } catch { /* storage unavailable */ }
+
   function synthesizeLocalPrompt(text, tone) {
     return globalThis.PromptPlusSynthesis.synthesizeLocalPrompt(text, { tone });
   }
@@ -1283,6 +1337,32 @@
     return input;
   }
 
+  // The chat box, not just the input. Some hosts wrap the editable area alone and keep
+  // the toolbar — or an attachment tray — in a sibling below it, so the input's own
+  // parent stops well above the composer. Walk up while the node is still composer
+  // sized and take the lowest one that is drawn as a box of its own; the dock then
+  // lands under the whole composer instead of on top of the input or the attachments.
+  function resolveComposerBox(input) {
+    if (!input) return null;
+    const inputRect = input.getBoundingClientRect();
+    let fallback = resolveChatCapsule(input) || input;
+    let box = null;
+    let cur = input.parentElement;
+    for (let i = 0; i < 6 && cur && cur !== document.body; i++) {
+      const rect = cur.getBoundingClientRect();
+      if (rect.height < 24 || rect.height > 400 || rect.width < Math.max(200, inputRect.width * 0.9)) break;
+      fallback = cur;
+      const style = window.getComputedStyle(cur);
+      const drawnBox =
+        style.borderRadius !== "0px" ||
+        style.borderBottomWidth !== "0px" ||
+        !/^(transparent|rgba\(0,\s*0,\s*0,\s*0\))$/.test(style.backgroundColor);
+      if (drawnBox) box = cur;
+      cur = cur.parentElement;
+    }
+    return box || fallback;
+  }
+
   // Inject sleek unified prompt action dock
   function injectFloatingButton() {
     if (!document.body) return;
@@ -1390,20 +1470,12 @@
       contextBtn.focus();
     }
 
-    const readVisibleTurns = () => {
-      const adapter = getActiveAdapter();
-      const turns = adapter && typeof adapter.getConversationTurns === "function" ? adapter.getConversationTurns() : [];
-      return (Array.isArray(turns) ? turns : []).filter((t) => t && typeof t.text === "string" && t.text.trim());
-    };
-
-    const turnLabel = (n) => `${n} visible message${n === 1 ? "" : "s"}`;
-
     const renderContextMenu = () => {
       const turns = readVisibleTurns();
       const saved = savedContext;
       contextMenu.innerHTML = `
         <p class="pp-dock-menu-title">Chat context</p>
-        <p class="pp-dock-menu-status">This chat: ${escapeHtml(activeModelName)} · ${turns.length ? turnLabel(turns.length) : "no visible messages"}</p>
+        <p class="pp-dock-menu-status">This chat: ${escapeHtml(chatPlatformLabel())} · ${turns.length ? turnLabel(turns.length) : "no visible messages"}</p>
         <button type="button" class="pp-dock-menu-item primary" id="pp-ctx-save" ${turns.length ? "" : "disabled"}>Save this chat's context</button>
         <p class="pp-dock-menu-status">${saved ? `Saved: ${escapeHtml(saved.platformName)} · ${turnLabel(saved.turns.length)} · ${escapeHtml(new Date(saved.savedAt).toLocaleString())}` : "Nothing saved yet."}</p>
         <button type="button" class="pp-dock-menu-item" id="pp-ctx-load" ${saved ? "" : "disabled"}>Insert saved context here</button>
@@ -1414,22 +1486,14 @@
       contextMenu.querySelector("#pp-ctx-save")?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        const live = readVisibleTurns();
-        if (!live.length) {
-          showToast("No visible messages to save on this page.");
-          return;
-        }
-        saveChatContext(
-          { turns: live, platformName: activeModelName, savedAt: Date.now() },
-          (error) => {
-            if (error) {
-              showToast(`Could not save context: ${error}`);
-              return;
-            }
-            showToast(`Saved ${turnLabel(live.length)} from ${activeModelName}`);
-            renderContextMenu();
+        saveThisChatContext((result) => {
+          if (!result.ok) {
+            showToast(`Could not save context: ${result.reason}`);
+            return;
           }
-        );
+          showToast(`Saved ${turnLabel(result.ctx.turns.length)} from ${result.ctx.platformName}`);
+          renderContextMenu();
+        });
       });
 
       contextMenu.querySelector("#pp-ctx-load")?.addEventListener("click", (event) => {
@@ -1438,20 +1502,7 @@
         const saved = savedContext;
         if (!saved) return;
         closeContextMenu();
-        showEnhancementPreview(
-          input,
-          getText(input),
-          buildContextText(saved),
-          `Saved context from ${saved.platformName} · ${turnLabel(saved.turns.length)}`,
-          {
-            title: "Review context transfer",
-            acceptLabel: "Insert context",
-            appliedTitle: "Context inserted",
-            undoneTitle: "Context insert undone",
-            originalLabel: "Your draft",
-            enhancedLabel: "Context to insert",
-          }
-        );
+        openContextTransfer(input, saved);
       });
 
       contextMenu.querySelector("#pp-ctx-clear")?.addEventListener("click", (event) => {
@@ -1539,12 +1590,12 @@
     input.addEventListener("blur", schedulePosition);
     input.addEventListener("keyup", schedulePosition);
 
-    const capsule = resolveChatCapsule(input) || input;
+    const box = resolveComposerBox(input) || input;
     try {
       if (window.ResizeObserver) {
         const ro = new ResizeObserver(() => schedulePosition());
         ro.observe(input);
-        if (capsule && capsule !== input) ro.observe(capsule);
+        if (box && box !== input) ro.observe(box);
       }
     } catch {}
 
@@ -1559,8 +1610,8 @@
       return;
     }
 
-    const capsule = resolveChatCapsule(input) || input;
-    const rect = capsule.getBoundingClientRect();
+    const box = resolveComposerBox(input) || input;
+    const rect = box.getBoundingClientRect();
     if (!rect || rect.width === 0 || rect.height === 0 || rect.bottom <= 0 || rect.top >= window.innerHeight) {
       trigger.style.setProperty("display", "none", "important");
       return;
@@ -1570,16 +1621,16 @@
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    // One fixed home: the dock rides the composer's bottom edge, horizontally
-    // centred. The host's own bottom-row controls sit at the composer's left and
-    // right edges, so the middle band is the only place that stays clickable.
-    // There is no drag and no remembered position.
+    // One fixed home: the dock rides just under the composer's bottom edge,
+    // horizontally centred. The host's own controls sit at the composer's left and
+    // right edges and its text above, so below the box is the one strip that never
+    // covers any of them. There is no drag and no remembered position.
     trigger.style.removeProperty("right");
     trigger.style.setProperty("display", "inline-flex", "important");
 
     const dockWidth = trigger.offsetWidth || 320;
     const left = Math.max(8, Math.min(viewportWidth - dockWidth - 8, rect.left + (rect.width - dockWidth) / 2));
-    const top = Math.max(8, Math.min(viewportHeight - dockHeight - 8, rect.bottom - Math.round(dockHeight / 2)));
+    const top = Math.max(8, Math.min(viewportHeight - dockHeight - 8, rect.bottom + 8));
 
     trigger.style.setProperty("left", `${Math.round(left)}px`, "important");
     trigger.style.setProperty("top", `${Math.round(top)}px`, "important");
@@ -1914,6 +1965,33 @@
       // 5. Ping query
       if (request.action === "ping") {
         sendResponse({ success: true, bot: detectChatbot(), hasInput: Boolean(getInput()) });
+        return true;
+      }
+
+      // 6. Chat context handoff driven from the popup
+      if (request.action === "getChatContext") {
+        sendResponse({ success: true, platformName: chatPlatformLabel(), visibleTurns: readVisibleTurns().length });
+        return true;
+      }
+
+      if (request.action === "saveChatContext") {
+        saveThisChatContext((result) => {
+          sendResponse(
+            result.ok
+              ? { success: true, turnCount: result.ctx.turns.length, platformName: result.ctx.platformName }
+              : { success: false, error: result.reason }
+          );
+        });
+        return true;
+      }
+
+      if (request.action === "insertSavedContext") {
+        const ok = openContextTransfer(getInput(), savedContext);
+        sendResponse(
+          ok
+            ? { success: true, pendingReview: true, turnCount: savedContext.turns.length, platformName: savedContext.platformName }
+            : { success: false, error: savedContext ? "No chat input box on this page." : "Nothing saved yet." }
+        );
         return true;
       }
 
