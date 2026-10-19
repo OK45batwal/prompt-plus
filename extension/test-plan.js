@@ -130,6 +130,12 @@ console.log("\nTEST SUITE 3: Manifest & In-Page Widget Integration");
 
 const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, "manifest.json"), "utf8"));
 assert(/^\d+\.\d+\.\d+$/.test(manifest.version), "Manifest has a valid release version");
+// A README header that drifts from the manifest is how the store upload got
+// blocked on "is this newer than 3.x?".
+assert(
+  fs.readFileSync(path.join(__dirname, "README.md"), "utf8").includes(`v${manifest.version}`),
+  `README.md header states the manifest version (v${manifest.version})`
+);
 assert(!manifest.permissions.includes("notifications"), "Unverified capacity does not request notifications permission");
 assert(manifest.permissions.includes("storage"), "Manifest has storage permission");
 // The side panel is the longer workspace: the manifest declares the page and the permission.
@@ -151,6 +157,13 @@ assert(contentCode.includes("pp-dock-runway"), "content.js has #pp-dock-runway")
 assert(contentCode.includes("pp-runway-dot"), "content.js has #pp-runway-dot");
 assert(contentCode.includes("pp-dock-tones"), "content.js has #pp-dock-tones quick tone buttons");
 assert(contentCode.includes("pp-dock-studio-btn"), "content.js has #pp-dock-studio-btn");
+// The dock is pinned to the composer: no drag, no remembered position.
+assert(contentCode.includes("pp-dock-context-btn"), "content.js has the #pp-dock-context-btn chat-context button");
+assert(contentCode.includes("pp_chat_context_v1"), "content.js keeps one saved chat context under a single storage key");
+assert(contentCode.includes("getConversationTurns") && contentCode.includes("buildContextText"), "the saved context is built from the adapter's visible turns");
+assert(contentCode.includes("chrome.storage.local"), "the saved chat context is persisted in extension storage");
+assert(!contentCode.includes("setupDraggable"), "content.js no longer makes the dock draggable");
+assert(!contentCode.includes("pp_dock_custom_pos"), "content.js no longer remembers a dragged dock position");
 assert(!contentCode.includes("window.PromptPlusRunwayOverlay.init()"), "content.js does NOT call obsolete PromptPlusRunwayOverlay.init()");
 assert(!contentCode.includes("window.PromptPlusRunwayOverlay.update("), "content.js does NOT call obsolete PromptPlusRunwayOverlay.update()");
 

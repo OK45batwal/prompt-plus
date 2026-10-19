@@ -63,6 +63,90 @@ for (const editor of ["textarea", "contenteditable"]) {
   });
 }
 
+test("keeps the dock pinned to the bottom edge of the chat input, with no drag", async () => {
+  await context.route("https://chatgpt.com/**", (route) => route.fulfill({ contentType: "text/html", body: `<html><body><main style="height:200px"></main><form><textarea id="prompt-textarea"></textarea><button type="submit">Send</button></form></body></html>` }));
+  const page = await context.newPage();
+  await page.goto("https://chatgpt.com/c/pinned");
+  const dock = page.locator(".pp-unified-dock");
+  await expect(dock).toBeVisible();
+  const dockBox = (await dock.boundingBox())!;
+  const composerBox = (await page.locator("form").boundingBox())!;
+  // Its vertical centre sits on the composer's bottom edge; it is centred on the composer.
+  expect(Math.abs(dockBox.y + dockBox.height / 2 - (composerBox.y + composerBox.height))).toBeLessThanOrEqual(1);
+  expect(Math.abs(dockBox.x + dockBox.width / 2 - (composerBox.x + composerBox.width / 2))).toBeLessThanOrEqual(1);
+  // Dragging the pill's own padding (the old drag origin) must not move it now.
+  await page.mouse.move(dockBox.x + dockBox.width / 2, dockBox.y + dockBox.height - 2);
+  await page.mouse.down();
+  await page.mouse.move(dockBox.x + dockBox.width / 2 + 140, dockBox.y - 90, { steps: 5 });
+  await page.mouse.up();
+  const after = (await dock.boundingBox())!;
+  expect(Math.abs(after.x - dockBox.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(after.y - dockBox.y)).toBeLessThanOrEqual(1);
+  // The composer growing must carry the dock with it, not leave it stranded.
+  await page.locator("#prompt-textarea").evaluate((el) => { (el as HTMLElement).style.height = "160px"; });
+  await expect.poll(async () => {
+    const d = (await dock.boundingBox())!;
+    const c = (await page.locator("form").boundingBox())!;
+    return Math.round(Math.abs(d.y + d.height / 2 - (c.y + c.height)));
+  }).toBeLessThanOrEqual(1);
+});
+
+test("hands a saved chat context from one chatbot to another without submitting", async () => {
+  const composer = (editor: string) => editor === "textarea"
+    ? `<textarea id="prompt-textarea"></textarea>`
+    : `<div id="prompt-textarea" contenteditable="true" role="textbox" style="min-height:40px"></div>`;
+  const form = (editor: string) => `<form onsubmit="event.preventDefault();document.body.dataset.submitted='yes'">${composer(editor)}<button type="submit">Send</button></form>`;
+  await context.route("https://chatgpt.com/**", (route) => route.fulfill({
+    contentType: "text/html",
+    body: `<html><body><main><div data-message-author-role="user">Plan my trip to Kyoto</div><div data-message-author-role="assistant">Start with the temples in Higashiyama.</div></main>${form("textarea")}</body></html>`,
+  }));
+  await context.route("https://claude.ai/**", (route) => route.fulfill({
+    contentType: "text/html",
+    body: `<html><body><main>${form("contenteditable")}</main></body></html>`,
+  }));
+
+  const source = await context.newPage();
+  await source.goto("https://chatgpt.com/c/handoff");
+  await expect(source.locator(".pp-unified-dock")).toBeVisible();
+  await source.locator("#pp-dock-context-btn").click();
+  const sourceMenu = source.locator("#pp-dock-menu");
+  await expect(sourceMenu).toBeVisible();
+  await expect(sourceMenu).toContainText("2 visible messages");
+  await source.locator("#pp-ctx-save").click();
+  // The menu reports what was stored, and the store holds exactly those turns.
+  await expect(sourceMenu).toContainText("Saved: ChatGPT (GPT-4o) · 2 visible messages");
+  const stored = await worker.evaluate("chrome.storage.local.get('pp_chat_context_v1').then(r => r.pp_chat_context_v1)") as { turns: { role: string; text: string }[] };
+  expect(stored.turns).toHaveLength(2);
+  expect(stored.turns[0]).toMatchObject({ role: "user", text: "Plan my trip to Kyoto" });
+  expect(stored.turns[1]).toMatchObject({ role: "assistant", text: "Start with the temples in Higashiyama." });
+
+  const target = await context.newPage();
+  await target.goto("https://claude.ai/new");
+  const input = target.locator("#prompt-textarea");
+  await expect(target.locator(".pp-unified-dock")).toBeVisible();
+  await target.locator("#pp-dock-context-btn").click();
+  const targetMenu = target.locator("#pp-dock-menu");
+  await expect(targetMenu).toContainText("no visible messages");
+  await expect(targetMenu).toContainText("Saved: ChatGPT (GPT-4o)");
+  await target.locator("#pp-ctx-load").click();
+  const dialog = target.getByRole("dialog", { name: "Review context transfer" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText("Saved context from ChatGPT (GPT-4o) · 2 visible messages");
+  await expect(dialog.locator("#pp-preview-tokens")).toContainText("Estimated tokens: 0 →");
+  // Review first: clicking Load must not touch the composer.
+  await expect(input).toHaveText("");
+  await dialog.locator("#pp-preview-accept").click();
+  await expect(input).toContainText("Plan my trip to Kyoto");
+  await expect(input).toContainText("Start with the temples in Higashiyama.");
+  await expect(input).toContainText("Text visible in that tab only");
+  await expect(target.locator("body")).not.toHaveAttribute("data-submitted", "yes");
+  // The insert is reversible. The panel renames itself once applied, so target it by id.
+  await target.locator("#pp-enhancement-preview #pp-preview-undo").click();
+  await expect(input).toHaveText("");
+  await target.close();
+  await source.close();
+});
+
 test("popup compiles locally and copies when insertion is unavailable", async () => {
   const popup = await context.newPage();
   await popup.goto(`chrome-extension://${extensionId}/popup.html`);
