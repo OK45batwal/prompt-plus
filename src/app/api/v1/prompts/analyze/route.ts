@@ -4,7 +4,6 @@ import { getDb } from "@/lib/db/prisma";
 import { analyzePromptSchema } from "@/lib/validations/prompts";
 import { callLLM } from "@/lib/llm/providers";
 import { decrypt } from "@/lib/crypto";
-import { resolveServerApiKey } from "@/lib/llm/server-api-key";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 
@@ -82,14 +81,6 @@ export const POST = withAuth(
         provider = (userKey.provider as "openai" | "anthropic") || "openai";
       } catch {
         // ignore bad key
-      }
-    }
-
-    if (!apiKey) {
-      const serverKey = resolveServerApiKey("openai");
-      if (serverKey) {
-        apiKey = serverKey.apiKey;
-        provider = serverKey.provider === "nvidia" || serverKey.provider === "openrouter" ? "openai" : serverKey.provider;
       }
     }
 

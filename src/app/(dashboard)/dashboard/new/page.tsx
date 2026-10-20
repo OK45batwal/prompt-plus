@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { useState, useRef, useEffect, Suspense, type KeyboardEvent } from "react";
 import { useSearchParams } from "next/navigation";
@@ -23,7 +24,7 @@ import { estimateTokenCount, calculateCostEstimates } from "@/lib/token-calculat
 import type { EnhanceLevel } from "@/lib/llm/meta-prompt";
 import { useToast } from "@/components/ui/toast";
 import { openAIPlatform } from "@/lib/platform-redirect";
-import { MODELS, DEFAULT_MODEL_ID, getModelById } from "@/lib/models";
+import { MODELS, DEFAULT_MODEL_ID, getModelById, canIncurProviderCharges } from "@/lib/models";
 import { ModelSelector } from "@/components/studio/model-selector";
 import { ContextMemoryPanel } from "@/components/studio/context-memory-panel";
 import { LiveEvaluation } from "@/components/studio/live-evaluation";
@@ -309,28 +310,18 @@ function PromptBuilderPage() {
   const costEstimates = calculateCostEstimates(combinedText);
 
   const [errorNotice, setErrorNotice] = useState<string | null>(null);
+  const [errorAction, setErrorAction] = useState<{ label: string; href: string } | null>(null);
+  const [paidConsent, setPaidConsent] = useState(false);
+  const [runMode, setRunMode] = useState<"local" | "auto" | "cloud">("auto");
 
   const handleEnhance = async () => {
     if (!prompt.trim()) return;
     setIsEnhancing(true);
     setErrorNotice(null);
+    setErrorAction(null);
     setResult(null);
 
     const fullPrompt = getCombinedPromptWithContext();
-
-    let userApiKey: string | undefined;
-    if (typeof window !== "undefined") {
-      try {
-        const raw = localStorage.getItem("promptplus_user_apikeys");
-        if (raw) {
-          const localMap = JSON.parse(raw);
-          const targetProv = selectedModelData?.provider || "openai";
-          userApiKey = localMap[targetProv];
-        }
-      } catch {
-        // ignore
-      }
-    }
 
     try {
       let finalEnhancedText: string | undefined;
@@ -339,12 +330,19 @@ function PromptBuilderPage() {
       const response = await fetch("/api/v2/optimize", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
-        body: JSON.stringify({ text: fullPrompt, mode: "auto", provider: selectedModelData?.provider,
-          userApiKey, tone: selectedTone, length: selectedLength, category: selectedCategory,
+        body: JSON.stringify({ text: fullPrompt, mode: runMode === "local" ? "algorithmic" : runMode === "cloud" ? "api" : "auto", modelId: selectedModel,
+          confirmPaidUsage: paidConsent, tone: selectedTone, length: selectedLength, category: selectedCategory,
           level: enhanceLevel, targetModel: selectedModelData?.rawModel || selectedModel }),
       });
       const json = await response.json();
-      if (!response.ok) throw new Error(json.error || "Enhancement failed. Please try again.");
+      if (!response.ok) {
+        if (json.code === "paid_consent_required") {
+          setErrorAction({ label: "Allow paid runs above, then retry", href: "#paid-consent" });
+        } else if (json.actionPath) {
+          setErrorAction({ label: `Connect ${json.model || "a provider"} key`, href: json.actionPath });
+        }
+        throw new Error(json.error || "Enhancement failed. Please try again.");
+      }
       if (json.data?.selectedCandidate?.renderedText) {
         enhanceProvider = json.data.source === "llm" ? "api" : "engine";
         finalEnhancedText = json.data.selectedCandidate.renderedText;
@@ -621,8 +619,14 @@ function PromptBuilderPage() {
 
       {errorNotice && (
         <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-700 dark:text-amber-300 flex items-center justify-between">
-          <span role="alert">⚠️ {errorNotice}</span>
-          <button onClick={() => setErrorNotice(null)} className="text-xs underline ml-2">Dismiss</button>
+          <span role="alert">
+            ⚠️ {errorNotice}
+            {errorAction && !errorAction.href.startsWith("#") && (
+              <Link href={errorAction.href} className="ml-2 underline font-medium">{errorAction.label}</Link>
+            )}
+            {errorAction?.href.startsWith("#") && <span className="ml-2 font-medium">{errorAction.label}</span>}
+          </span>
+          <button onClick={() => { setErrorNotice(null); setErrorAction(null); }} className="text-xs underline ml-2">Dismiss</button>
         </div>
       )}
 
@@ -739,11 +743,58 @@ function PromptBuilderPage() {
           <div className="space-y-4 border-t border-border/60 pt-5">
             <p className="text-xs font-medium text-muted-foreground">Options — optional</p>
 
-            <ModelSelector
-              selectedModel={selectedModel}
-              onSelectModel={setSelectedModel}
-              savedKeys={savedKeys}
-            />
+            <div role="group" aria-label="Where to run the enhancement" className="space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground">Run with</p>
+              <div className="flex gap-1.5">
+                {([["local", "Local engine"], ["auto", "Auto"], ["cloud", "Cloud model"]] as const).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={runMode === value}
+                    onClick={() => setRunMode(value)}
+                    className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${
+                      runMode === value ? "bg-foreground text-background" : "bg-background hover:bg-accent"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                {runMode === "local"
+                  ? "The deterministic engine runs on the server; no model is called."
+                  : runMode === "cloud"
+                  ? "Only the selected model runs. If it cannot run, the error stays visible."
+                  : "Uses the selected model when its key is saved; otherwise the deterministic engine runs."}
+              </p>
+            </div>
+
+            <div className={runMode === "local" ? "opacity-60" : undefined} aria-disabled={runMode === "local"}>
+              <ModelSelector
+                selectedModel={selectedModel}
+                onSelectModel={setSelectedModel}
+                savedKeys={savedKeys}
+              />
+            </div>
+
+            {canIncurProviderCharges(getModelById(selectedModel) ?? { access: "unknown" }) && (
+              <label id="paid-consent" className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
+                <input
+                  type="checkbox"
+                  checked={paidConsent}
+                  onChange={(e) => setPaidConsent(e.target.checked)}
+                  className="mt-0.5 h-3.5 w-3.5"
+                />
+                <span>
+                  This model can bill your {selectedModelData?.provider} account. Tick to allow paid runs.
+                  {selectedModelData?.pricing.inputPer1M != null && (
+                    <span className="block text-muted-foreground">
+                      ${selectedModelData.pricing.inputPer1M}/1M in · ${selectedModelData.pricing.outputPer1M}/1M out
+                    </span>
+                  )}
+                </span>
+              </label>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>

@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "eslint",
     "check-routes": "node scripts/check-api-routes.mjs",
+    "refresh-models": "node scripts/refresh-model-catalog.mjs",
     "build:extension": "node scripts/package-extension.mjs",
     "screenshots": "node scripts/generate-chrome-screenshots.mjs",
     "test": "node scripts/check-api-routes.mjs && node scripts/check-honesty.mjs && vitest run",

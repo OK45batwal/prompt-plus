@@ -65,6 +65,17 @@ vi.mock("@/lib/db/prisma", () => ({
         mockApiKeys.push(item);
         return item;
       }),
+      upsert: vi.fn().mockImplementation(async ({ where, create, update }) => {
+        const { userId, provider } = where.userId_provider;
+        const existing = mockApiKeys.find((k) => k.userId === userId && k.provider === provider);
+        if (existing) {
+          Object.assign(existing, update);
+          return existing;
+        }
+        const item = { id: `key_${Date.now()}`, ...create, createdAt: new Date() };
+        mockApiKeys.push(item);
+        return item;
+      }),
       update: vi.fn().mockResolvedValue({}),
     },
     prompt: {

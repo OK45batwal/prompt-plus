@@ -4,6 +4,7 @@ import { z } from "zod";
 import { callLLM, createLLMCacheKey } from "@/lib/llm/providers";
 import { buildArchitectMetaPrompt, cleanMasterPromptOutput } from "@/lib/llm/meta-prompt";
 import { resolveServerApiKey, providerForModel, defaultModelForProvider } from "@/lib/llm/server-api-key";
+import { canIncurProviderCharges, resolveModelReference } from "@/lib/models";
 import { checkIpRateLimitAsync, extractClientIp, getRateLimitHeaders, rateLimitStatus, rateLimitMessage } from "@/lib/rate-limit";
 import { calculateStructuralScore } from "@/lib/scoring";
 import { executeLoopEngineering } from "@/lib/prompt-engine";
@@ -13,7 +14,7 @@ import { auth } from "@/lib/auth/config";
 const extensionEnhanceSchema = z.object({
   text: z.string().trim().min(1).max(10000),
   apiKey: z.string().min(5).optional(),
-  provider: z.enum(["openai", "anthropic", "openrouter", "nvidia"]).optional(),
+  provider: z.enum(["openai", "anthropic", "openrouter", "nvidia", "google"]).optional(),
   model: z.string().optional(),
   category: z.string().optional(),
   tone: z.string().optional(),
@@ -67,14 +68,17 @@ export async function POST(request: NextRequest) {
   const session = await auth().catch(() => null);
   const tenantId = session?.user?.id;
   if (!effectiveKey) {
-    if (session?.user) {
+    // Operator keys only ever pay for a model whose terms allow it; a request for a
+    // paid model from an anonymous extension user gets the deterministic engine.
+    const requestedEntry = resolveModelReference(model);
+    const operatorMayPay = !requestedEntry || !canIncurProviderCharges(requestedEntry);
+    if (session?.user && operatorMayPay) {
       const serverKey = resolveServerApiKey(resolvedProvider);
-      if (serverKey) {
+      if (serverKey && serverKey.provider === resolvedProvider) {
         effectiveKey = serverKey.apiKey;
         effectiveProvider = serverKey.provider;
       }
     } else {
-      effectiveProvider = "openrouter";
       effectiveKey = "";
     }
   }

@@ -11,7 +11,10 @@ vi.mock("@/lib/auth/account", () => ({
 vi.mock("@/lib/db/prisma", () => ({ getDb: () => mocks.db }));
 vi.mock("@/lib/prompt-engine", () => ({ runRealPromptEvaluation: mocks.evaluate }));
 vi.mock("@/lib/rate-limit", () => ({ checkIpRateLimitAsync: mocks.budget, getRateLimitHeaders: () => ({ "Retry-After": "60" }), rateLimitMessage: () => "Rate limited", rateLimitStatus: () => 429 }));
-vi.mock("@/lib/llm/server-api-key", () => ({ resolveServerApiKey: mocks.resolveKey, providerForModel: mocks.provider }));
+vi.mock("@/lib/llm/resolve-credentials", () => ({
+  resolveModelCredentials: mocks.resolveKey,
+  credentialActionPath: () => "/dashboard/settings?tab=api-keys",
+}));
 import { POST } from "@/app/api/v2/evaluate/route";
 const body = { promptId: "p", originalPrompt: "2+2", candidateText: "Return 2+2", confirmLiveEvaluation: true, rubric: { exact: "4" } };
 const request = (data: object) => new NextRequest("http://localhost/api/v2/evaluate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data) });
@@ -19,7 +22,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.budget.mockResolvedValue({ allowed: true });
   mocks.provider.mockReturnValue("openrouter");
-  mocks.resolveKey.mockReturnValue({ apiKey: "test-key", provider: "openrouter" });
+  mocks.resolveKey.mockResolvedValue({
+    ok: true,
+    apiKey: "test-key",
+    provider: "openrouter",
+    model: { rawModel: "nvidia/nemotron-3.5-super-vl:free" },
+  });
   mocks.db.prompt.findFirst.mockResolvedValue({ id: "p" });
   mocks.db.usageLog.create.mockResolvedValue({});
   mocks.db.analytics.create.mockResolvedValue({});
@@ -52,12 +60,17 @@ it("enforces the account evaluation budget", async () => {
   expect(response.headers.get("Retry-After")).toBe("60");
   expect(mocks.evaluate).not.toHaveBeenCalled();
 });
-it("refuses to spend a request when the model's provider has no server key", async () => {
-  mocks.provider.mockReturnValue("openai");
-  mocks.resolveKey.mockReturnValue({ apiKey: "nvapi-foreign", provider: "nvidia" });
+it("refuses to spend a request when the user has no key for the model's provider", async () => {
+  mocks.resolveKey.mockResolvedValue({
+    ok: false,
+    status: 400,
+    code: "missing_key",
+    message: "Connect an OpenAI key to run GPT-4o.",
+    provider: "openai",
+  });
   const response = await POST(request({ ...body, targetModel: "gpt-4o" }));
-  expect(response.status).toBe(402);
-  expect((await response.json()).code).toBe("PROVIDER_KEY_MISSING");
+  expect(response.status).toBe(400);
+  expect((await response.json()).code).toBe("missing_key");
   expect(mocks.evaluate).not.toHaveBeenCalled();
   expect(mocks.db.usageLog.create).not.toHaveBeenCalled();
 });

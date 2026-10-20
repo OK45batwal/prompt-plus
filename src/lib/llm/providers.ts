@@ -83,12 +83,9 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
     responseFormatJson = false,
   } = options;
 
-  let provider = options.provider || "openrouter";
-
-  // Auto-route based on API key prefix if provided
-  if (apiKey) {
-    provider = detectProviderFromKey(apiKey, provider);
-  }
+  // The caller's provider is authoritative: a key is never re-routed to whichever
+  // provider its prefix looks like, which used to bill the wrong account silently.
+  const provider = options.provider || "openrouter";
 
   if (!apiKey.trim()) throw new LLMError("An API key is required for cloud enhancement.", provider, 401);
 
@@ -101,8 +98,9 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
   const isOpenRouter = provider === "openrouter";
   const isAnthropic = provider === "anthropic";
   const isNvidia = provider === "nvidia";
+  const isGoogle = provider === "google";
 
-  let model =
+  const model =
     reqModel ||
     (isOpenRouter
       ? "nvidia/nemotron-3.5-super-vl:free"
@@ -110,25 +108,9 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
       ? "claude-3-5-sonnet-20241022"
       : isNvidia
       ? "meta/llama-3.3-70b-instruct"
+      : isGoogle
+      ? "gemini-3.8-flash"
       : "gpt-4o-mini");
-
-  if (isNvidia) {
-    const clean = model.toLowerCase();
-    if (clean.includes("llama-3.3") || clean.includes("llama3.3") || clean.includes("llama3")) {
-      model = "meta/llama-3.3-70b-instruct";
-    } else if (clean.includes("nemotron")) {
-      model = "nvidia/llama-3.1-nemotron-70b-instruct";
-    } else if (clean.includes("gemma")) {
-      model = "google/gemma-2-27b-it";
-    } else if (clean.includes("mistral")) {
-      model = "mistralai/mistral-7b-instruct-v0.3";
-    } else if (!model.includes("/")) {
-      model = "meta/llama-3.3-70b-instruct";
-    }
-  } else if (isOpenRouter) {
-    const clean = model.toLowerCase();
-    if (clean.includes("llama-3.3")) model = "meta-llama/llama-3.3-70b-instruct";
-  }
 
   const cacheKey = createLLMCacheKey({ tenantId: options.tenantId, apiKey, provider, model, systemPrompt, userPrompt, temperature, maxTokens, responseFormatJson });
   // Anonymous/server calls without a trusted tenant have no shared cache.
@@ -137,7 +119,9 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
   if (cached && Date.now() < cached.expiresAt) return cached.response;
   if (cached) llmResponseCache.delete(cacheKey);
 
-  const url = isOpenRouter
+  const url = isGoogle
+    ? `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`
+    : isOpenRouter
     ? "https://openrouter.ai/api/v1/chat/completions"
     : isAnthropic
     ? "https://api.anthropic.com/v1/messages"
@@ -147,7 +131,9 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...(isOpenRouter
+    ...(isGoogle
+      ? { "x-goog-api-key": apiKey }
+      : isOpenRouter
       ? {
           ...(apiKey && apiKey.trim() ? { Authorization: `Bearer ${apiKey}` } : {}),
           "HTTP-Referer": "https://prompt-plus-three.vercel.app",
@@ -160,7 +146,17 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
       : {}),
   };
 
-  const body = isAnthropic
+  const body = isGoogle
+    ? {
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: {
+          temperature,
+          maxOutputTokens: maxTokens,
+          ...(responseFormatJson ? { responseMimeType: "application/json" } : {}),
+        },
+      }
+    : isAnthropic
     ? { model, system: systemPrompt, messages: [{ role: "user", content: userPrompt }], max_tokens: maxTokens, temperature }
     : {
         model,
@@ -184,8 +180,10 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
       data = await res.json().catch(() => ({}));
       clearTimeout(attemptTimeout);
       if (res.ok) break;
-      if (res.status < 500 && res.status !== 429 && res.status !== 404 && res.status !== 400) break;
+      // Read the provider's message before deciding whether to retry, otherwise a
+      // rejected 4xx request reports only the HTTP status.
       lastErrMessage = (data as { error?: { message?: string } })?.error?.message || `${provider} API error (${res.status})`;
+      if (res.status !== 429 && res.status < 500) break;
       if (attempt < (options.maxAttempts ?? 2)) await new Promise((r) => setTimeout(r, 500));
     } catch (err: unknown) {
       clearTimeout(attemptTimeout);
@@ -214,17 +212,28 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
     choices?: Array<{ message?: { content?: string } }>;
     usage?: { prompt_tokens?: number; completion_tokens?: number };
     model?: string;
+    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> }; finishReason?: string }>;
+    promptFeedback?: { blockReason?: string };
+    usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
+    modelVersion?: string;
   };
 
-  const textOutput = isAnthropic
+  const textOutput = isGoogle
+    ? (parsed.candidates?.[0]?.content?.parts || []).map((part) => part.text || "").join("")
+    : isAnthropic
     ? parsed.content?.[0]?.text || ""
     : parsed.choices?.[0]?.message?.content || "";
 
+  if (isGoogle && !textOutput) {
+    const block = parsed.promptFeedback?.blockReason || parsed.candidates?.[0]?.finishReason;
+    throw new LLMError(`Google returned no text${block ? ` (${block})` : ""}.`, provider, 400);
+  }
+
   const responseResult: LLMResponse = {
     content: textOutput,
-    tokensIn: parsed.usage?.prompt_tokens,
-    tokensOut: parsed.usage?.completion_tokens,
-    model: parsed.model || model,
+    tokensIn: isGoogle ? parsed.usageMetadata?.promptTokenCount : parsed.usage?.prompt_tokens,
+    tokensOut: isGoogle ? parsed.usageMetadata?.candidatesTokenCount : parsed.usage?.completion_tokens,
+    model: (isGoogle ? parsed.modelVersion : parsed.model) || model,
     provider,
   };
 

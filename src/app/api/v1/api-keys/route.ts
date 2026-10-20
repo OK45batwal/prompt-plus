@@ -28,6 +28,9 @@ export function createKeyHint(key: string): string {
   return `${prefix}••••••••${suffix}`;
 }
 
+/** Why a credential is untested, accepted, or rejected. Stored with the row. */
+export type KeyValidationStatus = "accepted" | "rejected" | "unreachable";
+
 const createApiKeySchema = z.object({
   provider: z.enum(["openai", "anthropic", "google", "openrouter", "nvidia"]),
   apiKey: z.string().min(5, "API key must be at least 5 characters"),
@@ -40,21 +43,25 @@ export const GET = withAuth(async (_req: NextRequest, { userId, requestId }) => 
       id: true,
       provider: true,
       apiKeyEnc: true,
+      keyHint: true,
       isActive: true,
       lastUsedAt: true,
       usageCount: true,
+      lastValidatedAt: true,
+      lastValidationStatus: true,
       createdAt: true,
     },
     orderBy: { createdAt: "desc" },
   });
 
   const formatted = keys.map((k) => {
-    let keyHint = "••••••••";
-    try {
-      const decrypted = decrypt(k.apiKeyEnc);
-      keyHint = createKeyHint(decrypted);
-    } catch {
-      // Fallback preview
+    let keyHint = k.keyHint || "••••••••";
+    if (!k.keyHint) {
+      try {
+        keyHint = createKeyHint(decrypt(k.apiKeyEnc));
+      } catch {
+        // Ciphertext from an older key; the hint stays masked.
+      }
     }
     return {
       id: k.id,
@@ -63,6 +70,8 @@ export const GET = withAuth(async (_req: NextRequest, { userId, requestId }) => 
       isActive: k.isActive,
       lastUsedAt: k.lastUsedAt,
       usageCount: k.usageCount,
+      lastValidatedAt: k.lastValidatedAt,
+      lastValidationStatus: k.lastValidationStatus,
       createdAt: k.createdAt,
     };
   });
@@ -89,18 +98,19 @@ export const POST = withAuth(
 
     const { provider, apiKey } = parseResult.data;
     const apiKeyEnc = encrypt(apiKey);
-    const keyHint = createKeyHint(apiKey);
+    const keyHint = createKeyHint(apiKey.trim());
 
-    await getDb().apiKey.deleteMany({
-      where: { userId, provider },
-    }).catch(() => {});
-
-    const newKey = await getDb().apiKey.create({
-      data: {
-        userId,
-        provider,
+    // Replace atomically: the unique (user, provider) row means a re-save cannot
+    // leave two credentials for one provider behind.
+    const newKey = await getDb().apiKey.upsert({
+      where: { userId_provider: { userId, provider } },
+      create: { userId, provider, apiKeyEnc, keyHint, isActive: true },
+      update: {
         apiKeyEnc,
+        keyHint,
         isActive: true,
+        lastValidatedAt: null,
+        lastValidationStatus: null,
       },
       select: {
         id: true,

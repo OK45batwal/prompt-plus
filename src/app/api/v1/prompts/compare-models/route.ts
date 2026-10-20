@@ -3,17 +3,17 @@ import { z } from "zod";
 import { getDb } from "@/lib/db/prisma";
 import { callLLM } from "@/lib/llm/providers";
 import { decrypt } from "@/lib/crypto";
-import { resolveServerApiKey } from "@/lib/llm/server-api-key";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 
-const SUPPORTED_PROVIDERS = ["openai", "anthropic", "openrouter", "nvidia"] as const;
+const SUPPORTED_PROVIDERS = ["openai", "anthropic", "openrouter", "nvidia", "google"] as const;
 
 const DEFAULT_MODELS: Record<(typeof SUPPORTED_PROVIDERS)[number], string> = {
   openai: "gpt-4o-mini",
   anthropic: "claude-3-5-sonnet-20241022",
   openrouter: "nvidia/nemotron-3.5-super-vl:free",
   nvidia: "meta/llama-3.3-70b-instruct",
+  google: "gemini-3.8-flash",
 };
 
 const compareSchema = z.object({
@@ -62,11 +62,6 @@ export const POST = withAuth(
             apiKey = undefined;
           }
         }
-        if (!apiKey) {
-          const serverKey = resolveServerApiKey(provider);
-          if (serverKey?.provider === provider) apiKey = serverKey.apiKey;
-        }
-
         const resolvedModel = model || DEFAULT_MODELS[provider];
 
         if (!apiKey) {

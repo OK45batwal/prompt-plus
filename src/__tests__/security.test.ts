@@ -121,13 +121,13 @@ describe("Phase 1 Security & Correctness Hardening", () => {
       expect(result?.apiKey).toBe("sk-test");
     });
 
-    it("should fall back to the first configured server key in priority order", () => {
+    it("should fall back in a fixed priority order when the preferred key is missing", () => {
       delete process.env.OPENAI_API_KEY;
       process.env.NVIDIA_API_KEY = "nvapi-test";
       process.env.OPENROUTER_API_KEY = "sk-or-test";
       const result = resolveServerApiKey("openai");
-      expect(result?.provider).toBe("nvidia");
-      expect(result?.apiKey).toBe("nvapi-test");
+      expect(result?.provider).toBe("openrouter");
+      expect(result?.apiKey).toBe("sk-or-test");
     });
 
     it("should return null for an unknown preferred provider with no configured keys", () => {
@@ -177,41 +177,7 @@ describe("Phase 1 Security & Correctness Hardening", () => {
       expect(result.reason).toContain("CSRF origin mismatch");
     });
   describe("Provider Key Prefix Auto-Detection", () => {
-    it("should correctly auto-route OpenAI sk- prefix to openai provider", async () => {
-      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-        new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), { status: 200 })
-      );
-
-      const { callLLM } = await import("@/lib/llm/providers");
-      const res = await callLLM({
-        provider: "nvidia",
-        apiKey: "sk-proj-test12345",
-        systemPrompt: "You are a test assistant.",
-        userPrompt: "test",
-      });
-
-      expect(res.provider).toBe("openai");
-      fetchSpy.mockRestore();
-    });
-
-    it("should correctly auto-route sk-or- prefix to openrouter provider", async () => {
-      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
-        new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), { status: 200 })
-      );
-
-      const { callLLM } = await import("@/lib/llm/providers");
-      const res = await callLLM({
-        provider: "nvidia",
-        apiKey: "sk-or-v1-test12345",
-        systemPrompt: "You are a test assistant.",
-        userPrompt: "test",
-      });
-
-      expect(res.provider).toBe("openrouter");
-      fetchSpy.mockRestore();
-    });
-
-    it("should correctly auto-route nvapi- prefix to nvidia provider", async () => {
+    it("never re-routes a request to the provider whose prefix the key resembles", async () => {
       const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
         new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), { status: 200 })
       );
@@ -224,7 +190,10 @@ describe("Phase 1 Security & Correctness Hardening", () => {
         userPrompt: "test",
       });
 
-      expect(res.provider).toBe("nvidia");
+      // The caller's provider is authoritative, so an NVIDIA-shaped key is not
+      // silently spent against NVIDIA when OpenAI was requested.
+      expect(res.provider).toBe("openai");
+      expect(fetchSpy.mock.calls[0][0]).toBe("https://api.openai.com/v1/chat/completions");
       fetchSpy.mockRestore();
     });
   });

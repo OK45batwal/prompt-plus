@@ -117,8 +117,12 @@ describe("task evaluation", () => {
   });
 });
 
-it("labels unverified prices and handles empty/multilingual estimates", () => {
-  expect(calculateCostEstimates("hello").every((c) => c.estimatedCostUSD === null)).toBe(true);
+it("quotes only verified prices and handles empty/multilingual estimates", () => {
+  const estimates = calculateCostEstimates("hello");
+  // Verified catalog entries quote; unverified ones return null instead of a guess.
+  expect(estimates.some((c) => c.pricingStatus === "verified" && c.estimatedCostUSD !== null)).toBe(true);
+  expect(estimates.filter((c) => c.pricingStatus === "unverified").every((c) => c.estimatedCostUSD === null)).toBe(true);
+  expect(estimates.every((c) => c.formattedCost === "Price unverified" || c.formattedCost.length > 0)).toBe(true);
   expect(estimateTokenCount(" ")).toBe(0);
   expect(estimateTokenCount("नमस्ते 世界 😀")).toBeGreaterThan(0);
 });

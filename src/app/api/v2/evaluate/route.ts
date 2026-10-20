@@ -4,7 +4,8 @@ import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 import { runRealPromptEvaluation } from "@/lib/prompt-engine";
 import { checkIpRateLimitAsync, getRateLimitHeaders, rateLimitMessage, rateLimitStatus } from "@/lib/rate-limit";
-import { resolveServerApiKey, providerForModel } from "@/lib/llm/server-api-key";
+import { resolveModelCredentials, credentialActionPath } from "@/lib/llm/resolve-credentials";
+import { DEFAULT_MODEL_ID } from "@/lib/models";
 import { z } from "zod";
 
 const evaluateSchema = z.object({
@@ -40,22 +41,29 @@ export const POST = withAuth(
     }
     const budget = await checkIpRateLimitAsync(`evaluation:${userId}`, 5, 3600000);
     if (!budget.allowed) return jsonResponse({ error: rateLimitMessage(budget) }, { status: rateLimitStatus(budget), headers: getRateLimitHeaders(budget), requestId });
-    const model = targetModel || "nvidia/nemotron-3.5-super-vl:free";
-    const provider = providerForModel(model);
-    const resolved = resolveServerApiKey(provider);
-    // Only use the resolved key when it belongs to the model's provider; never mix a key with a foreign model.
-    const apiKey = resolved?.provider === provider ? resolved.apiKey : "";
-    if (!apiKey) {
+    // The explicit "run live evaluation" confirmation doubles as the paid-run consent.
+    const credentials = await resolveModelCredentials({
+      userId,
+      modelId: targetModel || DEFAULT_MODEL_ID,
+      paidConsent: parseResult.data.confirmLiveEvaluation,
+    });
+    if (!credentials.ok) {
       return jsonResponse(
-        { error: `Live verification needs a ${provider} API key on the server. Pick a model from a configured provider with a matching API key.`, code: "PROVIDER_KEY_MISSING", provider },
-        { status: 402, requestId }
+        {
+          error: credentials.message,
+          code: credentials.code,
+          provider: credentials.provider,
+          actionPath: credentialActionPath(credentials),
+        },
+        { status: credentials.status, requestId }
       );
     }
+    const model = credentials.model.rawModel;
     const evaluation = await runRealPromptEvaluation(
       originalPrompt,
       candidateText,
       model,
-      { rubric: parseResult.data.rubric, tenantId: userId, apiKey, provider }
+      { rubric: parseResult.data.rubric, tenantId: userId, apiKey: credentials.apiKey, provider: credentials.provider }
     );
 
     for (const run of evaluation.runs) {

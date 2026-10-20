@@ -11,7 +11,7 @@ vi.mock("@/lib/auth/account", () => ({
 }));
 vi.mock("@/lib/db/prisma", () => ({ getDb: () => mocks.db }));
 vi.mock("@/lib/llm/providers", () => ({ callLLM: mocks.call }));
-vi.mock("@/lib/llm/server-api-key", () => ({ resolveServerApiKey: mocks.key }));
+vi.mock("@/lib/crypto", () => ({ decrypt: () => "test-key", encrypt: (v: string) => v }));
 import { auth } from "@/lib/auth/config";
 import { POST } from "@/app/api/v1/prompts/score/route";
 const request = (body: object) => new NextRequest("http://localhost/api/v1/prompts/score", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -19,7 +19,6 @@ const score = (total: number) => ({ content: JSON.stringify({ total, dimensions:
 beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(auth).mockResolvedValue({ user: { id: "owner" } } as never);
-  mocks.key.mockReturnValue({ apiKey: "", provider: "openrouter" });
   mocks.db.apiKey.findFirst.mockResolvedValue(null);
   mocks.db.prompt.findFirst.mockResolvedValue(null);
   mocks.db.prompt.updateMany.mockResolvedValue({ count: 1 });
@@ -32,7 +31,7 @@ describe("score provenance", () => {
     expect(mocks.call).not.toHaveBeenCalled();
   });
   it("persists both actual scores including zero and uses the resolved provider", async () => {
-    mocks.key.mockReturnValue({ apiKey: "test", provider: "nvidia" });
+    mocks.db.apiKey.findFirst.mockResolvedValue({ apiKeyEnc: "enc", provider: "nvidia" });
     mocks.db.prompt.findFirst.mockResolvedValue({ id: "p", originalText: "original", enhancedText: "enhanced" });
     mocks.call.mockResolvedValueOnce(score(94)).mockResolvedValueOnce(score(0));
     const response = await POST(request({ text: "enhanced", promptId: "p" }));
@@ -50,7 +49,7 @@ describe("score provenance", () => {
     expect((await POST(request({ text: "other", promptId: "p" }))).status).toBe(409);
   });
   it("does not save a fabricated score after a malformed model response", async () => {
-    mocks.key.mockReturnValue({ apiKey: "test", provider: "openai" });
+    mocks.db.apiKey.findFirst.mockResolvedValue({ apiKeyEnc: "enc", provider: "openai" });
     mocks.call.mockResolvedValue({ content: "not json" });
     const { data } = await (await POST(request({ text: "A task" }))).json();
     expect(data.measuredTotal).toBeNull();
