@@ -1,9 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
 import { logger } from "@/lib/logger";
-import { LLMError } from "@/lib/llm/providers";
-import { withAuth } from "@/lib/api/with-auth";
-import { NextRequest } from "next/server";
-import { z } from "zod";
 
 vi.mock("next-auth", () => ({
   default: vi.fn().mockImplementation(() => ({
@@ -12,6 +8,16 @@ vi.mock("next-auth", () => ({
     }),
   })),
 }));
+
+// The account check is a database round trip; exercised in session-hardening.test.ts.
+vi.mock("@/lib/auth/account", () => ({
+  verifySessionAccount: async () => ({ ok: true, user: { id: "test-user-123", authVersion: 0, emailVerified: null } }),
+  sessionCheckMessage: () => "invalid session",
+}));
+import { LLMError } from "@/lib/llm/providers";
+import { withAuth } from "@/lib/api/with-auth";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 
 describe("Phase 2 High Reliability & Architecture Tests", () => {
   describe("Structured Logging Utility", () => {

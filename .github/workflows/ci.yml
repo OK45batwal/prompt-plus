@@ -71,6 +71,7 @@ jobs:
         run: node scripts/check-env.mjs
         env:
           AUTH_SECRET: "ci-auth-secret-32-characters-minimum-for-testing!"
+          ENCRYPTION_KEY: "ci-encryption-key-32-characters-minimum-for-tests"
           DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
           RESEND_API_KEY: "re_ci_dummy_key_for_testing"
           SMTP_FROM: "noreply@prompt-plus.com"

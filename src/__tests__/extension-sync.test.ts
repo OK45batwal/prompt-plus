@@ -18,6 +18,10 @@ let mockSession: MockUserSession | null = null;
 vi.mock("@/lib/auth/config", () => ({
   auth: vi.fn(() => Promise.resolve(mockSession)),
 }));
+vi.mock("@/lib/auth/account", () => ({
+  verifySessionAccount: async () => ({ ok: true, user: { id: "test-user", authVersion: 0, emailVerified: null } }),
+  sessionCheckMessage: () => "invalid session",
+}));
 
 vi.mock("@/lib/db/prisma", () => ({
   getDb: vi.fn(() => ({

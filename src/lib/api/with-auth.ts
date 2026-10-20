@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import crypto from "crypto";
 import { auth } from "@/lib/auth/config";
+import { verifySessionAccount, sessionCheckMessage } from "@/lib/auth/account";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { jsonResponse } from "./response-headers";
 import { logger } from "@/lib/logger";
@@ -44,7 +45,8 @@ export function withAuth<T extends z.ZodTypeAny = z.ZodTypeAny>(
       return jsonResponse({ error: "Unauthorized" }, { status: 401, requestId });
     }
 
-    // 2. Validate CSRF Protection for state-changing HTTP methods
+    // 2. Validate CSRF Protection for state-changing HTTP methods. This runs before any
+    //    database work so forged requests are rejected without a round trip.
     const csrfCheck = validateCsrf(req);
     if (!csrfCheck.valid) {
       logger.warn("CSRF validation failed", { requestId, reason: csrfCheck.reason });
@@ -54,7 +56,22 @@ export function withAuth<T extends z.ZodTypeAny = z.ZodTypeAny>(
       );
     }
 
-    // 3. Optional Payload Validation using cloned request stream
+    // 3. Authoritative account check: deleted users and revoked JWT versions stop
+    //    here even while the cookie is still cryptographically valid.
+    const account = await verifySessionAccount(userId, session.user?.authVersion);
+    if (!account.ok) {
+      logger.warn("Session rejected by account check", {
+        requestId,
+        reason: account.reason,
+        path: req.nextUrl?.pathname,
+      });
+      return jsonResponse(
+        { error: sessionCheckMessage(account), code: account.reason },
+        { status: account.status, requestId }
+      );
+    }
+
+    // 4. Optional Payload Validation using cloned request stream
     let parsedBody: z.infer<T> | undefined;
     if (options?.schema && ["POST", "PUT", "PATCH"].includes(req.method)) {
       try {
@@ -74,7 +91,7 @@ export function withAuth<T extends z.ZodTypeAny = z.ZodTypeAny>(
       }
     }
 
-    // 4. Delegate to Handler
+    // 5. Delegate to Handler
     try {
       return await handler(req, {
         session,

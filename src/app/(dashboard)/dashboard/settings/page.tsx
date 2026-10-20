@@ -92,7 +92,7 @@ function ChangePasswordForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
-      setMessage({ text: "Password updated successfully", err: false });
+      setMessage({ text: data.message || "Password updated", err: false });
       setCurrentPassword("");
       setNewPassword("");
     } catch (err) {
@@ -134,6 +134,50 @@ function ChangePasswordForm() {
         {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Update Password"}
       </button>
     </form>
+  );
+}
+
+function SignOutEverywhere() {
+  const [message, setMessage] = useState<{ text: string; err: boolean } | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    setLoading(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/auth/sign-out-everywhere", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed");
+      }
+      await signOut({ callbackUrl: "/login" });
+    } catch (err) {
+      setMessage({ text: err instanceof Error ? err.message : "Failed to sign out everywhere", err: true });
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        A session lasts 30 days. Signing out of this browser clears it here; signing out everywhere also revokes every
+        other browser and device immediately.
+      </p>
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={loading}
+        className="h-8 px-4 rounded-lg border text-xs font-semibold hover:bg-muted/50 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+      >
+        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Sign out everywhere"}
+      </button>
+      {message && (
+        <p className={`text-xs font-medium ${message.err ? "text-red-500" : "text-emerald-500"}`}>{message.text}</p>
+      )}
+    </div>
   );
 }
 
@@ -787,6 +831,13 @@ export default function SettingsPage() {
               <div>
                 <h4 className="font-semibold text-sm mb-3">Change Password</h4>
                 <ChangePasswordForm />
+              </div>
+
+              <hr className="border-border/60" />
+
+              <div>
+                <h4 className="font-semibold text-sm mb-3">Sessions</h4>
+                <SignOutEverywhere />
               </div>
             </div>
           )}

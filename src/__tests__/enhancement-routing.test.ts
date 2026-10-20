@@ -4,6 +4,10 @@ const mocks = vi.hoisted(() => ({
   auth: vi.fn(), key: vi.fn(), llm: vi.fn(), rate: vi.fn(), stored: vi.fn(), log: vi.fn(),
 }));
 vi.mock("@/lib/auth/config", () => ({ auth: mocks.auth }));
+vi.mock("@/lib/auth/account", () => ({
+  verifySessionAccount: async () => ({ ok: true, user: { id: "owner", authVersion: 0, emailVerified: null } }),
+  sessionCheckMessage: () => "invalid session",
+}));
 vi.mock("@/lib/db/prisma", () => ({ getDb: () => ({ apiKey: { findFirst: mocks.stored }, usageLog: { create: mocks.log } }) }));
 vi.mock("@/lib/llm/server-api-key", async importOriginal => ({ ...await importOriginal<object>(), resolveServerApiKey: mocks.key }));
 vi.mock("@/lib/llm/providers", async importOriginal => ({ ...await importOriginal<object>(), callLLM: mocks.llm }));

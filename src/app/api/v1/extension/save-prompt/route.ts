@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { validateCsrf } from "@/lib/auth/csrf";
 import { calculateStructuralScore } from "@/lib/scoring";
 import { auth } from "@/lib/auth/config";
+import { verifySessionAccount, sessionCheckMessage } from "@/lib/auth/account";
 import { getDb } from "@/lib/db/prisma";
 import { jsonResponse } from "@/lib/api/response-headers";
 
@@ -21,6 +22,14 @@ export async function POST(request: NextRequest) {
 
     const csrf = validateCsrf(request);
     if (!csrf.valid) return jsonResponse({ success: false, error: "CSRF validation failed" }, { status: 403, requestId });
+
+    const account = await verifySessionAccount(session.user.id, session.user.authVersion);
+    if (!account.ok) {
+      return jsonResponse(
+        { success: false, error: sessionCheckMessage(account), code: account.reason },
+        { status: account.status, requestId }
+      );
+    }
 
     let body: {
       originalText?: string;

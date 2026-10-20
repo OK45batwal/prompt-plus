@@ -4,6 +4,10 @@ import { NextRequest } from "next/server";
 const mocks = vi.hoisted(() => ({ auth: vi.fn(), csrf: vi.fn() }));
 
 vi.mock("@/lib/auth/config", () => ({ auth: mocks.auth }));
+vi.mock("@/lib/auth/account", () => ({
+  verifySessionAccount: async () => ({ ok: true, user: { id: "owner", authVersion: 0, emailVerified: null } }),
+  sessionCheckMessage: () => "invalid session",
+}));
 vi.mock("@/lib/auth/csrf", () => ({ validateCsrf: mocks.csrf }));
 vi.mock("@/lib/logger", () => ({ logger: { warn: vi.fn(), error: vi.fn(), info: vi.fn() } }));
 

@@ -20,6 +20,9 @@ model User {
   updatedAt           DateTime       @updatedAt @map("updated_at")
   lastLoginAt         DateTime?      @map("last_login_at")
   deletedAt           DateTime?      @map("deleted_at")
+  // Bumped on password change/reset and "Sign out everywhere". A JWT carrying an
+  // older value is refused, so revocation does not wait for the cookie to expire.
+  authVersion         Int            @default(0) @map("auth_version")
   resetToken          String?        @unique @map("reset_token")
   resetTokenExpiry    DateTime?      @map("reset_token_expiry")
   accounts            Account[]

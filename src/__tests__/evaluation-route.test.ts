@@ -4,6 +4,10 @@ const mocks = vi.hoisted(() => ({ evaluate: vi.fn(), budget: vi.fn(), resolveKey
   prompt: { findFirst: vi.fn() }, usageLog: { create: vi.fn() }, analytics: { create: vi.fn() },
 } }));
 vi.mock("@/lib/auth/config", () => ({ auth: async () => ({ user: { id: "owner" } }) }));
+vi.mock("@/lib/auth/account", () => ({
+  verifySessionAccount: async () => ({ ok: true, user: { id: "owner", authVersion: 0, emailVerified: null } }),
+  sessionCheckMessage: () => "invalid session",
+}));
 vi.mock("@/lib/db/prisma", () => ({ getDb: () => mocks.db }));
 vi.mock("@/lib/prompt-engine", () => ({ runRealPromptEvaluation: mocks.evaluate }));
 vi.mock("@/lib/rate-limit", () => ({ checkIpRateLimitAsync: mocks.budget, getRateLimitHeaders: () => ({ "Retry-After": "60" }), rateLimitMessage: () => "Rate limited", rateLimitStatus: () => 429 }));

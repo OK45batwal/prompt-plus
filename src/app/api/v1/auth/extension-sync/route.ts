@@ -1,6 +1,7 @@
 // @public-route
 import { NextRequest } from "next/server";
 import { auth } from "@/lib/auth/config";
+import { verifySessionAccount } from "@/lib/auth/account";
 import { jsonResponse } from "@/lib/api/response-headers";
 import { getSavedContextBlocks } from "@/lib/context-memory";
 
@@ -9,8 +10,11 @@ export async function GET(request: NextRequest) {
 
   try {
     const session = await auth();
+    const account = session?.user?.id
+      ? await verifySessionAccount(session.user.id, session.user.authVersion)
+      : null;
 
-    if (!session || !session.user) {
+    if (!session || !session.user || !account?.ok) {
       return jsonResponse(
         {
           authenticated: false,

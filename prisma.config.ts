@@ -9,6 +9,8 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
+    // The deployment's DIRECT_URL is stale here, so migrations use the same
+    // DATABASE_URL the runtime connects with.
     url: process.env["DATABASE_URL"],
   },
 });

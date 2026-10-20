@@ -6,7 +6,7 @@ loadEnvConfig(process.cwd());
 async function session(page: Page) {
   const name = "authjs.session-token";
   const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "development-secret-fallback-key-32chars";
-  const value = await encode({ token: { id: "browser-fixture", sub: "browser-fixture", email: "fixture@example.test", name: "Test workspace" }, secret, salt: name });
+  const value = await encode({ token: { id: "browser-fixture", sub: "browser-fixture", email: "fixture@example.test", name: "Test workspace", authVersion: 0 }, secret, salt: name });
   await page.context().addCookies([{ name, value, domain: "localhost", path: "/", httpOnly: true, sameSite: "Lax" }]);
   await page.route("**/api/v1/**", route => route.fulfill({ json: { data: [] } }));
 }
