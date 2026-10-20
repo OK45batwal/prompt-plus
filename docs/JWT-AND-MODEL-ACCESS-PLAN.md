@@ -1,6 +1,6 @@
 # JWT authentication and free/paid model access
 
-Status: Phases 1–4 implemented. Phase 5 evidence is listed at the end.
+Status: Phases 1–4 implemented and deployed; Phase 5 evidence below.
 
 Implementation notes (2026-10-20):
 
@@ -184,3 +184,25 @@ Rollout order:
 5. Release after remote checks and live behavior are verified. Keep provider enablement independently reversible; disabling a provider must preserve users' stored keys and prompts.
 
 Implement in a focused branch while preserving unrelated extension/design work already present in the checkout. This planning change does not alter runtime code, database records, credentials, or deployment settings.
+
+## Phase 5 evidence (2026-10-20)
+
+Verified locally and against production:
+
+- 234 Vitest tests pass, including 15 new catalog/resolver/Gemini cases, plus the
+  API-route gate and the honesty gate. TypeScript, ESLint, and the production build
+  are clean. The 7 dashboard/measurement Playwright flows pass.
+- The `auth_version` and `api_key_validation` migrations are applied by the Vercel
+  build before the new code is promoted; the production build reports no pending
+  migrations.
+- Production: `/api/health` reports `database: connected`; `/login` returns 200;
+  `/api/v1/api-keys` and `/api/v2/optimize` return 401 without a session;
+  `/dashboard/new` redirects to `/login`; the public extension endpoint returns the
+  deterministic engine and no provider output.
+- `npm run refresh-models` matches OpenRouter's live prices/context and finds the
+  Gemini model on Google's pricing page.
+
+Not verified here, because this checkout has no provider keys or test account:
+a real Gemini/OpenAI inference call, a full sign-in → save key → enhance → evaluate
+flow, and live OAuth callbacks. Run those in a signed-in preview before announcing
+the Gemini entry.
