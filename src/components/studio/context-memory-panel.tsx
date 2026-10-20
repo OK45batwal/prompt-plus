@@ -5,6 +5,8 @@ import { Brain, PlusCircle, Trash2, X } from "lucide-react";
 import { ContextBlock, saveCustomContextBlock } from "@/lib/context-memory";
 
 interface ContextMemoryPanelProps {
+  /** Which account owns any context saved from this panel. */
+  accountId?: string | null;
   availableBlocks: ContextBlock[];
   selectedBlockIds: string[];
   onToggleBlock: (id: string) => void;
@@ -15,6 +17,7 @@ interface ContextMemoryPanelProps {
 }
 
 export function ContextMemoryPanel({
+  accountId,
   availableBlocks,
   selectedBlockIds,
   onToggleBlock,
@@ -33,7 +36,7 @@ export function ContextMemoryPanel({
     const name = newContextName.trim();
     const content = newContextContent.trim();
     if (!name || !content) return;
-    const block = saveCustomContextBlock({ name, description: "Custom saved context", category: "custom", content });
+    const block = saveCustomContextBlock({ name, description: "Custom saved context", category: "custom", content }, accountId);
     onAddBlock(block);
     setNewContextName("");
     setNewContextContent("");

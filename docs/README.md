@@ -23,6 +23,7 @@ Welcome to the **Prompt+** documentation directory. Below is the index of archit
 | ⚡ **[Improvements.md](Improvements.md)** | Engineering improvements backlog across security, architecture, and DX |
 | 🚀 **[FUTURE-EXPANSION.md](FUTURE-EXPANSION.md)** | Roadmap for Chrome Extension, VS Code Extension, and Context Blocks |
 | 📌 **[MASTER-PLAN.md](MASTER-PLAN.md)** | Overall project master plan, milestone roadmap, and release goals |
+| **[PROJECT-IMPROVEMENT-PLAN.md](PROJECT-IMPROVEMENT-PLAN.md)** | Current prioritized improvement roadmap, source findings, verification gaps, and completion criteria |
 
 ## Reliability update
 

@@ -30,6 +30,7 @@ model User {
   apiKeys             ApiKey[]
   collections         Collection[]
   sessions            Session[]
+  preferences         UserPreference?
   prompts             Prompt[]
   usageLogs           UsageLog[]
 
@@ -161,6 +162,18 @@ model Template {
   @@index([category])
   @@index([isOfficial])
   @@map("templates")
+}
+
+/// One row per user. `data` is the validated preferences object, so adding a
+/// preference does not need a new column and a bad payload never reaches storage.
+model UserPreference {
+  userId    String   @id @map("user_id")
+  data      Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
 }
 
 model ApiKey {

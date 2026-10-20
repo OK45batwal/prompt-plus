@@ -83,6 +83,26 @@ describe("credential resolver", () => {
     expect(mocks.findFirst).not.toHaveBeenCalled();
   });
 
+  it("treats a free tier as potentially billable until the user consents", async () => {
+    // Google bills API usage to a project, so a free-tier model is not proof this
+    // particular request is free.
+    const gemini = MODELS.find((m) => m.id === "google-gemini-38-flash")!;
+    expect(gemini.access).toBe("free_tier_available");
+    expect(canIncurProviderCharges(gemini)).toBe(true);
+
+    const result = await resolveModelCredentials({ userId: "u", modelId: "google-gemini-38-flash" });
+    expect(result).toMatchObject({ ok: false, status: 402, code: "paid_consent_required" });
+    expect(mocks.findFirst).not.toHaveBeenCalled();
+  });
+
+  it("does not require consent for a model the provider serves free", async () => {
+    const free = MODELS.find((m) => m.access === "free")!;
+    expect(canIncurProviderCharges(free)).toBe(false);
+    const result = await resolveModelCredentials({ userId: "u", modelId: free.id });
+    expect(result.ok).toBe(false);
+    expect(result).not.toMatchObject({ code: "paid_consent_required" });
+  });
+
   it("requires a key for the model's own provider", async () => {
     const result = await resolveModelCredentials({ userId: "u", modelId: "google-gemini-38-flash", paidConsent: true });
     expect(result).toMatchObject({ ok: false, status: 400, code: "missing_key", provider: "google" });

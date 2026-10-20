@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
 // Mock next-auth
@@ -10,8 +10,29 @@ vi.mock("@/lib/auth/account", () => ({
   sessionCheckMessage: () => "invalid session",
 }));
 
-import { GET as getPreferences, PATCH as patchPreferences } from "@/app/api/v1/user/preferences/route";
+const mocks = vi.hoisted(() => ({ rows: new Map<string, unknown>() }));
+
+// Preferences live in PostgreSQL now, so the route is tested against a row store
+// rather than process memory.
+vi.mock("@/lib/db/prisma", () => ({
+  getDb: () => ({
+    userPreference: {
+      findUnique: async ({ where }: { where: { userId: string } }) =>
+        mocks.rows.has(where.userId) ? { data: mocks.rows.get(where.userId) } : null,
+      upsert: async ({ where, create }: { where: { userId: string }; create: { data: unknown } }) => {
+        mocks.rows.set(where.userId, create.data);
+        return {};
+      },
+    },
+  }),
+}));
+
+import { GET as getPreferences, PATCH as patchPreferences, defaultPreferences } from "@/app/api/v1/user/preferences/route";
 import { POST as testApiKey } from "@/app/api/v1/api-keys/test/route";
+
+beforeEach(() => {
+  mocks.rows.clear();
+});
 
 describe("User Preferences & API Key Validator", () => {
   it("should return default user preferences", async () => {
@@ -41,6 +62,25 @@ describe("User Preferences & API Key Validator", () => {
     const json = await res.json();
     expect(json.data.preferences.defaultEngineMode).toBe("algorithmic");
     expect(json.data.preferences.developerRole).toBe("AI / ML Researcher");
+
+    // A separate request reads the stored row, not process memory.
+    const reRead = await getPreferences(new NextRequest("http://localhost:3000/api/v1/user/preferences"));
+    const stored = (await reRead.json()).data;
+    expect(stored.defaultEngineMode).toBe("algorithmic");
+    expect(stored.developerRole).toBe("AI / ML Researcher");
+    expect(stored.enableAutoCorrect).toBe(defaultPreferences.enableAutoCorrect);
+    expect(mocks.rows.get("test-user-123")).toMatchObject({ defaultEngineMode: "algorithmic" });
+  });
+
+  it("rejects an invalid value and leaves the stored row untouched", async () => {
+    mocks.rows.set("test-user-123", { ...defaultPreferences, weeklyDigest: false });
+    const res = await patchPreferences(new NextRequest("http://localhost:3000/api/v1/user/preferences", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ defaultEngineMode: "telepathy" }),
+    }));
+    expect(res.status).toBe(400);
+    expect(mocks.rows.get("test-user-123")).toMatchObject({ weeklyDigest: false });
   });
 
   it("really probes the provider via POST /api/v1/api-keys/test", async () => {

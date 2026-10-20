@@ -73,7 +73,7 @@ export default function AnalyticsPage() {
         <div className="flex flex-wrap items-center gap-2">
           <label className="sr-only" htmlFor="analytics-range">Reporting period</label>
           <select id="analytics-range" value={range} onChange={e => setRange(e.target.value)} className="rounded-lg border bg-background px-3 py-2 text-sm">
-            <option value="7d">Last 7 days</option><option value="30d">Last 30 days</option><option value="all">Last 90 days</option>
+            <option value="7d">Last 7 days</option><option value="30d">Last 30 days</option><option value="90d">Last 90 days</option>
           </select>
           <button type="button" onClick={() => setRefresh(n => n + 1)} disabled={loading} aria-label="Refresh analytics" className="rounded-lg border p-2.5 hover:bg-muted disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /></button>
           <button type="button" onClick={exportData} disabled={!data || loading || !!error} className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted disabled:opacity-50"><Download className="h-4 w-4" /> Export</button>

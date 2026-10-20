@@ -1,3 +1,5 @@
+import { accountStorageKey } from "@/lib/account-storage";
+
 export interface ContextBlock {
   id: string;
   name: string;
@@ -39,10 +41,10 @@ export const DEFAULT_CONTEXT_BLOCKS: ContextBlock[] = [
 
 const LOCAL_STORAGE_KEY = "promptplus_context_blocks";
 
-export function getSavedContextBlocks(): ContextBlock[] {
+export function getSavedContextBlocks(accountId?: string | null): ContextBlock[] {
   if (typeof window === "undefined") return DEFAULT_CONTEXT_BLOCKS;
   try {
-    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const raw = localStorage.getItem(accountStorageKey(LOCAL_STORAGE_KEY, accountId));
     if (!raw) return DEFAULT_CONTEXT_BLOCKS;
     const custom: ContextBlock[] = JSON.parse(raw);
     return [...DEFAULT_CONTEXT_BLOCKS, ...custom];
@@ -51,15 +53,15 @@ export function getSavedContextBlocks(): ContextBlock[] {
   }
 }
 
-export function saveCustomContextBlock(block: Omit<ContextBlock, "id">): ContextBlock {
+export function saveCustomContextBlock(block: Omit<ContextBlock, "id">, accountId?: string | null): ContextBlock {
   const newBlock: ContextBlock = {
     ...block,
     id: `custom-${Date.now()}`,
   };
   if (typeof window !== "undefined") {
     try {
-      const current = getSavedContextBlocks().filter((b) => b.id.startsWith("custom-"));
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify([...current, newBlock]));
+      const current = getSavedContextBlocks(accountId).filter((b) => b.id.startsWith("custom-"));
+      localStorage.setItem(accountStorageKey(LOCAL_STORAGE_KEY, accountId), JSON.stringify([...current, newBlock]));
     } catch {
       // ignore
     }

@@ -1,5 +1,7 @@
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
+import { getDb } from "@/lib/db/prisma";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 export interface UserPreferences {
@@ -20,10 +22,7 @@ export interface UserPreferences {
   securityAlerts: boolean;
 }
 
-// In-memory preferences store per user
-const userPreferencesMap = new Map<string, UserPreferences>();
-
-const defaultPreferences: UserPreferences = {
+export const defaultPreferences: UserPreferences = {
   defaultEngineMode: "api",
   defaultStrategy: "structured",
   defaultOutputFormat: "markdown",
@@ -39,16 +38,20 @@ const defaultPreferences: UserPreferences = {
   securityAlerts: true,
 };
 
+/**
+ * Reads one user's row. A previous version kept this in a process-local Map, so
+ * preferences vanished on redeploy and never reached another device.
+ */
+async function readPreferences(userId: string): Promise<UserPreferences> {
+  const row = await getDb().userPreference.findUnique({ where: { userId }, select: { data: true } });
+  const stored = (row?.data ?? {}) as Partial<UserPreferences>;
+  return { ...defaultPreferences, ...stored };
+}
+
 export const GET = withAuth(
   async (_req, { userId, requestId }) => {
-    const prefs = userPreferencesMap.get(userId) || defaultPreferences;
-
-    return jsonResponse(
-      {
-        data: prefs,
-      },
-      { requestId }
-    );
+    const prefs = await readPreferences(userId);
+    return jsonResponse({ data: prefs }, { requestId });
   }
 );
 
@@ -70,23 +73,18 @@ const preferencesSchema = z.object({
 
 export const PATCH = withAuth(
   async (_req, { userId, requestId, body }) => {
-    const current = userPreferencesMap.get(userId) || { ...defaultPreferences };
-    const updated: UserPreferences = {
-      ...current,
-      ...body,
-    };
+    const current = await readPreferences(userId);
+    const updated: UserPreferences = { ...current, ...body };
 
-    userPreferencesMap.set(userId, updated);
+    // Validated above; Prisma's Json input type only needs the object shape.
+    const data = updated as unknown as Prisma.InputJsonValue;
+    await getDb().userPreference.upsert({
+      where: { userId },
+      create: { userId, data },
+      update: { data },
+    });
 
-    return jsonResponse(
-      {
-        data: {
-          success: true,
-          preferences: updated,
-        },
-      },
-      { requestId }
-    );
+    return jsonResponse({ data: { success: true, preferences: updated } }, { requestId });
   },
   { schema: preferencesSchema }
 );
