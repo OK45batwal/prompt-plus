@@ -1,0 +1,42 @@
+Use case: ui-mockup
+Asset type: high-fidelity concept board for a real desktop browser extension redesign, NOT a website or a phone app.
+Primary request: Design a polished, practical new structure for the Prompt+ browser extension. Show three realistic flat front-facing extension surfaces side by side, and a small in-page dock detail below. This is a proposal, not a screenshot of implemented software.
+Canvas: high resolution landscape 2560 by 1600. Warm light gray presentation background with very faint paper grain. Top-left title "Prompt+" in elegant bold Cabinet Grotesk-like typography, next line "Extension workspace". Top-right discreet text "Design concept · illustrative content". Three screen columns aligned at their top with generous external white space, simple labels above each: "Quick edit", "Review in the side panel", "Your prompt library". First screen is a shorter popup, other screens taller narrow desktop panels. Do not draw phones, notches, OS docks, perspective or isometric device frames.
+Visual system: rich charcoal #101216 surfaces, slightly lighter #191D23 inset areas, thin #343B46 borders, white #F5F7FA text, readable muted #B4BDC9 secondary text. Cyan #22D3EE accent only for primary actions and selected states, with near-black button text. Calm editorial type similar to Cabinet Grotesk, clear 14px-scale body text with comfortable line height, compact 20px-scale headings. Corners modestly rounded, restrained shadows. Minimal outline icons; no emojis, sparkles, avatars or decorative badges. Text must be precisely legible. Prefer open space and ruled lists to nested cards. No purple, glowing blobs, glassmorphism, charts, numeric quality scores, percentages, quotas, latency or invented token counts.
+Left screen Quick edit:
+- Header: small simple cyan P mark, word "Prompt+", small expand icon and settings gear on right.
+- Small status row "ChatGPT" and "Input found".
+- Large label "Your draft" with "Use chat draft" quiet action.
+- A generously sized textarea with exact sample text "Write a short launch update for my team. Mention the new feature flag."
+- Below textarea a compact row "Tone" with dropdown "Natural".
+- Another quiet row "Context" with "No rules selected" and chevron.
+- Visible engine row "Local template (offline)".
+- Broad cyan button "Enhance prompt", dark label and small right arrow.
+- Bottom quiet link "Open workspace" and smaller links "Library" and "History". No top navigation tabs in this popup. Fit neatly without empty dead area.
+Middle screen Review:
+- Header Prompt+ at left, gear at right.
+- Text navigation "Write", "Library", "History", Write active with cyan underline.
+- Small destination row "ChatGPT" and "Input found".
+- Back arrow and heading "Review changes".
+- Source text "Local template (offline)".
+- Segmented view controls "What changed" (selected) and "Final prompt".
+- Text label "Original", followed by the same exact sample draft from left screen, comfortably wrapped.
+- Label "Enhanced", followed by editable-looking prompt text:
+"Write a concise launch update for the team.
+Include the feature flag name, what changes, and the next step.
+Use a natural, direct tone.
+If details are missing, ask before drafting."
+- Highlight only the added lines with muted desaturated green background and visible "+" marks, not the entire screen. Tiny text legend "Added text" makes meaning non-color-only.
+- Below text an unobtrusive action "Edit prompt".
+- Bottom fixed footer separated by a thin rule: quiet text "Inserts into the chat input. You send it."
+- Large cyan button "Insert into ChatGPT"; below two quiet secondary actions "Copy" and "Save prompt".
+Right screen Library:
+- Same header Prompt+ and gear, same navigation Write Library History; Library selected.
+- Heading "Prompt library".
+- Search field "Search prompts".
+- Small segmented filter "Saved" selected and "Templates".
+- Clean full-width list rows separated with thin rules, NOT a bento grid. Sample row title "Launch update", subtitle "Team communication", outlined bookmark at right. Second "Code review", subtitle "Engineering". Third "Meeting summary", subtitle "Team communication".
+- First row subtly selected, followed by a simple preview section below: label "Preview", same launch update draft, source line "Saved on this device".
+- Cyan bottom button "Use in Write". Secondary bottom text link "Open web Studio".
+Bottom of board: a small wide cropped light-mode chat composer detail, clearly separate from the three panels, with label "A quieter in-page dock". White host composer with rough draft text. Just below it compact dark toolbar: simple Prompt+ P icon, "Enhance", thin divider, "Open workspace". The toolbar must not obscure typed text or the host send button.
+Constraints: professional crisp Figma-quality product UI. Strong hierarchy, ample but practical spacing. Consistent tokens and components across surfaces. No data claims, no fake testimonials, no marketing CTA, no huge hero inside the extension, no website footer. All content visible and legible; do not clip panel footers. Show all three surfaces and dock in one coherent editorial presentation.
