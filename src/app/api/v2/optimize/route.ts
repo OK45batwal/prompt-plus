@@ -10,9 +10,9 @@ import {
   renderPromptIRToString,
   executeLoopEngineering,
 } from "@/lib/prompt-engine";
-import { decrypt } from "@/lib/crypto";
 import { getDb } from "@/lib/db/prisma";
-import { resolveServerApiKey, defaultModelForProvider, providerForModel } from "@/lib/llm/server-api-key";
+import { resolveModelCredentials, credentialActionPath } from "@/lib/llm/resolve-credentials";
+import { DEFAULT_MODEL_ID, getModelById } from "@/lib/models";
 import { callLLM } from "@/lib/llm/providers";
 import { z } from "zod";
 
@@ -24,8 +24,10 @@ const optimizeSchema = z.object({
   level: z.enum(["quick", "deep", "expert"]).optional(),
   mode: z.enum(["auto", "api", "algorithmic", "device"]).optional(),
   taskType: z.string().optional(),
-  provider: z.enum(["openai", "anthropic", "openrouter", "google", "nvidia"]).optional(),
-  userApiKey: z.string().max(1000).optional(),
+  /** Catalog id; the authoritative choice of provider and model. */
+  modelId: z.string().max(100).optional(),
+  /** Explicit choice before a run that can bill the connected provider account. */
+  confirmPaidUsage: z.boolean().optional(),
   tone: z.string().max(100).optional(),
   length: z.string().max(100).optional(),
   category: z.string().max(100).optional(),
@@ -93,30 +95,55 @@ export const POST = withAuth(
     const startedAt = Date.now();
     let actualModel = "promptplus-engine";
     let actualProvider = "engine";
+    let cloud: {
+      status: "used" | "skipped" | "unavailable";
+      code?: string;
+      message?: string;
+      provider?: string;
+      actionPath?: string | null;
+    } = { status: "skipped", message: "Cloud models were not requested for this run." };
 
-    // Resolve credentials on the server; keyless requests use the deterministic result.
-    if ((!mode || mode === "auto" || mode === "api") && privacyPreference !== "local_only") {
-      try {
-        const preferredProvider = parseResult.data.provider || providerForModel(reqModel || "");
-        let key: { apiKey: string; provider: string } | null = null;
-        if (parseResult.data.userApiKey?.trim()) {
-          key = { apiKey: parseResult.data.userApiKey, provider: preferredProvider };
-        } else {
-          const stored = await getDb().apiKey.findFirst({ where: { userId, isActive: true, provider: preferredProvider } }).catch(() => null);
-          if (stored) {
-            try { key = { apiKey: decrypt(stored.apiKeyEnc), provider: preferredProvider }; } catch { /* Try the configured server key. */ }
-          }
-          if (!key) key = resolveServerApiKey(preferredProvider);
+    const wantsCloud = (!mode || mode === "auto" || mode === "api") && privacyPreference !== "local_only";
+    const requestedModel = parseResult.data.modelId || reqModel || DEFAULT_MODEL_ID;
+    const requestedModelEntry = getModelById(requestedModel);
+
+    if (wantsCloud) {
+      const credentials = await resolveModelCredentials({
+        userId,
+        modelId: requestedModel,
+        paidConsent: parseResult.data.confirmPaidUsage,
+      });
+
+      if (!credentials.ok) {
+        // An explicit cloud request fails visibly. Auto mode still returns the
+        // deterministic result, but says why the model did not run.
+        if (mode === "api") {
+          return jsonResponse(
+            {
+              error: credentials.message,
+              code: credentials.code,
+              actionPath: credentialActionPath(credentials),
+              model: requestedModelEntry?.name ?? requestedModel,
+            },
+            { status: credentials.status, requestId }
+          );
         }
-        if (key?.apiKey.trim()) {
-          const targetModel = reqModel && key.provider === preferredProvider ? reqModel : defaultModelForProvider(key.provider);
+        cloud = {
+          status: "unavailable",
+          code: credentials.code,
+          message: credentials.message,
+          provider: credentials.provider,
+          actionPath: credentialActionPath(credentials),
+        };
+      } else {
+        try {
           const llmRes = await callLLM({
-            ...key,
-            provider: key.provider as "openai" | "anthropic" | "openrouter" | "nvidia",
+            apiKey: credentials.apiKey,
+            provider: credentials.provider,
+            model: credentials.model.rawModel,
             tenantId: userId,
             systemPrompt: "Improve the clarity and structure of this prompt. Preserve its intent and every explicit constraint. Do not invent requirements or claims. Return only the improved prompt.",
             userPrompt: `Target Task: ${loopResult.intent.taskType}\n\nStructured Prompt IR Draft:\n${finalSelected.renderedText}\n\nDeliver the final polished prompt directly:`,
-            model: targetModel,
             temperature: 0.5,
             maxTokens: 3000,
           });
@@ -124,17 +151,37 @@ export const POST = withAuth(
             source = "llm";
             actualModel = llmRes.model;
             actualProvider = llmRes.provider;
+            cloud = { status: "used", provider: llmRes.provider };
             await getDb().usageLog.create({ data: { userId, action: "enhance", provider: llmRes.provider, model: llmRes.model, tokensIn: llmRes.tokensIn, tokensOut: llmRes.tokensOut, latencyMs: Date.now() - startedAt, success: true } }).catch(() => {});
             finalSelected = {
               ...finalSelected,
               renderedText: llmRes.content.trim(),
               strategyName: `${finalSelected.strategyName} + LLM Refined (${llmRes.model})`,
             };
+          } else {
+            cloud = {
+              status: "unavailable",
+              code: "empty_response",
+              message: `${credentials.model.name} returned no usable text. The deterministic result is shown instead.`,
+              provider: credentials.provider,
+            };
           }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "The model call failed.";
+          await getDb().usageLog.create({ data: { userId, action: "enhance", latencyMs: Date.now() - startedAt, success: false } }).catch(() => {});
+          if (mode === "api") {
+            return jsonResponse(
+              { error: message, code: "provider_error", model: credentials.model.name },
+              { status: 502, requestId }
+            );
+          }
+          cloud = {
+            status: "unavailable",
+            code: "provider_error",
+            message: `${message} The deterministic result is shown instead.`,
+            provider: credentials.provider,
+          };
         }
-      } catch {
-        source = "engine";
-        await getDb().usageLog.create({ data: { userId, action: "enhance", latencyMs: Date.now() - startedAt, success: false } }).catch(() => {});
       }
     }
 
@@ -156,6 +203,10 @@ export const POST = withAuth(
           source,
           model: actualModel,
           provider: actualProvider,
+          requestedModel: requestedModelEntry
+            ? { id: requestedModelEntry.id, name: requestedModelEntry.name, provider: requestedModelEntry.provider }
+            : null,
+          cloud,
           sourceLabel: source === "llm" ? "Cloud model" : "Deterministic engine · no model ran",
           autoCorrect: loopResult.autoCorrect,
           security: loopResult.security,

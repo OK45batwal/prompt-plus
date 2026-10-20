@@ -168,9 +168,14 @@ model ApiKey {
   userId     String    @map("user_id")
   provider   String // e.g., "openai", "anthropic"
   apiKeyEnc  String    @map("api_key_enc")
+  /** Masked display hint; never the plaintext key. */
+  keyHint    String?   @map("key_hint")
   isActive   Boolean   @default(true) @map("is_active")
   lastUsedAt DateTime? @map("last_used_at")
   usageCount Int       @default(0) @map("usage_count")
+  /** Last authenticated provider check, and its normalized outcome. */
+  lastValidatedAt     DateTime? @map("last_validated_at")
+  lastValidationStatus String?  @map("last_validation_status")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -178,6 +183,7 @@ model ApiKey {
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, provider])
   @@index([userId])
   @@map("api_keys")
 }

@@ -10,6 +10,7 @@ vi.mock("@/lib/auth/account", () => ({
 }));
 vi.mock("@/lib/db/prisma", () => ({ getDb: () => ({ apiKey: { findFirst: mocks.stored }, usageLog: { create: mocks.log } }) }));
 vi.mock("@/lib/llm/server-api-key", async importOriginal => ({ ...await importOriginal<object>(), resolveServerApiKey: mocks.key }));
+vi.mock("@/lib/crypto", () => ({ decrypt: () => "user-key", encrypt: (v: string) => v }));
 vi.mock("@/lib/llm/providers", async importOriginal => ({ ...await importOriginal<object>(), callLLM: mocks.llm }));
 vi.mock("@/lib/rate-limit", () => ({ checkIpRateLimitAsync: mocks.rate, extractClientIp: () => "test", getRateLimitHeaders: () => ({ "Retry-After": "60" }), rateLimitStatus: () => 429, rateLimitMessage: () => "Rate limited" }));
 import { POST as enhance } from "@/app/api/v1/extension/enhance/route";
@@ -56,12 +57,26 @@ describe("automatic engine routing", () => {
     expect(data.data.selectedCandidate.renderedText).toBe(executeLoopEngineering(text).selectedCandidate.renderedText);
     expect(mocks.llm).not.toHaveBeenCalled();
   });
-  it("keeps a fallback server key paired with its own provider model", async () => {
-    mocks.key.mockReturnValue({ apiKey: "server-key", provider: "openai" });
-    mocks.llm.mockResolvedValue({ content: "Write a concise update for the engineering team under 150 words.", provider: "openai", model: "gpt-4o-mini" });
-    const data = await (await optimize(request({ text, mode: "auto", provider: "openrouter", targetModel: "nvidia/nemotron-3.5-super-vl:free" }))).json();
+  it("runs the selected model with the signed-in user's own key, never an operator key", async () => {
+    mocks.stored.mockResolvedValue({ apiKeyEnc: "enc" });
+    mocks.llm.mockResolvedValue({ content: "Write a concise update for the engineering team under 150 words.", provider: "openrouter", model: "nvidia/nemotron-3.5-super-vl:free" });
+    const data = await (await optimize(request({ text, mode: "auto", modelId: "openrouter-nemotron-free" }))).json();
     expect(data.data.source).toBe("llm");
-    expect(mocks.llm).toHaveBeenCalledWith(expect.objectContaining({ provider: "openai", model: "gpt-4o-mini", apiKey: "server-key" }));
+    expect(mocks.llm).toHaveBeenCalledWith(expect.objectContaining({ provider: "openrouter", model: "nvidia/nemotron-3.5-super-vl:free", apiKey: "user-key" }));
+    expect(mocks.key).not.toHaveBeenCalled();
+  });
+  it("refuses a paid run until the user confirms it", async () => {
+    mocks.stored.mockResolvedValue({ apiKeyEnc: "enc" });
+    const data = await (await optimize(request({ text, mode: "auto", modelId: "openai-gpt4o" }))).json();
+    expect(data.data.source).toBe("engine");
+    expect(data.data.cloud).toMatchObject({ status: "unavailable", code: "paid_consent_required" });
+    expect(mocks.llm).not.toHaveBeenCalled();
+  });
+  it("fails an explicit cloud request visibly instead of silently using the engine", async () => {
+    const response = await optimize(request({ text, mode: "api", modelId: "openai-gpt4o", confirmPaidUsage: true }));
+    expect(response.status).toBe(400);
+    expect((await response.json()).code).toBe("missing_key");
+    expect(mocks.llm).not.toHaveBeenCalled();
   });
   it("honors local-only privacy even when credentials are available", async () => {
     await optimize(request({ text, mode: "auto", privacyPreference: "local_only", userApiKey: "sk-test" }));

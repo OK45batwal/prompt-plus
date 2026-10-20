@@ -5,7 +5,6 @@ import { scorePromptSchema } from "@/lib/validations/prompts";
 import { calculateStructuralScore } from "@/lib/scoring";
 import { callLLM, type LLMOptions } from "@/lib/llm/providers";
 import { decrypt } from "@/lib/crypto";
-import { resolveServerApiKey } from "@/lib/llm/server-api-key";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 
@@ -67,14 +66,6 @@ export const POST = withAuth(
         provider = (userKey.provider as LLMOptions["provider"]) || "openai";
       } catch {
         // ignore bad key
-      }
-    }
-
-    if (!apiKey) {
-      const serverKey = resolveServerApiKey("openai");
-      if (serverKey) {
-        apiKey = serverKey.apiKey;
-        provider = serverKey.provider;
       }
     }
 

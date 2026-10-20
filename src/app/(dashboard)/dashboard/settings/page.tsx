@@ -35,7 +35,7 @@ type ProviderInfo = { id: "openai" | "anthropic" | "google" | "openrouter" | "nv
 const providers: ProviderInfo[] = [
   { id: "openai", name: "OpenAI", placeholder: "sk-...", url: "https://platform.openai.com/api-keys" },
   { id: "anthropic", name: "Anthropic", placeholder: "sk-ant-...", url: "https://console.anthropic.com/settings/keys" },
-  { id: "google", name: "Google AI", placeholder: "AIza...", url: "https://makersuite.google.com/app/apikey" },
+  { id: "google", name: "Google Gemini (direct)", placeholder: "AIza...", url: "https://aistudio.google.com/apikey" },
   { id: "openrouter", name: "OpenRouter", placeholder: "sk-or-v1-...", url: "https://openrouter.ai/keys" },
   { id: "nvidia", name: "NVIDIA", placeholder: "nvapi-...", url: "https://build.nvidia.com" },
 ];
@@ -256,6 +256,7 @@ export default function SettingsPage() {
   const [apiKeysInput, setApiKeysInput] = useState<Record<string, string>>({});
   const [savedKeys, setSavedKeys] = useState<Record<string, boolean>>({});
   const [savedKeyHints, setSavedKeyHints] = useState<Record<string, string>>({});
+  const [keyStatus, setKeyStatus] = useState<Record<string, { status: string | null; at: string | null }>>({});
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [isSavingKey, setIsSavingKey] = useState<Record<string, boolean>>({});
   const [isTestingKey, setIsTestingKey] = useState<Record<string, boolean>>({});
@@ -359,18 +360,43 @@ export default function SettingsPage() {
         const res = await fetch("/api/v1/api-keys");
         const keyMap: Record<string, boolean> = {};
         const hintMap: Record<string, string> = {};
+        const statusMap: Record<string, { status: string | null; at: string | null }> = {};
         if (res.ok && isMounted) {
           const json = await res.json();
           if (Array.isArray(json.data)) {
-            json.data.forEach((k: { provider: string; isActive: boolean; keyHint?: string }) => {
+            json.data.forEach((k: { provider: string; isActive: boolean; keyHint?: string; lastValidationStatus?: string | null; lastValidatedAt?: string | null }) => {
               keyMap[k.provider] = k.isActive;
               if (k.keyHint) hintMap[k.provider] = k.keyHint;
+              statusMap[k.provider] = { status: k.lastValidationStatus ?? null, at: k.lastValidatedAt ?? null };
             });
           }
         }
         if (isMounted) {
           setSavedKeys(keyMap);
           setSavedKeyHints(hintMap);
+          setKeyStatus(statusMap);
+        }
+
+        // One-time migration: older builds kept plaintext keys in this browser.
+        // Upload any that the account does not already have, then delete them.
+        try {
+          const raw = localStorage.getItem("promptplus_user_apikeys");
+          if (raw) {
+            const legacy = JSON.parse(raw) as Record<string, string>;
+            for (const [provider, apiKey] of Object.entries(legacy)) {
+              if (!apiKey?.trim() || keyMap[provider]) continue;
+              await fetch("/api/v1/api-keys", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+                body: JSON.stringify({ provider, apiKey: apiKey.trim() }),
+              });
+            }
+            localStorage.removeItem("promptplus_user_apikeys");
+            if (isMounted) toast("Moved browser-only API keys into your encrypted account vault.", "success");
+          }
+        } catch {
+          // A malformed legacy entry is dropped with the rest; the user can re-save it.
+          localStorage.removeItem("promptplus_user_apikeys");
         }
       } catch {
         // ignore
@@ -380,7 +406,7 @@ export default function SettingsPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [toast]);
 
   const handleTestApiKey = async (provider: string) => {
     const rawKey = apiKeysInput[provider];
@@ -392,7 +418,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/v1/api-keys/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, apiKey: rawKey }),
+        body: JSON.stringify(rawKey?.trim() ? { provider, apiKey: rawKey } : { provider }),
       });
       const json = await res.json();
       setTestResults((prev) => ({
@@ -421,7 +447,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/v1/api-keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, apiKey: rawKey }),
+        body: JSON.stringify(rawKey?.trim() ? { provider, apiKey: rawKey } : { provider }),
       });
 
       const json = await res.json();
@@ -431,7 +457,8 @@ export default function SettingsPage() {
           setSavedKeyHints((prev) => ({ ...prev, [provider]: json.data.keyHint }));
         }
         setApiKeysInput((prev) => ({ ...prev, [provider]: "" }));
-        setTestResults((prev) => ({ ...prev, [provider]: { ok: true, msg: "Saved & synced to cloud!" } }));
+        setKeyStatus((prev) => ({ ...prev, [provider]: { status: null, at: null } }));
+        setTestResults((prev) => ({ ...prev, [provider]: { ok: true, msg: "Saved. Test it to confirm the provider accepts it." } }));
         toast(`API key saved for ${provider.toUpperCase()}!`, "success");
       } else {
         toast(json.error || "Failed to save API key", "error");
@@ -1006,7 +1033,7 @@ export default function SettingsPage() {
             <div className="space-y-6">
               <div>
                 <h3 className="font-semibold text-sm">API keys</h3>
-                <p className="text-xs text-muted-foreground">Connect at least one provider key (OpenAI, Anthropic, Google, OpenRouter, or NVIDIA) to power AI enhancements. Keys are encrypted with AES-256-GCM on the server and load on any device you sign in to, so you never re-enter them.</p>
+                <p className="text-xs text-muted-foreground">Connect at least one provider key (OpenAI, Anthropic, Google Gemini, OpenRouter, or NVIDIA) to run cloud models. Keys are encrypted with AES-256-GCM on the server and load on any device you sign in to. Without a matching key the deterministic engine runs instead; keys are never swapped between providers.</p>
               </div>
 
               <div className="space-y-4">
@@ -1024,9 +1051,23 @@ export default function SettingsPage() {
                           <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-muted text-muted-foreground border">
                             {savedKeyHints[p.id] || "••••••••"}
                           </span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center gap-1">
-                            <CheckCircle2 className="h-2.5 w-2.5" /> Connected & Synced
-                          </span>
+                          {keyStatus[p.id]?.status === "accepted" ? (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center gap-1">
+                              <CheckCircle2 className="h-2.5 w-2.5" /> Provider accepted
+                            </span>
+                          ) : keyStatus[p.id]?.status === "rejected" ? (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-500">
+                              Provider rejected
+                            </span>
+                          ) : keyStatus[p.id]?.status === "unreachable" ? (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400">
+                              Not reachable when tested
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted border text-muted-foreground">
+                              Saved · not tested
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1055,9 +1096,9 @@ export default function SettingsPage() {
                       <button
                         type="button"
                         onClick={() => handleTestApiKey(p.id)}
-                        disabled={!apiKeysInput[p.id]?.trim() || isTestingKey[p.id]}
+                        disabled={(!apiKeysInput[p.id]?.trim() && !savedKeys[p.id]) || isTestingKey[p.id]}
                         className="h-9 px-3 rounded-xl border bg-card text-xs font-semibold hover:bg-accent transition-colors disabled:opacity-50 flex items-center gap-1"
-                        title="Test API Key"
+                        title={apiKeysInput[p.id]?.trim() ? "Test the key in the field" : "Test the saved key"}
                       >
                         {isTestingKey[p.id] ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3 w-3 text-amber-500" />}
                         <span>Test</span>

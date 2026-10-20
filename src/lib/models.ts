@@ -1,59 +1,99 @@
 /**
- * Shared model definitions used across the Prompt Builder, Settings, and other pages.
- * Single source of truth for available AI models in the Prompt+ UI.
+ * Shared model catalog: single source of truth for the Studio selector, Settings,
+ * comparison, server validation, and provider routing.
+ *
+ * Access is about the provider's terms, not the signed-in user's key: whether a model
+ * costs money is separate from whether this account has a working credential.
  */
 
-export type ModelProvider = "openrouter" | "openai" | "anthropic" | "nvidia";
+import catalog from "./models.json";
+
+export type ModelProvider = "openrouter" | "openai" | "anthropic" | "nvidia" | "google";
+
+/** How the provider charges for this model. */
+export type ModelAccess = "free" | "free_tier_available" | "paid" | "unknown";
+export type ModelAvailability = "active" | "unavailable" | "deprecated";
+
+export interface ModelPrice {
+  inputPer1M: number | null;
+  outputPer1M: number | null;
+  currency: "USD";
+  sourceUrl: string;
+  /** ISO date the price/availability was checked. null means unverified. */
+  verifiedAt: string | null;
+  note?: string;
+}
 
 export interface ModelDefinition {
   id: string;
   name: string;
   icon: string;
-  free: boolean;
   provider: ModelProvider;
+  /** Exact API model id sent to the provider. */
   rawModel: string;
+  access: ModelAccess;
+  availability: ModelAvailability;
+  capabilities: { text: boolean; json: boolean };
   contextWindow?: number;
+  maxOutputTokens?: number;
+  pricing: ModelPrice;
   description?: string;
 }
 
-export const MODELS: ModelDefinition[] = [
-  // Verified against https://openrouter.ai/api/v1/models on 2026-10-17. Requires an OpenRouter key.
-  { id: "openrouter-nemotron-free", name: "Nemotron 3.5 Super VL", icon: "⚡", free: true, provider: "openrouter", rawModel: "nvidia/nemotron-3.5-super-vl:free", contextWindow: 1_000_000, description: "Free OpenRouter model; API key required" },
-
-  // ─── Free (NVIDIA NIM) ──────────────────────────────────────────────────
-  { id: "nvidia-llama33-70b", name: "Llama 3.3 70B NIM", icon: "🟢", free: true, provider: "nvidia", rawModel: "meta/llama-3.3-70b-instruct", contextWindow: 128_000, description: "NVIDIA accelerated Llama 3.3" },
-  { id: "nvidia-llama31-405b", name: "Llama 3.1 405B Ultra", icon: "🏔️", free: true, provider: "nvidia", rawModel: "meta/llama-3.1-405b-instruct", contextWindow: 128_000, description: "Largest open foundation model" },
-  { id: "nvidia-nemotron-70b", name: "Nemotron 70B Super", icon: "⚡", free: true, provider: "nvidia", rawModel: "nvidia/llama-3.1-nemotron-70b-instruct", contextWindow: 128_000, description: "NVIDIA RLHF tuned powerhouse" },
-  { id: "nvidia-nemotron-340b", name: "Nemotron 4 340B", icon: "🚀", free: true, provider: "nvidia", rawModel: "nvidia/nemotron-4-340b-instruct", contextWindow: 128_000, description: "Synthetic data & reasoning" },
-  { id: "nvidia-gemma2-27b", name: "Gemma 2 27B NIM", icon: "🔷", free: true, provider: "nvidia", rawModel: "google/gemma-2-27b-it", contextWindow: 8_192, description: "Google architecture on TensorRT" },
-  { id: "nvidia-gemma2-9b", name: "Gemma 2 9B NIM", icon: "🔹", free: true, provider: "nvidia", rawModel: "google/gemma-2-9b-it", contextWindow: 8_192, description: "Fast responsive Gemma" },
-  { id: "nvidia-mistral-large", name: "Mistral Large 2 NIM", icon: "🌪️", free: true, provider: "nvidia", rawModel: "mistralai/mistral-large-2-instruct", contextWindow: 128_000, description: "Top-tier multilingual & code" },
-  { id: "nvidia-mixtral-8x22b", name: "Mixtral 8x22B MoE", icon: "🧩", free: true, provider: "nvidia", rawModel: "mistralai/mixtral-8x22b-instruct-v0.1", contextWindow: 64_000, description: "Sparse mixture of experts" },
-
-  // ─── Paid / Custom Key (OpenAI) ─────────────────────────────────────────
-  { id: "openai-gpt4o", name: "GPT-4o", icon: "🤖", free: false, provider: "openai", rawModel: "gpt-4o", contextWindow: 128_000, description: "Flagship omni model" },
-  { id: "openai-gpt4o-mini", name: "GPT-4o Mini", icon: "⚡", free: false, provider: "openai", rawModel: "gpt-4o-mini", contextWindow: 128_000, description: "Fast & affordable" },
-  { id: "openai-o3-mini", name: "o3-Mini (Reasoning)", icon: "🧠", free: false, provider: "openai", rawModel: "o3-mini", contextWindow: 200_000, description: "Advanced STEM & logic reasoning" },
-
-  // ─── Paid / Custom Key (Anthropic) ──────────────────────────────────────
-  { id: "anthropic-claude-35-sonnet", name: "Claude 3.5 Sonnet", icon: "🎭", free: false, provider: "anthropic", rawModel: "claude-3-5-sonnet-20241022", contextWindow: 200_000, description: "Benchmark leader in prompt writing" },
-  { id: "anthropic-claude-35-haiku", name: "Claude 3.5 Haiku", icon: "🕊️", free: false, provider: "anthropic", rawModel: "claude-3-5-haiku-20241022", contextWindow: 200_000, description: "Sub-second lightning responses" },
-  { id: "anthropic-claude-3-opus", name: "Claude 3 Opus", icon: "👑", free: false, provider: "anthropic", rawModel: "claude-3-opus-20240229", contextWindow: 200_000, description: "Deep nuanced long-form writing" },
-];
+// Data lives in models.json so the catalog-refresh script can read and update it
+// without parsing TypeScript. Types and derivations stay here.
+export const MODELS: ModelDefinition[] = catalog as ModelDefinition[];
 
 export const DEFAULT_MODEL_ID = "openrouter-nemotron-free";
 
-export function getModelById(id: string): ModelDefinition | undefined {
-  return MODELS.find((m) => m.id === id);
+/** Retired or renamed ids that may still be stored in user preferences. */
+export const MODEL_ALIASES: Record<string, string> = {
+  "google-gemini-pro": "google-gemini-38-flash",
+  "openrouter-nemotron": "openrouter-nemotron-free",
+};
+
+export function getModelById(id: string | undefined | null): ModelDefinition | undefined {
+  if (!id) return undefined;
+  return MODELS.find((m) => m.id === id) || getModelById(MODEL_ALIASES[id]);
+}
+
+/** Resolve a stored preference or a request model reference to a current catalog entry. */
+export function resolveModelReference(idOrRawModel: string | undefined | null): ModelDefinition | undefined {
+  if (!idOrRawModel) return undefined;
+  return getModelById(idOrRawModel) || MODELS.find((m) => m.rawModel === idOrRawModel);
+}
+
+const PROVIDER_LABELS: Record<ModelProvider, string> = {
+  openrouter: "OpenRouter",
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  nvidia: "NVIDIA",
+  google: "Google Gemini",
+};
+
+export function providerLabel(provider: ModelProvider): string {
+  return PROVIDER_LABELS[provider] ?? provider;
+}
+
+export function accessLabel(model: Pick<ModelDefinition, "access" | "pricing">): string {
+  switch (model.access) {
+    case "free":
+      return "Free model";
+    case "free_tier_available":
+      return "Free tier available";
+    case "paid":
+      return model.pricing.verifiedAt ? "Paid" : "Paid · price unverified";
+    default:
+      return "Pricing unverified";
+  }
+}
+
+/** Whether running this model can bill the connected provider account. */
+export function canIncurProviderCharges(model: Pick<ModelDefinition, "access">): boolean {
+  return model.access === "paid" || model.access === "unknown";
 }
 
 /** Format for Settings select dropdown */
 export function getModelDisplayLabel(m: ModelDefinition): string {
-  const providerLabel =
-    m.provider === "openrouter" ? "OpenRouter" :
-    m.provider === "openai" ? "OpenAI" :
-    m.provider === "anthropic" ? "Anthropic" :
-    "NVIDIA";
-  return `${m.name} (${providerLabel}${m.free ? " · Free" : ""})`;
+  return `${m.name} (${providerLabel(m.provider)} · ${accessLabel(m)})`;
 }
-

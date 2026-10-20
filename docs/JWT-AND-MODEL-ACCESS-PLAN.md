@@ -1,6 +1,21 @@
 # JWT authentication and free/paid model access
 
-Status: Phase 1 implemented on `feat/jwt-session-hardening`; phases 2–4 not started.
+Status: Phases 1–4 implemented. Phase 5 evidence is listed at the end.
+
+Implementation notes (2026-10-20):
+
+- The catalog lives in `src/lib/models.json`; `src/lib/models.ts` adds types and labels.
+  `npm run refresh-models` re-checks OpenRouter ids/prices/context and Google model
+  presence; a failed fetch exits without touching the file.
+- `src/lib/llm/resolve-credentials.ts` is the only path from a request to a provider key.
+  Website routes never read operator keys; the public extension route does, and only for
+  models that cannot bill.
+- `POST /api/v2/optimize` takes `modelId` plus `confirmPaidUsage`. `mode: "api"` returns
+  the failure; `auto` returns the deterministic result with a `cloud` reason.
+- Stored keys keep a masked hint and the last authenticated check
+  (`accepted`, `rejected`, `unreachable`) in `api_keys`.
+- `vercel-build` runs `prisma migrate deploy` before `next build`, so a schema change
+  cannot be promoted ahead of the code that needs it.
 
 Prepared: 2026-10-20. Repository inspection and provider documentation checked during this planning session.
 

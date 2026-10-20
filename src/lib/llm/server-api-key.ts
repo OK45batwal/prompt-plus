@@ -1,10 +1,11 @@
-type ResolvableProvider = "openai" | "anthropic" | "openrouter" | "nvidia";
+type ResolvableProvider = "openai" | "anthropic" | "openrouter" | "nvidia" | "google";
 
-const FALLBACK_ORDER: ResolvableProvider[] = ["nvidia", "openrouter", "openai", "anthropic"];
+const FALLBACK_ORDER: ResolvableProvider[] = ["openrouter", "nvidia", "google", "openai", "anthropic"];
 
 /** Which server provider serves this model id. Keeps the key and the model on the same provider. */
 export function providerForModel(model: string): ResolvableProvider {
   const m = (model || "").toLowerCase();
+  if (m.startsWith("gemini")) return "google";
   if (m.includes(":") || m.startsWith("anthropic/")) return "openrouter";
   if (/^(meta|nvidia)\//.test(m) || m.startsWith("google/gemma") || m.includes("mistral-7b")) return "nvidia";
   if (m.includes("claude")) return "anthropic";
@@ -20,6 +21,7 @@ export function resolveServerApiKey(
     openrouter: process.env.OPENROUTER_API_KEY,
     openai: process.env.OPENAI_API_KEY,
     anthropic: process.env.ANTHROPIC_API_KEY,
+    google: process.env.GOOGLE_API_KEY,
   };
 
   const pref = (preferred || "") as ResolvableProvider;
@@ -33,5 +35,5 @@ export function resolveServerApiKey(
 }
 
 export function defaultModelForProvider(provider: string): string {
-  return ({ openai: "gpt-4o-mini", anthropic: "claude-sonnet-4-6", openrouter: "nvidia/nemotron-3.5-super-vl:free", nvidia: "meta/llama-3.3-70b-instruct" } as Record<string, string>)[provider] || "gpt-4o-mini";
+  return ({ openai: "gpt-4o-mini", anthropic: "claude-3-5-sonnet-20241022", openrouter: "nvidia/nemotron-3.5-super-vl:free", nvidia: "meta/llama-3.3-70b-instruct", google: "gemini-3.8-flash" } as Record<string, string>)[provider] || "gpt-4o-mini";
 }
