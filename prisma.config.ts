@@ -9,8 +9,8 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    // Migrations prefer the direct (non-pooled) connection when the deployment
-    // provides one; the runtime still uses DATABASE_URL through the Neon adapter.
-    url: process.env["DIRECT_URL"] || process.env["DATABASE_URL"],
+    // The deployment's DIRECT_URL is stale here, so migrations use the same
+    // DATABASE_URL the runtime connects with.
+    url: process.env["DATABASE_URL"],
   },
 });
