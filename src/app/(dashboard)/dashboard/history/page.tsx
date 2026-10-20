@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Search, Clock, RotateCcw, ChevronDown, Check, Sparkles, Loader2, Trash2, AlertTriangle } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { accountStorageKey } from "@/lib/account-storage";
 
 import { isScore } from "@/lib/score-summary";
 import { MODELS } from "@/lib/models";
@@ -45,11 +47,15 @@ export default function HistoryPage() {
   const [isClearingAll, setIsClearingAll] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const { toast } = useToast();
+  const { data: session, status: sessionStatus } = useSession();
+  const historyKey = accountStorageKey("pp_local_history", session?.user?.id);
 
   useEffect(() => {
+    // Wait for the session: the unscoped key belongs to no account.
+    if (sessionStatus === "loading") return;
     let localItems: HistoryItem[] = [];
     try {
-      const raw = localStorage.getItem("pp_local_history");
+      const raw = localStorage.getItem(historyKey);
       if (raw) {
         const parsed = JSON.parse(raw);
         localItems = (parsed || []).map((x: { id?: string; originalText: string; enhancedText: string; model?: string; originalScore?: number; enhancedScore?: number; measuredBy?: string; timestamp: string }) => {
@@ -101,7 +107,7 @@ export default function HistoryPage() {
         if (localItems.length === 0) setLoadError(true);
       })
       .finally(() => setLoading(false));
-  }, [reloadKey]);
+  }, [reloadKey, sessionStatus, historyKey]);
 
   const filteredHistory = history.filter((item) =>
     item.originalText.toLowerCase().includes(search.toLowerCase()) ||
@@ -132,14 +138,14 @@ export default function HistoryPage() {
     try {
       // 1. Clean local storage
       try {
-        const raw = localStorage.getItem("pp_local_history");
+        const raw = localStorage.getItem(historyKey);
         if (raw) {
           const parsed = JSON.parse(raw);
           const filtered = (parsed || []).filter(
             (x: { id?: string; originalText?: string }) =>
               x.id !== item.id && x.originalText?.trim() !== item.originalText.trim()
           );
-          localStorage.setItem("pp_local_history", JSON.stringify(filtered));
+          localStorage.setItem(historyKey, JSON.stringify(filtered));
         }
       } catch {
         // ignore
@@ -170,7 +176,7 @@ export default function HistoryPage() {
     setIsClearingAll(true);
     try {
       // 1. Clear local storage
-      localStorage.removeItem("pp_local_history");
+      localStorage.removeItem(historyKey);
 
       // 2. Call backend to clear all history
       await fetch("/api/v1/prompts?all=true", {

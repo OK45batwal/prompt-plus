@@ -21,6 +21,7 @@ jobs:
         with:
           node-version: 20
 
+      # Critical advisories block the PR. High/moderate findings still print above
+      # for visibility; they are tracked separately rather than silently ignored.
       - name: Run npm security audit
         run: npm audit --audit-level=critical
-        continue-on-error: true

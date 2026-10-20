@@ -65,7 +65,7 @@ export function ModelSelector({
   const selectedModelData = getModelById(selectedModel);
   const selectedProvider = selectedModelData?.provider;
   const selectedHasKey = selectedProvider ? Boolean(savedKeys[selectedProvider]) : false;
-  const selectedIsPaid = selectedModelData ? canIncurProviderCharges(selectedModelData) : false;
+  const selectedCanBill = selectedModelData ? canIncurProviderCharges(selectedModelData) : false;
 
   // Click-outside listener
   useEffect(() => {
@@ -91,7 +91,7 @@ export function ModelSelector({
             Connect a {providerLabel(selectedProvider)} key
           </Link>
         )}
-        {selectedIsPaid && selectedModelData?.pricing.note && (
+        {selectedCanBill && selectedModelData?.pricing.note && (
           <p className="mt-2 text-[11px] text-amber-600 dark:text-amber-400">{selectedModelData.pricing.note}</p>
         )}
       </div>
@@ -144,7 +144,8 @@ export function ModelSelector({
               const models = MODELS.filter(
                 (m) =>
                   group.providers.includes(m.provider) &&
-                  (accessFilter === "all" || (accessFilter === "free" ? !canIncurProviderCharges(m) : canIncurProviderCharges(m)))
+                  (accessFilter === "all" ||
+                    (accessFilter === "free" ? m.access === "free" || m.access === "free_tier_available" : canIncurProviderCharges(m)))
               );
               if (models.length === 0) return null;
               return (

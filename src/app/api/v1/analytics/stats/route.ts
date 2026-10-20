@@ -6,14 +6,16 @@ import { getDb } from "@/lib/db/prisma";
 export const GET = withAuth(
   async (req, { userId, requestId }) => {
     const url = new URL(req.url);
-    const range = url.searchParams.get("range") || "7d"; // "7d" | "30d" | "all"
+    const range = url.searchParams.get("range") || "7d"; // "7d" | "30d" | "90d"
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     let daysToLookBack = 7;
     if (range === "30d") daysToLookBack = 30;
-    else if (range === "all") daysToLookBack = 90;
+    // This window has always been 90 days; "all" is a deprecated alias for the
+    // clients that still send it. An all-time summary would need its own endpoint.
+    else if (range === "90d" || range === "all") daysToLookBack = 90;
 
     const startDate = new Date();
     startDate.setUTCDate(startDate.getUTCDate() - (daysToLookBack - 1));

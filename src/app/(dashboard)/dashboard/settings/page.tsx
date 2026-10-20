@@ -383,20 +383,30 @@ export default function SettingsPage() {
           const raw = localStorage.getItem("promptplus_user_apikeys");
           if (raw) {
             const legacy = JSON.parse(raw) as Record<string, string>;
+            const remaining: Record<string, string> = {};
+            let moved = 0;
+            let failed = 0;
             for (const [provider, apiKey] of Object.entries(legacy)) {
               if (!apiKey?.trim() || keyMap[provider]) continue;
-              await fetch("/api/v1/api-keys", {
+              const saved = await fetch("/api/v1/api-keys", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
                 body: JSON.stringify({ provider, apiKey: apiKey.trim() }),
               });
+              if (saved.ok) moved++;
+              else {
+                remaining[provider] = apiKey;
+                failed++;
+              }
             }
-            localStorage.removeItem("promptplus_user_apikeys");
-            if (isMounted) toast("Moved browser-only API keys into your encrypted account vault.", "success");
+            // Only a confirmed save removes the plaintext copy.
+            if (Object.keys(remaining).length > 0) localStorage.setItem("promptplus_user_apikeys", JSON.stringify(remaining));
+            else localStorage.removeItem("promptplus_user_apikeys");
+            if (isMounted && moved > 0) toast("Moved browser-only API keys into your encrypted account vault.", "success");
+            if (isMounted && failed > 0) toast(`${failed} browser-only key${failed === 1 ? "" : "s"} could not be moved and stayed in this browser.`, "error");
           }
         } catch {
-          // A malformed legacy entry is dropped with the rest; the user can re-save it.
-          localStorage.removeItem("promptplus_user_apikeys");
+          // Leave the value in place: a parse failure must not delete the only copy.
         }
       } catch {
         // ignore
@@ -447,7 +457,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/v1/api-keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(rawKey?.trim() ? { provider, apiKey: rawKey } : { provider }),
+        body: JSON.stringify({ provider, apiKey: rawKey.trim() }),
       });
 
       const json = await res.json();
@@ -472,9 +482,19 @@ export default function SettingsPage() {
 
   const handleDeleteApiKey = async (provider: string) => {
     try {
-      await fetch(`/api/v1/api-keys?provider=${provider}`, { method: "DELETE" });
+      const res = await fetch(`/api/v1/api-keys?provider=${provider}`, { method: "DELETE" });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        toast(json.error || "The key could not be deleted. It is still saved.", "error");
+        return;
+      }
       setSavedKeys((prev) => ({ ...prev, [provider]: false }));
       setSavedKeyHints((prev) => {
+        const next = { ...prev };
+        delete next[provider];
+        return next;
+      });
+      setKeyStatus((prev) => {
         const next = { ...prev };
         delete next[provider];
         return next;
@@ -483,7 +503,7 @@ export default function SettingsPage() {
       setTestResults((prev) => ({ ...prev, [provider]: { ok: false, msg: "" } }));
       toast(`API key removed for ${provider.toUpperCase()}`, "info");
     } catch {
-      // ignore
+      toast("Could not reach the server. The key is still saved.", "error");
     }
   };
 
@@ -543,14 +563,20 @@ export default function SettingsPage() {
 
   const handleSaveAll = async () => {
     // 1. Save Profile & Avatar to both v1/user/profile and auth/profile
-    await fetch("/api/v1/user/profile", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Requested-With": "XMLHttpRequest",
-      },
-      body: JSON.stringify({ name, avatar }),
-    }).catch(() => {});
+    let profileSaved = true;
+    try {
+      const res = await fetch("/api/v1/user/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: JSON.stringify({ name, avatar }),
+      });
+      profileSaved = res.ok;
+    } catch {
+      profileSaved = false;
+    }
 
     await fetch("/api/auth/profile", {
       method: "PATCH",
@@ -598,30 +624,42 @@ export default function SettingsPage() {
 
     // 3. Save any pending API keys
     const pendingKeys = Object.entries(apiKeysInput).filter(([, v]) => v?.trim());
-    if (pendingKeys.length > 0) {
-      for (const [prov, val] of pendingKeys) {
-        try {
-          await fetch("/api/v1/api-keys", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Requested-With": "XMLHttpRequest",
-            },
-            body: JSON.stringify({ provider: prov, apiKey: val.trim() }),
-          });
+    let keysSaved = 0;
+    const failedKeys: Record<string, string> = {};
+    for (const [prov, val] of pendingKeys) {
+      try {
+        const res = await fetch("/api/v1/api-keys", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          body: JSON.stringify({ provider: prov, apiKey: val.trim() }),
+        });
+        if (res.ok) {
+          keysSaved++;
           setSavedKeys((prev) => ({ ...prev, [prov]: true }));
-        } catch {
-          // ignore
+        } else {
+          failedKeys[prov] = val;
         }
+      } catch {
+        failedKeys[prov] = val;
       }
-      setApiKeysInput({});
+    }
+    // Anything the server did not confirm stays in the field so nothing is lost.
+    setApiKeysInput(failedKeys);
+    if (Object.keys(failedKeys).length > 0) {
+      toast(`${Object.keys(failedKeys).length} API key${Object.keys(failedKeys).length === 1 ? "" : "s"} could not be saved; the text is still in the field.`, "error");
+    } else if (keysSaved > 0) {
+      toast(`${keysSaved} API key${keysSaved === 1 ? "" : "s"} saved.`, "success");
     }
 
     setSaved(true);
-    if (preferencesSaved) {
+    if (profileSaved && preferencesSaved) {
       toast("Settings, preferences, and custom avatar saved.", "success");
     } else {
-      toast("Your preferences could not be saved. Everything else was.", "error");
+      const failed = [!profileSaved && "profile/avatar", !preferencesSaved && "preferences"].filter(Boolean).join(" and ");
+      toast(`Your ${failed} could not be saved.`, "error");
     }
     setTimeout(() => setSaved(false), 2000);
   };

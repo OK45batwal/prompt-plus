@@ -88,9 +88,15 @@ export function accessLabel(model: Pick<ModelDefinition, "access" | "pricing">):
   }
 }
 
-/** Whether running this model can bill the connected provider account. */
+/**
+ * Whether running this model can bill the connected provider account.
+ *
+ * A "free tier" is an account-level property (for Google, billing belongs to the
+ * project), so it is treated as potentially billable. Only `free` models are known
+ * not to charge.
+ */
 export function canIncurProviderCharges(model: Pick<ModelDefinition, "access">): boolean {
-  return model.access === "paid" || model.access === "unknown";
+  return model.access !== "free";
 }
 
 /** Format for Settings select dropdown */

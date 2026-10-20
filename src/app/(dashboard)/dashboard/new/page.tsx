@@ -3,6 +3,8 @@ import Link from "next/link";
 
 import { useState, useRef, useEffect, Suspense, type KeyboardEvent } from "react";
 import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { accountStorageKey } from "@/lib/account-storage";
 import {
   Sparkles,
   Copy,
@@ -24,7 +26,7 @@ import { estimateTokenCount, calculateCostEstimates } from "@/lib/token-calculat
 import type { EnhanceLevel } from "@/lib/llm/meta-prompt";
 import { useToast } from "@/components/ui/toast";
 import { openAIPlatform } from "@/lib/platform-redirect";
-import { MODELS, DEFAULT_MODEL_ID, getModelById, canIncurProviderCharges } from "@/lib/models";
+import { MODELS, DEFAULT_MODEL_ID, getModelById, canIncurProviderCharges, providerLabel } from "@/lib/models";
 import { ModelSelector } from "@/components/studio/model-selector";
 import { ContextMemoryPanel } from "@/components/studio/context-memory-panel";
 import { LiveEvaluation } from "@/components/studio/live-evaluation";
@@ -137,8 +139,21 @@ const resultTabs = [
 
 const DRAFT_KEY = "pp_studio_draft";
 
+// Kept out of the component: React's compiler rejects impure calls (Date.now, new Date)
+// in render-reachable code, and this is only used when a run finishes.
+function newLocalHistoryStamp() {
+  const now = new Date();
+  return { id: `local_${now.getTime()}`, timestamp: now.toISOString() };
+}
+
 function PromptBuilderPage() {
   const { toast } = useToast();
+  const { data: session, status: sessionStatus } = useSession();
+  const accountId = session?.user?.id ?? null;
+  // `undefined` while the session is still loading: reading then would hydrate the
+  // unscoped (pre-account) key and assign it to whoever happens to be signed in.
+  const storageKey = sessionStatus === "authenticated" ? accountStorageKey(DRAFT_KEY, accountId) : null;
+  const [legacyDraftFound, setLegacyDraftFound] = useState(false);
 
   // Handoff links (Library, History) and the browser extension's "Web Studio" pass the
   // prompt in the query string. Before this the Studio ignored it and opened empty.
@@ -221,18 +236,18 @@ function PromptBuilderPage() {
       } catch {
         // Unreadable preferences just leave the defaults in place.
       }
-      setAvailableBlocks(getSavedContextBlocks());
+      setAvailableBlocks(getSavedContextBlocks(accountId));
     });
-  }, [handoffTone]);
+  }, [handoffTone, accountId]);
 
   // Restore the in-progress draft so navigating away (or a sign-in round trip) does
   // not lose what the user typed. A handoff prompt/ID always wins over the draft.
   // Deferred past hydration so the server-rendered editor is not clobbered mid-hydrate.
   useEffect(() => {
-    if (handoffPrompt || handoffPromptId) return;
+    if (handoffPrompt || handoffPromptId || !storageKey) return;
     const timer = setTimeout(() => {
       try {
-        const raw = localStorage.getItem(DRAFT_KEY);
+        const raw = localStorage.getItem(storageKey);
         if (!raw) return;
         const draft = JSON.parse(raw);
         if (typeof draft.text === "string") setPrompt(draft.text);
@@ -248,15 +263,30 @@ function PromptBuilderPage() {
       }
     }, 0);
     return () => clearTimeout(timer);
-  }, [handoffPrompt, handoffPromptId]);
+  }, [handoffPrompt, handoffPromptId, storageKey]);
+
+  // A draft written before accounts were scoped is nobody's yet. Offer it instead of
+  // silently handing it to the account that happens to open the Studio next.
+  useEffect(() => {
+    if (!storageKey) return;
+    const timer = setTimeout(() => {
+      try {
+        if (localStorage.getItem(storageKey)) return;
+        if (localStorage.getItem(DRAFT_KEY)) setLegacyDraftFound(true);
+      } catch {
+        // Storage disabled: nothing to recover.
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [storageKey]);
 
   // Persist the draft, and only report "Saved" once the write actually succeeds.
   useEffect(() => {
-    if (!prompt.trim()) return;
+    if (!prompt.trim() || !storageKey) return;
     const timer = setTimeout(() => {
       try {
         localStorage.setItem(
-          DRAFT_KEY,
+          storageKey,
           JSON.stringify({
             text: prompt,
             tone: selectedTone,
@@ -273,7 +303,7 @@ function PromptBuilderPage() {
       }
     }, 600);
     return () => clearTimeout(timer);
-  }, [prompt, selectedTone, selectedLength, selectedCategory, enhanceLevel, selectedModel, selectedBlockIds]);
+  }, [prompt, selectedTone, selectedLength, selectedCategory, enhanceLevel, selectedModel, selectedBlockIds, storageKey]);
 
   const [savedKeys, setSavedKeys] = useState<Record<string, boolean>>({});
 
@@ -400,13 +430,19 @@ function PromptBuilderPage() {
       setResultView("output");
       setAnnouncement(enhanceProvider === "engine" ? "Enhanced prompt ready. The built-in engine created it; no model ran." : "Enhanced prompt ready.");
       toast(enhanceProvider === "engine" ? "Deterministic enhancement ready. No model ran." : "Enhanced prompt ready.", "success");
-      try {
-        const existing = JSON.parse(localStorage.getItem("pp_local_history") || "[]");
-        const entry = { id: promptId || `local_${Date.now()}`, originalText: fullPrompt,
-          enhancedText: finalEnhancedText, model: json.data.model || (enhanceProvider === "engine" ? "promptplus-engine" : selectedModelData?.name || selectedModel),
-          originalScore, enhancedScore, measuredBy: enhancedScore === null ? null : "llm", timestamp: new Date().toISOString() };
-        localStorage.setItem("pp_local_history", JSON.stringify([entry, ...existing.filter((x: { originalText: string }) => x.originalText !== fullPrompt)].slice(0, 100)));
-      } catch { /* Browser storage may be disabled. */ }
+      // No account id means there is no owner for this entry; skip rather than create
+      // an unscoped record the next account would inherit.
+      if (accountId) {
+        try {
+          const historyKey = accountStorageKey("pp_local_history", accountId);
+          const existing = JSON.parse(localStorage.getItem(historyKey) || "[]");
+          const stamp = newLocalHistoryStamp();
+          const entry = { id: promptId || stamp.id, originalText: fullPrompt,
+            enhancedText: finalEnhancedText, model: json.data.model || (enhanceProvider === "engine" ? "promptplus-engine" : selectedModelData?.name || selectedModel),
+            originalScore, enhancedScore, measuredBy: enhancedScore === null ? null : "llm", timestamp: stamp.timestamp };
+          localStorage.setItem(historyKey, JSON.stringify([entry, ...existing.filter((x: { originalText: string }) => x.originalText !== fullPrompt)].slice(0, 100)));
+        } catch { /* Browser storage may be disabled. */ }
+      }
     } catch (error) {
       console.error("Enhancement failed:", error);
       setErrorNotice(error instanceof Error ? error.message : "Enhancement failed. Please try again.");
@@ -480,7 +516,7 @@ function PromptBuilderPage() {
     setResultView("output");
     setDraftSaved(false);
     try {
-      localStorage.removeItem(DRAFT_KEY);
+      if (storageKey) localStorage.removeItem(storageKey);
     } catch {
       // Browser storage may be disabled.
     }
@@ -630,6 +666,45 @@ function PromptBuilderPage() {
         </div>
       )}
 
+      {legacyDraftFound && storageKey && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-accent/40 p-3 text-xs">
+          <span>This browser has a draft saved before you signed in. Move it to your account?</span>
+          <span className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              className="font-medium text-primary hover:underline"
+              onClick={() => {
+                try {
+                  const raw = localStorage.getItem(DRAFT_KEY);
+                  if (raw) localStorage.setItem(storageKey, raw);
+                  localStorage.removeItem(DRAFT_KEY);
+                } catch {
+                  // Storage disabled: leave the old value alone.
+                }
+                setLegacyDraftFound(false);
+                window.location.reload();
+              }}
+            >
+              Move it here
+            </button>
+            <button
+              type="button"
+              className="text-muted-foreground hover:underline"
+              onClick={() => {
+                try {
+                  localStorage.removeItem(DRAFT_KEY);
+                } catch {
+                  // Storage disabled.
+                }
+                setLegacyDraftFound(false);
+              }}
+            >
+              Delete it
+            </button>
+          </span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         {/* Input region */}
         <div className="space-y-6">
@@ -725,6 +800,7 @@ function PromptBuilderPage() {
 
           {/* Selected context: removable items plus a preview of exactly what is sent. */}
           <ContextMemoryPanel
+            accountId={accountId}
             availableBlocks={availableBlocks}
             selectedBlockIds={selectedBlockIds}
             onToggleBlock={toggleContextBlock}
@@ -786,7 +862,7 @@ function PromptBuilderPage() {
                   className="mt-0.5 h-3.5 w-3.5"
                 />
                 <span>
-                  This model can bill your {selectedModelData?.provider} account. Tick to allow paid runs.
+                  This model can bill your {selectedModelData ? providerLabel(selectedModelData.provider) : "provider"} account. Tick to allow billable runs.
                   {selectedModelData?.pricing.inputPer1M != null && (
                     <span className="block text-muted-foreground">
                       ${selectedModelData.pricing.inputPer1M}/1M in · ${selectedModelData.pricing.outputPer1M}/1M out
