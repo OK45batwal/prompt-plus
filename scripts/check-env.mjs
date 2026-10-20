@@ -37,8 +37,20 @@ if (!secret) {
   console.log("✅ AUTH_SECRET is configured.");
 }
 
-const dbUrl = process.env.DATABASE_URL;
-if (!dbUrl) {
+// Authentication and encryption secrets are validated independently: rotating the auth
+// secret must not orphan stored API keys, which are encrypted with ENCRYPTION_KEY.
+const encryptionKey = process.env.ENCRYPTION_KEY;
+if (!encryptionKey) {
+  errors.push("❌ ENCRYPTION_KEY environment variable is missing. Stored provider API keys cannot be encrypted.");
+} else if (encryptionKey.length < 32) {
+  errors.push("❌ ENCRYPTION_KEY must be at least 32 characters long.");
+} else if (encryptionKey === secret) {
+  warnings.push("⚠️ ENCRYPTION_KEY equals AUTH_SECRET. Use a distinct key so rotating one does not affect the other.");
+} else {
+  console.log("✅ ENCRYPTION_KEY is configured and separate from AUTH_SECRET.");
+}
+
+const dbUrl = process.env.DATABASE_URL;if (!dbUrl) {
   errors.push("❌ DATABASE_URL environment variable is missing.");
 } else if (!/^postgres(ql)?:\/\//.test(dbUrl)) {
   errors.push("DATABASE_URL must be a PostgreSQL URL; the runtime currently uses the Neon HTTP adapter.");

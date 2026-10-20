@@ -5,6 +5,10 @@ const mocks = vi.hoisted(() => ({
   db: { apiKey: { findFirst: vi.fn() }, prompt: { findFirst: vi.fn(), updateMany: vi.fn() }, usageLog: { create: vi.fn() } },
 }));
 vi.mock("@/lib/auth/config", () => ({ auth: vi.fn().mockResolvedValue({ user: { id: "owner" } }) }));
+vi.mock("@/lib/auth/account", () => ({
+  verifySessionAccount: async () => ({ ok: true, user: { id: "owner", authVersion: 0, emailVerified: null } }),
+  sessionCheckMessage: () => "invalid session",
+}));
 vi.mock("@/lib/db/prisma", () => ({ getDb: () => mocks.db }));
 vi.mock("@/lib/llm/providers", () => ({ callLLM: mocks.call }));
 vi.mock("@/lib/llm/server-api-key", () => ({ resolveServerApiKey: mocks.key }));

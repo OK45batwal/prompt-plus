@@ -16,7 +16,20 @@ function LoginForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const initialError = errorParam === "CredentialsSignin" ? "Invalid email or password" : null;
+  const initialError =
+    errorParam === "CredentialsSignin"
+      ? "Invalid email or password"
+      : errorParam === "OAuthEmailInUse"
+      ? "An account with this email already exists. Sign in with your password, then connect this provider from Settings."
+      : errorParam === "OAuthEmailUnverified"
+      ? "This provider did not confirm your email address, so it cannot be linked to a Prompt+ account."
+      : errorParam === "AccessDenied"
+      ? "Sign-in was cancelled or denied."
+      : errorParam && errorParam !== "Configuration"
+      ? "Sign-in could not be completed. Please try again."
+      : errorParam === "Configuration"
+      ? "Sign-in is not configured correctly on this deployment."
+      : null;
   const [error, setError] = useState<string | null>(initialError);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);

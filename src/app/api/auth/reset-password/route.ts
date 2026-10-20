@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     } else {
       await getDb().user.update({
         where: { id: user.id },
-        data: { passwordHash, resetToken: null, resetTokenExpiry: null },
+        data: { passwordHash, resetToken: null, resetTokenExpiry: null, authVersion: { increment: 1 } },
       });
     }
 

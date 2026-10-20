@@ -8,6 +8,10 @@ import { POST as enhanceAi } from "@/app/api/v1/prompts/enhance-ai/route";
 vi.mock("@/lib/auth/config", () => ({
   auth: vi.fn().mockResolvedValue({ user: { id: "user_test_456", email: "test@example.com" } }),
 }));
+vi.mock("@/lib/auth/account", () => ({
+  verifySessionAccount: async () => ({ ok: true, user: { id: "user_test_456", authVersion: 0, emailVerified: null } }),
+  sessionCheckMessage: () => "invalid session",
+}));
 
 // Mock DB
 interface MockApiKey {

@@ -5,6 +5,10 @@ import { NextRequest } from "next/server";
 vi.mock("@/lib/auth/config", () => ({
   auth: vi.fn().mockResolvedValue({ user: { id: "test-user-123" } }),
 }));
+vi.mock("@/lib/auth/account", () => ({
+  verifySessionAccount: async () => ({ ok: true, user: { id: "test-user-123", authVersion: 0, emailVerified: null } }),
+  sessionCheckMessage: () => "invalid session",
+}));
 
 import { GET as getNotifications, PATCH as patchNotifications, DELETE as deleteNotifications } from "@/app/api/v1/notifications/route";
 

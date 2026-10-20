@@ -29,10 +29,10 @@ export const POST = withAuth(
     const passwordHash = await bcrypt.hash(newPassword, 12);
     await getDb().user.update({
       where: { id: user.id },
-      data: { passwordHash },
+      data: { passwordHash, authVersion: { increment: 1 } },
     });
 
-    return jsonResponse({ message: "Password updated" }, { requestId });
+    return jsonResponse({ message: "Password updated. Other sessions have been signed out." }, { requestId });
   },
   { schema: changePasswordSchema }
 );

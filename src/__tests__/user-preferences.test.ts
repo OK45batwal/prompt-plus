@@ -5,6 +5,10 @@ import { NextRequest } from "next/server";
 vi.mock("@/lib/auth/config", () => ({
   auth: vi.fn().mockResolvedValue({ user: { id: "test-user-123" } }),
 }));
+vi.mock("@/lib/auth/account", () => ({
+  verifySessionAccount: async () => ({ ok: true, user: { id: "test-user-123", authVersion: 0, emailVerified: null } }),
+  sessionCheckMessage: () => "invalid session",
+}));
 
 import { GET as getPreferences, PATCH as patchPreferences } from "@/app/api/v1/user/preferences/route";
 import { POST as testApiKey } from "@/app/api/v1/api-keys/test/route";

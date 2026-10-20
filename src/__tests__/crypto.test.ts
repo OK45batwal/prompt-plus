@@ -26,4 +26,21 @@ describe("Crypto Helper (AES-256-GCM)", () => {
   it("should throw error on invalid ciphertext format", () => {
     expect(() => decrypt("invalid-cipher-text")).toThrow("Invalid cipher text format");
   });
+
+  it("should still decrypt ciphertext written with the legacy auth-secret fallback", async () => {
+    const crypto = await import("node:crypto");
+    const legacySecret = "legacy-auth-secret-that-is-long-enough-32";
+    const previousAuth = process.env.AUTH_SECRET;
+    process.env.AUTH_SECRET = legacySecret;
+
+    // Emulate the pre-separation format: AES-256-GCM under the auth secret.
+    const iv = crypto.randomBytes(12);
+    const key = crypto.createHash("sha256").update(legacySecret).digest();
+    const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+    const encrypted = cipher.update("sk-or-v1-legacy", "utf8", "hex") + cipher.final("hex");
+    const legacyValue = `${iv.toString("hex")}:${encrypted}:${cipher.getAuthTag().toString("hex")}`;
+
+    expect(decrypt(legacyValue)).toBe("sk-or-v1-legacy");
+    process.env.AUTH_SECRET = previousAuth;
+  });
 });

@@ -7,6 +7,10 @@ const db = vi.hoisted(() => ({
   prompt: { count: vi.fn(), findMany: vi.fn() },
 }));
 vi.mock("@/lib/auth/config", () => ({ auth: vi.fn().mockResolvedValue({ user: { id: "test-user-123" } }) }));
+vi.mock("@/lib/auth/account", () => ({
+  verifySessionAccount: async () => ({ ok: true, user: { id: "test-user-123", authVersion: 0, emailVerified: null } }),
+  sessionCheckMessage: () => "invalid session",
+}));
 vi.mock("@/lib/db/prisma", () => ({ getDb: () => db }));
 import { GET as analytics } from "@/app/api/v1/analytics/stats/route";
 import { GET as usage } from "@/app/api/v1/usage/route";
