@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "vercel-build": "prisma migrate resolve --applied 20260720141048_init; prisma migrate resolve --applied 20260725121600_add_forgot_password; prisma migrate deploy && next build",
+    "vercel-build": "prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint",
     "check-routes": "node scripts/check-api-routes.mjs",
