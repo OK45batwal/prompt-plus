@@ -13,10 +13,10 @@ export async function GET(request: NextRequest) {
   // Public template browsing allowed
   const { searchParams } = new URL(request.url);
   const queryResult = getTemplatesQuerySchema.safeParse({
-    category: searchParams.get("category"),
-    model: searchParams.get("model"),
-    search: searchParams.get("search"),
-    isOfficial: searchParams.get("isOfficial"),
+    category: searchParams.get("category") ?? undefined,
+    model: searchParams.get("model") ?? undefined,
+    search: searchParams.get("search") ?? undefined,
+    isOfficial: searchParams.get("isOfficial") ?? undefined,
   });
 
   if (!queryResult.success) {

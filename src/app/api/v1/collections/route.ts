@@ -9,8 +9,8 @@ export const GET = withAuth(
   async (request: NextRequest, { userId, requestId }) => {
     const { searchParams } = new URL(request.url);
     const queryResult = paginationSchema.safeParse({
-      page: searchParams.get("page"),
-      pageSize: searchParams.get("pageSize"),
+      page: searchParams.get("page") ?? undefined,
+      pageSize: searchParams.get("pageSize") ?? undefined,
     });
 
     if (!queryResult.success) {
