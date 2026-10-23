@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "@/components/providers/session-provider";
-import { QueryProvider } from "@/components/providers/query-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { auth } from "@/lib/auth/config";
 import { Analytics } from "@vercel/analytics/react";
@@ -128,7 +127,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body suppressHydrationWarning>
         <SessionProvider session={session}>
-          <QueryProvider>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
               <ToastProvider>
                 {children}
@@ -136,7 +134,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <SpeedInsights />
               </ToastProvider>
             </ThemeProvider>
-          </QueryProvider>
         </SessionProvider>
       </body>
     </html>

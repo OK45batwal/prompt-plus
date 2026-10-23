@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSession, signOut } from "next-auth/react";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { useToast } from "@/components/ui/toast";
 import { MODELS, DEFAULT_MODEL_ID, getModelDisplayLabel } from "@/lib/models";
 import { UserPreferences } from "@/app/api/v1/user/preferences/route";
@@ -313,9 +314,9 @@ export default function SettingsPage() {
       }
 
       // Default model/tone are client-only Studio preferences: the Studio reads the same
-      // "pp_prefs" key. Before this, nothing ever wrote it and the setting did nothing.
+      // stored preferences key. Before this, nothing ever wrote it and the setting did nothing.
       try {
-        const raw = localStorage.getItem("pp_prefs");
+        const raw = localStorage.getItem(STORAGE_KEYS.preferences);
         if (!raw || !active) return;
         const prefs = JSON.parse(raw) as { defaultModel?: string; defaultTone?: string };
         if (prefs.defaultModel) setDefaultModel(prefs.defaultModel);
@@ -333,7 +334,7 @@ export default function SettingsPage() {
   useEffect(() => {
     queueMicrotask(() => {
       try {
-        const stored = localStorage.getItem("pp_user_avatar");
+        const stored = localStorage.getItem(STORAGE_KEYS.avatar);
         if (stored) setAvatar(stored);
       } catch {
         // A blocked storage read just leaves the avatar empty.
@@ -346,7 +347,7 @@ export default function SettingsPage() {
       queueMicrotask(() => {
         if (session?.user?.name) setName(session.user.name);
         if (session?.user?.email) setEmail(session.user.email);
-        if (session?.user?.image && !localStorage.getItem("pp_user_avatar")) {
+        if (session?.user?.image && !localStorage.getItem(STORAGE_KEYS.avatar)) {
           setAvatar(session.user.image);
         }
       });
@@ -380,7 +381,7 @@ export default function SettingsPage() {
         // One-time migration: older builds kept plaintext keys in this browser.
         // Upload any that the account does not already have, then delete them.
         try {
-          const raw = localStorage.getItem("promptplus_user_apikeys");
+          const raw = localStorage.getItem(STORAGE_KEYS.legacyApiKeys);
           if (raw) {
             const legacy = JSON.parse(raw) as Record<string, string>;
             const remaining: Record<string, string> = {};
@@ -400,8 +401,8 @@ export default function SettingsPage() {
               }
             }
             // Only a confirmed save removes the plaintext copy.
-            if (Object.keys(remaining).length > 0) localStorage.setItem("promptplus_user_apikeys", JSON.stringify(remaining));
-            else localStorage.removeItem("promptplus_user_apikeys");
+            if (Object.keys(remaining).length > 0) localStorage.setItem(STORAGE_KEYS.legacyApiKeys, JSON.stringify(remaining));
+            else localStorage.removeItem(STORAGE_KEYS.legacyApiKeys);
             if (isMounted && moved > 0) toast("Moved browser-only API keys into your encrypted account vault.", "success");
             if (isMounted && failed > 0) toast(`${failed} browser-only key${failed === 1 ? "" : "s"} could not be moved and stayed in this browser.`, "error");
           }
@@ -510,7 +511,7 @@ export default function SettingsPage() {
   const handleSelectAvatar = (url: string) => {
     setAvatar(url);
     if (typeof window !== "undefined") {
-      localStorage.setItem("pp_user_avatar", url);
+      localStorage.setItem(STORAGE_KEYS.avatar, url);
       window.dispatchEvent(new Event("promptplus:avatar_updated"));
     }
   };
@@ -536,7 +537,7 @@ export default function SettingsPage() {
       if (result) {
         setAvatar(result);
         if (typeof window !== "undefined") {
-          localStorage.setItem("pp_user_avatar", result);
+          localStorage.setItem(STORAGE_KEYS.avatar, result);
           window.dispatchEvent(new Event("promptplus:avatar_updated"));
         }
         toast("Custom avatar image uploaded successfully!", "success");
@@ -555,7 +556,7 @@ export default function SettingsPage() {
     const defaultUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${defaultSeed}&backgroundColor=06b6d4`;
     setAvatar(defaultUrl);
     if (typeof window !== "undefined") {
-      localStorage.setItem("pp_user_avatar", defaultUrl);
+      localStorage.setItem(STORAGE_KEYS.avatar, defaultUrl);
       window.dispatchEvent(new Event("promptplus:avatar_updated"));
     }
     toast("Avatar reset to default preset.", "info");
@@ -585,7 +586,7 @@ export default function SettingsPage() {
     }).catch(() => {});
 
     if (typeof window !== "undefined") {
-      localStorage.setItem("pp_user_avatar", avatar);
+      localStorage.setItem(STORAGE_KEYS.avatar, avatar);
       window.dispatchEvent(new Event("promptplus:avatar_updated"));
     }
 
@@ -619,7 +620,7 @@ export default function SettingsPage() {
     }
 
     if (typeof window !== "undefined") {
-      localStorage.setItem("pp_prefs", JSON.stringify({ defaultModel, defaultTone }));
+      localStorage.setItem(STORAGE_KEYS.preferences, JSON.stringify({ defaultModel, defaultTone }));
     }
 
     // 3. Save any pending API keys

@@ -1,607 +1,165 @@
-# AI Prompt+ — Complete Information Architecture
+# Architecture
 
-## Project Overview
+Last reviewed: 2026-10-23. Describes the code as it exists; historical plans live in
+`JWT-AND-MODEL-ACCESS-PLAN.md` and `PROJECT-IMPROVEMENT-PLAN.md`.
 
-**AI Prompt+** is a **completely free** AI platform that converts simple prompts into detailed, professional, AI-optimized prompts for multiple AI models (ChatGPT, Claude, Gemini, Grok, DeepSeek, Ollama, LM Studio, Midjourney, Stable Diffusion, and more).
+## Shape of the app
 
-### Core Value Proposition
-
-Users write a basic idea → AI Prompt+ analyzes it → enhances it into a production-ready prompt → scores it → saves/exports/shares it. **No subscription required.**
-
-### Key Differentiators
-
-- **100% Free** — No hidden costs, no premium tiers
-- Hybrid AI access — Free tier + optional user API keys for unlimited usage
-- Multi-model optimization (not just OpenAI)
-- Prompt scoring and quality metrics
-- Version history and comparison
-- Team collaboration (future)
-
----
-
-## System Architecture Overview
+One Next.js App Router project serves the marketing pages, the authenticated dashboard,
+the versioned HTTP API, and the public endpoints used by the Chrome extension.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        CLIENT LAYER                         │
-│  ┌─────────┐  ┌──────────┐  ┌──────────┐  ┌─────────────┐  │
-│  │ Web App │  │ Mobile   │  │ Browser  │  │ API Client  │  │
-│  │ (Next.js)│  │ (Future) │  │ Ext (F) │  │ (SDK)       │  │
-│  └────┬────┘  └────┬─────┘  └────┬─────┘  └──────┬──────┘  │
-│       └─────────────┴─────────────┴───────────────┘         │
-└─────────────────────────┬───────────────────────────────────┘
-                          │ HTTPS / WebSocket
-┌─────────────────────────┴───────────────────────────────────┐
-│                        API LAYER                             │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────┐  │
-│  │ REST API │  │ WebSocket│  │ GraphQL  │  │ Rate       │  │
-│  │ (Next.js)│  │ (Live)   │  │ (Future) │  │ Limiter    │  │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └─────┬──────┘  │
-│       └─────────────┴─────────────┴───────────────┘         │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-┌─────────────────────────┴───────────────────────────────────┐
-│                     SERVICE LAYER                            │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────┐  │
-│  │ Prompt   │  │ AI       │  │ User     │  │ Analytics  │  │
-│  │ Service  │  │ Service  │  │ Service  │  │ Service    │  │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └─────┬──────┘  │
-│       └─────────────┴─────────────┴───────────────┘         │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-┌─────────────────────────┴───────────────────────────────────┐
-│                      DATA LAYER                              │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────┐  │
-│  │PostgreSQL│  │ Redis    │  │ S3/R2    │  │ Vector DB  │  │
-│  │ (Primary)│  │ (Cache)  │  │ (Files)  │  │ (Future)   │  │
-│  └──────────┘  └──────────┘  └──────────┘  └────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+src/
+  app/
+    (marketing)/          public pages (landing, SEO pages, legal)
+    (auth)/               login, signup, password flows
+    (dashboard)/          authenticated product surfaces
+    api/                  HTTP handlers only
+  components/
+    ui/                   primitives (button, input, toast, …)
+    studio/               prompt workspace pieces
+    dashboard/            shell, navigation, onboarding
+    marketing/            landing-page sections
+    prompts/              export/code dialog
+  lib/
+    api/                  withAuth, response envelope, CSRF-adjacent helpers
+    auth/                 Auth.js config, session checks, CSRF, OTP
+    config/               environment-derived values
+    db/                   Prisma client
+    llm/                  provider adapters and credential resolution
+    prompt-engine/        deterministic enhancement pipeline
+    validations/          zod schemas shared by routes and clients
+    *.ts                  domain rules (models, scoring, pricing, formatting, …)
+  types/                  ambient and module augmentation types
+prisma/                   schema and migrations
+extension/                Manifest V3 extension source
+e2e/                      Playwright browser tests
+scripts/                  build, packaging, catalog and environment checks
 ```
 
----
+### Where logic belongs
+
+| Kind | Home | Rule |
+| --- | --- | --- |
+| HTTP parsing, status codes | `src/app/api/**/route.ts` | No business rules. Delegate to `lib`. |
+| Auth/session enforcement | `src/lib/api/with-auth.ts` | Every non-public route goes through it. |
+| Domain rules | `src/lib/**` | Pure or DB-backed, importable from routes and tests. |
+| Data catalogues | `src/lib/official-templates.ts`, `src/lib/extension-blueprints.ts` | Data only, no handlers. |
+| UI | `src/components/**` and page files | No direct Prisma or provider calls; use `fetch` to the API. |
+| Environment values | `src/lib/config/env.ts`, `.env.example` | No secrets or deployment URLs in source. |
+
+## Conventions
+
+- Files and folders are kebab-case; React components are PascalCase and match their
+  file name. Functions and variables are camelCase. `UPPER_SNAKE` is reserved for real
+  constants such as storage keys and limits.
+- A route file exports HTTP verbs plus route config only. Queries and rules move to
+  `src/lib`.
+- Types live next to the module that owns them; move them to `src/types` only when
+  several unrelated modules need them.
+- User-facing copy states what happened. The deterministic engine is never described
+  as a model run, and unverified prices or scores are not shown.
+
+## API conventions
+
+- Versions live in the path: `/api/v1/*` (account features) and `/api/v2/*` (enhancement,
+  evaluation, extension optimization).
+- Protected routes export `withAuth(handler, { schema })`. It performs, in order:
+  session lookup → CSRF check → account/revocation check → JSON body parse and zod
+  validation → handler. Malformed JSON is `400`, not a `500`.
+- Public routes carry a `// @public-route` comment and must justify it. They apply their
+  own origin/rate-limit checks and still return the same JSON envelope.
+- Responses use `jsonResponse(data, { status, requestId, headers })` so every reply has
+  a request id and consistent error shape.
+- Errors: `400` invalid input, `401` no session, `403` CSRF/ownership, `404` missing,
+  `429` rate limit, `503` dependency unavailable, `500` unexpected (logged with the
+  request id). Never return stack traces, SQL, or provider responses verbatim.
+- Rate limits come from `src/lib/rate-limit.ts`; in production a missing Redis
+  configuration fails closed (503) rather than allowing unlimited traffic.
+
+### Adding a route
+
+1. Create `route.ts` under the correct version.
+2. If authenticated, wrap with `withAuth` and a zod schema from `src/lib/validations`.
+3. If public, add `// @public-route`, CORS if the extension calls it, and an IP limit.
+4. Reuse `jsonResponse`; put queries in `src/lib`, not in the handler.
+5. Add a route test that covers the success path and at least one failure path.
+
+## Data
+
+- PostgreSQL via Prisma with the Neon HTTP adapter. `DATABASE_URL` is the only URL the
+  app and migrations read; `prisma.config.ts` uses it for `migrate deploy`.
+- `npm run vercel-build` runs `prisma migrate deploy && next build`. A failed migration
+  fails the build and leaves the previous deployment serving.
+- The model catalogue is data (`src/lib/models.json`) with provider identity, access
+  label, availability, and pricing provenance. Prices are only shown when verified.
+- User provider keys are encrypted (`src/lib/crypto.ts`) and resolved per request by
+  `src/lib/llm/resolve-credentials.ts`. Operator keys are only for the public demo and
+  never stand in for a user's key.
+
+## Client state
+
+There is no global store. State ownership is:
+
+| State | Owner | Persistence |
+| --- | --- | --- |
+| Session/user | Auth.js `SessionProvider` | HTTP-only cookie |
+| Page data (prompts, analytics, history) | the page component | server |
+| Studio draft | `dashboard/new/page.tsx` | `localStorage`, debounced |
+| Local history | Studio writes, History reads | `localStorage` |
+| Preferences | Settings (server) + `pp_prefs` mirror | PostgreSQL + local mirror |
+| Theme / avatar | `next-themes`, header | `localStorage` |
+
+Rules:
+
+- Browser keys are defined once in `src/lib/storage-keys.ts`. Values are persisted user
+  data: renaming one requires a migration.
+- Anything belonging to a person goes through `accountStorageKey(key, userId)` so two
+  accounts on one browser do not share drafts, history, or context.
+- Wait for the session before reading account-scoped keys; an unscoped value must be
+  claimed explicitly, never assigned to whoever signs in next.
+- Server data is fetched per page with `fetch`; failures render a retry, not a sample.
+  Add a shared query library only when several pages need caching/refetch semantics.
+
+## Configuration
+
+- `.env.example` is the operator-facing list, grouped by required/optional. It is
+  committed; real files are ignored.
+- `npm run check-env` validates required production variables and warns on partial
+  email/Redis setup.
+- `src/lib/config/env.ts` holds values used by more than one module (public URL, sender).
+  Read `process.env` directly only for a single-use value inside the module that owns it.
+
+## Testing
+
+- `src/__tests__/*.test.ts` — Vitest: domain rules, route handlers with mocked auth/DB,
+  honesty gates that assert user-facing copy never claims unverified results.
+- `e2e/*.spec.ts` — Playwright against a running production build: dashboard wiring,
+  measurement honesty, extension flows.
+- Extension packaging is validated by `scripts/package-extension.mjs`.
+
+A local pass is not a deployment pass. Live provider calls and authenticated
+signup→save→reopen flows still require a disposable account and real keys.
 
-## Application Routes
+## Extension boundary
 
-### Public Routes (Marketing)
+The extension talks to the public `v1/extension/*` and `v2/extension/*` routes only.
+It has its own storage and must not assume a signed-in web session except through
+`/api/v1/auth/extension-sync`. Extension and web share types only where they are
+imported from `src/lib`; duplicated constants are a known risk.
 
-| Route | Page | Purpose |
-|-------|------|---------|
-| `/` | Landing Page | Conversion-optimized homepage |
-| `/features` | Features | Detailed feature breakdown |
-| `/how-it-works` | How It Works | Step-by-step workflow |
-| `/ai-models` | AI Models | Supported models showcase |
-| `/faq` | FAQ | Common questions |
-| `/blog` | Blog | Content marketing |
-| `/blog/[slug]` | Blog Post | Individual article |
-| `/contact` | Contact | Contact form |
-| `/about` | About | Company info |
-| `/docs` | Documentation | API & usage docs |
-| `/docs/[section]` | Doc Section | Specific documentation |
+## Previous documentation
 
-### Authentication Routes
+`ARCHITECTURE-LEGACY.md` is the earlier broad information architecture. It is kept
+for history; several parts of it describe features that do not exist. Where the two
+conflict, this document reflects the source.
 
-| Route | Page | Purpose |
-|-------|------|---------|
-| `/login` | Login | Email/Google/GitHub login |
-| `/signup` | Sign Up | Account creation |
-| `/auth/callback` | OAuth Callback | Handle OAuth redirects |
-| `/auth/reset-password` | Reset Password | Password recovery |
-| `/auth/verify-email` | Email Verify | Email confirmation |
+## Known debt
 
-### Dashboard Routes (Authenticated)
-
-| Route | Page | Purpose |
-|-------|------|---------|
-| `/dashboard` | Dashboard Home | Overview & stats |
-| `/dashboard/new` | New Prompt | Prompt builder |
-| `/dashboard/new/[templateId]` | Template Prompt | Builder with template |
-| `/dashboard/library` | Prompt Library | All saved prompts |
-| `/dashboard/library/[id]` | Prompt Detail | View/edit single prompt |
-| `/dashboard/history` | Prompt History | All prompts with filters |
-| `/dashboard/collections` | Collections | Grouped prompts |
-| `/dashboard/collections/[id]` | Collection Detail | Prompts in collection |
-| `/dashboard/compare` | Compare Prompts | Side-by-side comparison |
-| `/dashboard/analytics` | Analytics | Usage statistics |
-| `/dashboard/templates` | Templates | Prompt templates |
-| `/dashboard/templates/[id]` | Template Detail | Template preview |
-| `/dashboard/settings` | Settings | Account settings |
-| `/dashboard/settings/api` | API Keys | Manage API providers (optional) |
-| `/dashboard/settings/profile` | Profile | User profile |
-| `/dashboard/settings/notifications` | Notifications | Notification preferences |
-
----
-
-## Page Component Hierarchy
-
-### Landing Page Tree
-
-```
-LandingPage
-├── Navbar
-│   ├── Logo
-│   ├── NavLinks (Features, Pricing, Docs, Blog)
-│   └── AuthButtons (Login, Get Started)
-├── HeroSection
-│   ├── Headline
-│   ├── Subheadline
-│   ├── CTAButton
-│   ├── PromptDemo (Interactive)
-│   └── TrustBadges
-├── TrustedBySection
-│   └── LogoCloud (6-8 logos)
-├── FeaturesSection
-│   ├── SectionHeader
-│   └── FeatureGrid
-│       └── FeatureCard (x6)
-├── SupportedModelsSection
-│   ├── SectionHeader
-│   └── ModelCarousel
-│       └── ModelCard (x10+)
-├── WorkflowSection
-│   ├── SectionHeader
-│   └── AnimatedDemo (Lottie/Rive)
-├── ExamplesSection
-│   ├── SectionHeader
-│   └── PromptExampleTabs
-│       └── BeforeAfterComparison (x4)
-├── WhyUsSection
-│   ├── SectionHeader
-│   └── ComparisonTable
-├── TestimonialsSection
-│   ├── SectionHeader
-│   └── TestimonialCarousel
-│       └── TestimonialCard (x6)
-├── FAQSection
-│   ├── SectionHeader
-│   └── AccordionList
-│       └── AccordionItem (x8)
-├── NewsletterSection
-│   └── EmailCaptureForm
-└── Footer
-    ├── FooterLogo
-    ├── FooterLinks (4 columns)
-    ├── SocialLinks
-    └── Copyright
-```
-
-### Dashboard Layout Tree
-
-```
-DashboardLayout
-├── Sidebar
-│   ├── Logo
-│   ├── NavigationItems
-│   │   ├── NavItem (Dashboard)
-│   │   ├── NavItem (New Prompt)
-│   │   ├── NavItem (Templates)
-│   │   ├── NavItem (Library)
-│   │   ├── NavItem (History)
-│   │   ├── NavItem (Collections)
-│   │   ├── NavItem (Compare)
-│   │   ├── NavItem (Analytics)
-│   │   └── Divider
-│   │   ├── NavItem (API Keys)
-│   │   ├── NavItem (Settings)
-│   │   └── NavItem (Profile)
-│   └── UsageBanner (Free tier usage display)
-├── Header
-│   ├── SearchBar (Global search)
-│   ├── QuickActions (New Prompt, Import)
-│   ├── NotificationsBell
-│   └── UserMenu
-│       ├── Avatar
-│       ├── Dropdown
-│       │   ├── Profile
-│       │   ├── Settings
-│       │   ├── Billing
-│       │   └── Logout
-│       └── PlanBadge
-└── MainContent
-    └── {children} (Route content)
-```
-
----
-
-## Data Flow Architecture
-
-### Prompt Creation Flow
-
-```
-User Input
-    │
-    ▼
-┌─────────────────┐
-│  Client-Side     │ ← Basic validation, character count
-│  Validation      │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  API Gateway     │ ← Rate limiting, auth check
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Prompt Service  │ ← Business logic, sanitization
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  AI Analyzer     │ ← Intent, category, complexity
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  AI Enhancer     │ ← Template selection, enhancement
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Scoring Engine  │ ← Quality metrics, suggestions
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Database        │ ← Save prompt + analytics
-└─────────────────┘
-```
-
-### Authentication Flow
-
-```
-User Action (Login/Signup)
-    │
-    ├── Email/Password ──→ Auth Service ──→ JWT Token
-    │
-    ├── Google OAuth ──→ Google API ──→ Auth Service ──→ JWT Token
-    │
-    ├── GitHub OAuth ──→ GitHub API ──→ Auth Service ──→ JWT Token
-    │
-    └── Guest Mode ──→ Temporary Token (24h expiry)
-```
-
----
-
-## API Architecture
-
-### REST API Endpoints
-
-```
-/api/v1/
-├── auth/
-│   ├── POST /login
-│   ├── POST /signup
-│   ├── POST /logout
-│   ├── POST /refresh
-│   ├── POST /forgot-password
-│   ├── POST /reset-password
-│   └── POST /verify-email
-├── prompts/
-│   ├── GET /                    (list, with pagination)
-│   ├── POST /                   (create)
-│   ├── GET /:id                 (read)
-│   ├── PUT /:id                 (update)
-│   ├── DELETE /:id              (delete)
-│   ├── POST /analyze           (analyze prompt)
-│   ├── POST /enhance           (AI enhancement)
-│   ├── POST /score             (get score)
-│   ├── POST /:id/duplicate     (clone)
-│   ├── POST /:id/export        (export as file)
-│   └── GET /search             (full-text search)
-├── templates/
-│   ├── GET /                    (list categories)
-│   ├── GET /:category           (list by category)
-│   └── GET /:id                 (get template)
-├── collections/
-│   ├── GET /                    (list)
-│   ├── POST /                   (create)
-│   ├── PUT /:id                 (update)
-│   ├── DELETE /:id              (delete)
-│   ├── POST /:id/prompts       (add prompts)
-│   └── DELETE /:id/prompts/:pid (remove prompt)
-├── compare/
-│   └── POST /                   (compare two prompts)
-├── analytics/
-│   ├── GET /overview            (dashboard stats)
-│   ├── GET /prompts             (prompt analytics)
-│   └── GET /usage               (API usage)
-├── api-keys/
-│   ├── GET /                    (list providers)
-│   ├── POST /                   (add provider)
-│   ├── PUT /:id                 (update)
-│   ├── DELETE /:id              (delete)
-│   └── POST /:id/test           (test connection)
-├── user/
-│   ├── GET /profile             (get profile)
-│   ├── PUT /profile             (update profile)
-│   ├── PUT /settings            (update settings)
-│   └── DELETE /account          (delete account)
-└── usage/
-    ├── GET /                    (get usage stats)
-    └── GET /limits              (get remaining limits)
-```
-
-### WebSocket Events
-
-```
-Connection: ws://api.ai-prompt+.com/ws
-
-Client → Server:
-├── prompt:analyze      (start analysis)
-├── prompt:enhance      (start enhancement)
-├── prompt:stream       (stream AI response)
-└── ping
-
-Server → Client:
-├── prompt:analyzing    (analysis started)
-├── prompt:progress     (progress update)
-├── prompt:complete     (analysis done)
-├── prompt:enhanced     (enhancement done)
-├── prompt:stream       (streaming tokens)
-├── prompt:error        (error occurred)
-└── pong
-```
-
----
-
-## State Management
-
-### Client-Side State
-
-```
-├── Auth State
-│   ├── user (profile, plan, settings)
-│   ├── token (JWT)
-│   └── isAuthenticated
-├── Prompt State
-│   ├── currentPrompt (builder input)
-│   ├── analysisResult (analyzer output)
-│   ├── enhancedPrompt (enhancer output)
-│   ├── score (quality metrics)
-│   └── versions (history)
-├── UI State
-│   ├── sidebar (collapsed/expanded)
-│   ├── theme (light/dark)
-│   ├── modal (open/close)
-│   └── notifications (queue)
-└── Cache State
-    ├── templates
-    ├── collections
-    └── recentPrompts
-```
-
-### Server-Side State
-
-```
-├── Session
-│   ├── user session data
-│   └── rate limit counters
-├── Cache (Redis)
-│   ├── user preferences
-│   ├── template cache
-│   └── API response cache
-└── Queue (Bull/BullMQ)
-    ├── prompt enhancement jobs
-    ├── analytics aggregation
-    └── email sending
-```
-
----
-
-## Security Architecture
-
-### Authentication & Authorization
-
-```
-├── JWT Tokens
-│   ├── Access Token (15min expiry)
-│   └── Refresh Token (7d expiry, httpOnly cookie)
-├── OAuth Providers
-│   ├── Google (OpenID Connect)
-│   └── GitHub (OAuth 2.0)
-├── API Key Authentication
-│   ├── HMAC-SHA256 signatures
-│   └── Rate limiting per key
-└── Free Tier Access
-    ├── All features available
-    ├── Daily usage limits (soft)
-    └── Optional user API keys for unlimited
-```
-
-### Data Protection
-
-```
-├── Encryption
-│   ├── HTTPS (TLS 1.3)
-│   ├── Database (AES-256)
-│   └── API keys (encrypted at rest)
-├── Input Validation
-│   ├── Zod schemas (client)
-│   ├── Joi schemas (server)
-│   └── SQL injection prevention (Prisma)
-└── Rate Limiting
-    ├── Global (100 req/min)
-    ├── Per user (60 req/min)
-    └── Per endpoint (varies)
-```
-
----
-
-## Scalability Considerations
-
-### Horizontal Scaling
-
-```
-├── Load Balancer (Cloudflare/ALB)
-├── Multiple API instances
-├── Read replicas (PostgreSQL)
-├── Redis cluster (cache)
-└── CDN (static assets)
-```
-
-### Vertical Scaling
-
-```
-├── Connection pooling (PgBouncer)
-├── Query optimization (Prisma)
-├── Index optimization
-└── Background job processing
-```
-
-### Cost Optimization (Free App)
-
-```
-├── Free tier: App's API keys (rate-limited)
-├── User keys: Unlimited (user pays provider)
-├── Local AI: Ollama/LM Studio (no cost)
-├── Response caching (Redis)
-├── Lazy loading (client)
-├── Image optimization (Next.js Image)
-└── Edge functions (Vercel/Cloudflare)
-```
-
----
-
-## Technology Stack
-
-### Frontend
-
-```
-├── Framework: Next.js 14+ (App Router)
-├── Language: TypeScript 5+
-├── Styling: Tailwind CSS + shadcn/ui
-├── State: Zustand + React Query
-├── Forms: React Hook Form + Zod
-├── Charts: Recharts or D3.js
-├── Animation: Framer Motion + Lottie
-└── Testing: Vitest + React Testing Library
-```
-
-### Backend
-
-```
-├── Runtime: Node.js 20+
-├── Framework: Next.js API Routes
-├── ORM: Prisma
-├── Database: PostgreSQL 16+
-├── Cache: Redis 7+
-├── Queue: BullMQ
-├── Auth: NextAuth.js or custom
-└── Testing: Vitest + Supertest
-```
-
-### Infrastructure
-
-```
-├── Hosting: Vercel (Next.js) + Railway/Render
-├── Database: Supabase / Neon / Aiven
-├── Cache: Upstash Redis
-├── Storage: Cloudflare R2 / AWS S3
-├── CDN: Cloudflare
-├── Monitoring: Sentry + PostHog
-├── CI/CD: GitHub Actions
-└── DNS: Cloudflare
-```
-
----
-
-## Content Strategy
-
-### SEO Structure
-
-```
-├── Static Pages (pre-rendered)
-│   ├── Landing page
-│   ├── Features
-│   ├── How It Works
-│   └── About
-├── Dynamic Pages (SSG/ISR)
-│   ├── Blog posts
-│   ├── Documentation
-│   └── Model pages
-└── Dynamic Pages (SSR)
-    ├── Dashboard
-    └── API responses
-```
-
-### Metadata
-
-```
-├── Title tags (primary + brand)
-├── Meta descriptions (150-160 chars)
-├── Open Graph tags (social sharing)
-├── Twitter Card tags
-├── Canonical URLs
-├── Schema.org structured data
-└── Sitemap.xml + robots.txt
-```
-
----
-
-## File Structure
-
-```
-ai-prompt-plus/
-├── app/
-│   ├── (marketing)/
-│   │   ├── layout.tsx
-│   │   ├── page.tsx
-│   │   ├── features/
-│   │   ├── how-it-works/
-│   │   ├── ai-models/
-│   │   ├── faq/
-│   │   ├── blog/
-│   │   └── contact/
-│   ├── (auth)/
-│   │   ├── login/
-│   │   ├── signup/
-│   │   └── auth/
-│   ├── (dashboard)/
-│   │   ├── layout.tsx
-│   │   ├── dashboard/
-│   │   │   ├── page.tsx
-│   │   │   ├── new/
-│   │   │   ├── library/
-│   │   │   ├── history/
-│   │   │   ├── collections/
-│   │   │   ├── compare/
-│   │   │   ├── analytics/
-│   │   │   ├── templates/
-│   │   │   └── settings/
-│   │   └── api/
-│   └── api/
-│       ├── v1/
-│       │   ├── auth/
-│       │   ├── prompts/
-│       │   ├── templates/
-│       │   ├── collections/
-│       │   ├── analytics/
-│       │   ├── api-keys/
-│       │   └── usage/
-│       └── ws/ (WebSocket)
-├── components/
-│   ├── ui/ (shadcn)
-│   ├── landing/
-│   ├── dashboard/
-│   ├── prompt-builder/
-│   └── shared/
-├── lib/
-│   ├── db/ (Prisma)
-│   ├── ai/ (AI integrations)
-│   ├── auth/
-│   ├── utils/
-│   └── validators/
-├── prisma/
-│   └── schema.prisma
-├── public/
-│   ├── images/
-│   ├── icons/
-│   └── fonts/
-└── docs/
-    ├── MASTER-PLAN.md
-    ├── ARCHITECTURE.md
-    ├── SITEMAP.md
-    ├── USER-JOURNEY.md
-    ├── WORKFLOWS.md
-    └── ...
-```
+- `dashboard/settings/page.tsx` and `dashboard/new/page.tsx` are ~1.2k lines each and
+  mix rendering with persistence effects. Split by feature when they next change.
+- The extension has no end-to-end test against live chat products.
+- Preview deployments share the production database, so preview builds apply
+  migrations to production. Do not merge a migration without reviewing it first.
+- Nodemailer 8 carries a high-severity advisory fixed only in 10.x, which `next-auth`'s
+  peer range does not accept. It does not affect the critical audit gate.

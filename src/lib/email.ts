@@ -1,8 +1,9 @@
 import nodemailer from "nodemailer";
 import { Resend } from "resend";
 import { logger } from "@/lib/logger";
+import { appUrl, emailFrom } from "@/lib/config/env";
 
-const from = process.env.SMTP_FROM || "Prompt+ <promptplus2@gmail.com>";
+const from = emailFrom();
 
 function createTransporter() {
   if (process.env.SMTP_HOST) {
@@ -19,7 +20,7 @@ function createTransporter() {
   return null;
 }
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://prompt-plus-three.vercel.app";
+const siteUrl = appUrl();
 
 function otpHtml(otp: string, intro: string, subject: string): string {
   return `<!DOCTYPE html>

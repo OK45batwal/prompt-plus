@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState, useSyncExternalStore, useRef, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useSession, signOut } from "next-auth/react";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { NotificationBell } from "./notification-bell";
 
 interface HeaderProps {
@@ -32,7 +33,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [userAvatar, setUserAvatar] = useState<string>(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("pp_user_avatar") || "";
+      return localStorage.getItem(STORAGE_KEYS.avatar) || "";
     }
     return "";
   });
@@ -49,7 +50,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   useEffect(() => {
     const syncAvatar = () => {
       if (typeof window !== "undefined") {
-        const saved = localStorage.getItem("pp_user_avatar");
+        const saved = localStorage.getItem(STORAGE_KEYS.avatar);
         if (saved) setUserAvatar(saved);
       }
     };
@@ -65,7 +66,7 @@ export function Header({ onMenuClick }: HeaderProps) {
     const userImg = session?.user?.image;
     if (userImg) {
       queueMicrotask(() => {
-        if (!localStorage.getItem("pp_user_avatar")) {
+        if (!localStorage.getItem(STORAGE_KEYS.avatar)) {
           setUserAvatar(userImg);
         }
       });
@@ -258,7 +259,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               onClick={async () => {
                 if (typeof window !== "undefined") {
                   try {
-                    localStorage.removeItem("promptplus_user_apikeys");
+                    localStorage.removeItem(STORAGE_KEYS.legacyApiKeys);
                   } catch {
                     // ignore
                   }

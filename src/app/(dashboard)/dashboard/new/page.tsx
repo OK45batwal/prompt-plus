@@ -5,6 +5,7 @@ import { useState, useRef, useEffect, Suspense, type KeyboardEvent } from "react
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { accountStorageKey } from "@/lib/account-storage";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 import {
   Sparkles,
   Copy,
@@ -137,7 +138,7 @@ const resultTabs = [
   { id: "changes", label: "Changes" },
 ] as const;
 
-const DRAFT_KEY = "pp_studio_draft";
+const DRAFT_KEY = STORAGE_KEYS.draft;
 
 // Kept out of the component: React's compiler rejects impure calls (Date.now, new Date)
 // in render-reachable code, and this is only used when a run finishes.
@@ -229,7 +230,7 @@ function PromptBuilderPage() {
   useEffect(() => {
     queueMicrotask(() => {
       try {
-        const raw = localStorage.getItem("pp_prefs");
+        const raw = localStorage.getItem(STORAGE_KEYS.preferences);
         const prefs = raw ? JSON.parse(raw) : {};
         if (MODELS.some((m) => m.id === prefs.defaultModel)) setSelectedModel(prefs.defaultModel);
         if (!(handoffTone && tones.includes(handoffTone)) && prefs.defaultTone) setSelectedTone(prefs.defaultTone);
@@ -434,7 +435,7 @@ function PromptBuilderPage() {
       // an unscoped record the next account would inherit.
       if (accountId) {
         try {
-          const historyKey = accountStorageKey("pp_local_history", accountId);
+          const historyKey = accountStorageKey(STORAGE_KEYS.history, accountId);
           const existing = JSON.parse(localStorage.getItem(historyKey) || "[]");
           const stamp = newLocalHistoryStamp();
           const entry = { id: promptId || stamp.id, originalText: fullPrompt,

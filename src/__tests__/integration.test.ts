@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { GET as getHealth } from "@/app/api/health/route";
-import { extractTemplateVariables } from "@/app/api/v1/templates/route";
+import { extractTemplateVariables } from "@/lib/validations/templates";
 
 vi.mock("next-auth", () => ({
   default: vi.fn().mockImplementation(() => ({
