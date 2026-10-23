@@ -1,34 +1,51 @@
-# Prompt+ Architect AI
+# Prompt+
 
-Prompt+ combines a web prompt editor, a deterministic prompt compiler, optional cloud-model enhancement, and a Manifest V3 browser extension. The current extension source version is **3.0.0**. This is a source version, not a claim about Chrome Web Store publication.
+Prompt+ turns a rough request into a structured, model-ready prompt. It ships as a Next.js web app and a Manifest V3 Chrome extension. A deterministic engine needs no API key; cloud models are optional and only run when you supply a key.
 
-## Features
+- Web app: <https://prompt-plus-three.vercel.app>
+- Chrome extension: <https://chromewebstore.google.com/detail/gdfaohfmmjjmpiggdcankjjihpljoccn>
+- Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
-- Prompt cleanup, intent extraction, structured intermediate representation, candidate generation and repair.
-- Optional cloud enhancement using supported provider credentials.
-- Saved prompts, collections, templates and authentication in the web app.
-- In-chat text insertion and approximate token counts from visible conversation messages.
-- Opt-in task-rubric comparisons with explicit ties, failures and unmeasured results.
+## What it does
 
-Structure scores are heuristics, not evidence of better model answers. Browser conversation counts omit hidden/system context and messages absent from the DOM. Chat-product capacity is shown as unknown until verified. Historical pricing entries are displayed as unverified, not as current cost quotes.
+**Web app**
 
-## Development
+- Rewrite a prompt with the deterministic engine: cleanup, intent extraction, structured output, scoring, and repair. No provider call, no key, no model.
+- Optional cloud enhancement through a saved provider key (OpenRouter, NVIDIA, OpenAI, Anthropic, Google). The catalogue holds 17 models with an explicit free / paid / free-tier-available label.
+- Save prompts and collections, browse official templates, compare variants side by side or as a diff, enhance up to 20 prompts at once, and share a prompt by link.
+- Accounts with email/password, email verification, optional GitHub and Google sign-in, and session revocation.
 
-Requirements: Node.js 20+, npm, and a Neon PostgreSQL database. The current runtime uses Prisma's **Neon HTTP adapter**; a plain local PostgreSQL server alone is not sufficient. Prisma migrations use the database URL separately.
+**Extension**
+
+- Enhance in the composer of supported chat sites, review the diff and token change, then insert or copy.
+- In-page dock with tone presets and a live usage readout.
+- Copy the visible conversation from one chat and insert it into another, after review.
+- Approximate token counts for visible messages only, plus prompt history and a launcher for eight chat platforms.
+- Source in [`extension/`](extension) is version **2.1.6**. The Chrome Web Store listing is published separately, so it can lag the repository.
+
+### What the numbers mean
+
+Structure scores are heuristics, not evidence that a model will answer better. Token counts are approximate and exclude hidden or system context. Chat-product capacity is shown as unknown until verified, and unverified prices are never presented as current cost. Free models are never silently swapped for a paid one; paid usage requires a key that you chose to save.
+
+## Quick start
+
+Requirements: Node.js `^20.19`, `^22.12`, or `>=24`, npm, and a PostgreSQL database (Neon is what production uses; the runtime goes through Prisma's Neon HTTP adapter).
 
 ```sh
 npm ci
+cp .env.example .env
 ```
 
-Create `.env.local` with your own values:
+Fill in the required values in `.env` (ignored by Git):
 
-```dotenv
-DATABASE_URL="postgresql://USER:PASSWORD@YOUR-NEON-HOST/DB?sslmode=require"
-AUTH_SECRET="replace-with-a-random-secret-at-least-32-characters"
-ENCRYPTION_KEY="replace-with-your-own-32-character-key"
-```
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | PostgreSQL connection string, including `sslmode=require` |
+| `AUTH_SECRET` | Session signing secret, 32+ characters (`openssl rand -base64 32`) |
+| `ENCRYPTION_KEY` | Encrypts saved provider keys at rest, 32+ characters, different from `AUTH_SECRET` |
+| `NEXT_PUBLIC_APP_URL` | Public origin, e.g. `http://localhost:3000` |
 
-Make the same `DATABASE_URL` available to the Prisma CLI (for example through `.env`, which is ignored by Git), then run:
+Then create the schema and start the app:
 
 ```sh
 npx prisma migrate deploy
@@ -36,43 +53,88 @@ npm run check-env
 npm run dev
 ```
 
-Open http://localhost:3000. Configure SMTP or Resend for verification/reset emails; see [database setup](docs/DATABASE-SETUP.md) and [reliability configuration](docs/RELIABILITY.md). Never commit credentials.
+Open <http://localhost:3000>. Provider keys, SMTP/Resend, OAuth, Redis, and admin settings are optional; `.env.example` documents each group. See [database setup](docs/DATABASE-SETUP.md) for provider-specific notes.
 
-## Production configuration
+## Configuration
 
-Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. Protected auth/enhancement endpoints fail with **503 and Retry-After** if the limiter is unavailable or missing; exhausted budgets return **429**. Development uses a bounded in-memory fallback only when Redis is not configured.
+`.env.example` is the full, committed reference. The main groups:
 
-On Vercel, the limiter uses `x-vercel-forwarded-for`. Elsewhere, set `TRUSTED_PROXY_IP_HEADER` only for a header your trusted reverse proxy overwrites. Untrusted forwarding headers are ignored. Missing client identity shares an `unknown` budget rather than bypassing protection. **Required for non-Vercel deployments:** configure this header before enabling public signup/login; otherwise unrelated users can exhaust the same authentication budget. Do not trust a forwarding header that clients can supply unchanged.
+- **Required:** `DATABASE_URL`, `AUTH_SECRET`, `ENCRYPTION_KEY`, `NEXT_PUBLIC_APP_URL`.
+- **Auth:** `GITHUB_CLIENT_ID`/`SECRET`, `GOOGLE_CLIENT_ID`/`SECRET`. An empty pair disables that provider.
+- **Rate limiting:** `UPSTASH_REDIS_REST_URL`/`TOKEN` (or the `KV_REST_API_*` pair injected by Vercel's Upstash integration). Production fails closed with `503` when the limiter is unavailable; exhausted budgets return `429`. Development uses a bounded in-memory fallback only when Redis is not configured.
+- **Email:** SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`) or `RESEND_API_KEY`.
+- **Operator model keys:** `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, `GOOGLE_API_KEY`, `NVIDIA_API_KEY`. These serve the public extension demo only; they are never a fallback for a user's own key.
+- **Trusted boundaries:** `TRUSTED_ORIGINS`, `EXTENSION_ORIGINS`, `TRUSTED_PROXY_IP_HEADER`. Set the proxy header only when your own reverse proxy overwrites it; untrusted forwarding headers are ignored.
 
-## Verification
+`npm run check-env` validates a production configuration and warns about partial email or Redis setup.
+
+## Scripts
+
+| Command | Does |
+| --- | --- |
+| `npm run dev` | Next.js dev server |
+| `npm run build` | Production build |
+| `npm run vercel-build` | `prisma migrate deploy && next build` (what Vercel runs) |
+| `npm run lint` | ESLint |
+| `npm test` | Route checks, honesty checks, and the Vitest suite |
+| `npm run test:e2e` | Playwright app flows (starts its own server) |
+| `npm run test:extension` | Extension structural checks |
+| `npm run test:extension:e2e` | Playwright extension fixtures |
+| `npm run check-env` | Required-variable check |
+| `npm run check-routes` | Fail if a route is neither wrapped in `withAuth` nor marked `@public-route` |
+| `npm run build:extension` | Package the extension ZIPs into `public/` |
+| `npm run refresh-models` | Refresh the model catalogue |
+
+## Testing
 
 ```sh
 npm test
-npm run test:extension
-npx playwright install chromium
-npm run test:extension:e2e
-npm run test:e2e
-npm run lint
 npx tsc --noEmit
+npm run lint
 npm run build
+npx playwright install chromium
+npm run test:e2e
 ```
 
-Install `redis-server` and `redis-cli` to exercise the real atomic Redis test; it is skipped when Redis is absent. CI installs Redis explicitly. The extension suite uses deterministic local browser fixtures. Supported live sites still require a manual release smoke test.
+Vitest covers domain rules, route handlers with mocked auth/database, and copy-honesty gates. Playwright covers dashboard wiring, measurement honesty, and extension fixtures. A local pass is not a deployment pass: live provider calls and the full sign-up → save key → enhance flow need a disposable account and real keys, which CI does not have. The real Redis test is skipped unless `redis-server` is installed; CI installs it.
 
-## Extension development and packaging
+## Deployment
 
-In `chrome://extensions`, enable Developer mode and load the `extension/` directory. To create a reviewable archive without changing the public downloads:
+Vercel is the target. `vercel-build` applies Prisma migrations before building, so a failed migration fails the deployment and the previous version keeps serving. CI runs lint, typecheck, route checks, tests, a production build, and a dependency audit; a critical advisory fails the pipeline.
+
+**Previews share the production database.** A preview build applies its migrations to production data, so review any migration before opening a PR that adds one.
+
+## Extension development
+
+The extension talks only to the public `/api/v1/extension/*` and `/api/v2/extension/*` routes. Its install path for users is the Chrome Web Store link above.
+
+For local work, load `extension/` as an unpacked extension in `chrome://extensions` with Developer mode enabled. It calls the deployed API first and falls back to `http://localhost:3000`, so run `npm run dev` alongside it when working on API changes.
+
+To produce a reviewable archive without touching the published downloads:
 
 ```sh
 node scripts/package-extension.mjs --output-dir /tmp/prompt-plus-release
 ```
 
-Packaging verifies that every manifest script exists in the archive, including `lib/tokenizer.js`. `npm run build:extension` additionally updates the public ZIP downloads; do this only when preparing a release.
+Packaging verifies that every manifest script is present in the archive. `npm run build:extension` also updates the ZIPs in `public/`; only run it when preparing a release. Manual smoke tests on current live chat sites are still required before publishing.
 
-## Further documentation
+## Documentation
 
-- [Reliability and evaluation contracts](docs/RELIABILITY.md)
-- [Implementation plan](.planning/phases/03-reliability-and-quality/03-PLAN.md)
-- [Remaining technical debt](docs/TECHNICAL_DEBT.md)
+- [Architecture and conventions](docs/ARCHITECTURE.md)
+- [Documentation index](docs/README.md)
+- [Database setup](docs/DATABASE-SETUP.md)
+- [Reliability contracts](docs/RELIABILITY.md)
+- [Improvement plan and status](docs/PROJECT-IMPROVEMENT-PLAN.md)
+- [Known technical debt](docs/TECHNICAL_DEBT.md)
 
-License: proprietary; see LICENSE.
+## Limitations
+
+- The deterministic engine is labelled as such and is not a language model; the extension runs it on-device.
+- Cloud enhancement depends on the provider key and model the user selects. Provider outages surface as errors, not silent fallbacks.
+- Token counts are estimates from visible content, not tokenizer-exact billing figures.
+- The extension is tested against local fixtures, not every live chat site on every release.
+- Scores and comparisons are heuristics; there is no claim that a higher score means a better model answer.
+
+## License
+
+Proprietary. See [LICENSE](LICENSE). No copying, modification, or distribution without permission.
