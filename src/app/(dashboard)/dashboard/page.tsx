@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Sparkles, Book, History, Folder, LayoutTemplate, GitCompare, ArrowRight, Zap, TrendingUp, Loader2, RotateCcw, FileText } from "lucide-react";
 import { OnboardingTour } from "@/components/dashboard/onboarding-tour";
 import { EXTENSION_VERSION } from "@/lib/version";
+import { formatWhen } from "@/lib/format";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 const quickActions = [
   {
@@ -52,12 +54,6 @@ interface RecentPrompt {
   createdAt: string;
 }
 
-function formatWhen(iso: string) {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
-}
-
 export default function DashboardPage() {
   const [usage, setUsage] = useState<{ totalPrompts: number; totalEnhancements: number; averageScore: number | null; used: number; limit: number; remaining: number } | null>(null);
   const [collectionsCount, setCollectionsCount] = useState(0);
@@ -101,7 +97,7 @@ export default function DashboardPage() {
   useEffect(() => {
     queueMicrotask(() => {
       try {
-        const raw = localStorage.getItem("pp_studio_draft");
+        const raw = localStorage.getItem(STORAGE_KEYS.draft);
         if (!raw) return;
         const draft = JSON.parse(raw);
         if (typeof draft?.text === "string" && draft.text.trim()) setHasDraft(true);

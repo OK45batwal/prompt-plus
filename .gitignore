@@ -45,7 +45,10 @@ dev.db-shm
 dev.db-wal
 
 # env files
-.env*
+.env
+.env.local
+.env.*.local
+.env.vercel
 
 # vercel
 .vercel

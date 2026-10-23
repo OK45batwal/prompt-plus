@@ -71,13 +71,22 @@ export function withAuth<T extends z.ZodTypeAny = z.ZodTypeAny>(
       );
     }
 
-    // 4. Optional Payload Validation using cloned request stream
+    // 4. Payload handling. Mutating requests are read exactly once so malformed
+    //    JSON is a 400 here instead of a 500 from the handler. An empty body is
+    //    allowed when the route does not require a schema (e.g. a clone action).
     let parsedBody: z.infer<T> | undefined;
-    if (options?.schema && ["POST", "PUT", "PATCH"].includes(req.method)) {
-      try {
-        const clonedReq = req.clone();
-        const rawJson = await clonedReq.json();
-        const parseResult = options.schema.safeParse(rawJson);
+    if (["POST", "PUT", "PATCH"].includes(req.method)) {
+      const raw = await req.clone().text();
+      let json: unknown;
+      if (raw.trim()) {
+        try {
+          json = JSON.parse(raw);
+        } catch {
+          return jsonResponse({ error: "Invalid JSON request body" }, { status: 400, requestId });
+        }
+      }
+      if (options?.schema) {
+        const parseResult = options.schema.safeParse(json);
         if (!parseResult.success) {
           logger.warn("Request body validation failed", { requestId, details: parseResult.error.flatten() });
           return jsonResponse(
@@ -86,8 +95,6 @@ export function withAuth<T extends z.ZodTypeAny = z.ZodTypeAny>(
           );
         }
         parsedBody = parseResult.data;
-      } catch {
-        return jsonResponse({ error: "Invalid JSON request body" }, { status: 400, requestId });
       }
     }
 

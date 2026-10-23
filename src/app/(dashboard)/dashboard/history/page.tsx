@@ -7,6 +7,8 @@ import { useToast } from "@/components/ui/toast";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { accountStorageKey } from "@/lib/account-storage";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
+import { formatWhen } from "@/lib/format";
 
 import { isScore } from "@/lib/score-summary";
 import { MODELS } from "@/lib/models";
@@ -30,12 +32,6 @@ function describeSource(model: string): { label: string; detail?: string } {
   return { label: "Cloud model", detail: known?.name };
 }
 
-function formatWhen(iso: string) {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
-}
-
 export default function HistoryPage() {
   const [search, setSearch] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -48,7 +44,7 @@ export default function HistoryPage() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const { toast } = useToast();
   const { data: session, status: sessionStatus } = useSession();
-  const historyKey = accountStorageKey("pp_local_history", session?.user?.id);
+  const historyKey = accountStorageKey(STORAGE_KEYS.history, session?.user?.id);
 
   useEffect(() => {
     // Wait for the session: the unscoped key belongs to no account.
@@ -287,7 +283,7 @@ export default function HistoryPage() {
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs text-muted-foreground">
                           <span>{source.label}{source.detail ? ` · ${source.detail}` : ""}</span>
                           <span aria-hidden="true">·</span>
-                          <time dateTime={item.timestamp}>{formatWhen(item.timestamp)}</time>
+                          <time dateTime={item.timestamp}>{formatWhen(item.timestamp, "long")}</time>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">

@@ -1,4 +1,5 @@
 import { accountStorageKey } from "@/lib/account-storage";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 export interface ContextBlock {
   id: string;
@@ -39,7 +40,7 @@ export const DEFAULT_CONTEXT_BLOCKS: ContextBlock[] = [
   },
 ];
 
-const LOCAL_STORAGE_KEY = "promptplus_context_blocks";
+const LOCAL_STORAGE_KEY = STORAGE_KEYS.contextBlocks;
 
 export function getSavedContextBlocks(accountId?: string | null): ContextBlock[] {
   if (typeof window === "undefined") return DEFAULT_CONTEXT_BLOCKS;

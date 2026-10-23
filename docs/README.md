@@ -24,6 +24,8 @@ Welcome to the **Prompt+** documentation directory. Below is the index of archit
 | 🚀 **[FUTURE-EXPANSION.md](FUTURE-EXPANSION.md)** | Roadmap for Chrome Extension, VS Code Extension, and Context Blocks |
 | 📌 **[MASTER-PLAN.md](MASTER-PLAN.md)** | Overall project master plan, milestone roadmap, and release goals |
 | **[PROJECT-IMPROVEMENT-PLAN.md](PROJECT-IMPROVEMENT-PLAN.md)** | Current prioritized improvement roadmap, source findings, verification gaps, and completion criteria |
+| **[ARCHITECTURE.md](ARCHITECTURE.md)** | How the app is laid out today: layers, API conventions, data, config, client state, testing, known debt |
+| **[ARCHITECTURE-LEGACY.md](ARCHITECTURE-LEGACY.md)** | Historical information architecture, including plans that were never built; not a description of the current system |
 
 ## Reliability update
 

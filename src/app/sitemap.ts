@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://prompt-plus-three.vercel.app";
+import { appUrl } from "@/lib/config/env";
+
+const baseUrl = appUrl();
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes = [
