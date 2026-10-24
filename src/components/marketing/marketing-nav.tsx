@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Menu, X, ArrowRight, Sparkles } from "lucide-react";
 
 function GithubIcon({ className }: { className?: string }) {
@@ -75,6 +76,7 @@ export function MarketingNav() {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link
             href="/login"
             className={`text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-full hover:bg-accent/60 ${focusRing}`}
@@ -178,21 +180,24 @@ export function MarketingNav() {
               <span className="text-xs text-muted-foreground">Open Source</span>
             </a>
 
-            <div className="pt-3 mt-1 border-t border-border/60 flex items-center gap-2">
-              <Link
-                href="/login"
-                onClick={() => setMobileOpen(false)}
-                className="flex-1 text-center py-2 text-xs font-semibold rounded-lg border border-border/70 hover:bg-accent/60 transition-colors"
-              >
-                Log in
-              </Link>
-              <Link
-                href="/signup"
-                onClick={() => setMobileOpen(false)}
-                className="flex-1 text-center py-2 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-              >
-                Get Started
-              </Link>
+            <div className="pt-3 mt-1 border-t border-border/60 flex items-center justify-between gap-2">
+              <ThemeToggle />
+              <div className="flex items-center gap-2 flex-1">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex-1 text-center py-2 text-xs font-semibold rounded-lg border border-border/70 hover:bg-accent/60 transition-colors"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex-1 text-center py-2 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                >
+                  Get Started
+                </Link>
+              </div>
             </div>
           </div>
         </div>

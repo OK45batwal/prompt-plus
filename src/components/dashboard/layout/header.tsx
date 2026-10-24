@@ -4,8 +4,6 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Search,
-  Moon,
-  Sun,
   Menu,
   User,
   Settings,
@@ -25,6 +23,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,8 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState, useSyncExternalStore, useEffect, useRef } from "react";
-import { useTheme } from "next-themes";
+import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { NotificationBell } from "./notification-bell";
@@ -45,7 +43,6 @@ interface HeaderProps {
   isAdmin?: boolean;
 }
 
-const emptySubscribe = () => () => {};
 
 interface NavItem {
   href: string;
@@ -71,9 +68,7 @@ export function Header({ onMenuClick, isAdmin = false }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
-  const { setTheme, resolvedTheme } = useTheme();
   const [userAvatar, setUserAvatar] = useState<string>("");
-  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const effectiveAvatar =
     userAvatar ||
@@ -167,9 +162,6 @@ export function Header({ onMenuClick, isAdmin = false }: HeaderProps) {
     return pathname === href || pathname.startsWith(href + "/");
   };
 
-  const toggleTheme = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
-  };
 
   const triggerCommandPalette = () => {
     window.dispatchEvent(new CustomEvent("promptplus:open-command-palette"));
@@ -236,20 +228,7 @@ export function Header({ onMenuClick, isAdmin = false }: HeaderProps) {
           </Link>
 
           {/* Theme Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors"
-            onClick={toggleTheme}
-            title="Toggle Theme"
-          >
-            {mounted && resolvedTheme === "dark" ? (
-              <Sun className="h-4 w-4 text-amber-400 hover:text-amber-300 transition-colors" />
-            ) : (
-              <Moon className="h-4 w-4 text-slate-700 dark:text-slate-200" />
-            )}
-            <span className="sr-only">Toggle theme</span>
-          </Button>
+          <ThemeToggle />
 
           {/* Notification Center */}
           <NotificationBell />

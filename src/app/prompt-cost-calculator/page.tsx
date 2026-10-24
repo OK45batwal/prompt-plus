@@ -75,7 +75,7 @@ export default function PromptCostCalculatorPage() {
       const dailyTotal = dailyInput + dailyOutput;
       const monthlyTotal = dailyTotal * daysPerMonth;
       const annualTotal = monthlyTotal * 12;
-      const costPer1k = (dailyTotal / promptsPerDay) * 1000;
+      const costPer1k = promptsPerDay > 0 ? (dailyTotal / promptsPerDay) * 1000 : 0;
       const inputRatio = dailyTotal > 0 ? (dailyInput / dailyTotal) * 100 : 50;
 
       return {
@@ -222,7 +222,8 @@ export default function PromptCostCalculatorPage() {
                   step="5"
                   value={promptsPerDay}
                   onChange={(e) => {
-                    setPromptsPerDay(Number(e.target.value));
+                    const parsed = parseInt(e.target.value, 10);
+                    setPromptsPerDay(isNaN(parsed) ? 5 : Math.max(1, parsed));
                     setActivePreset(null);
                   }}
                   className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-cyan-500"
@@ -252,7 +253,8 @@ export default function PromptCostCalculatorPage() {
                   step="50"
                   value={avgInputTokens}
                   onChange={(e) => {
-                    setAvgInputTokens(Math.max(10, Number(e.target.value)));
+                    const parsed = parseInt(e.target.value, 10);
+                    setAvgInputTokens(isNaN(parsed) ? 50 : Math.max(10, parsed));
                     setActivePreset(null);
                   }}
                   className="w-full px-3 py-2 text-xs font-mono rounded-xl border border-border/80 bg-background/80 outline-none focus:border-cyan-500"
@@ -296,7 +298,8 @@ export default function PromptCostCalculatorPage() {
                   step="50"
                   value={avgOutputTokens}
                   onChange={(e) => {
-                    setAvgOutputTokens(Math.max(10, Number(e.target.value)));
+                    const parsed = parseInt(e.target.value, 10);
+                    setAvgOutputTokens(isNaN(parsed) ? 20 : Math.max(10, parsed));
                     setActivePreset(null);
                   }}
                   className="w-full px-3 py-2 text-xs font-mono rounded-xl border border-border/80 bg-background/80 outline-none focus:border-cyan-500"
