@@ -48,7 +48,12 @@ export const DEFAULT_MODEL_ID = "openrouter-nemotron-free";
 
 /** Retired or renamed ids that may still be stored in user preferences. */
 export const MODEL_ALIASES: Record<string, string> = {
-  "google-gemini-pro": "google-gemini-38-flash",
+  "google-gemini-pro": "google-gemini-20-flash",
+  "gemini-2.0-flash": "google-gemini-20-flash",
+  "gemini-2.5-pro": "google-gemini-25-pro",
+  "claude-3-7-sonnet": "anthropic-claude-37-sonnet",
+  "deepseek-r1": "openrouter-deepseek-r1",
+  "deepseek-v3": "openrouter-deepseek-v3",
   "openrouter-nemotron": "openrouter-nemotron-free",
 };
 

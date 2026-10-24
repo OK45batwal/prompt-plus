@@ -109,7 +109,7 @@ export async function callLLM(options: LLMOptions): Promise<LLMResponse> {
       : isNvidia
       ? "meta/llama-3.3-70b-instruct"
       : isGoogle
-      ? "gemini-3.8-flash"
+      ? "gemini-2.0-flash"
       : "gpt-4o-mini");
 
   const cacheKey = createLLMCacheKey({ tenantId: options.tenantId, apiKey, provider, model, systemPrompt, userPrompt, temperature, maxTokens, responseFormatJson });

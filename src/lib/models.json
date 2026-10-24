@@ -388,5 +388,165 @@
       "note": "Free tier exists; billing depends on your Google project. $0.75/$3.75 per 1M through 2026-12-31, then $1.50/$7.50."
     },
     "description": "Direct Gemini API; free tier depends on your project"
+  },
+  {
+    "id": "google-gemini-20-flash",
+    "name": "Gemini 2.0 Flash (Google)",
+    "icon": "⚡",
+    "provider": "google",
+    "rawModel": "gemini-2.0-flash",
+    "access": "free_tier_available",
+    "availability": "active",
+    "capabilities": {
+      "text": true,
+      "json": true
+    },
+    "contextWindow": 1048576,
+    "maxOutputTokens": 8192,
+    "pricing": {
+      "inputPer1M": 0.1,
+      "outputPer1M": 0.4,
+      "currency": "USD",
+      "sourceUrl": "https://ai.google.dev/pricing",
+      "verifiedAt": "2026-10-24",
+      "note": "Next-gen multimodal flash model with 1M context window; free tier available in Google AI Studio."
+    },
+    "description": "Ultra-fast multimodal frontier model"
+  },
+  {
+    "id": "google-gemini-25-pro",
+    "name": "Gemini 2.5 Pro (Thinking)",
+    "icon": "💎",
+    "provider": "google",
+    "rawModel": "gemini-2.5-pro",
+    "access": "free_tier_available",
+    "availability": "active",
+    "capabilities": {
+      "text": true,
+      "json": true
+    },
+    "contextWindow": 2097152,
+    "maxOutputTokens": 65536,
+    "pricing": {
+      "inputPer1M": 1.25,
+      "outputPer1M": 5.0,
+      "currency": "USD",
+      "sourceUrl": "https://ai.google.dev/pricing",
+      "verifiedAt": "2026-10-24",
+      "note": "Frontier multimodal reasoning model with 2M token context window."
+    },
+    "description": "Google's most capable reasoning model"
+  },
+  {
+    "id": "openrouter-gemini-20-flash",
+    "name": "Gemini 2.0 Flash (OpenRouter)",
+    "icon": "✨",
+    "provider": "openrouter",
+    "rawModel": "google/gemini-2.0-flash-001",
+    "access": "paid",
+    "availability": "active",
+    "capabilities": {
+      "text": true,
+      "json": true
+    },
+    "contextWindow": 1048576,
+    "pricing": {
+      "inputPer1M": 0.1,
+      "outputPer1M": 0.4,
+      "currency": "USD",
+      "sourceUrl": "https://openrouter.ai/google/gemini-2.0-flash-001",
+      "verifiedAt": "2026-10-24"
+    },
+    "description": "Fast multimodal model billed through OpenRouter"
+  },
+  {
+    "id": "openrouter-deepseek-r1",
+    "name": "DeepSeek R1 (Reasoning)",
+    "icon": "🐋",
+    "provider": "openrouter",
+    "rawModel": "deepseek/deepseek-r1",
+    "access": "paid",
+    "availability": "active",
+    "capabilities": {
+      "text": true,
+      "json": true
+    },
+    "contextWindow": 128000,
+    "pricing": {
+      "inputPer1M": 0.55,
+      "outputPer1M": 2.19,
+      "currency": "USD",
+      "sourceUrl": "https://openrouter.ai/deepseek/deepseek-r1",
+      "verifiedAt": "2026-10-24"
+    },
+    "description": "Top open-weights reasoning model with chain-of-thought verification"
+  },
+  {
+    "id": "openrouter-deepseek-v3",
+    "name": "DeepSeek V3",
+    "icon": "🐋",
+    "provider": "openrouter",
+    "rawModel": "deepseek/deepseek-chat",
+    "access": "paid",
+    "availability": "active",
+    "capabilities": {
+      "text": true,
+      "json": true
+    },
+    "contextWindow": 128000,
+    "pricing": {
+      "inputPer1M": 0.14,
+      "outputPer1M": 0.28,
+      "currency": "USD",
+      "sourceUrl": "https://openrouter.ai/deepseek/deepseek-chat",
+      "verifiedAt": "2026-10-24"
+    },
+    "description": "Cost-effective 671B MoE frontier model"
+  },
+  {
+    "id": "anthropic-claude-37-sonnet",
+    "name": "Claude 3.7 Sonnet (Hybrid Reasoning)",
+    "icon": "🎭",
+    "provider": "anthropic",
+    "rawModel": "claude-3-7-sonnet-20250219",
+    "access": "paid",
+    "availability": "active",
+    "capabilities": {
+      "text": true,
+      "json": true
+    },
+    "contextWindow": 200000,
+    "pricing": {
+      "inputPer1M": 3.0,
+      "outputPer1M": 15.0,
+      "currency": "USD",
+      "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "verifiedAt": "2026-10-24",
+      "note": "Anthropic's flagship model with dynamic thinking budget controls."
+    },
+    "description": "Hybrid standard and extended thinking flagship model"
+  },
+  {
+    "id": "openai-o1",
+    "name": "o1 (Deep Reasoning)",
+    "icon": "🧠",
+    "provider": "openai",
+    "rawModel": "o1",
+    "access": "paid",
+    "availability": "active",
+    "capabilities": {
+      "text": true,
+      "json": true
+    },
+    "contextWindow": 200000,
+    "pricing": {
+      "inputPer1M": 15.0,
+      "outputPer1M": 60.0,
+      "currency": "USD",
+      "sourceUrl": "https://openai.com/api/pricing/",
+      "verifiedAt": "2026-10-24",
+      "note": "OpenAI flagship deep reasoning model for complex STEM and architecture."
+    },
+    "description": "Frontier deliberate reasoning model"
   }
 ]

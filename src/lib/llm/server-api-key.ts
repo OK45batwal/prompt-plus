@@ -35,5 +35,5 @@ export function resolveServerApiKey(
 }
 
 export function defaultModelForProvider(provider: string): string {
-  return ({ openai: "gpt-4o-mini", anthropic: "claude-3-5-sonnet-20241022", openrouter: "nvidia/nemotron-3.5-super-vl:free", nvidia: "meta/llama-3.3-70b-instruct", google: "gemini-3.8-flash" } as Record<string, string>)[provider] || "gpt-4o-mini";
+  return ({ openai: "gpt-4o-mini", anthropic: "claude-3-5-sonnet-20241022", openrouter: "nvidia/nemotron-3.5-super-vl:free", nvidia: "meta/llama-3.3-70b-instruct", google: "gemini-2.0-flash" } as Record<string, string>)[provider] || "gpt-4o-mini";
 }

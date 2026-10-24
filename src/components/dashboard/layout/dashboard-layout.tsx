@@ -8,35 +8,27 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { CommandPalette } from "../command-palette";
 
 export function DashboardLayout({ children, isAdmin }: { children: React.ReactNode; isAdmin?: boolean }) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex h-dvh overflow-hidden">
+    <div className="flex flex-col min-h-dvh bg-background">
       {/* Global Command Palette */}
       <CommandPalette />
 
-      {/* Desktop Sidebar */}
-      <Sidebar
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        isAdmin={isAdmin}
-      />
-
-      {/* Mobile Sidebar Sheet */}
+      {/* Mobile Drawer Sheet for smaller viewports */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-[260px] p-0 border-r">
+        <SheetContent side="left" className="w-70 p-0 border-r">
           <Sidebar isMobile={true} onToggle={() => setMobileOpen(false)} isAdmin={isAdmin} />
         </SheetContent>
       </Sheet>
 
-      {/* Main Content */}
-      <div className="flex flex-col flex-1 min-w-0">
-        <Header onMenuClick={() => setMobileOpen(true)} />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-20 lg:pb-8">
-          {children}
-        </main>
-      </div>
+      {/* Unified Top Horizontal Navigation Bar */}
+      <Header onMenuClick={() => setMobileOpen(true)} isAdmin={isAdmin} />
+
+      {/* Full-width Main Content Canvas */}
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-20 lg:pb-8 w-full max-w-7xl mx-auto">
+        {children}
+      </main>
 
       {/* Mobile Bottom Nav */}
       <MobileNav />

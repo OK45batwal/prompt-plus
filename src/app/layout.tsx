@@ -124,6 +124,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var c=function(el){if(el&&el.hasAttribute&&el.hasAttribute('bis_skin_checked')){el.removeAttribute('bis_skin_checked');}};var o=new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==='attributes'&&m.attributeName==='bis_skin_checked'){c(m.target);}else if(m.type==='childList'){for(var j=0;j<m.addedNodes.length;j++){var n=m.addedNodes[j];if(n.nodeType===1){c(n);if(n.querySelectorAll){var els=n.querySelectorAll('[bis_skin_checked]');for(var k=0;k<els.length;k++)c(els[k]);}}}}}});o.observe(document.documentElement,{attributes:true,childList:true,subtree:true,attributeFilter:['bis_skin_checked']});}catch(e){}})();`,
+          }}
+        />
       </head>
       <body suppressHydrationWarning>
         <SessionProvider session={session}>

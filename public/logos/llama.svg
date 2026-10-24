@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none">
+  <defs>
+    <linearGradient id="metaExactGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0081FB"/>
+      <stop offset="50%" stop-color="#0064E0"/>
+      <stop offset="100%" stop-color="#004EC4"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#metaExactGrad)" d="M16.5 6A5.5 5.5 0 0 0 11 11.5 5.5 5.5 0 0 0 5.5 6 5.5 5.5 0 0 0 0 11.5 5.5 5.5 0 0 0 5.5 17 5.5 5.5 0 0 0 11 11.5 5.5 5.5 0 0 0 16.5 17 5.5 5.5 0 0 0 22 11.5 5.5 5.5 0 0 0 16.5 6zm-11 9A3.5 3.5 0 1 1 9 11.5 3.5 3.5 0 0 1 5.5 15zm11 0a3.5 3.5 0 1 1 3.5-3.5 3.5 3.5 0 0 1-3.5 3.5z"/>
+</svg>

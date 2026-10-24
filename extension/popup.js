@@ -449,11 +449,22 @@ document.addEventListener("DOMContentLoaded", () => {
   if (modeAlgo) modeAlgo.addEventListener("click", () => setMode("algo"));
   if (modeDevice) modeDevice.addEventListener("click", () => setMode("device"));
 
-  // Chrome's on-device model is not in every build. Hide the option instead of offering a dead end.
+  // Chrome's on-device Gemini Nano model is not in every build. Hide the option instead of offering a dead end.
   (async () => {
     try {
       const lm = window.LanguageModel || window.ai?.languageModel;
-      if (!lm || (await lm.availability()) === "unavailable") {
+      if (!lm) {
+        if (modeDevice) modeDevice.style.display = "none";
+        return;
+      }
+      let avail = "unavailable";
+      if (typeof lm.capabilities === "function") {
+        const c = await lm.capabilities();
+        avail = c?.available === "readily" ? "available" : c?.available === "after-download" ? "downloading" : "unavailable";
+      } else if (typeof lm.availability === "function") {
+        avail = await lm.availability();
+      }
+      if (avail === "unavailable" || avail === "no") {
         if (modeDevice) modeDevice.style.display = "none";
       }
     } catch {
@@ -1036,19 +1047,41 @@ document.addEventListener("DOMContentLoaded", () => {
       finalResult = synthesizeLocalPrompt(rawText);
     }
 
-    // Mode 2: Chrome's on-device model
+    // Mode 2: Chrome's on-device Gemini Nano model with local engine fallback
     if (!finalResult && currentMode === "device") {
       try {
         const w = window;
         const lm = w.LanguageModel || w.ai?.languageModel;
-        if (lm && (await lm.availability()) !== "unavailable") {
-          const session = await lm.create({ temperature: 0.1, topK: 1 });
-          const promptText = `Rewrite this into a structured prompt with role, specs and steps:\n\n"${rawText}"`;
-          finalResult = await session.prompt(promptText);
-          resultSource = "On-device model";
-          session.destroy();
+        if (lm) {
+          let avail = "unavailable";
+          if (typeof lm.capabilities === "function") {
+            const c = await lm.capabilities();
+            avail = c?.available === "readily" ? "available" : c?.available === "after-download" ? "downloading" : "unavailable";
+          } else if (typeof lm.availability === "function") {
+            avail = await lm.availability();
+          }
+          if (avail === "available" || avail === "readily") {
+            const systemPrompt = "You are Gemini Nano Prompt Architect — Google's on-device AI prompt optimization engine. Transform the raw prompt into a structured, production-grade Master Prompt. Start immediately with '### Role & Persona'. Output ONLY the Master Prompt without conversational chatter or markdown fences. Include: ### Role & Persona, ### Core Objective, ### Execution Steps, ### Constraints & Guardrails, ### Output Specification.";
+            const userPrompt = `[RAW PROMPT TO OPTIMIZE]\n"""\n${rawText}\n"""\n\nCompile the production Master Prompt now. Start directly with "### Role & Persona":`;
+            let session = null;
+            try {
+              session = await lm.create({ systemPrompt, temperature: 0.1, topK: 1 });
+              finalResult = await session.prompt(userPrompt);
+            } catch {
+              session = await lm.create({ temperature: 0.1, topK: 1 });
+              finalResult = await session.prompt(`${systemPrompt}\n\n${userPrompt}`);
+            }
+            if (session) session.destroy();
+            if (finalResult && finalResult.trim().length > 20) {
+              resultSource = "On-device model (Gemini Nano)";
+            } else {
+              finalResult = "";
+            }
+          }
         }
-      } catch {}
+      } catch {
+        // Automatically falls through to deterministic local template fallback
+      }
     }
 
     // Mode 3: Cloud AI Multi-Model Router

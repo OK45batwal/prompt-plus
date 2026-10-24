@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Loader2, Play, Copy, Check, ExternalLink } from "lucide-react";
 import { openAIPlatform } from "@/lib/platform-redirect";
 
-type ProviderId = "openai" | "anthropic" | "openrouter" | "nvidia";
+type ProviderId = "openai" | "anthropic" | "openrouter" | "nvidia" | "google";
 
 interface CompareResult {
   provider: ProviderId;
@@ -17,9 +17,10 @@ interface CompareResult {
 }
 
 const PROVIDERS: { id: ProviderId; label: string; model: string }[] = [
-  { id: "openai", label: "OpenAI", model: "gpt-4o-mini" },
+  { id: "openai", label: "OpenAI", model: "GPT-4o Mini" },
   { id: "anthropic", label: "Anthropic", model: "Claude 3.5 Sonnet" },
-  { id: "openrouter", label: "OpenRouter", model: "Llama 3.3 (free)" },
+  { id: "google", label: "Google", model: "Gemini 2.0 Flash" },
+  { id: "openrouter", label: "OpenRouter", model: "DeepSeek / Nemotron" },
   { id: "nvidia", label: "NVIDIA", model: "Llama 3.3 70B" },
 ];
 
@@ -182,7 +183,7 @@ export default function ModelLabPage() {
                       <span className="text-[11px] text-muted-foreground font-mono block truncate">{r.model}</span>
                     </div>
                     {content && (
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-2 shrink-0">
                         <button
                           type="button"
                           onClick={() => copy(content, idx)}

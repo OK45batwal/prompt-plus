@@ -13,7 +13,7 @@ const DEFAULT_MODELS: Record<(typeof SUPPORTED_PROVIDERS)[number], string> = {
   anthropic: "claude-3-5-sonnet-20241022",
   openrouter: "nvidia/nemotron-3.5-super-vl:free",
   nvidia: "meta/llama-3.3-70b-instruct",
-  google: "gemini-3.8-flash",
+  google: "gemini-2.0-flash",
 };
 
 const compareSchema = z.object({

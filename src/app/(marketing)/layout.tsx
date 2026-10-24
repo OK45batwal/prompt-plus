@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
+import { MarketingNav } from "@/components/marketing/marketing-nav";
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   const jsonLd = {
@@ -22,50 +23,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <nav className="fixed top-0 left-0 right-0 z-50 px-4 pt-4 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto flex items-center justify-between gap-3 sm:gap-6 rounded-full border border-border/80 dark:border-white/10 bg-background/85 dark:bg-card/85 backdrop-blur-2xl px-3.5 sm:px-5 h-13 shadow-sm w-full max-w-5xl sm:w-auto transition-all duration-300">
-          <Link href="/" className="hover:opacity-90 transition-opacity">
-            <Logo size={22} />
-          </Link>
-          <div className="flex items-center gap-1 sm:gap-3">
-            <Link
-              href="/features"
-              className="text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:inline px-2.5 py-1 rounded-full hover:bg-accent/50"
-            >
-              Features
-            </Link>
-            <Link
-              href="/extension"
-              className="text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:inline px-2.5 py-1 rounded-full hover:bg-accent/50"
-            >
-              Extension
-            </Link>
-            <a
-              href="https://github.com/OK45batwal/prompt-plus"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-full hover:bg-accent/50"
-            >
-              GitHub
-            </a>
-            <Link
-              href="/login"
-              className="text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-2.5 py-1 rounded-full hover:bg-accent/50"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/signup"
-              className="group h-8.5 inline-flex items-center justify-center gap-2 rounded-full bg-foreground text-background pl-4 pr-1.5 text-xs sm:text-sm font-semibold hover:bg-foreground/90 transition-all duration-200 active:scale-[0.98] shadow-xs"
-            >
-              <span>Get Started</span>
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-background/15 text-background transition-transform group-hover:translate-x-0.5">
-                →
-              </span>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <MarketingNav />
 
       <main>{children}</main>
 

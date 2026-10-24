@@ -25,6 +25,7 @@ import {
 import { getSavedContextBlocks, DEFAULT_CONTEXT_BLOCKS, ContextBlock } from "@/lib/context-memory";
 import { estimateTokenCount, calculateCostEstimates } from "@/lib/token-calculator";
 import type { EnhanceLevel } from "@/lib/llm/meta-prompt";
+import { checkDeviceAvailability, enhanceWithDeviceOrFallback } from "@/lib/llm/device-ai";
 import { useToast } from "@/components/ui/toast";
 import { openAIPlatform } from "@/lib/platform-redirect";
 import { MODELS, DEFAULT_MODEL_ID, getModelById, canIncurProviderCharges, providerLabel } from "@/lib/models";
@@ -344,6 +345,13 @@ function PromptBuilderPage() {
   const [errorAction, setErrorAction] = useState<{ label: string; href: string } | null>(null);
   const [paidConsent, setPaidConsent] = useState(false);
   const [runMode, setRunMode] = useState<"local" | "auto" | "cloud">("auto");
+  const [nanoStatus, setNanoStatus] = useState<"available" | "unavailable" | "downloading" | "checking">("checking");
+
+  useEffect(() => {
+    checkDeviceAvailability()
+      .then((status) => setNanoStatus(status))
+      .catch(() => setNanoStatus("unavailable"));
+  }, []);
 
   const handleEnhance = async () => {
     if (!prompt.trim()) return;
@@ -357,27 +365,57 @@ function PromptBuilderPage() {
     try {
       let finalEnhancedText: string | undefined;
       let enhanceProvider = "engine";
+      let actualModelName = "promptplus-engine";
       let v2Data: EnhancedResult["v2"] | undefined;
-      const response = await fetch("/api/v2/optimize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
-        body: JSON.stringify({ text: fullPrompt, mode: runMode === "local" ? "algorithmic" : runMode === "cloud" ? "api" : "auto", modelId: selectedModel,
-          confirmPaidUsage: paidConsent, tone: selectedTone, length: selectedLength, category: selectedCategory,
-          level: enhanceLevel, targetModel: selectedModelData?.rawModel || selectedModel }),
-      });
-      const json = await response.json();
-      if (!response.ok) {
-        if (json.code === "paid_consent_required") {
-          setErrorAction({ label: "Allow paid runs above, then retry", href: "#paid-consent" });
-        } else if (json.actionPath) {
-          setErrorAction({ label: `Connect ${json.model || "a provider"} key`, href: json.actionPath });
+
+      if (runMode === "local") {
+        try {
+          const deviceRes = await enhanceWithDeviceOrFallback({
+            text: fullPrompt,
+            category: selectedCategory,
+            tone: selectedTone,
+            length: selectedLength,
+            level: enhanceLevel,
+          });
+          finalEnhancedText = deviceRes.enhancedText;
+          enhanceProvider = deviceRes.source === "nano" ? "nano" : "engine";
+          actualModelName = deviceRes.source === "nano" ? "gemini-nano-ondevice" : "promptplus-engine";
+        } catch (localErr) {
+          console.error("Local/on-device enhancement fallback:", localErr);
         }
-        throw new Error(json.error || "Enhancement failed. Please try again.");
       }
-      if (json.data?.selectedCandidate?.renderedText) {
-        enhanceProvider = json.data.source === "llm" ? "api" : "engine";
-        finalEnhancedText = json.data.selectedCandidate.renderedText;
-        v2Data = json.data;
+
+      if (!finalEnhancedText) {
+        const response = await fetch("/api/v2/optimize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+          body: JSON.stringify({
+            text: fullPrompt,
+            mode: runMode === "local" ? "algorithmic" : runMode === "cloud" ? "api" : "auto",
+            modelId: selectedModel,
+            confirmPaidUsage: paidConsent,
+            tone: selectedTone,
+            length: selectedLength,
+            category: selectedCategory,
+            level: enhanceLevel,
+            targetModel: selectedModelData?.rawModel || selectedModel,
+          }),
+        });
+        const json = await response.json();
+        if (!response.ok) {
+          if (json.code === "paid_consent_required") {
+            setErrorAction({ label: "Allow paid runs above, then retry", href: "#paid-consent" });
+          } else if (json.actionPath) {
+            setErrorAction({ label: `Connect ${json.model || "a provider"} key`, href: json.actionPath });
+          }
+          throw new Error(json.error || "Enhancement failed. Please try again.");
+        }
+        if (json.data?.selectedCandidate?.renderedText) {
+          enhanceProvider = json.data.source === "llm" ? "api" : "engine";
+          finalEnhancedText = json.data.selectedCandidate.renderedText;
+          actualModelName = json.data.model || (enhanceProvider === "engine" ? "promptplus-engine" : selectedModelData?.rawModel || selectedModel);
+          v2Data = json.data;
+        }
       }
 
       if (!finalEnhancedText) {
@@ -392,7 +430,7 @@ function PromptBuilderPage() {
         const createRes = await fetch("/api/v1/prompts", {
           method: "POST", headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
           body: JSON.stringify({ originalText: fullPrompt,
-            model: json.data.model || (enhanceProvider === "engine" ? "promptplus-engine" : selectedModelData?.rawModel || selectedModel),
+            model: actualModelName,
             category: selectedCategory || null, tone: selectedTone || null, length: selectedLength || null }),
         });
         const created = await createRes.json();
@@ -425,12 +463,20 @@ function PromptBuilderPage() {
           }
         } catch { /* Enhancement remains usable when assessment is unavailable. */ }
       }
-      setResult({ promptId, source: enhanceProvider, model: json.data.model, saved: savedToLibrary, dimensions,
+      setResult({ promptId, source: enhanceProvider, model: actualModelName, saved: savedToLibrary, dimensions,
         original: { text: fullPrompt, score: originalScore },
         enhanced: { text: finalEnhancedText, score: enhancedScore }, v2: v2Data });
       setResultView("output");
-      setAnnouncement(enhanceProvider === "engine" ? "Enhanced prompt ready. The built-in engine created it; no model ran." : "Enhanced prompt ready.");
-      toast(enhanceProvider === "engine" ? "Deterministic enhancement ready. No model ran." : "Enhanced prompt ready.", "success");
+      if (enhanceProvider === "nano") {
+        setAnnouncement("Enhanced prompt ready. Gemini Nano optimized it on-device.");
+        toast("⚡ Enhanced on-device with Gemini Nano. Zero data left your browser.", "success");
+      } else if (enhanceProvider === "engine") {
+        setAnnouncement("Enhanced prompt ready. The built-in local engine created it; no model ran.");
+        toast("⚙️ Deterministic enhancement ready. Local engine compiled it.", "success");
+      } else {
+        setAnnouncement("Enhanced prompt ready.");
+        toast("Enhanced prompt ready.", "success");
+      }
       // No account id means there is no owner for this entry; skip rather than create
       // an unscoped record the next account would inherit.
       if (accountId) {
@@ -439,7 +485,7 @@ function PromptBuilderPage() {
           const existing = JSON.parse(localStorage.getItem(historyKey) || "[]");
           const stamp = newLocalHistoryStamp();
           const entry = { id: promptId || stamp.id, originalText: fullPrompt,
-            enhancedText: finalEnhancedText, model: json.data.model || (enhanceProvider === "engine" ? "promptplus-engine" : selectedModelData?.name || selectedModel),
+            enhancedText: finalEnhancedText, model: actualModelName,
             originalScore, enhancedScore, measuredBy: enhancedScore === null ? null : "llm", timestamp: stamp.timestamp };
           localStorage.setItem(historyKey, JSON.stringify([entry, ...existing.filter((x: { originalText: string }) => x.originalText !== fullPrompt)].slice(0, 100)));
         } catch { /* Browser storage may be disabled. */ }
@@ -634,9 +680,9 @@ function PromptBuilderPage() {
   const sourceLabel =
     result?.source === "api"
       ? "Cloud model enhancement"
-      : result?.source === "device"
-      ? "On-device model (Gemini Nano)"
-      : "Deterministic engine · no model ran";
+      : result?.source === "nano" || result?.source === "device"
+      ? "On-device AI (Gemini Nano)"
+      : "Deterministic local engine · no model ran";
 
   return (
     <div className="space-y-6">
@@ -839,7 +885,11 @@ function PromptBuilderPage() {
               </div>
               <p className="text-[11px] text-muted-foreground">
                 {runMode === "local"
-                  ? "The deterministic engine runs on the server; no model is called."
+                  ? nanoStatus === "available"
+                    ? "⚡ Gemini Nano ready on-device · Private, zero-network intelligence with local engine fallback."
+                    : nanoStatus === "downloading"
+                    ? "⏳ Gemini Nano is downloading in Chrome · Local engine will run."
+                    : "The deterministic local engine runs on-device; no data is sent to external cloud models."
                   : runMode === "cloud"
                   ? "Only the selected model runs. If it cannot run, the error stays visible."
                   : "Uses the selected model when its key is saved; otherwise the deterministic engine runs."}
@@ -954,7 +1004,9 @@ function PromptBuilderPage() {
           <button
             onClick={handleEnhance}
             disabled={!prompt.trim() || isEnhancing}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50"
+            className={`flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50 ${
+              isEnhancing ? "animate-shimmer-sweep cursor-wait opacity-90" : "hover:shadow-md"
+            }`}
           >
             {isEnhancing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             {isEnhancing ? "Enhancing…" : "Enhance prompt"}
@@ -1038,14 +1090,14 @@ function PromptBuilderPage() {
                   role="tabpanel"
                   id="result-panel-output"
                   aria-labelledby="result-tab-output"
-                  className="space-y-2"
+                  className="space-y-2 animate-smooth-in"
                 >
                   <label htmlFor="studio-output" className="sr-only">Enhanced prompt</label>
                   <textarea
                     id="studio-output"
                     value={result.enhanced.text}
                     onChange={(e) => handleOutputChange(e.target.value)}
-                    className="h-[320px] w-full resize-y rounded-xl border border-border bg-background/90 p-4 font-mono text-xs leading-relaxed text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+                    className="h-80 w-full resize-y rounded-xl border border-border bg-background/90 p-4 font-mono text-xs leading-relaxed text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
                   />
                 </div>
               )}
@@ -1055,7 +1107,7 @@ function PromptBuilderPage() {
                   role="tabpanel"
                   id="result-panel-changes"
                   aria-labelledby="result-tab-changes"
-                  className="space-y-3"
+                  className="space-y-3 animate-smooth-in"
                 >
                   <PromptDiff before={result.original.text} after={result.enhanced.text} />
                   <button
