@@ -73,38 +73,37 @@
         align-items: center !important;
         gap: 6px !important;
         height: 26px !important;
-        padding: 0 10px 0 8px !important;
+        padding: 0 11px 0 9px !important;
         border-radius: 9999px !important;
-        /* Dark ink reads at 7.7:1 on this cyan gradient; white is 2.4:1 and fails. */
-        background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%) !important;
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #06b6d4 100%) !important;
         border: 1px solid rgba(255, 255, 255, 0.35) !important;
-        color: #04141c !important;
+        color: #ffffff !important;
         cursor: pointer !important;
         font-size: 11px !important;
         font-weight: 700 !important;
         line-height: 1 !important;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55),
-                    0 3px 12px rgba(6, 182, 212, 0.38) !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45),
+                    0 3px 14px rgba(124, 58, 237, 0.45) !important;
         transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease, filter 0.15s ease !important;
         flex-shrink: 0 !important;
       }
 
       .pp-dock-btn:hover {
-        filter: brightness(1.08) !important;
+        filter: brightness(1.1) !important;
         transform: translateY(-1px) !important;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65),
-                    0 6px 20px rgba(6, 182, 212, 0.55) !important;
+                    0 6px 22px rgba(139, 92, 246, 0.6) !important;
       }
 
       .pp-dock-btn:active {
         transform: translateY(0.5px) scale(0.985) !important;
         filter: brightness(0.97) !important;
         box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3),
-                    0 1px 4px rgba(6, 182, 212, 0.3) !important;
+                    0 1px 4px rgba(124, 58, 237, 0.3) !important;
       }
 
       .pp-dock-btn:focus-visible {
-        outline: 2px solid rgba(103, 232, 249, 0.9) !important;
+        outline: 2px solid rgba(168, 85, 247, 0.9) !important;
         outline-offset: 2px !important;
       }
 
@@ -1419,7 +1418,7 @@
     dock.innerHTML = `
       <button type="button" class="pp-dock-btn" id="pp-dock-enhance" title="Compile & Enhance Prompt in-place (${kbdShortcut})">
         <span class="pp-dock-icon">${ICONS.sparkle}</span>
-        <span class="pp-dock-label">Enhance</span>
+        <span class="pp-dock-label">Enhance Prompt</span>
         <kbd class="pp-dock-kbd">${kbdShortcut}</kbd>
       </button>
 
@@ -1654,7 +1653,8 @@
     trigger.style.setProperty("display", "inline-flex", "important");
 
     const dockWidth = trigger.offsetWidth || 320;
-    const left = Math.max(8, Math.min(viewportWidth - dockWidth - 8, rect.left + (rect.width - dockWidth) / 2));
+    // Align with the composer's bottom-right (matching ChatGPT Image 2 reference) with margin
+    const left = Math.max(8, Math.min(viewportWidth - dockWidth - 12, rect.right - dockWidth - 8));
     
     // Check clearance below the composer box. If the composer is pinned tight
     // against the viewport bottom (e.g. ChatGPT / Claude fixed bottom footers),
