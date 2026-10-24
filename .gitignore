@@ -63,3 +63,7 @@ node_modules
 
 /test-results/
 /playwright-report/
+
+# local deliverables & python venv
+deliverables/
+.venv/
