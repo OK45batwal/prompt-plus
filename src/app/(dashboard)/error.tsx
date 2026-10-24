@@ -15,7 +15,7 @@ export default function DashboardError({
   }, [error]);
 
   return (
-    <div className="flex flex-col items-center justify-center p-8 text-center min-h-[340px] max-w-md mx-auto">
+    <div className="flex flex-col items-center justify-center p-8 text-center min-h-85 max-w-md mx-auto">
       <div className="w-10 h-10 rounded-full bg-destructive/10 text-destructive flex items-center justify-center mb-3">
         <span className="text-lg font-bold">!</span>
       </div>
