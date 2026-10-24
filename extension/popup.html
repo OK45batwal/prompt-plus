@@ -481,22 +481,21 @@
        applied and silently cancels the :hover lift and :active press below. */
     .master-enhance-btn {
       width: 100%;
-      height: 44px;
-      padding: 0 10px 0 11px;
-      border-radius: 11px;
-      border: 1px solid rgba(0, 0, 0, 0.25);
-      background: linear-gradient(180deg, var(--brand-500) 0%, var(--brand-700) 100%);
+      height: 46px;
+      padding: 0 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #0284c7 100%);
       /* Dark ink reads at 7.7:1 on this cyan gradient; white is 2.4:1 and fails AA. */
       color: #04141c;
-      font-size: 13px;
+      font-size: 13.5px;
       font-weight: 800;
       letter-spacing: -0.01em;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 9px;
-      /* Inset highlight rather than a glow, which washed out on the dark shell. */
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 3px 10px rgba(var(--accent-rgb), 0.16);
+      gap: 10px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 4px 18px rgba(var(--accent-rgb), 0.32);
       transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.16s ease, filter 0.16s ease;
       position: relative;
       overflow: hidden;
@@ -504,13 +503,13 @@
 
     .master-enhance-btn:hover:not(:disabled) {
       filter: brightness(1.08);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 5px 16px rgba(var(--accent-rgb), 0.26);
-      transform: translateY(-1px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 6px 24px rgba(var(--accent-rgb), 0.46);
+      transform: translateY(-1.5px);
     }
 
     .master-enhance-btn:active:not(:disabled) {
-      transform: translateY(1px) scale(0.995);
-      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+      transform: translateY(1px) scale(0.985);
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(var(--accent-rgb), 0.2);
       filter: none;
     }
 
@@ -522,15 +521,17 @@
     /* Light tints, not dark: the label and icon are dark ink, so a dark well
        would leave the bolt nearly invisible against its own panel. */
     .cta-icon {
-      width: 26px;
-      height: 26px;
-      border-radius: 7px;
-      background: rgba(255, 255, 255, 0.28);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.26);
+      border: 1px solid rgba(255, 255, 255, 0.38);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 3px rgba(0, 0, 0, 0.15);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      backdrop-filter: blur(4px);
     }
 
     .cta-center {
@@ -559,16 +560,18 @@
     }
 
     .btn-kbd-pill {
-      font-size: 9.5px;
+      font-size: 10px;
       font-weight: 700;
-      padding: 3px 6px;
-      border-radius: 5px;
-      background: rgba(255, 255, 255, 0.24);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
-      color: rgba(4, 20, 28, 0.82);
+      padding: 3px 7px;
+      border-radius: 6px;
+      background: rgba(4, 20, 28, 0.16);
+      border: 1px solid rgba(4, 20, 28, 0.16);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.38);
+      color: rgba(4, 20, 28, 0.88);
       line-height: 1;
       letter-spacing: 0;
       flex-shrink: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     }
 
     .master-enhance-btn.is-loading {
@@ -580,8 +583,8 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(100deg, transparent 35%, rgba(255, 255, 255, 0.34) 50%, transparent 65%);
-      animation: ctaShimmer 1.5s linear infinite;
+      background: linear-gradient(100deg, transparent 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65%);
+      animation: ctaShimmer 1.4s linear infinite;
       pointer-events: none;
     }
 
@@ -718,24 +721,30 @@
     .context-compact-row {
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 8px;
       width: 100%;
-      padding: 7px 10px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-subtle);
+      padding: 8px 11px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       color: var(--text-muted);
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       text-align: left;
-      transition: background 0.15s ease, border-color 0.15s ease;
+      transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .context-compact-row:hover {
       background: rgba(255, 255, 255, 0.07);
-      border-color: var(--border-highlight);
+      border-color: rgba(var(--accent-rgb), 0.35);
       color: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      transform: translateY(-0.5px);
+    }
+
+    .context-compact-row:active {
+      transform: translateY(0.5px);
     }
 
     .context-compact-row svg {
@@ -763,20 +772,30 @@
     }
 
     .quick-link-btn {
-      height: 30px;
-      border-radius: 7px;
-      background: transparent;
-      border: 1px solid var(--border-subtle);
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       color: var(--text-muted);
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.12s ease, color 0.12s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .quick-link-btn:hover {
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.16);
       color: #fff;
+      transform: translateY(-0.5px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .quick-link-btn:active {
+      transform: translateY(0.5px);
     }
 
     /* Plain-language caption for a drawer control. */
@@ -1073,21 +1092,27 @@
     .back-to-edit-btn {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      background: transparent;
-      border: 1px solid var(--border-subtle);
-      padding: 4px 8px;
-      border-radius: 6px;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 5px 10px;
+      border-radius: 7px;
       color: var(--text-muted);
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.12s ease;
+      transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .back-to-edit-btn:hover {
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(255, 255, 255, 0.16);
       color: #fff;
+      transform: translateX(-1px);
+    }
+
+    .back-to-edit-btn:active {
+      transform: translateX(0);
     }
 
     .back-to-edit-btn svg {
@@ -1127,46 +1152,62 @@
     .result-bottom-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px;
+      gap: 8px;
     }
 
     .action-btn {
-      height: 34px;
-      border-radius: 8px;
-      font-size: 11.5px;
+      height: 36px;
+      border-radius: 9px;
+      font-size: 12px;
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
-      transition: all 0.15s ease;
+      gap: 6px;
+      transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .action-btn svg {
-      width: 13px;
-      height: 13px;
+      width: 14px;
+      height: 14px;
     }
 
     .btn-copy {
       background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-highlight);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       color: #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
     }
 
     .btn-copy:hover {
       background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.22);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    }
+
+    .btn-copy:active {
+      transform: translateY(1px);
     }
 
     .btn-inject {
-      background: var(--primary);
-      border: 1px solid rgba(var(--accent-rgb), 0.5);
+      background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+      border: 1px solid rgba(255, 255, 255, 0.3);
       /* Dark ink on brand cyan: white would be 2.4:1 and fail AA. */
       color: #04141c;
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.45);
     }
 
     .btn-inject:hover {
-      background: var(--primary-hover);
+      filter: brightness(1.08);
+      box-shadow: 0 6px 18px rgba(6, 182, 212, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      transform: translateY(-1px);
+    }
+
+    .btn-inject:active {
+      transform: translateY(1px);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
     }
 
     .result-secondary-actions {
@@ -1176,10 +1217,10 @@
     }
 
     .btn-save-cloud, .btn-studio {
-      height: 30px;
-      border-radius: 7px;
-      background: transparent;
-      border: 1px solid var(--border-subtle);
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       color: var(--text-muted);
       font-size: 11px;
       font-weight: 600;
@@ -1187,13 +1228,19 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
-      transition: all 0.12s ease;
+      gap: 6px;
+      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .btn-save-cloud:hover, .btn-studio:hover {
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.16);
       color: #fff;
+      transform: translateY(-0.5px);
+    }
+
+    .btn-save-cloud:active, .btn-studio:active {
+      transform: translateY(0.5px);
     }
 
     /* ---------- Library Tab View ---------- */

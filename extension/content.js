@@ -41,15 +41,15 @@
         display: inline-flex !important;
         align-items: center !important;
         box-sizing: border-box !important;
-        height: 34px !important;
-        padding: 0 5px 0 4px !important;
+        height: 36px !important;
+        padding: 0 6px 0 5px !important;
         gap: 6px !important;
         border-radius: 9999px !important;
-        background: rgba(10, 12, 18, 0.92) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-        backdrop-filter: blur(20px) saturate(180%) !important;
-        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        background: rgba(10, 13, 20, 0.94) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+        backdrop-filter: blur(24px) saturate(190%) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", sans-serif !important;
         z-index: 99999999 !important;
         user-select: none !important;
@@ -62,9 +62,9 @@
 
       .pp-unified-dock:hover,
       .pp-floating-trigger:hover {
-        border-color: rgba(34, 211, 238, 0.45) !important;
-        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.6), 0 0 18px rgba(6, 182, 212, 0.18),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
+        border-color: rgba(34, 211, 238, 0.5) !important;
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(6, 182, 212, 0.25),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
       }
 
       /* One filled action; the rest are quiet ghosts, so the dock has hierarchy. */
@@ -73,33 +73,33 @@
         align-items: center !important;
         gap: 6px !important;
         height: 26px !important;
-        padding: 0 9px 0 7px !important;
+        padding: 0 10px 0 8px !important;
         border-radius: 9999px !important;
         /* Dark ink reads at 7.7:1 on this cyan gradient; white is 2.4:1 and fails. */
-        background: linear-gradient(180deg, #22d3ee 0%, #0891b2 100%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.35) !important;
         color: #04141c !important;
         cursor: pointer !important;
         font-size: 11px !important;
         font-weight: 700 !important;
         line-height: 1 !important;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45),
-                    0 3px 12px rgba(6, 182, 212, 0.32) !important;
-        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55),
+                    0 3px 12px rgba(6, 182, 212, 0.38) !important;
+        transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease, filter 0.15s ease !important;
         flex-shrink: 0 !important;
       }
 
       .pp-dock-btn:hover {
-        filter: brightness(1.06) !important;
+        filter: brightness(1.08) !important;
         transform: translateY(-1px) !important;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55),
-                    0 6px 18px rgba(6, 182, 212, 0.5) !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65),
+                    0 6px 20px rgba(6, 182, 212, 0.55) !important;
       }
 
       .pp-dock-btn:active {
-        transform: translateY(0) !important;
-        filter: brightness(0.98) !important;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25),
+        transform: translateY(0.5px) scale(0.985) !important;
+        filter: brightness(0.97) !important;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3),
                     0 1px 4px rgba(6, 182, 212, 0.3) !important;
       }
 
@@ -1624,7 +1624,7 @@
       }
     } catch {}
 
-    window.addEventListener("scroll", schedulePosition, { passive: true });
+    window.addEventListener("scroll", schedulePosition, { capture: true, passive: true });
     window.addEventListener("resize", schedulePosition, { passive: true });
   }
 
@@ -1642,7 +1642,7 @@
       return;
     }
 
-    const dockHeight = 34;
+    const dockHeight = 36;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
@@ -1655,7 +1655,14 @@
 
     const dockWidth = trigger.offsetWidth || 320;
     const left = Math.max(8, Math.min(viewportWidth - dockWidth - 8, rect.left + (rect.width - dockWidth) / 2));
-    const top = Math.max(8, Math.min(viewportHeight - dockHeight - 8, rect.bottom + 8));
+    
+    // Check clearance below the composer box. If the composer is pinned tight
+    // against the viewport bottom (e.g. ChatGPT / Claude fixed bottom footers),
+    // flip above the composer to ensure it never collides with or obscures the input's own controls.
+    let top = Math.max(8, Math.min(viewportHeight - dockHeight - 8, rect.bottom + 8));
+    if (rect.bottom + dockHeight + 8 > viewportHeight && rect.top - dockHeight - 8 >= 8) {
+      top = rect.top - dockHeight - 8;
+    }
 
     trigger.style.setProperty("left", `${Math.round(left)}px`, "important");
     trigger.style.setProperty("top", `${Math.round(top)}px`, "important");
