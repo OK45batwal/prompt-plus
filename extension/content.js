@@ -17,8 +17,9 @@
   const paceLabel = (rate) => PACE[rate] || "Pace unknown";
 
   const ICONS = {
+    brain: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M12 18v4"/></svg>`,
     sparkle: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>`,
-    chevron: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>`,
+    chevron: `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`,
     zap: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
     copy: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`,
     close: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
@@ -62,9 +63,30 @@
 
       .pp-unified-dock:hover,
       .pp-floating-trigger:hover {
-        border-color: rgba(34, 211, 238, 0.5) !important;
-        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(6, 182, 212, 0.25),
+        border-color: rgba(168, 85, 247, 0.45) !important;
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(139, 92, 246, 0.25),
                     inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+      }
+
+      .pp-dock-brain {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 24px !important;
+        height: 24px !important;
+        border-radius: 50% !important;
+        background: rgba(139, 92, 246, 0.2) !important;
+        border: 1px solid rgba(168, 85, 247, 0.4) !important;
+        color: #c084fc !important;
+        box-shadow: 0 0 10px rgba(139, 92, 246, 0.25) !important;
+        flex-shrink: 0 !important;
+        cursor: pointer !important;
+        transition: transform 0.15s ease, background 0.15s ease !important;
+      }
+
+      .pp-dock-brain:hover {
+        background: rgba(139, 92, 246, 0.35) !important;
+        transform: scale(1.05) !important;
       }
 
       /* One filled action; the rest are quiet ghosts, so the dock has hierarchy. */
@@ -75,8 +97,8 @@
         height: 26px !important;
         padding: 0 11px 0 9px !important;
         border-radius: 9999px !important;
-        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #06b6d4 100%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.35) !important;
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
         color: #ffffff !important;
         cursor: pointer !important;
         font-size: 11px !important;
@@ -115,17 +137,18 @@
         height: 13px !important;
       }
 
-      /* Dark-ink chip, so the shortcut reads as part of the button it sits in. */
+      /* Clean frosted keycap chip that blends seamlessly into the violet button. */
       .pp-dock-kbd {
         font-size: 9px !important;
-        padding: 2px 4px !important;
+        padding: 2px 5px !important;
         border-radius: 5px !important;
-        background: rgba(4, 20, 28, 0.16) !important;
-        border: 1px solid rgba(4, 20, 28, 0.16) !important;
-        color: #04141c !important;
-        opacity: 0.82 !important;
+        background: rgba(255, 255, 255, 0.2) !important;
+        border: 1px solid rgba(255, 255, 255, 0.28) !important;
+        color: #ffffff !important;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) !important;
         line-height: 1 !important;
         font-weight: 700 !important;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
       }
 
       .pp-dock-sep {
@@ -133,6 +156,16 @@
         height: 16px !important;
         background: rgba(255, 255, 255, 0.1) !important;
         flex-shrink: 0 !important;
+      }
+
+      .pp-dock-extra {
+        display: none !important;
+        align-items: center !important;
+        gap: 6px !important;
+      }
+
+      .pp-dock-extra.expanded {
+        display: inline-flex !important;
       }
 
       .pp-dock-runway {
@@ -164,7 +197,7 @@
       .pp-runway-tokens {
         font-size: 10px !important;
         font-weight: 600 !important;
-        color: #67e8f9 !important;
+        color: #c084fc !important;
       }
 
       .pp-runway-pct {
@@ -208,9 +241,9 @@
       }
 
       .pp-dock-tone.active {
-        background: rgba(6, 182, 212, 0.22) !important;
-        border-color: rgba(34, 211, 238, 0.45) !important;
-        color: #67e8f9 !important;
+        background: rgba(139, 92, 246, 0.28) !important;
+        border-color: rgba(168, 85, 247, 0.55) !important;
+        color: #ffffff !important;
       }
 
       .pp-dock-ghost-btn,
@@ -252,8 +285,8 @@
         padding: 10px !important;
         border-radius: 14px !important;
         background: rgba(12, 12, 16, 0.97) !important;
-        border: 1px solid rgba(6, 182, 212, 0.4) !important;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7) !important;
+        border: 1px solid rgba(168, 85, 247, 0.35) !important;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 20px rgba(139, 92, 246, 0.15) !important;
         backdrop-filter: blur(20px) saturate(160%) !important;
         -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
         z-index: 100000000 !important;
@@ -305,12 +338,12 @@
       }
 
       .pp-dock-menu-item:hover:not([disabled]) {
-        background: rgba(6, 182, 212, 0.16) !important;
-        border-color: rgba(34, 211, 238, 0.4) !important;
+        background: rgba(139, 92, 246, 0.2) !important;
+        border-color: rgba(168, 85, 247, 0.45) !important;
       }
 
       .pp-dock-menu-item:focus-visible {
-        outline: 2px solid rgba(103, 232, 249, 0.9) !important;
+        outline: 2px solid rgba(168, 85, 247, 0.9) !important;
         outline-offset: 1px !important;
       }
 
@@ -320,9 +353,9 @@
       }
 
       .pp-dock-menu-item.primary {
-        background: linear-gradient(180deg, #22d3ee 0%, #0891b2 100%) !important;
-        border-color: rgba(255, 255, 255, 0.3) !important;
-        color: #04141c !important;
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+        border-color: rgba(255, 255, 255, 0.25) !important;
+        color: #ffffff !important;
       }
 
       /* Motion here is decoration, so it yields to the user's setting. */
@@ -442,10 +475,10 @@
         border-color: rgba(255, 255, 255, 0.18) !important;
       }
       .pp-tone-chip.active {
-        background: rgba(6, 182, 212, 0.25) !important;
-        border-color: rgba(6, 182, 212, 0.65) !important;
-        color: #67e8f9 !important;
-        box-shadow: 0 0 10px rgba(6, 182, 212, 0.25) !important;
+        background: rgba(139, 92, 246, 0.28) !important;
+        border-color: rgba(168, 85, 247, 0.6) !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 12px rgba(139, 92, 246, 0.35) !important;
       }
 
       .pp-modal-preview {
@@ -476,9 +509,9 @@
         flex: 1 !important;
         height: 36px !important;
         border-radius: 8px !important;
-        background: linear-gradient(180deg, #06b6d4 0%, #0e7490 100%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.3) !important;
-        color: #04141c !important;
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.28) !important;
+        color: #ffffff !important;
         font-size: 11.5px !important;
         font-weight: 700 !important;
         cursor: pointer !important;
@@ -486,7 +519,7 @@
         align-items: center !important;
         justify-content: center !important;
         gap: 6px !important;
-        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4) !important;
+        box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4) !important;
         transition: all 0.15s ease !important;
       }
       .pp-modal-btn-primary:hover {
@@ -528,7 +561,7 @@
       #pp-enhancement-preview ins { background: #14532d !important; color: #bbf7d0 !important; }
       /* Host pages routinely kill outlines; the panel must keep a visible focus ring. */
       #pp-enhancement-preview button:focus-visible {
-        outline: 2px solid #67e8f9 !important;
+        outline: 2px solid #a855f7 !important;
         outline-offset: 2px !important;
       }
     `;
@@ -981,27 +1014,27 @@
     panel.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
         <div style="display:flex;align-items:center;gap:7px;">
-          <span style="width:18px;height:18px;border-radius:6px;background:linear-gradient(135deg,#06b6d4,#0e7490);display:inline-flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 2px 8px rgba(6,182,212,0.35);">${ICONS.sparkle}</span>
+          <span style="width:18px;height:18px;border-radius:6px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);display:inline-flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 2px 8px rgba(124,58,237,0.35);">${ICONS.sparkle}</span>
           <strong style="font-size:15px;letter-spacing:-0.01em;color:#fff;">${copy.title}</strong>
         </div>
-        <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:9999px;background:rgba(6,182,212,0.14);border:1px solid rgba(6,182,212,0.3);color:#67e8f9;">${escapeHtml(source)}</span>
+        <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:9999px;background:rgba(139,92,246,0.18);border:1px solid rgba(168,85,247,0.35);color:#c084fc;">${escapeHtml(source)}</span>
       </div>
-      <p id="pp-preview-tokens" style="margin:4px 0 10px;font-size:11.5px;color:#94a3b8;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">Estimated tokens: <span style="color:#e2e8f0;font-weight:600;">${beforeTokens}</span> → <span style="color:#22d3ee;font-weight:700;">${afterTokens}</span> (<span style="color:${delta <= 0 ? "#34d399" : "#fbbf24"};font-weight:600;">${delta > 0 ? "+" : ""}${delta}</span>)</p>
+      <p id="pp-preview-tokens" style="margin:4px 0 10px;font-size:11.5px;color:#94a3b8;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">Estimated tokens: <span style="color:#e2e8f0;font-weight:600;">${beforeTokens}</span> → <span style="color:#c084fc;font-weight:700;">${afterTokens}</span> (<span style="color:${delta <= 0 ? "#34d399" : "#fbbf24"};font-weight:600;">${delta > 0 ? "+" : ""}${delta}</span>)</p>
       ${legend}
       <div style="max-height:42vh;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-right:2px;">
         <div style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px 12px;">
           <p style="font-weight:700;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">${copy.originalLabel}</p>
           <div style="white-space:pre-wrap;overflow-wrap:anywhere;color:#cbd5e1;font-size:12px;line-height:1.5;" data-preview="original">${diff.before}</div>
         </div>
-        <div style="background:rgba(6,182,212,0.04);border:1px solid rgba(6,182,212,0.2);border-radius:10px;padding:10px 12px;box-shadow:inset 0 0 16px rgba(6,182,212,0.03);">
-          <p style="font-weight:700;font-size:11px;color:#22d3ee;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">${copy.enhancedLabel}</p>
+        <div style="background:rgba(139,92,246,0.05);border:1px solid rgba(168,85,247,0.25);border-radius:10px;padding:10px 12px;box-shadow:inset 0 0 16px rgba(139,92,246,0.04);">
+          <p style="font-weight:700;font-size:11px;color:#c084fc;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">${copy.enhancedLabel}</p>
           <div style="white-space:pre-wrap;overflow-wrap:anywhere;color:#f1f5f9;font-size:12px;line-height:1.5;" data-preview="enhanced">${diff.after}</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);">
-        <button type="button" id="pp-preview-accept" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:9999px;background:linear-gradient(180deg,#22d3ee 0%,#0891b2 100%);color:#04141c;font-weight:700;font-size:12px;border:1px solid rgba(255,255,255,0.3);box-shadow:0 4px 14px rgba(6,182,212,0.4);cursor:pointer;transition:transform 0.15s ease;">
+        <button type="button" id="pp-preview-accept" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:9999px;background:linear-gradient(135deg,#8b5cf6 0%,#7c3aed 100%);color:#ffffff;font-weight:700;font-size:12px;border:1px solid rgba(255,255,255,0.28);box-shadow:0 4px 14px rgba(124,58,237,0.4);cursor:pointer;transition:transform 0.15s ease;">
           <span>${copy.acceptLabel}</span>
-          <kbd style="font-size:9px;padding:1px 4px;border-radius:4px;background:rgba(4,20,28,0.2);color:#04141c;font-weight:700;">↵</kbd>
+          <kbd style="font-size:9px;padding:1px 4px;border-radius:4px;background:rgba(255,255,255,0.2);color:#ffffff;font-weight:700;">↵</kbd>
         </button>
         <button type="button" id="pp-preview-keep" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border-radius:9999px;background:rgba(255,255,255,0.07);color:#f1f5f9;font-weight:600;font-size:12px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;transition:background 0.15s ease;">
           <span>Keep original</span>
@@ -1046,7 +1079,7 @@
         <strong style="font-size:16px">${copy.appliedTitle}</strong>
         <p style="color:#cbd5e1;margin:6px 0">${escapeHtml(source)}</p>
         <div style="display:flex;gap:12px;margin-top:16px">
-          <button type="button" id="pp-preview-undo" style="padding:8px 14px;border-radius:8px;background:#06b6d4;color:#04141c">Undo</button>
+          <button type="button" id="pp-preview-undo" style="padding:8px 14px;border-radius:8px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#ffffff;font-weight:600;border:none;">Undo</button>
           <button type="button" id="pp-preview-done" style="padding:8px 14px;border-radius:8px;background:#334155;color:#fff">Done · Esc</button>
         </div>`;
       panel.querySelector("#pp-preview-undo").addEventListener("click", undo);
@@ -1166,7 +1199,7 @@
     modalEl.innerHTML = `
       <div class="pp-modal-header">
         <div class="pp-modal-title">
-          <span class="pp-dock-icon" style="width:16px;height:16px;background:linear-gradient(135deg,#06b6d4,#0e7490);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;">${ICONS.sparkle}</span>
+          <span class="pp-dock-icon" style="width:16px;height:16px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 0 10px rgba(139,92,246,0.35);">${ICONS.sparkle}</span>
           <span>Prompt+</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
@@ -1416,38 +1449,44 @@
     const activeModelName = latestAnalysis?.modelName || model.name;
 
     dock.innerHTML = `
+      <button type="button" class="pp-dock-brain" id="pp-dock-brain" title="Prompt+ Architect & Studio" aria-label="Open Prompt+ Studio">
+        ${ICONS.brain}
+      </button>
+
       <button type="button" class="pp-dock-btn" id="pp-dock-enhance" title="Compile & Enhance Prompt in-place (${kbdShortcut})">
         <span class="pp-dock-icon">${ICONS.sparkle}</span>
         <span class="pp-dock-label">Enhance Prompt</span>
         <kbd class="pp-dock-kbd">${kbdShortcut}</kbd>
       </button>
 
-      <div class="pp-dock-sep"></div>
-
-      <button type="button" class="pp-dock-ghost-btn" id="pp-dock-context-btn" aria-haspopup="true" aria-expanded="false" title="Save this chat's context, or load context saved from another chatbot">
-        <span class="pp-dock-icon">${ICONS.transfer}</span>
-        <span class="pp-dock-label">Context</span>
-      </button>
-
-      <div class="pp-dock-sep"></div>
-
-      <div class="pp-dock-runway" id="pp-dock-runway" title="Tokens visible in this conversation">
-        <span class="pp-runway-dot" id="pp-runway-dot"></span>
-        <span class="pp-runway-model" id="pp-runway-model">${escapeHtml(activeModelName)}</span>
-        <span class="pp-runway-tokens" id="pp-runway-tokens">measuring…</span>
-        <span class="pp-runway-pct" id="pp-runway-pct"></span>
-      </div>
-
-      <div class="pp-dock-sep"></div>
-
-      <div class="pp-dock-tones">
-        ${TONE_OPTIONS.slice(0, 3).map((t) => `<button type="button" class="pp-dock-tone ${selectedTone === t.key ? "active" : ""}" data-tone="${t.key}" title="${t.label} tone">${t.short}</button>`).join("")}
-      </div>
-
-      <button type="button" class="pp-dock-studio-btn" id="pp-dock-studio-btn" title="Chat usage, tone and enhance" aria-label="Open panel">
+      <button type="button" class="pp-dock-studio-btn" id="pp-dock-studio-btn" title="Toggle extra tools & runway tokens" aria-label="Toggle extra tools">
         <span>More</span>
         ${ICONS.chevron}
       </button>
+
+      <div class="pp-dock-extra" id="pp-dock-extra">
+        <div class="pp-dock-sep"></div>
+
+        <button type="button" class="pp-dock-ghost-btn" id="pp-dock-context-btn" aria-haspopup="true" aria-expanded="false" title="Save this chat's context, or load context saved from another chatbot">
+          <span class="pp-dock-icon">${ICONS.transfer}</span>
+          <span class="pp-dock-label">Context</span>
+        </button>
+
+        <div class="pp-dock-sep"></div>
+
+        <div class="pp-dock-runway" id="pp-dock-runway" title="Tokens visible in this conversation">
+          <span class="pp-runway-dot" id="pp-runway-dot"></span>
+          <span class="pp-runway-model" id="pp-runway-model">${escapeHtml(activeModelName)}</span>
+          <span class="pp-runway-tokens" id="pp-runway-tokens">measuring…</span>
+          <span class="pp-runway-pct" id="pp-runway-pct"></span>
+        </div>
+
+        <div class="pp-dock-sep"></div>
+
+        <div class="pp-dock-tones">
+          ${TONE_OPTIONS.slice(0, 3).map((t) => `<button type="button" class="pp-dock-tone ${selectedTone === t.key ? "active" : ""}" data-tone="${t.key}" title="${t.label} tone">${t.short}</button>`).join("")}
+        </div>
+      </div>
 
       <div class="pp-dock-menu" id="pp-dock-menu" role="group" aria-label="Chat context" hidden></div>
     `;
@@ -1590,11 +1629,29 @@
       }
     });
 
-    // One opener for the panel. The usage readout above is not a button.
-    dock.querySelector("#pp-dock-studio-btn")?.addEventListener("click", (e) => {
+    // Brain button opens the full floating modal studio
+    dock.querySelector("#pp-dock-brain")?.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       openFloatingModal(input);
+    });
+
+    // Toggle extra tools (Context, runway tokens, tone)
+    const extraEl = dock.querySelector("#pp-dock-extra");
+    const studioBtn = dock.querySelector("#pp-dock-studio-btn");
+    studioBtn?.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (extraEl) {
+        extraEl.classList.toggle("expanded");
+        const isExp = extraEl.classList.contains("expanded");
+        studioBtn.classList.toggle("active", isExp);
+        const labelSpan = studioBtn.querySelector("span");
+        if (labelSpan) labelSpan.textContent = isExp ? "Less" : "More";
+        positionFloatingButton(dock, input);
+      } else {
+        openFloatingModal(input);
+      }
     });
 
     let rafPending = false;
