@@ -27,7 +27,8 @@ vi.mock("@/lib/db/prisma", () => ({
   }),
 }));
 
-import { GET as getPreferences, PATCH as patchPreferences, defaultPreferences } from "@/app/api/v1/user/preferences/route";
+import { GET as getPreferences, PATCH as patchPreferences } from "@/app/api/v1/user/preferences/route";
+import { defaultPreferences } from "@/lib/user-preferences";
 import { POST as testApiKey } from "@/app/api/v1/api-keys/test/route";
 
 beforeEach(() => {

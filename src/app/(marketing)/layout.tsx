@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 import { MarketingNav } from "@/components/marketing/marketing-nav";
 
+export const revalidate = 3600;
+
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   const jsonLd = {
     "@context": "https://schema.org",

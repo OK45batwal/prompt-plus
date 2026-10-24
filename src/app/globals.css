@@ -381,9 +381,9 @@ body {
   33% { transform: translate(-36px, 28px) scale(0.94); }
   66% { transform: translate(32px, -24px) scale(1.06); }
 }
-.animate-drift { animation: drift 26s ease-in-out infinite; will-change: transform; }
-.animate-drift-slow { animation: drift 38s ease-in-out infinite; will-change: transform; }
-.animate-drift-reverse { animation: drift-reverse 32s ease-in-out infinite; will-change: transform; }
+.animate-drift { animation: drift 26s ease-in-out infinite; will-change: transform; transform: translate3d(0, 0, 0); backface-visibility: hidden; }
+.animate-drift-slow { animation: drift 38s ease-in-out infinite; will-change: transform; transform: translate3d(0, 0, 0); backface-visibility: hidden; }
+.animate-drift-reverse { animation: drift-reverse 32s ease-in-out infinite; will-change: transform; transform: translate3d(0, 0, 0); backface-visibility: hidden; }
 
 @keyframes marquee {
   0% { transform: translateX(0%); }

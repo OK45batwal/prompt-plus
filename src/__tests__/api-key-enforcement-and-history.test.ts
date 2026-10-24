@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
-import { createKeyHint, GET as getApiKeys, POST as postApiKey } from "@/app/api/v1/api-keys/route";
+import { GET as getApiKeys, POST as postApiKey } from "@/app/api/v1/api-keys/route";
+import { createKeyHint } from "@/lib/api-key-hint";
 import { DELETE as deletePrompts } from "@/app/api/v1/prompts/route";
 import { POST as enhanceAi } from "@/app/api/v1/prompts/enhance-ai/route";
 

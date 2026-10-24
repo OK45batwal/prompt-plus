@@ -6,7 +6,7 @@ import { getDb } from "@/lib/db/prisma";
 import { EXTENSION_VERSION } from "@/lib/version";
 import { EXTENSION_CURATED_BLUEPRINTS } from "@/lib/extension-blueprints";
 
-export const corsHeaders = {
+const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-PromptPlus-Client, X-Requested-With",

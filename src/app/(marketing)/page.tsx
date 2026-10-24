@@ -243,20 +243,20 @@ export default function LandingPage() {
       {/* Multi-tiered ambient background glowing orbs across the entire page */}
       <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
         {/* Top Hero Glow Orbs */}
-        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-180 h-120 rounded-full bg-primary/10 dark:bg-primary/15 blur-[160px] animate-drift" />
-        <div className="absolute top-20 -left-24 w-105 h-105 rounded-full bg-cyan-500/10 dark:bg-cyan-400/10 blur-[150px] animate-drift-slow" />
-        <div className="absolute top-40 -right-24 w-105 h-105 rounded-full bg-indigo-500/5 dark:bg-indigo-400/10 blur-[150px] animate-drift-reverse" />
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-180 h-120 rounded-full bg-primary/10 dark:bg-primary/15 blur-[120px] animate-drift" />
+        <div className="absolute top-20 -left-24 w-105 h-105 rounded-full bg-cyan-500/10 dark:bg-cyan-400/10 blur-[110px] animate-drift-slow" />
+        <div className="absolute top-40 -right-24 w-105 h-105 rounded-full bg-indigo-500/5 dark:bg-indigo-400/10 blur-[110px] animate-drift-reverse" />
 
         {/* Mid-Page Architecture / Pipeline Ambient Glow */}
-        <div className="absolute top-[30%] -left-24 w-125 h-100 rounded-full bg-primary/5 dark:bg-primary/10 blur-[170px] animate-drift" />
-        <div className="absolute top-[42%] -right-24 w-115 h-95 rounded-full bg-sky-500/5 dark:bg-sky-400/10 blur-[160px] animate-drift-slow" />
+        <div className="absolute top-[30%] -left-24 w-125 h-100 rounded-full bg-primary/5 dark:bg-primary/10 blur-[120px] animate-drift" />
+        <div className="absolute top-[42%] -right-24 w-115 h-95 rounded-full bg-sky-500/5 dark:bg-sky-400/10 blur-[110px] animate-drift-slow" />
 
         {/* Lower Comparison & Extensions Ambient Glow */}
-        <div className="absolute top-[60%] left-[10%] w-130 h-100 rounded-full bg-primary/5 dark:bg-primary/10 blur-[170px] animate-drift-reverse" />
-        <div className="absolute top-[75%] right-[5%] w-120 h-95 rounded-full bg-indigo-500/5 dark:bg-indigo-400/10 blur-[160px] animate-drift" />
+        <div className="absolute top-[60%] left-[10%] w-130 h-100 rounded-full bg-primary/5 dark:bg-primary/10 blur-[120px] animate-drift-reverse" />
+        <div className="absolute top-[75%] right-[5%] w-120 h-95 rounded-full bg-indigo-500/5 dark:bg-indigo-400/10 blur-[110px] animate-drift" />
 
         {/* Bottom CTA Radiant Ambient Glow */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-170 h-105 rounded-full bg-primary/10 dark:bg-primary/15 blur-[160px] animate-drift-slow" />
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-170 h-105 rounded-full bg-primary/10 dark:bg-primary/15 blur-[120px] animate-drift-slow" />
       </div>
 
       {/* 1. Hero Section with Live Playground */}

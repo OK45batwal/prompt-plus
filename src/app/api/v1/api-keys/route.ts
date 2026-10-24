@@ -4,32 +4,9 @@ import { getDb } from "@/lib/db/prisma";
 import { encrypt, decrypt } from "@/lib/crypto";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
+import { createKeyHint, type KeyValidationStatus } from "@/lib/api-key-hint";
 
-export function createKeyHint(key: string): string {
-  const trimmed = key.trim();
-  if (trimmed.length <= 8) {
-    return `••••${trimmed.slice(-3)}`;
-  }
-  let prefix = "";
-  if (trimmed.startsWith("sk-proj-")) {
-    prefix = "sk-proj-";
-  } else if (trimmed.startsWith("sk-ant-")) {
-    prefix = "sk-ant-";
-  } else if (trimmed.startsWith("sk-")) {
-    prefix = "sk-";
-  } else if (trimmed.startsWith("AIza")) {
-    prefix = "AIza";
-  } else if (trimmed.startsWith("nvapi-")) {
-    prefix = "nvapi-";
-  } else {
-    prefix = trimmed.slice(0, 3);
-  }
-  const suffix = trimmed.slice(-4);
-  return `${prefix}••••••••${suffix}`;
-}
-
-/** Why a credential is untested, accepted, or rejected. Stored with the row. */
-export type KeyValidationStatus = "accepted" | "rejected" | "unreachable";
+export type { KeyValidationStatus };
 
 const createApiKeySchema = z.object({
   provider: z.enum(["openai", "anthropic", "google", "openrouter", "nvidia"]),

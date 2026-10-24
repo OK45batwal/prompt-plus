@@ -3,40 +3,9 @@ import { jsonResponse } from "@/lib/api/response-headers";
 import { getDb } from "@/lib/db/prisma";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
+import { defaultPreferences, type UserPreferences } from "@/lib/user-preferences";
 
-export interface UserPreferences {
-  // AI Engine Preferences
-  defaultEngineMode: "api" | "algorithmic" | "device";
-  defaultStrategy: "structured" | "concise" | "model_tuned" | "detailed";
-  defaultOutputFormat: "markdown" | "xml" | "json";
-  enableAutoCorrect: boolean;
-  enableZeroFluff: boolean;
-  enableSoundEffects: boolean;
-  developerRole: string;
-
-  // Notification Preferences
-  emailNotifications: boolean;
-  usageAlerts: boolean;
-  weeklyDigest: boolean;
-  productUpdates: boolean;
-  securityAlerts: boolean;
-}
-
-export const defaultPreferences: UserPreferences = {
-  defaultEngineMode: "api",
-  defaultStrategy: "structured",
-  defaultOutputFormat: "markdown",
-  enableAutoCorrect: true,
-  enableZeroFluff: true,
-  enableSoundEffects: false,
-  developerRole: "Prompt Architect",
-
-  emailNotifications: true,
-  usageAlerts: true,
-  weeklyDigest: false,
-  productUpdates: true,
-  securityAlerts: true,
-};
+export type { UserPreferences };
 
 /**
  * Reads one user's row. A previous version kept this in a process-local Map, so

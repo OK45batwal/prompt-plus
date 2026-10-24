@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth/config";
 import { verifySessionAccount } from "@/lib/auth/account";
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout";
+import { SessionProvider } from "@/components/providers/session-provider";
 
 export default async function DashboardLayoutWrapper({
   children,
@@ -23,5 +24,11 @@ export default async function DashboardLayoutWrapper({
   const adminEmail = process.env.ADMIN_EMAIL;
   const isAdmin = !!(adminEmail && session?.user?.email === adminEmail);
 
-  return <DashboardLayout isAdmin={isAdmin}><div className="animate-fade-in">{children}</div></DashboardLayout>;
+  return (
+    <SessionProvider session={session}>
+      <DashboardLayout isAdmin={isAdmin}>
+        <div className="animate-fade-in">{children}</div>
+      </DashboardLayout>
+    </SessionProvider>
+  );
 }
