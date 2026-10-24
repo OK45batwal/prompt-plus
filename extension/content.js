@@ -63,8 +63,8 @@
 
       .pp-unified-dock:hover,
       .pp-floating-trigger:hover {
-        border-color: rgba(168, 85, 247, 0.45) !important;
-        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(139, 92, 246, 0.25),
+        border-color: rgba(34, 211, 238, 0.45) !important;
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(6, 182, 212, 0.25),
                     inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
       }
 
@@ -75,17 +75,18 @@
         width: 24px !important;
         height: 24px !important;
         border-radius: 50% !important;
-        background: rgba(139, 92, 246, 0.2) !important;
-        border: 1px solid rgba(168, 85, 247, 0.4) !important;
-        color: #c084fc !important;
-        box-shadow: 0 0 10px rgba(139, 92, 246, 0.25) !important;
+        background: rgba(6, 182, 212, 0.15) !important;
+        border: 1px solid rgba(34, 211, 238, 0.35) !important;
+        color: #22d3ee !important;
+        box-shadow: 0 0 10px rgba(6, 182, 212, 0.25) !important;
         flex-shrink: 0 !important;
         cursor: pointer !important;
-        transition: transform 0.15s ease, background 0.15s ease !important;
+        transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease !important;
       }
 
       .pp-dock-brain:hover {
-        background: rgba(139, 92, 246, 0.35) !important;
+        background: rgba(6, 182, 212, 0.28) !important;
+        box-shadow: 0 0 16px rgba(6, 182, 212, 0.45) !important;
         transform: scale(1.05) !important;
       }
 
@@ -95,37 +96,37 @@
         align-items: center !important;
         gap: 6px !important;
         height: 26px !important;
-        padding: 0 11px 0 9px !important;
+        padding: 0 10px 0 9px !important;
         border-radius: 9999px !important;
-        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.3) !important;
-        color: #ffffff !important;
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.35) !important;
+        color: #04141c !important;
         cursor: pointer !important;
         font-size: 11px !important;
         font-weight: 700 !important;
         line-height: 1 !important;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45),
-                    0 3px 14px rgba(124, 58, 237, 0.45) !important;
+                    0 3px 14px rgba(6, 182, 212, 0.4) !important;
         transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease, filter 0.15s ease !important;
         flex-shrink: 0 !important;
       }
 
       .pp-dock-btn:hover {
-        filter: brightness(1.1) !important;
-        transform: translateY(-1px) !important;
+        filter: brightness(1.08) !important;
+        transform: translateY(-0.5px) !important;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65),
-                    0 6px 22px rgba(139, 92, 246, 0.6) !important;
+                    0 6px 20px rgba(6, 182, 212, 0.55) !important;
       }
 
       .pp-dock-btn:active {
         transform: translateY(0.5px) scale(0.985) !important;
-        filter: brightness(0.97) !important;
+        filter: brightness(0.96) !important;
         box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3),
-                    0 1px 4px rgba(124, 58, 237, 0.3) !important;
+                    0 1px 4px rgba(6, 182, 212, 0.3) !important;
       }
 
       .pp-dock-btn:focus-visible {
-        outline: 2px solid rgba(168, 85, 247, 0.9) !important;
+        outline: 2px solid rgba(34, 211, 238, 0.9) !important;
         outline-offset: 2px !important;
       }
 
@@ -137,15 +138,15 @@
         height: 13px !important;
       }
 
-      /* Clean frosted keycap chip that blends seamlessly into the violet button. */
+      /* Clean dark-ink keycap chip matching website primary buttons. */
       .pp-dock-kbd {
         font-size: 9px !important;
         padding: 2px 5px !important;
         border-radius: 5px !important;
-        background: rgba(255, 255, 255, 0.2) !important;
-        border: 1px solid rgba(255, 255, 255, 0.28) !important;
-        color: #ffffff !important;
-        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+        background: rgba(4, 20, 28, 0.18) !important;
+        border: 1px solid rgba(4, 20, 28, 0.28) !important;
+        color: #04141c !important;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) !important;
         line-height: 1 !important;
         font-weight: 700 !important;
         font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
@@ -197,7 +198,7 @@
       .pp-runway-tokens {
         font-size: 10px !important;
         font-weight: 600 !important;
-        color: #c084fc !important;
+        color: #22d3ee !important;
       }
 
       .pp-runway-pct {
@@ -241,9 +242,9 @@
       }
 
       .pp-dock-tone.active {
-        background: rgba(139, 92, 246, 0.28) !important;
-        border-color: rgba(168, 85, 247, 0.55) !important;
-        color: #ffffff !important;
+        background: rgba(6, 182, 212, 0.22) !important;
+        border-color: rgba(34, 211, 238, 0.45) !important;
+        color: #67e8f9 !important;
       }
 
       .pp-dock-ghost-btn,
@@ -284,9 +285,9 @@
         gap: 6px !important;
         padding: 10px !important;
         border-radius: 14px !important;
-        background: rgba(12, 12, 16, 0.97) !important;
-        border: 1px solid rgba(168, 85, 247, 0.35) !important;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 20px rgba(139, 92, 246, 0.15) !important;
+        background: rgba(10, 13, 20, 0.98) !important;
+        border: 1px solid rgba(6, 182, 212, 0.35) !important;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.75), 0 0 20px rgba(6, 182, 212, 0.18) !important;
         backdrop-filter: blur(20px) saturate(160%) !important;
         -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
         z-index: 100000000 !important;
@@ -338,12 +339,12 @@
       }
 
       .pp-dock-menu-item:hover:not([disabled]) {
-        background: rgba(139, 92, 246, 0.2) !important;
-        border-color: rgba(168, 85, 247, 0.45) !important;
+        background: rgba(6, 182, 212, 0.16) !important;
+        border-color: rgba(34, 211, 238, 0.4) !important;
       }
 
       .pp-dock-menu-item:focus-visible {
-        outline: 2px solid rgba(168, 85, 247, 0.9) !important;
+        outline: 2px solid rgba(34, 211, 238, 0.9) !important;
         outline-offset: 1px !important;
       }
 
@@ -353,9 +354,9 @@
       }
 
       .pp-dock-menu-item.primary {
-        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
-        border-color: rgba(255, 255, 255, 0.25) !important;
-        color: #ffffff !important;
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
+        border-color: rgba(255, 255, 255, 0.3) !important;
+        color: #04141c !important;
       }
 
       /* Motion here is decoration, so it yields to the user's setting. */
@@ -475,10 +476,10 @@
         border-color: rgba(255, 255, 255, 0.18) !important;
       }
       .pp-tone-chip.active {
-        background: rgba(139, 92, 246, 0.28) !important;
-        border-color: rgba(168, 85, 247, 0.6) !important;
-        color: #ffffff !important;
-        box-shadow: 0 0 12px rgba(139, 92, 246, 0.35) !important;
+        background: rgba(6, 182, 212, 0.22) !important;
+        border-color: rgba(34, 211, 238, 0.5) !important;
+        color: #67e8f9 !important;
+        box-shadow: 0 0 10px rgba(6, 182, 212, 0.25) !important;
       }
 
       .pp-modal-preview {
@@ -509,9 +510,9 @@
         flex: 1 !important;
         height: 36px !important;
         border-radius: 8px !important;
-        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.28) !important;
-        color: #ffffff !important;
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        color: #04141c !important;
         font-size: 11.5px !important;
         font-weight: 700 !important;
         cursor: pointer !important;
@@ -519,7 +520,7 @@
         align-items: center !important;
         justify-content: center !important;
         gap: 6px !important;
-        box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4) !important;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.35) !important;
         transition: all 0.15s ease !important;
       }
       .pp-modal-btn-primary:hover {
@@ -561,7 +562,7 @@
       #pp-enhancement-preview ins { background: #14532d !important; color: #bbf7d0 !important; }
       /* Host pages routinely kill outlines; the panel must keep a visible focus ring. */
       #pp-enhancement-preview button:focus-visible {
-        outline: 2px solid #a855f7 !important;
+        outline: 2px solid #22d3ee !important;
         outline-offset: 2px !important;
       }
     `;
@@ -1014,27 +1015,27 @@
     panel.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
         <div style="display:flex;align-items:center;gap:7px;">
-          <span style="width:18px;height:18px;border-radius:6px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);display:inline-flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 2px 8px rgba(124,58,237,0.35);">${ICONS.sparkle}</span>
+          <span style="width:18px;height:18px;border-radius:6px;background:linear-gradient(135deg,#06b6d4,#0e7490);display:inline-flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 2px 8px rgba(6,182,212,0.35);">${ICONS.sparkle}</span>
           <strong style="font-size:15px;letter-spacing:-0.01em;color:#fff;">${copy.title}</strong>
         </div>
-        <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:9999px;background:rgba(139,92,246,0.18);border:1px solid rgba(168,85,247,0.35);color:#c084fc;">${escapeHtml(source)}</span>
+        <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:9999px;background:rgba(6,182,212,0.14);border:1px solid rgba(6,182,212,0.3);color:#67e8f9;">${escapeHtml(source)}</span>
       </div>
-      <p id="pp-preview-tokens" style="margin:4px 0 10px;font-size:11.5px;color:#94a3b8;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">Estimated tokens: <span style="color:#e2e8f0;font-weight:600;">${beforeTokens}</span> → <span style="color:#c084fc;font-weight:700;">${afterTokens}</span> (<span style="color:${delta <= 0 ? "#34d399" : "#fbbf24"};font-weight:600;">${delta > 0 ? "+" : ""}${delta}</span>)</p>
+      <p id="pp-preview-tokens" style="margin:4px 0 10px;font-size:11.5px;color:#94a3b8;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">Estimated tokens: <span style="color:#e2e8f0;font-weight:600;">${beforeTokens}</span> → <span style="color:#22d3ee;font-weight:700;">${afterTokens}</span> (<span style="color:${delta <= 0 ? "#34d399" : "#fbbf24"};font-weight:600;">${delta > 0 ? "+" : ""}${delta}</span>)</p>
       ${legend}
       <div style="max-height:42vh;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-right:2px;">
         <div style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px 12px;">
           <p style="font-weight:700;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">${copy.originalLabel}</p>
           <div style="white-space:pre-wrap;overflow-wrap:anywhere;color:#cbd5e1;font-size:12px;line-height:1.5;" data-preview="original">${diff.before}</div>
         </div>
-        <div style="background:rgba(139,92,246,0.05);border:1px solid rgba(168,85,247,0.25);border-radius:10px;padding:10px 12px;box-shadow:inset 0 0 16px rgba(139,92,246,0.04);">
-          <p style="font-weight:700;font-size:11px;color:#c084fc;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">${copy.enhancedLabel}</p>
+        <div style="background:rgba(6,182,212,0.04);border:1px solid rgba(6,182,212,0.2);border-radius:10px;padding:10px 12px;box-shadow:inset 0 0 16px rgba(6,182,212,0.03);">
+          <p style="font-weight:700;font-size:11px;color:#22d3ee;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">${copy.enhancedLabel}</p>
           <div style="white-space:pre-wrap;overflow-wrap:anywhere;color:#f1f5f9;font-size:12px;line-height:1.5;" data-preview="enhanced">${diff.after}</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);">
-        <button type="button" id="pp-preview-accept" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:9999px;background:linear-gradient(135deg,#8b5cf6 0%,#7c3aed 100%);color:#ffffff;font-weight:700;font-size:12px;border:1px solid rgba(255,255,255,0.28);box-shadow:0 4px 14px rgba(124,58,237,0.4);cursor:pointer;transition:transform 0.15s ease;">
+        <button type="button" id="pp-preview-accept" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:9999px;background:linear-gradient(135deg,#06b6d4 0%,#0891b2 100%);color:#04141c;font-weight:700;font-size:12px;border:1px solid rgba(255,255,255,0.3);box-shadow:0 4px 14px rgba(6,182,212,0.4);cursor:pointer;transition:transform 0.15s ease;">
           <span>${copy.acceptLabel}</span>
-          <kbd style="font-size:9px;padding:1px 4px;border-radius:4px;background:rgba(255,255,255,0.2);color:#ffffff;font-weight:700;">↵</kbd>
+          <kbd style="font-size:9px;padding:1px 4px;border-radius:4px;background:rgba(4,20,28,0.2);color:#04141c;font-weight:700;">↵</kbd>
         </button>
         <button type="button" id="pp-preview-keep" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border-radius:9999px;background:rgba(255,255,255,0.07);color:#f1f5f9;font-weight:600;font-size:12px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;transition:background 0.15s ease;">
           <span>Keep original</span>
@@ -1079,8 +1080,8 @@
         <strong style="font-size:16px">${copy.appliedTitle}</strong>
         <p style="color:#cbd5e1;margin:6px 0">${escapeHtml(source)}</p>
         <div style="display:flex;gap:12px;margin-top:16px">
-          <button type="button" id="pp-preview-undo" style="padding:8px 14px;border-radius:8px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#ffffff;font-weight:600;border:none;">Undo</button>
-          <button type="button" id="pp-preview-done" style="padding:8px 14px;border-radius:8px;background:#334155;color:#fff">Done · Esc</button>
+          <button type="button" id="pp-preview-undo" style="padding:8px 14px;border-radius:8px;background:#06b6d4;color:#04141c;font-weight:700;border:none;cursor:pointer;">Undo</button>
+          <button type="button" id="pp-preview-done" style="padding:8px 14px;border-radius:8px;background:#334155;color:#fff;cursor:pointer;">Done · Esc</button>
         </div>`;
       panel.querySelector("#pp-preview-undo").addEventListener("click", undo);
       panel.querySelector("#pp-preview-done").addEventListener("click", close);
@@ -1199,7 +1200,7 @@
     modalEl.innerHTML = `
       <div class="pp-modal-header">
         <div class="pp-modal-title">
-          <span class="pp-dock-icon" style="width:16px;height:16px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 0 10px rgba(139,92,246,0.35);">${ICONS.sparkle}</span>
+          <span class="pp-dock-icon" style="width:16px;height:16px;background:linear-gradient(135deg,#06b6d4,#0891b2);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 0 10px rgba(6,182,212,0.35);">${ICONS.sparkle}</span>
           <span>Prompt+</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
