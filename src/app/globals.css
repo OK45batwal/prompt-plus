@@ -415,12 +415,28 @@ body {
   animation: glow-subtle 4s ease-in-out infinite;
 }
 
+@keyframes aurora {
+  0% {
+    background-position: 0% 50%, 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%, 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%, 0% 50%;
+  }
+}
+.animate-aurora {
+  animation: aurora 40s ease-in-out infinite alternate;
+  will-change: background-position;
+}
+
 @media (prefers-reduced-motion: reduce) {
   [data-reveal] {
     opacity: 1;
     transform: none;
   }
-  .animate-marquee, .animate-beam-pulse, .animate-glow-subtle, .animate-drift, .animate-drift-slow, .animate-drift-reverse {
+  .animate-marquee, .animate-beam-pulse, .animate-glow-subtle, .animate-drift, .animate-drift-slow, .animate-drift-reverse, .animate-aurora {
     animation: none !important;
   }
   *, *::before, *::after {

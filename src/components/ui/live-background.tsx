@@ -24,6 +24,8 @@ interface WaveLayer {
   phase: number;
   yOffset: number;
   height: number;
+  strokeWidth: number;
+  glowBlur: number;
 }
 
 export function LiveBackground({ className = "" }: { className?: string }) {
@@ -78,45 +80,61 @@ export function LiveBackground({ className = "" }: { className?: string }) {
     resize();
     window.addEventListener("resize", resize, { passive: true });
 
-    // Seed 42 energetic particles with guaranteed minimum
-    const particleCount = 42;
+    // Seed synaptic particles for the neural constellation
+    const particleCount = 44;
     const particles: Particle[] = Array.from({ length: particleCount }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      radius: 1.2 + Math.random() * 2.2,
-      vx: (Math.random() - 0.5) * 0.35,
-      vy: -0.2 - Math.random() * 0.45,
-      alpha: 0.25 + Math.random() * 0.6,
-      targetAlpha: 0.4 + Math.random() * 0.6,
+      radius: 1.1 + Math.random() * 2.2,
+      vx: (Math.random() - 0.5) * 0.32,
+      vy: -0.15 - Math.random() * 0.42,
+      alpha: 0.25 + Math.random() * 0.65,
+      targetAlpha: 0.35 + Math.random() * 0.65,
       colorType: Math.floor(Math.random() * 3) as 0 | 1 | 2,
-      pulseSpeed: 0.01 + Math.random() * 0.02,
+      pulseSpeed: 0.012 + Math.random() * 0.02,
     }));
 
-    // Wave layers definitions (3 fluid energy ribbons)
+    // 4 harmonic Aceternity-style neural waves
     const waves: WaveLayer[] = [
       {
-        amplitude: 65,
-        frequency: 0.0016,
-        speed: 0.0008,
-        phase: 0,
-        yOffset: 0.2,
-        height: 320,
-      },
-      {
-        amplitude: 80,
-        frequency: 0.0012,
-        speed: 0.0006,
-        phase: Math.PI / 3,
-        yOffset: 0.45,
-        height: 360,
-      },
-      {
-        amplitude: 70,
+        amplitude: 55,
         frequency: 0.0018,
-        speed: -0.0007,
-        phase: Math.PI / 1.8,
-        yOffset: 0.74,
-        height: 340,
+        speed: 0.0007,
+        phase: 0,
+        yOffset: 0.22,
+        height: 320,
+        strokeWidth: 1.8,
+        glowBlur: 14,
+      },
+      {
+        amplitude: 75,
+        frequency: 0.0013,
+        speed: 0.00055,
+        phase: Math.PI / 3,
+        yOffset: 0.44,
+        height: 360,
+        strokeWidth: 2.2,
+        glowBlur: 16,
+      },
+      {
+        amplitude: 65,
+        frequency: 0.0019,
+        speed: -0.00065,
+        phase: Math.PI / 1.7,
+        yOffset: 0.68,
+        height: 330,
+        strokeWidth: 1.6,
+        glowBlur: 12,
+      },
+      {
+        amplitude: 85,
+        frequency: 0.0011,
+        speed: 0.00045,
+        phase: Math.PI / 1.2,
+        yOffset: 0.88,
+        height: 380,
+        strokeWidth: 2.0,
+        glowBlur: 14,
       },
     ];
 
@@ -146,94 +164,140 @@ export function LiveBackground({ className = "" }: { className?: string }) {
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Draw flowing multi-frequency wave ribbons
+      // 1. Draw Aceternity Neural Wave Ribbons with glowing laser strokes
       waves.forEach((wave, i) => {
         if (!prefersReducedMotion) {
           wave.phase += wave.speed * dt;
         }
 
-        const baseY = height * wave.yOffset + (mouseRef.current.y - 0.5) * 45 * (i % 2 === 0 ? 1 : -1);
+        const baseY = height * wave.yOffset + (mouseRef.current.y - 0.5) * 40 * (i % 2 === 0 ? 1 : -1);
         const waveHeight = wave.height;
 
+        ctx.save();
         ctx.beginPath();
         ctx.moveTo(0, baseY);
 
-        const step = 20;
+        const step = 16;
         for (let x = 0; x <= width + step; x += step) {
-          const mouseInfluence = Math.sin((x / width) * Math.PI) * (mouseRef.current.x - 0.5) * 25;
+          const mouseInfluence = Math.sin((x / width) * Math.PI) * (mouseRef.current.x - 0.5) * 28;
           const y =
             baseY +
             Math.sin(x * wave.frequency + wave.phase) * wave.amplitude +
-            Math.cos(x * wave.frequency * 0.6 + wave.phase * 0.7) * (wave.amplitude * 0.45) +
+            Math.cos(x * wave.frequency * 0.55 + wave.phase * 0.75) * (wave.amplitude * 0.45) +
             mouseInfluence;
           ctx.lineTo(x, y);
         }
 
+        // Stroke with luminous glow
+        ctx.shadowBlur = isDark ? wave.glowBlur : wave.glowBlur * 0.6;
+        if (isDark) {
+          if (i === 0) {
+            ctx.strokeStyle = "rgba(6, 182, 212, 0.45)";
+            ctx.shadowColor = "rgba(6, 182, 212, 0.65)";
+          } else if (i === 1) {
+            ctx.strokeStyle = "rgba(99, 102, 241, 0.42)";
+            ctx.shadowColor = "rgba(99, 102, 241, 0.60)";
+          } else if (i === 2) {
+            ctx.strokeStyle = "rgba(56, 189, 248, 0.38)";
+            ctx.shadowColor = "rgba(56, 189, 248, 0.55)";
+          } else {
+            ctx.strokeStyle = "rgba(168, 85, 247, 0.35)";
+            ctx.shadowColor = "rgba(168, 85, 247, 0.50)";
+          }
+        } else {
+          if (i === 0) {
+            ctx.strokeStyle = "rgba(8, 145, 178, 0.38)";
+            ctx.shadowColor = "rgba(8, 145, 178, 0.45)";
+          } else if (i === 1) {
+            ctx.strokeStyle = "rgba(99, 102, 241, 0.32)";
+            ctx.shadowColor = "rgba(99, 102, 241, 0.40)";
+          } else if (i === 2) {
+            ctx.strokeStyle = "rgba(56, 189, 248, 0.34)";
+            ctx.shadowColor = "rgba(56, 189, 248, 0.38)";
+          } else {
+            ctx.strokeStyle = "rgba(245, 158, 11, 0.28)";
+            ctx.shadowColor = "rgba(245, 158, 11, 0.35)";
+          }
+        }
+        ctx.lineWidth = wave.strokeWidth;
+        ctx.stroke();
+
+        // Fill translucent wave body below the wave line
+        ctx.shadowBlur = 0;
         ctx.lineTo(width, height);
         ctx.lineTo(0, height);
         ctx.closePath();
 
-        const gradient = ctx.createLinearGradient(0, baseY - wave.amplitude, 0, baseY + waveHeight);
+        const fillGradient = ctx.createLinearGradient(0, baseY - wave.amplitude, 0, baseY + waveHeight);
 
         if (isDark) {
           if (i === 0) {
-            gradient.addColorStop(0, "rgba(6, 182, 212, 0.22)");
-            gradient.addColorStop(0.4, "rgba(20, 184, 166, 0.09)");
-            gradient.addColorStop(1, "rgba(6, 182, 212, 0)");
+            fillGradient.addColorStop(0, "rgba(6, 182, 212, 0.16)");
+            fillGradient.addColorStop(0.4, "rgba(20, 184, 166, 0.06)");
+            fillGradient.addColorStop(1, "rgba(6, 182, 212, 0)");
           } else if (i === 1) {
-            gradient.addColorStop(0, "rgba(99, 102, 241, 0.18)");
-            gradient.addColorStop(0.5, "rgba(139, 92, 246, 0.07)");
-            gradient.addColorStop(1, "rgba(99, 102, 241, 0)");
+            fillGradient.addColorStop(0, "rgba(99, 102, 241, 0.13)");
+            fillGradient.addColorStop(0.5, "rgba(139, 92, 246, 0.05)");
+            fillGradient.addColorStop(1, "rgba(99, 102, 241, 0)");
+          } else if (i === 2) {
+            fillGradient.addColorStop(0, "rgba(14, 165, 233, 0.12)");
+            fillGradient.addColorStop(0.5, "rgba(6, 182, 212, 0.04)");
+            fillGradient.addColorStop(1, "rgba(14, 165, 233, 0)");
           } else {
-            gradient.addColorStop(0, "rgba(14, 165, 233, 0.16)");
-            gradient.addColorStop(0.5, "rgba(6, 182, 212, 0.06)");
-            gradient.addColorStop(1, "rgba(14, 165, 233, 0)");
+            fillGradient.addColorStop(0, "rgba(168, 85, 247, 0.11)");
+            fillGradient.addColorStop(0.5, "rgba(99, 102, 241, 0.04)");
+            fillGradient.addColorStop(1, "rgba(168, 85, 247, 0)");
           }
         } else {
           if (i === 0) {
-            gradient.addColorStop(0, "rgba(6, 182, 212, 0.20)");
-            gradient.addColorStop(0.35, "rgba(56, 189, 248, 0.09)");
-            gradient.addColorStop(1, "rgba(6, 182, 212, 0)");
+            fillGradient.addColorStop(0, "rgba(6, 182, 212, 0.14)");
+            fillGradient.addColorStop(0.35, "rgba(56, 189, 248, 0.06)");
+            fillGradient.addColorStop(1, "rgba(6, 182, 212, 0)");
           } else if (i === 1) {
-            gradient.addColorStop(0, "rgba(99, 102, 241, 0.16)");
-            gradient.addColorStop(0.45, "rgba(168, 85, 247, 0.06)");
-            gradient.addColorStop(1, "rgba(99, 102, 241, 0)");
+            fillGradient.addColorStop(0, "rgba(99, 102, 241, 0.11)");
+            fillGradient.addColorStop(0.45, "rgba(168, 85, 247, 0.04)");
+            fillGradient.addColorStop(1, "rgba(99, 102, 241, 0)");
+          } else if (i === 2) {
+            fillGradient.addColorStop(0, "rgba(56, 189, 248, 0.12)");
+            fillGradient.addColorStop(0.45, "rgba(6, 182, 212, 0.04)");
+            fillGradient.addColorStop(1, "rgba(56, 189, 248, 0)");
           } else {
-            gradient.addColorStop(0, "rgba(251, 146, 60, 0.14)");
-            gradient.addColorStop(0.45, "rgba(244, 114, 182, 0.05)");
-            gradient.addColorStop(1, "rgba(251, 146, 60, 0)");
+            fillGradient.addColorStop(0, "rgba(251, 146, 60, 0.09)");
+            fillGradient.addColorStop(0.45, "rgba(244, 114, 182, 0.03)");
+            fillGradient.addColorStop(1, "rgba(251, 146, 60, 0)");
           }
         }
 
-        ctx.fillStyle = gradient;
+        ctx.fillStyle = fillGradient;
         ctx.fill();
+        ctx.restore();
       });
 
-      // 2. Draw constellation connection threads between nearby particles
+      // 2. Draw synaptic connection filaments between near particles
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
           const dist = Math.hypot(dx, dy);
-          if (dist < 110) {
-            const lineAlpha = (1 - dist / 110) * 0.22;
+          if (dist < 105) {
+            const lineAlpha = (1 - dist / 105) * 0.24;
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
             ctx.strokeStyle = isDark
               ? `rgba(6, 182, 212, ${lineAlpha})`
-              : `rgba(14, 116, 144, ${lineAlpha * 1.3})`;
-            ctx.lineWidth = 0.8;
+              : `rgba(14, 116, 144, ${lineAlpha * 1.35})`;
+            ctx.lineWidth = 0.85;
             ctx.stroke();
           }
         }
       }
 
-      // 3. Draw drifting stardust micro-particles
+      // 3. Draw drifting synaptic stardust nodes
       particles.forEach((p) => {
         if (!prefersReducedMotion) {
           p.y += p.vy;
-          p.x += p.vx + (mouseRef.current.x - 0.5) * 0.2;
+          p.x += p.vx + (mouseRef.current.x - 0.5) * 0.22;
 
           if (p.y < -10) {
             p.y = height + 10;
@@ -253,19 +317,19 @@ export function LiveBackground({ className = "" }: { className?: string }) {
 
         if (isDark) {
           if (p.colorType === 0) {
-            ctx.fillStyle = `rgba(6, 182, 212, ${p.alpha * 0.9})`;
+            ctx.fillStyle = `rgba(6, 182, 212, ${p.alpha * 0.95})`;
           } else if (p.colorType === 1) {
-            ctx.fillStyle = `rgba(165, 180, 252, ${p.alpha * 0.85})`;
+            ctx.fillStyle = `rgba(165, 180, 252, ${p.alpha * 0.90})`;
           } else {
-            ctx.fillStyle = `rgba(255, 255, 255, ${p.alpha * 0.75})`;
+            ctx.fillStyle = `rgba(255, 255, 255, ${p.alpha * 0.80})`;
           }
         } else {
           if (p.colorType === 0) {
-            ctx.fillStyle = `rgba(6, 182, 212, ${p.alpha * 0.85})`;
+            ctx.fillStyle = `rgba(8, 145, 178, ${p.alpha * 0.90})`;
           } else if (p.colorType === 1) {
-            ctx.fillStyle = `rgba(99, 102, 241, ${p.alpha * 0.75})`;
+            ctx.fillStyle = `rgba(99, 102, 241, ${p.alpha * 0.80})`;
           } else {
-            ctx.fillStyle = `rgba(245, 158, 11, ${p.alpha * 0.7})`;
+            ctx.fillStyle = `rgba(245, 158, 11, ${p.alpha * 0.75})`;
           }
         }
 
@@ -291,37 +355,51 @@ export function LiveBackground({ className = "" }: { className?: string }) {
       ref={containerRef}
       aria-hidden="true"
       suppressHydrationWarning
-      className={`fixed inset-0 pointer-events-none select-none overflow-hidden z-0 transition-opacity duration-700 ${className}`}
+      className={`fixed inset-0 pointer-events-none select-none overflow-hidden z-0 transition-opacity duration-1000 ${className}`}
     >
-      {/* Top-down Luminous Ambient Aura Wash */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_75%_at_50%_-15%,rgba(6,182,212,0.22),rgba(99,102,241,0.12),transparent_75%)] dark:bg-[radial-gradient(ellipse_100%_75%_at_50%_-15%,rgba(6,182,212,0.20),transparent_75%)]" />
+      {/* ─────────────────────────────────────────────────────────────
+          Aceternity Aurora Ambient Glow Layers (CSS Hardware Accelerated)
+          ───────────────────────────────────────────────────────────── */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Animated Aurora Wave Band 1 */}
+        <div
+          className="absolute -inset-[10px] opacity-60 dark:opacity-50 blur-[70px] md:blur-[110px] animate-aurora will-change-transform"
+          style={{
+            backgroundImage: `repeating-linear-gradient(115deg, rgba(6,182,212,0.35) 0%, rgba(99,102,241,0.28) 18%, rgba(56,189,248,0.32) 36%, rgba(168,85,247,0.22) 54%, rgba(6,182,212,0.35) 72%)`,
+            backgroundSize: "300% 200%",
+          }}
+        />
 
-      {/* Dynamic Hardware Canvas Waves & Constellation Particles */}
+        {/* Animated Aurora Wave Band 2 (Counter-drift for organic fluidity) */}
+        <div
+          className="absolute -inset-[10px] opacity-45 dark:opacity-40 blur-[80px] md:blur-[120px] animate-aurora will-change-transform"
+          style={{
+            backgroundImage: `repeating-linear-gradient(245deg, rgba(99,102,241,0.30) 0%, rgba(20,184,166,0.25) 20%, rgba(14,165,233,0.28) 40%, rgba(245,158,11,0.18) 60%, rgba(99,102,241,0.30) 80%)`,
+            backgroundSize: "280% 220%",
+            animationDirection: "reverse",
+            animationDuration: "50s",
+          }}
+        />
+
+        {/* Top-down Luminous Ambient Aura Wash */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_80%_at_50%_-20%,rgba(6,182,212,0.28),rgba(99,102,241,0.14),transparent_75%)] dark:bg-[radial-gradient(ellipse_100%_80%_at_50%_-20%,rgba(6,182,212,0.25),transparent_75%)]" />
+      </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          Dynamic Aceternity Neural Waves & Synaptic Constellation Canvas
+          ───────────────────────────────────────────────────────────── */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full block"
       />
 
-      {/* Layered Subtle Cyber Grid with Vignette Mask */}
-      <div className="absolute inset-0 subtle-grid opacity-60 dark:opacity-45" />
+      {/* ─────────────────────────────────────────────────────────────
+          Vignette & Micro Cyber-Grid Contrast Protection Mask
+          ───────────────────────────────────────────────────────────── */}
+      <div className="absolute inset-0 subtle-grid opacity-50 dark:opacity-35 [mask-image:radial-gradient(ellipse_at_center,transparent_25%,black_90%)]" />
 
-      {/* Radiant Prismatic Ambient Aurora Orbs */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Top Hero Radiant Prismatic Orb */}
-        <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-180 h-130 rounded-full bg-linear-to-b from-cyan-400/28 via-sky-300/18 to-transparent dark:bg-cyan-400/20 blur-[110px] animate-drift" />
-
-        {/* Top-Right Secondary Orb */}
-        <div className="absolute top-24 -right-20 w-110 h-110 rounded-full bg-linear-to-tr from-indigo-400/22 via-purple-300/14 to-transparent dark:bg-indigo-500/16 blur-[100px] animate-drift-reverse" />
-
-        {/* Top-Left Ambient Sunrise Warmth Orb */}
-        <div className="absolute top-48 -left-20 w-105 h-105 rounded-full bg-linear-to-br from-amber-300/18 via-rose-300/12 to-transparent dark:bg-teal-400/14 blur-[100px] animate-drift-slow" />
-
-        {/* Mid-Page Ambient Light Ribbon */}
-        <div className="absolute top-[40%] -right-24 w-120 h-100 rounded-full bg-linear-to-r from-sky-400/18 via-cyan-300/12 to-transparent dark:bg-sky-400/14 blur-[110px] animate-drift" />
-
-        {/* Bottom Radiant Accent */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-175 h-110 rounded-full bg-linear-to-t from-cyan-400/24 via-indigo-300/14 to-transparent dark:bg-cyan-400/16 blur-[110px] animate-drift-slow" />
-      </div>
+      {/* Central Reading Contrast Gradient (Keeps hero & text perfectly crisp) */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,var(--background)_95%)] opacity-35 dark:opacity-40" />
     </div>
   );
 }
