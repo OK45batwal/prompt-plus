@@ -9,14 +9,28 @@ import { ExportCodeModal } from "@/components/prompts/export-code-modal";
 
 interface Prompt {
   id: string;
-  title: string;
+  title: string | null;
   originalText: string;
-  enhancedText?: string;
+  enhancedText?: string | null;
   model: string;
-  category: string;
-  score: number;
+  category: string | null;
+  score: unknown;
   isFavorite: boolean;
   createdAt: string;
+}
+
+function getDisplayScore(score: unknown): number | null {
+  if (typeof score === "number" && Number.isFinite(score)) {
+    return Math.round(score);
+  }
+  if (score && typeof score === "object") {
+    const s = score as Record<string, unknown>;
+    if (typeof s.total === "number" && Number.isFinite(s.total)) return Math.round(s.total);
+    if (typeof s.overall === "number" && Number.isFinite(s.overall)) return Math.round(s.overall);
+    if (typeof s.enhancedTotal === "number" && Number.isFinite(s.enhancedTotal)) return Math.round(s.enhancedTotal);
+    if (typeof s.score === "number" && Number.isFinite(s.score)) return Math.round(s.score);
+  }
+  return null;
 }
 
 const categoryMeta: Record<string, { label: string; icon: typeof Code }> = {
@@ -44,22 +58,37 @@ export default function LibraryPage() {
   const [exportPrompt, setExportPrompt] = useState<{ title: string; text: string } | null>(null);
 
   useEffect(() => {
+    let active = true;
     fetch("/api/v1/prompts?pageSize=50")
-      .then((res) => res.json())
-      .then((data) => {
-        setPrompts(data.data || []);
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
       })
-      .catch(() => {
+      .then((data) => {
+        if (!active) return;
+        if (Array.isArray(data?.data)) {
+          setPrompts(data.data);
+        } else {
+          setPrompts([]);
+        }
+      })
+      .catch((err) => {
+        if (!active) return;
+        console.warn("Could not load library prompts:", err);
         setPrompts([]);
       })
       .finally(() => {
-        setLoading(false);
+        if (active) setLoading(false);
       });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const savedCategoryOptions = ["all", "Blog Post", "Email", "Code", "Social Media", "Tutorial", "Documentation", "Marketing"];
 
-  const titleOf = (p: Prompt) => p.title || p.originalText.substring(0, 50);
+  const titleOf = (p: Prompt) => p.title || (p.originalText ? p.originalText.substring(0, 50) : "Untitled Prompt");
 
   const filteredSavedPrompts = prompts.filter((p) => {
     const q = savedSearch.trim().toLowerCase();
@@ -243,75 +272,97 @@ export default function LibraryPage() {
           </div>
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sortedSavedPrompts.map((prompt) => (
-              <div
-                key={prompt.id}
-                className="p-4 rounded-xl border bg-card hover:border-foreground/20 transition-colors h-full flex flex-col"
-              >
-                <h3 className="font-semibold text-sm line-clamp-1 mb-2">{titleOf(prompt)}</h3>
-                <p className="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">{prompt.originalText}</p>
-                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                  <span className="px-2 py-0.5 rounded bg-muted font-medium">{prompt.model}</span>
-                  <span className="px-2 py-0.5 rounded bg-muted font-medium">{prompt.category}</span>
-                  <span className="ml-auto font-semibold text-foreground">{prompt.score}/100</span>
+            {sortedSavedPrompts.map((prompt) => {
+              const scoreNum = getDisplayScore(prompt.score);
+              return (
+                <div
+                  key={prompt.id}
+                  className="p-4 rounded-xl border bg-card hover:border-foreground/20 transition-colors h-full flex flex-col"
+                >
+                  <h3 className="font-semibold text-sm line-clamp-1 mb-2">{titleOf(prompt)}</h3>
+                  <p className="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">{prompt.originalText || "No content"}</p>
+                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                    <span className="px-2 py-0.5 rounded bg-muted font-medium">{prompt.model || "Unknown model"}</span>
+                    <span className="px-2 py-0.5 rounded bg-muted font-medium">{prompt.category || "General"}</span>
+                    {scoreNum !== null ? (
+                      <span className="ml-auto font-semibold text-foreground">{scoreNum}/100</span>
+                    ) : (
+                      <span className="ml-auto text-muted-foreground text-[10px]">Unrated</span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {prompt.createdAt && !isNaN(new Date(prompt.createdAt).getTime())
+                      ? new Date(prompt.createdAt).toLocaleDateString()
+                      : ""}
+                  </p>
+                  <div className="mt-auto pt-3 border-t flex items-center justify-between">
+                    <Link
+                      href={`/dashboard/new?promptId=${prompt.id}`}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-primary rounded hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <Pencil className="h-3.5 w-3.5" /> Edit prompt
+                    </Link>
+                    <button
+                      type="button"
+                      aria-pressed={prompt.isFavorite}
+                      aria-label={prompt.isFavorite ? "Remove from favorites" : "Add to favorites"}
+                      onClick={() => toggleFavorite(prompt)}
+                      className="p-1 rounded-md hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <Star className={`h-3.5 w-3.5 ${prompt.isFavorite ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`} />
+                    </button>
+                  </div>
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1">{new Date(prompt.createdAt).toLocaleDateString()}</p>
-                <div className="mt-auto pt-3 border-t flex items-center justify-between">
+              );
+            })}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {sortedSavedPrompts.map((prompt) => {
+              const scoreNum = getDisplayScore(prompt.score);
+              return (
+                <div
+                  key={prompt.id}
+                  className="p-3.5 rounded-xl border bg-card hover:border-foreground/20 transition-colors flex items-center gap-4"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-sm line-clamp-1">{titleOf(prompt)}</h3>
+                      <span className="px-2 py-0.5 rounded bg-muted text-[10px] font-medium">{prompt.model || "Unknown model"}</span>
+                      <span className="px-2 py-0.5 rounded bg-muted text-[10px] font-medium">{prompt.category || "General"}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">{prompt.originalText || "No content"}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    {scoreNum !== null ? (
+                      <span className="text-xs font-semibold">{scoreNum}/100</span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {prompt.createdAt && !isNaN(new Date(prompt.createdAt).getTime())
+                        ? new Date(prompt.createdAt).toLocaleDateString()
+                        : ""}
+                    </p>
+                  </div>
                   <Link
                     href={`/dashboard/new?promptId=${prompt.id}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-primary rounded hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium text-primary rounded hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <Pencil className="h-3.5 w-3.5" /> Edit prompt
+                    <Pencil className="h-3.5 w-3.5" /> Edit
                   </Link>
                   <button
                     type="button"
                     aria-pressed={prompt.isFavorite}
                     aria-label={prompt.isFavorite ? "Remove from favorites" : "Add to favorites"}
                     onClick={() => toggleFavorite(prompt)}
-                    className="p-1 rounded-md hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="shrink-0 p-1 rounded-md hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <Star className={`h-3.5 w-3.5 ${prompt.isFavorite ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`} />
                   </button>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {sortedSavedPrompts.map((prompt) => (
-              <div
-                key={prompt.id}
-                className="p-3.5 rounded-xl border bg-card hover:border-foreground/20 transition-colors flex items-center gap-4"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-sm line-clamp-1">{titleOf(prompt)}</h3>
-                    <span className="px-2 py-0.5 rounded bg-muted text-[10px] font-medium">{prompt.model}</span>
-                    <span className="px-2 py-0.5 rounded bg-muted text-[10px] font-medium">{prompt.category}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground truncate">{prompt.originalText}</p>
-                </div>
-                <div className="text-right shrink-0">
-                  <span className="text-xs font-semibold">{prompt.score}/100</span>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(prompt.createdAt).toLocaleDateString()}</p>
-                </div>
-                <Link
-                  href={`/dashboard/new?promptId=${prompt.id}`}
-                  className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium text-primary rounded hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <Pencil className="h-3.5 w-3.5" /> Edit
-                </Link>
-                <button
-                  type="button"
-                  aria-pressed={prompt.isFavorite}
-                  aria-label={prompt.isFavorite ? "Remove from favorites" : "Add to favorites"}
-                  onClick={() => toggleFavorite(prompt)}
-                  className="shrink-0 p-1 rounded-md hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <Star className={`h-3.5 w-3.5 ${prompt.isFavorite ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`} />
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
