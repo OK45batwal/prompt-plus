@@ -479,7 +479,7 @@ export default function PromptCostCalculatorPage() {
           </div>
 
           {/* Prompt Engineering Cost Optimization Banner */}
-          <div className="p-6 sm:p-8 rounded-3xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500/10 via-card/90 to-indigo-500/10 backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="p-6 sm:p-8 rounded-3xl border border-cyan-500/30 bg-linear-to-r from-cyan-500/10 via-card/90 to-indigo-500/10 backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-2 max-w-xl text-center md:text-left">
               <div className="flex items-center gap-2 justify-center md:justify-start text-xs font-semibold text-cyan-600 dark:text-cyan-400">
                 <Sparkles className="h-4 w-4" />
