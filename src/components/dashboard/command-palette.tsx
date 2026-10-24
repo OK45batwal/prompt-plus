@@ -21,7 +21,12 @@ export function CommandPalette() {
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    const handleOpen = () => setOpen(true);
+    window.addEventListener("promptplus:open-command-palette", handleOpen);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("promptplus:open-command-palette", handleOpen);
+    };
   }, [handleKeyDown]);
 
   const navItems = [

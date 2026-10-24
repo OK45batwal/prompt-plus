@@ -265,8 +265,8 @@ body {
 }
 
 .subtle-grid {
-  background-image: radial-gradient(rgba(0, 0, 0, 0.055) 1px, transparent 1px);
-  background-size: 26px 26px;
+  background-image: radial-gradient(rgba(14, 116, 144, 0.08) 1.2px, transparent 1.2px);
+  background-size: 30px 30px;
   mask-image: radial-gradient(ellipse 90% 100% at 50% 50%, black 65%, transparent 100%);
   -webkit-mask-image: radial-gradient(ellipse 90% 100% at 50% 50%, black 65%, transparent 100%);
 }

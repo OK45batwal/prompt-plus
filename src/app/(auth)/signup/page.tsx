@@ -106,13 +106,7 @@ export default function SignupPage() {
   const hasOauth = providers.google || providers.github;
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden bg-background">
-      {/* Background Ambient Mesh Glow Orbs */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute top-10 left-1/3 w-[450px] h-[450px] rounded-full bg-cyan-500/15 dark:bg-cyan-500/20 blur-[130px] animate-pulse" style={{ animationDuration: "7s" }} />
-        <div className="absolute top-28 right-1/3 w-[400px] h-[400px] rounded-full bg-teal-500/15 dark:bg-teal-500/20 blur-[140px] animate-pulse" style={{ animationDuration: "9s" }} />
-      </div>
-
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-transparent">
       {/* Header */}
       <header className="h-16 flex items-center justify-between px-6 border-b border-border/40 backdrop-blur-md bg-background/70 sticky top-0 z-50">
         <Link href="/" className="flex items-center gap-2">
@@ -131,7 +125,7 @@ export default function SignupPage() {
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-12 my-auto">
         <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Left Panel: Value Proposition & Zero-Cost Guarantees */}
-          <div className="hidden lg:flex flex-col justify-between p-8 rounded-2xl border border-border/60 bg-card/40 backdrop-blur-xl h-full min-h-[480px]">
+          <div className="hidden lg:flex flex-col justify-between p-8 rounded-2xl border border-border/60 bg-card/40 backdrop-blur-xl h-full min-h-120">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-xs font-semibold text-primary mb-6">
                 <Sparkles className="h-3.5 w-3.5" />
@@ -146,21 +140,21 @@ export default function SignupPage() {
 
               <div className="space-y-4 text-xs font-medium">
                 <div className="flex items-start gap-3 p-3 rounded-xl bg-background/40 border border-border/40">
-                  <div className="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5">✓</div>
+                  <div className="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">✓</div>
                   <div>
                     <strong className="text-foreground block mb-0.5">100% Free Out-of-the-Box</strong>
                     <span className="text-muted-foreground">Enhance prompts with the built-in engine — no credit card, no API key required.</span>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-xl bg-background/40 border border-border/40">
-                  <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 mt-0.5">🔐</div>
+                  <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">🔐</div>
                   <div>
                     <strong className="text-foreground block mb-0.5">AES-256 GCM Key Security</strong>
                     <span className="text-muted-foreground">Optional user API keys are encrypted with AES-256-GCM before being stored.</span>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-xl bg-background/40 border border-border/40">
-                  <div className="w-6 h-6 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center flex-shrink-0 mt-0.5">📦</div>
+                  <div className="w-6 h-6 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">📦</div>
                   <div>
                     <strong className="text-foreground block mb-0.5">Reusable context</strong>
                     <span className="text-muted-foreground">Save the preferences you keep repeating &mdash; tone, audience, rules &mdash; and apply them to every enhancement.</span>

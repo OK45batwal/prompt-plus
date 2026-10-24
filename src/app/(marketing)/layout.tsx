@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/logo";
 import { MarketingNav } from "@/components/marketing/marketing-nav";
-
-export const revalidate = 3600;
+import { LiveBackground } from "@/components/ui/live-background";
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   const jsonLd = {
@@ -20,14 +19,16 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="min-h-screen">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <MarketingNav />
+    <div className="min-h-screen relative overflow-x-hidden bg-background">
+      <LiveBackground />
+      <div className="relative z-10">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <MarketingNav />
 
-      <main>{children}</main>
+        <main>{children}</main>
 
       <footer className="py-12 sm:py-16 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto rounded-3xl border border-border/80 dark:border-white/10 bg-card/85 backdrop-blur-2xl p-8 sm:p-12 space-y-10 shadow-xs">
@@ -106,6 +107,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           </div>
         </div>
       </footer>
+      </div>
     </div>
   );
 }

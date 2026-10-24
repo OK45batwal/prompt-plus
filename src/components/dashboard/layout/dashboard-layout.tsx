@@ -6,12 +6,16 @@ import { Header } from "./header";
 import { MobileNav } from "./mobile-nav";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { CommandPalette } from "../command-palette";
+import { LiveBackground } from "@/components/ui/live-background";
 
 export function DashboardLayout({ children, isAdmin }: { children: React.ReactNode; isAdmin?: boolean }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex flex-col min-h-dvh bg-background">
+    <div className="flex flex-col min-h-dvh bg-background relative overflow-x-hidden">
+      {/* Subtle Ambient Live Background */}
+      <LiveBackground className="opacity-35 dark:opacity-45" />
+
       {/* Global Command Palette */}
       <CommandPalette />
 

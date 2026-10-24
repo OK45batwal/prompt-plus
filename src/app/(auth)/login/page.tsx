@@ -224,13 +224,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-[100dvh] flex flex-col relative overflow-hidden bg-background">
-      {/* Background Ambient Mesh Glow Orbs */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute top-10 left-1/3 w-[450px] h-[450px] rounded-full bg-primary/10 blur-[130px] animate-pulse" style={{ animationDuration: "7s" }} />
-        <div className="absolute top-28 right-1/3 w-[400px] h-[400px] rounded-full bg-cyan-500/10 blur-[140px] animate-pulse" style={{ animationDuration: "9s" }} />
-      </div>
-
+    <div className="min-h-dvh flex flex-col relative overflow-hidden bg-transparent">
       {/* Header */}
       <header className="h-16 flex items-center justify-between px-6 border-b border-border/40 backdrop-blur-md bg-background/70 sticky top-0 z-50">
         <Link href="/" className="flex items-center gap-2">
@@ -249,7 +243,7 @@ export default function LoginPage() {
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-12 my-auto">
         <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Left Panel: Desktop Brand & Extension SSO Status Panel */}
-          <div className="hidden lg:flex flex-col justify-between p-8 rounded-2xl border border-border/60 bg-card/40 backdrop-blur-xl h-full min-h-[460px]">
+          <div className="hidden lg:flex flex-col justify-between p-8 rounded-2xl border border-border/60 bg-card/40 backdrop-blur-xl h-full min-h-115">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-xs font-semibold text-primary mb-6">
                 <span>Web + Browser Extension</span>
