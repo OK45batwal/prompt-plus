@@ -61,6 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (headerVersionPill) headerVersionPill.textContent = `v${chrome.runtime.getManifest().version}`;
   const tokenNeededTxt = document.getElementById("token-needed-txt");
   const tokenMeterFill = document.getElementById("token-meter-fill");
+  const tokenCostBadge = document.getElementById("token-cost-badge");
 
   // Tab Panels
   const tabBtnEnhance = document.getElementById("tab-btn-enhance");
@@ -398,13 +399,17 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateTokenMetrics() {
     const raw = input ? input.value : "";
     const estTokens = countTokens(raw);
+    const estCost = (estTokens / 1_000_000) * 2.50;
 
     if (charCount) charCount.textContent = `${raw.length} char${raw.length === 1 ? "" : "s"}`;
     if (tokenEstimate) tokenEstimate.textContent = `~${estTokens} tokens`;
     if (tokenNeededTxt) tokenNeededTxt.textContent = `~${estTokens} tok in`;
+    if (tokenCostBadge) {
+      tokenCostBadge.textContent = estTokens === 0 ? "<$0.0001" : estCost < 0.0001 ? "<$0.0001" : `$${estCost.toFixed(4)}`;
+    }
 
     if (tokenMeterFill && userQuota) {
-      const fillPct = Math.max(0, Math.min(100, Math.round((userQuota.remaining / userQuota.monthlyLimit) * 100)));
+      const fillPct = userQuota.monthlyLimit > 0 ? Math.max(0, Math.min(100, Math.round((userQuota.remaining / userQuota.monthlyLimit) * 100))) : 0;
       tokenMeterFill.style.width = `${fillPct}%`;
     }
   }

@@ -462,6 +462,11 @@
         white-space: pre-wrap !important;
         user-select: text !important;
       }
+      .pp-modal-preview:empty::before {
+        content: attr(data-placeholder);
+        color: #71717a !important;
+        pointer-events: none !important;
+      }
 
       .pp-modal-actions {
         display: flex !important;
@@ -955,9 +960,13 @@
     panel.tabIndex = -1;
     Object.assign(panel.style, {
       position: "fixed", bottom: "90px", right: "16px", width: "min(520px, calc(100vw - 32px))",
-      maxHeight: "70vh", overflow: "auto", padding: "20px", borderRadius: "16px",
-      background: "#111318", color: "#f1f5f9", border: "1px solid #475569",
-      boxShadow: "0 16px 48px #0008", zIndex: "100000002", font: "13px/1.6 system-ui, sans-serif"
+      maxHeight: "75vh", overflow: "auto", padding: "18px 20px", borderRadius: "18px",
+      background: "rgba(13, 17, 26, 0.96)", color: "#f4f4f5",
+      border: "1px solid rgba(255, 255, 255, 0.12)",
+      boxShadow: "0 24px 64px rgba(0, 0, 0, 0.75), 0 0 24px rgba(6, 182, 212, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
+      backdropFilter: "blur(24px) saturate(180%)",
+      WebkitBackdropFilter: "blur(24px) saturate(180%)",
+      zIndex: "100000002", font: "12.5px/1.55 -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', sans-serif"
     });
     const beforeTokens = window.PromptPlusTokenizer.countTokens(original);
     const afterTokens = window.PromptPlusTokenizer.countTokens(enhanced);
@@ -965,23 +974,40 @@
     const diff = highlight(original, enhanced);
     // The key is part of the text, not just the colour: red/green alone is not readable.
     const legend = diff.changed
-      ? `<p id="pp-preview-legend" style="margin:8px 0;font-size:12px;color:#cbd5e1">Key:
-           <span style="background:#7f1d1d;color:#fecaca;border-radius:3px;padding:0 4px">Removed</span>
-           <span style="background:#14532d;color:#bbf7d0;border-radius:3px;padding:0 4px">Added</span>
+      ? `<p id="pp-preview-legend" style="margin:4px 0 10px;font-size:11px;color:#94a3b8">Key:
+           <span style="background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.3);border-radius:4px;padding:1px 5px">Removed</span>
+           <span style="background:rgba(16,185,129,0.2);color:#86efac;border:1px solid rgba(16,185,129,0.3);border-radius:4px;padding:1px 5px">Added</span>
          </p>`
       : "";
     panel.innerHTML = `
-      <strong style="font-size:16px">${copy.title}</strong>
-      <p style="color:#cbd5e1;margin:6px 0">${escapeHtml(source)}</p>
-      <p id="pp-preview-tokens" style="margin:8px 0">Estimated tokens: ${beforeTokens} → ${afterTokens} (${delta > 0 ? "+" : ""}${delta})</p>
-      ${legend}
-      <div style="max-height:38vh;overflow:auto">
-        <p style="font-weight:600">${copy.originalLabel}</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="original">${diff.before}</div>
-        <p style="font-weight:600;margin-top:12px">${copy.enhancedLabel}</p><div style="white-space:pre-wrap;overflow-wrap:anywhere" data-preview="enhanced">${diff.after}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:7px;">
+          <span style="width:18px;height:18px;border-radius:6px;background:linear-gradient(135deg,#06b6d4,#0e7490);display:inline-flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 2px 8px rgba(6,182,212,0.35);">${ICONS.sparkle}</span>
+          <strong style="font-size:15px;letter-spacing:-0.01em;color:#fff;">${copy.title}</strong>
+        </div>
+        <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:9999px;background:rgba(6,182,212,0.14);border:1px solid rgba(6,182,212,0.3);color:#67e8f9;">${escapeHtml(source)}</span>
       </div>
-      <div style="display:flex;gap:12px;margin-top:16px">
-        <button type="button" id="pp-preview-accept" style="padding:8px 14px;border-radius:8px;background:#06b6d4;color:#04141c">${copy.acceptLabel}</button>
-        <button type="button" id="pp-preview-keep" style="padding:8px 14px;border-radius:8px;background:#334155;color:#fff">Keep original · Esc</button>
+      <p id="pp-preview-tokens" style="margin:4px 0 10px;font-size:11.5px;color:#94a3b8;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">Estimated tokens: <span style="color:#e2e8f0;font-weight:600;">${beforeTokens}</span> → <span style="color:#22d3ee;font-weight:700;">${afterTokens}</span> (<span style="color:${delta <= 0 ? "#34d399" : "#fbbf24"};font-weight:600;">${delta > 0 ? "+" : ""}${delta}</span>)</p>
+      ${legend}
+      <div style="max-height:42vh;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-right:2px;">
+        <div style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px 12px;">
+          <p style="font-weight:700;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">${copy.originalLabel}</p>
+          <div style="white-space:pre-wrap;overflow-wrap:anywhere;color:#cbd5e1;font-size:12px;line-height:1.5;" data-preview="original">${diff.before}</div>
+        </div>
+        <div style="background:rgba(6,182,212,0.04);border:1px solid rgba(6,182,212,0.2);border-radius:10px;padding:10px 12px;box-shadow:inset 0 0 16px rgba(6,182,212,0.03);">
+          <p style="font-weight:700;font-size:11px;color:#22d3ee;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">${copy.enhancedLabel}</p>
+          <div style="white-space:pre-wrap;overflow-wrap:anywhere;color:#f1f5f9;font-size:12px;line-height:1.5;" data-preview="enhanced">${diff.after}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);">
+        <button type="button" id="pp-preview-accept" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:9999px;background:linear-gradient(180deg,#22d3ee 0%,#0891b2 100%);color:#04141c;font-weight:700;font-size:12px;border:1px solid rgba(255,255,255,0.3);box-shadow:0 4px 14px rgba(6,182,212,0.4);cursor:pointer;transition:transform 0.15s ease;">
+          <span>${copy.acceptLabel}</span>
+          <kbd style="font-size:9px;padding:1px 4px;border-radius:4px;background:rgba(4,20,28,0.2);color:#04141c;font-weight:700;">↵</kbd>
+        </button>
+        <button type="button" id="pp-preview-keep" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border-radius:9999px;background:rgba(255,255,255,0.07);color:#f1f5f9;font-weight:600;font-size:12px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;transition:background 0.15s ease;">
+          <span>Keep original</span>
+          <kbd style="font-size:9px;padding:1px 4px;border-radius:4px;background:rgba(255,255,255,0.1);color:#94a3b8;">Esc</kbd>
+        </button>
       </div>`;
     const close = () => {
       document.removeEventListener("keydown", onKey, true);
@@ -1045,6 +1071,7 @@
     panel.addEventListener("keydown", stopPanelKeys);
     closeEnhancementPreview = close;
     panel.focus();
+    panel.querySelector("#pp-preview-accept")?.focus();
   }
 
   async function enhanceInPlace(input, raw, tone) {
@@ -1176,9 +1203,7 @@
         ${TONE_OPTIONS.map((t) => `<div class="pp-tone-chip ${selectedTone === t.key ? "active" : ""}" data-tone="${t.key}">${t.label}</div>`).join("")}
       </div>
 
-      <div class="pp-modal-preview" id="pp-modal-preview" contenteditable="true" spellcheck="false" placeholder="Type prompt idea or click Optimize...">
-        ${escapeHtml(currentVal) || "Type your prompt idea in the chatbox below or type directly here..."}
-      </div>
+      <div class="pp-modal-preview" id="pp-modal-preview" contenteditable="true" spellcheck="false" data-placeholder="Type prompt idea in chatbox or directly here...">${escapeHtml(currentVal)}</div>
 
       <div class="pp-modal-actions">
         <button type="button" class="pp-modal-btn-primary" id="pp-modal-replace-btn">

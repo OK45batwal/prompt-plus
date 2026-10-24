@@ -239,10 +239,12 @@
       flex-shrink: 0;
       display: flex;
       align-items: center;
-      padding: 5px 12px;
-      background: rgba(14, 14, 18, 0.7);
-      border-bottom: 1px solid var(--border-subtle);
-      gap: 4px;
+      padding: 6px 12px;
+      background: rgba(12, 15, 22, 0.88);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      gap: 5px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
     }
 
     .nav-tab-btn {
@@ -252,25 +254,26 @@
       justify-content: center;
       gap: 5px;
       height: 30px;
-      border-radius: 7px;
+      border-radius: 8px;
       border: 1px solid transparent;
       background: transparent;
       color: var(--text-muted);
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .nav-tab-btn:hover {
       color: #fff;
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.06);
     }
 
     .nav-tab-btn.active {
-      background: rgba(255, 255, 255, 0.07);
-      border-color: var(--border-highlight);
-      color: var(--text-white);
+      background: rgba(var(--accent-rgb), 0.16);
+      border-color: rgba(var(--accent-rgb), 0.4);
+      color: var(--accent-text);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
     }
 
     .nav-tab-btn svg {
@@ -1053,15 +1056,15 @@
        diff never depends on colour alone. */
     .diff-body del,
     .diff-body ins {
-      border-radius: 3px;
-      padding: 0 2px;
+      border-radius: 4px;
+      padding: 1px 4px;
     }
 
     .diff-body del { text-decoration: line-through; }
     .diff-body ins { text-decoration: underline; }
 
-    .diff-body del { background: rgba(127, 29, 29, 0.85); color: #fecaca; }
-    .diff-body ins { background: rgba(20, 83, 45, 0.9); color: #bbf7d0; }
+    .diff-body del { background: rgba(239, 68, 68, 0.22); border: 1px solid rgba(239, 68, 68, 0.35); color: #fca5a5; }
+    .diff-body ins { background: rgba(16, 185, 129, 0.22); border: 1px solid rgba(16, 185, 129, 0.35); color: #86efac; }
 
     /* The switch only ever swaps these two, so one class on the panel drives it. */
     #panel-result.mode-diff #result-body { display: none; }
@@ -1551,7 +1554,10 @@
 
         <div class="input-bezel-footer">
           <span id="char-count">0 characters</span>
-          <span id="token-estimate">~0 tokens</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span id="token-cost-badge" class="token-cost-chip" style="font-size:9.5px;color:var(--brand-300);background:rgba(var(--accent-rgb),0.12);border:1px solid rgba(var(--accent-rgb),0.25);border-radius:4px;padding:1px 5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;" title="Estimated cost at $2.50/1M tokens">&lt;$0.0001</span>
+            <span id="token-estimate" style="font-weight:600;color:var(--text-main);">~0 tokens</span>
+          </div>
         </div>
       </div>
 
