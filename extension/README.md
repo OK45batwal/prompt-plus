@@ -1,4 +1,4 @@
-# Prompt+ Browser Extension (Manifest V3) — v2.1.6
+# Prompt+ Browser Extension (Manifest V3) — v2.1.7
 
 Enhance a prompt, review the change, then insert it — plus a visible-message token estimate, a prompt history and a launcher for eight AI sites.
 

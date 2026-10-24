@@ -21,7 +21,7 @@ Prompt+ turns a rough request into a structured, model-ready prompt. It ships as
 - In-page dock with tone presets and a live usage readout.
 - Copy the visible conversation from one chat and insert it into another, after review.
 - Approximate token counts for visible messages only, plus prompt history and a launcher for eight chat platforms.
-- Source in [`extension/`](extension) is version **2.1.6**. The Chrome Web Store listing is published separately, so it can lag the repository.
+- Source in [`extension/`](extension) is version **2.1.7**. The Chrome Web Store listing is published separately, so it can lag the repository.
 
 ### What the numbers mean
 
