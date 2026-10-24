@@ -363,7 +363,7 @@ export function LiveBackground({ className = "" }: { className?: string }) {
       <div className="absolute inset-0 overflow-hidden">
         {/* Animated Aurora Wave Band 1 */}
         <div
-          className="absolute -inset-[10px] opacity-60 dark:opacity-50 blur-[70px] md:blur-[110px] animate-aurora will-change-transform"
+          className="absolute -inset-2.5 opacity-60 dark:opacity-50 blur-[70px] md:blur-[110px] animate-aurora will-change-transform"
           style={{
             backgroundImage: `repeating-linear-gradient(115deg, rgba(6,182,212,0.35) 0%, rgba(99,102,241,0.28) 18%, rgba(56,189,248,0.32) 36%, rgba(168,85,247,0.22) 54%, rgba(6,182,212,0.35) 72%)`,
             backgroundSize: "300% 200%",
@@ -372,7 +372,7 @@ export function LiveBackground({ className = "" }: { className?: string }) {
 
         {/* Animated Aurora Wave Band 2 (Counter-drift for organic fluidity) */}
         <div
-          className="absolute -inset-[10px] opacity-45 dark:opacity-40 blur-[80px] md:blur-[120px] animate-aurora will-change-transform"
+          className="absolute -inset-2.5 opacity-45 dark:opacity-40 blur-[80px] md:blur-[120px] animate-aurora will-change-transform"
           style={{
             backgroundImage: `repeating-linear-gradient(245deg, rgba(99,102,241,0.30) 0%, rgba(20,184,166,0.25) 20%, rgba(14,165,233,0.28) 40%, rgba(245,158,11,0.18) 60%, rgba(99,102,241,0.30) 80%)`,
             backgroundSize: "280% 220%",
@@ -396,7 +396,7 @@ export function LiveBackground({ className = "" }: { className?: string }) {
       {/* ─────────────────────────────────────────────────────────────
           Vignette & Micro Cyber-Grid Contrast Protection Mask
           ───────────────────────────────────────────────────────────── */}
-      <div className="absolute inset-0 subtle-grid opacity-50 dark:opacity-35 [mask-image:radial-gradient(ellipse_at_center,transparent_25%,black_90%)]" />
+      <div className="absolute inset-0 subtle-grid opacity-50 dark:opacity-35 mask-[radial-gradient(ellipse_at_center,transparent_25%,black_90%)]" />
 
       {/* Central Reading Contrast Gradient (Keeps hero & text perfectly crisp) */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,var(--background)_95%)] opacity-35 dark:opacity-40" />
