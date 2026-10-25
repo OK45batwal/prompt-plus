@@ -133,7 +133,12 @@ Packaging verifies that every manifest script is present in the archive. `npm ru
 - Cloud enhancement depends on the provider key and model the user selects. Provider outages surface as errors, not silent fallbacks.
 - Token counts are estimates from visible content, not tokenizer-exact billing figures.
 - The extension is tested against local fixtures, not every live chat site on every release.
-- Scores and comparisons are heuristics; there is no claim that a higher score means a better model answer.
+## Contributors & Credits
+
+- **Omkar Batwal** ([@OK45batwal](https://github.com/OK45batwal)) — Creator and lead developer.
+- **Antigravity** ([Google DeepMind](https://deepmind.google)) — AI pair programming, architecture refinement, UI/UX design, extension engineering, and test suites.
+
+See [CONTRIBUTORS.md](CONTRIBUTORS.md) for full project attribution.
 
 ## License
 
