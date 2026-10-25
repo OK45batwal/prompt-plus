@@ -21,7 +21,7 @@ export function Logo({ className = "", showText = true, size = 26 }: LogoProps) 
           height={iconSize}
           unoptimized
           priority
-          className="rounded-xl object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-105 flex-shrink-0"
+          className="rounded-xl object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-105 shrink-0"
         />
         {/* Animated outer ring on hover */}
         <span
@@ -32,7 +32,7 @@ export function Logo({ className = "", showText = true, size = 26 }: LogoProps) 
 
       {showText && (
         <span className="font-extrabold tracking-tight text-foreground text-lg flex items-center">
-          <span className="bg-gradient-to-r from-cyan-300 via-cyan-500 to-cyan-600 bg-clip-text text-transparent">P</span>
+          <span className="bg-linear-to-r from-cyan-300 via-cyan-500 to-cyan-600 bg-clip-text text-transparent">P</span>
           <span>rompt</span>
           <span className="text-cyan-500 font-black text-xl ml-0.5 animate-pulse inline-block">+</span>
         </span>
