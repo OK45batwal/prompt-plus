@@ -25,7 +25,7 @@ export function Logo({ className = "", showText = true, size = 26 }: LogoProps) 
           viewBox="0 0 100 100"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="flex-shrink-0 transition-transform duration-200 ease-out group-hover:scale-105"
+          className="shrink-0 transition-transform duration-200 ease-out group-hover:scale-105"
         >
           <defs>
             {/* Base Squircle Gradient */}
