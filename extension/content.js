@@ -822,9 +822,10 @@
     t.textContent = msg;
     Object.assign(t.style, {
       position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
-      background: "rgba(10,10,12,0.92)", color: "#f1f5f9", padding: "8px 18px", borderRadius: "12px",
-      fontSize: "12px", fontWeight: "600", zIndex: "100000001", boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-      border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(12px)", transition: "all 0.3s ease"
+      background: "rgba(10, 14, 23, 0.94)", color: "#f1f5f9", padding: "8px 18px", borderRadius: "12px",
+      fontSize: "12px", fontWeight: "600", zIndex: "100000001",
+      boxShadow: "0 8px 32px rgba(0, 0, 0, 0.65), 0 0 16px rgba(6, 182, 212, 0.25)",
+      border: "1px solid rgba(34, 211, 238, 0.35)", backdropFilter: "blur(12px)", transition: "all 0.3s ease"
     });
     document.body.appendChild(t);
     setTimeout(() => {
@@ -1402,6 +1403,13 @@
   // lands under the whole composer instead of on top of the input or the attachments.
   function resolveComposerBox(input) {
     if (!input) return null;
+    const form = input.closest("form");
+    if (form) {
+      const fRect = form.getBoundingClientRect();
+      if (fRect.height >= 24 && fRect.height <= 360 && fRect.width >= Math.max(180, (input.getBoundingClientRect().width || 0) * 0.8)) {
+        return form;
+      }
+    }
     const inputRect = input.getBoundingClientRect();
     let fallback = resolveChatCapsule(input) || input;
     let box = null;
@@ -1426,17 +1434,17 @@
     if (!document.body) return;
     ensureStylesInjected();
 
+    const input = getInput();
+    if (!input || !input.parentElement) return;
+
     const existing = document.querySelector(".pp-unified-dock, .pp-floating-trigger");
     if (existing) {
-      if (document.body.contains(existing._targetInput) && isVisible(existing._targetInput)) {
-        positionFloatingButton(existing, existing._targetInput);
+      if (existing._targetInput === input && document.body.contains(input) && isVisible(input)) {
+        positionFloatingButton(existing, input);
         return;
       }
       try { existing.remove(); } catch { /* ignore */ }
     }
-
-    const input = getInput();
-    if (!input || !input.parentElement) return;
 
     const rect = input.getBoundingClientRect();
     if (!rect || rect.width === 0) { setTimeout(injectFloatingButton, 800); return; }
@@ -1649,7 +1657,9 @@
         studioBtn.classList.toggle("active", isExp);
         const labelSpan = studioBtn.querySelector("span");
         if (labelSpan) labelSpan.textContent = isExp ? "Less" : "More";
-        positionFloatingButton(dock, input);
+        requestAnimationFrame(() => {
+          positionFloatingButton(dock, input);
+        });
       } else {
         openFloatingModal(input);
       }
@@ -1944,8 +1954,14 @@
       conversationObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
     }
 
-    window.addEventListener("popstate", () => setTimeout(runConversationAudit, 500));
-    window.addEventListener("hashchange", () => setTimeout(runConversationAudit, 500));
+    window.addEventListener("popstate", () => {
+      setTimeout(runConversationAudit, 500);
+      setTimeout(injectFloatingButton, 600);
+    });
+    window.addEventListener("hashchange", () => {
+      setTimeout(runConversationAudit, 500);
+      setTimeout(injectFloatingButton, 600);
+    });
   }
 
   // Observe DOM changes with debounced MutationObserver to re-inject efficiently when new chat views render
@@ -1957,8 +1973,13 @@
       reinjectTimer = setTimeout(() => {
         reinjectTimer = null;
         const input = getInput();
-        if (input && !document.querySelector(".pp-unified-dock")) {
-          injectFloatingButton();
+        const dock = document.querySelector(".pp-unified-dock");
+        if (input) {
+          if (!dock || dock._targetInput !== input || !document.body.contains(dock._targetInput)) {
+            injectFloatingButton();
+          } else {
+            positionFloatingButton(dock, input);
+          }
         }
       }, 400);
     });
