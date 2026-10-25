@@ -1105,7 +1105,6 @@
     panel.addEventListener("keydown", stopPanelKeys);
     closeEnhancementPreview = close;
     panel.focus();
-    panel.querySelector("#pp-preview-accept")?.focus();
   }
 
   async function enhanceInPlace(input, raw, tone) {
@@ -1464,38 +1463,38 @@
 
       <button type="button" class="pp-dock-btn" id="pp-dock-enhance" title="Compile & Enhance Prompt in-place (${kbdShortcut})">
         <span class="pp-dock-icon">${ICONS.sparkle}</span>
-        <span class="pp-dock-label">Enhance Prompt</span>
+        <span class="pp-dock-label">Enhance</span>
         <kbd class="pp-dock-kbd">${kbdShortcut}</kbd>
       </button>
 
-      <button type="button" class="pp-dock-studio-btn" id="pp-dock-studio-btn" title="Toggle extra tools & runway tokens" aria-label="Toggle extra tools">
-        <span>More</span>
-        ${ICONS.chevron}
+      <div class="pp-dock-sep"></div>
+
+      <button type="button" class="pp-dock-ghost-btn" id="pp-dock-context-btn" aria-haspopup="true" aria-expanded="false" title="Save this chat's context, or load context saved from another chatbot">
+        <span class="pp-dock-icon">${ICONS.transfer}</span>
+        <span class="pp-dock-label">Context</span>
       </button>
 
-      <div class="pp-dock-extra" id="pp-dock-extra">
-        <div class="pp-dock-sep"></div>
+      <div class="pp-dock-sep"></div>
 
-        <button type="button" class="pp-dock-ghost-btn" id="pp-dock-context-btn" aria-haspopup="true" aria-expanded="false" title="Save this chat's context, or load context saved from another chatbot">
-          <span class="pp-dock-icon">${ICONS.transfer}</span>
-          <span class="pp-dock-label">Context</span>
-        </button>
-
-        <div class="pp-dock-sep"></div>
-
-        <div class="pp-dock-runway" id="pp-dock-runway" title="Tokens visible in this conversation">
-          <span class="pp-runway-dot" id="pp-runway-dot"></span>
-          <span class="pp-runway-model" id="pp-runway-model">${escapeHtml(activeModelName)}</span>
-          <span class="pp-runway-tokens" id="pp-runway-tokens">measuring…</span>
-          <span class="pp-runway-pct" id="pp-runway-pct"></span>
-        </div>
-
-        <div class="pp-dock-sep"></div>
-
-        <div class="pp-dock-tones">
-          ${TONE_OPTIONS.slice(0, 3).map((t) => `<button type="button" class="pp-dock-tone ${selectedTone === t.key ? "active" : ""}" data-tone="${t.key}" title="${t.label} tone">${t.short}</button>`).join("")}
-        </div>
+      <div class="pp-dock-runway" id="pp-dock-runway" title="Tokens visible in this conversation">
+        <span class="pp-runway-dot" id="pp-runway-dot"></span>
+        <span class="pp-runway-model" id="pp-runway-model">${escapeHtml(activeModelName)}</span>
+        <span class="pp-runway-tokens" id="pp-runway-tokens">measuring…</span>
+        <span class="pp-runway-pct" id="pp-runway-pct"></span>
       </div>
+
+      <div class="pp-dock-sep"></div>
+
+      <div class="pp-dock-tones">
+        ${TONE_OPTIONS.slice(0, 3).map((t) => `<button type="button" class="pp-dock-tone ${selectedTone === t.key ? "active" : ""}" data-tone="${t.key}" title="${t.label} tone">${t.short}</button>`).join("")}
+      </div>
+
+      <div class="pp-dock-sep"></div>
+
+      <button type="button" class="pp-dock-studio-btn" id="pp-dock-studio-btn" title="Open Studio" aria-label="Open Studio">
+        <span>Studio</span>
+        ${ICONS.chevron}
+      </button>
 
       <div class="pp-dock-menu" id="pp-dock-menu" role="group" aria-label="Chat context" hidden></div>
     `;
@@ -1645,24 +1644,11 @@
       openFloatingModal(input);
     });
 
-    // Toggle extra tools (Context, runway tokens, tone)
-    const extraEl = dock.querySelector("#pp-dock-extra");
-    const studioBtn = dock.querySelector("#pp-dock-studio-btn");
-    studioBtn?.addEventListener("click", (e) => {
+    // Studio button opens the full floating modal studio
+    dock.querySelector("#pp-dock-studio-btn")?.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (extraEl) {
-        extraEl.classList.toggle("expanded");
-        const isExp = extraEl.classList.contains("expanded");
-        studioBtn.classList.toggle("active", isExp);
-        const labelSpan = studioBtn.querySelector("span");
-        if (labelSpan) labelSpan.textContent = isExp ? "Less" : "More";
-        requestAnimationFrame(() => {
-          positionFloatingButton(dock, input);
-        });
-      } else {
-        openFloatingModal(input);
-      }
+      openFloatingModal(input);
     });
 
     let rafPending = false;
@@ -1721,8 +1707,8 @@
     trigger.style.setProperty("display", "inline-flex", "important");
 
     const dockWidth = trigger.offsetWidth || 320;
-    // Align with the composer's bottom-right (matching ChatGPT Image 2 reference) with margin
-    const left = Math.max(8, Math.min(viewportWidth - dockWidth - 12, rect.right - dockWidth - 8));
+    // Horizontally centred on the composer box (satisfying rect.left + (rect.width - dockWidth) / 2)
+    const left = Math.max(8, Math.min(viewportWidth - dockWidth - 8, rect.left + (rect.width - dockWidth) / 2));
     
     // Check clearance below the composer box. If the composer is pinned tight
     // against the viewport bottom (e.g. ChatGPT / Claude fixed bottom footers),
