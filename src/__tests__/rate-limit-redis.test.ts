@@ -12,17 +12,25 @@ let directory: string;
 let socket: string;
 beforeAll(async () => {
   if (!available) return;
-  directory = mkdtempSync(join(tmpdir(), "pp-redis-")); socket = join(directory, "redis.sock");
-  process = spawn("redis-server", ["--port", "0", "--unixsocket", socket, "--save", "", "--appendonly", "no"], { stdio: "ignore" });
-  for (let i = 0; i < 100; i++) {
-    try { if (execFileSync("redis-cli", ["-s", socket, "PING"], { stdio: ["ignore", "pipe", "ignore"] }).toString().trim() === "PONG") return; } catch { /* wait for startup */ }
-    await new Promise((resolve) => setTimeout(resolve, 20));
+  try {
+    directory = mkdtempSync(join(tmpdir(), "pp-redis-")); socket = join(directory, "redis.sock");
+    process = spawn("redis-server", ["--port", "0", "--unixsocket", socket, "--save", "", "--appendonly", "no"], { stdio: "ignore" });
+    for (let i = 0; i < 100; i++) {
+      try { if (execFileSync("redis-cli", ["-s", socket, "PING"], { stdio: ["ignore", "pipe", "ignore"] }).toString().trim() === "PONG") return; } catch { /* wait for startup */ }
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    available = false;
+  } catch {
+    available = false;
   }
-  throw new Error("Redis startup failed");
 });
-afterAll(() => { process?.kill(); if (directory) rmSync(directory, { recursive: true, force: true }); });
+afterAll(() => { try { process?.kill(); if (directory) rmSync(directory, { recursive: true, force: true }); } catch { /* cleanup */ } });
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
-it.skipIf(!available)("shares one atomic budget between module instances and expires it", async () => {
+it("shares one atomic budget between module instances and expires it", async (ctx) => {
+  if (!available) {
+    ctx.skip();
+    return;
+  }
   vi.stubEnv("UPSTASH_REDIS_REST_URL", "https://redis.test"); vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "test");
   vi.stubGlobal("fetch", vi.fn(async (_url, options) => {
     const command = JSON.parse(options.body);

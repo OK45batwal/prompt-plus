@@ -43,6 +43,7 @@ export interface LoopOptions {
   maxCycles?: number;
   targetScore?: number;
   zeroFluff?: boolean;
+  taskType?: TaskType;
 }
 
 export function executeLoopEngineering(
@@ -65,10 +66,11 @@ export function executeLoopEngineering(
   const sanitizedText = autoCorrect.correctedText;
   const security = scanPromptSecurity(sanitizedText);
   const intent = extractIntent(sanitizedText);
+  const resolvedTaskType = options.taskType || intent.taskType;
 
   // Parse Base IR & Generate Candidates
   const baseIR = parseTextToPromptIR(sanitizedText);
-  let candidates = generateCandidates(baseIR, intent.taskType, intent.complexity);
+  let candidates = generateCandidates(baseIR, resolvedTaskType, intent.complexity);
 
   // Score all generated candidates and select the highest-scoring candidate
   let activeCandidate = candidates[0];
@@ -150,7 +152,7 @@ export function executeLoopEngineering(
     security,
     autoCorrect,
     intent: {
-      taskType: intent.taskType,
+      taskType: resolvedTaskType,
       complexity: intent.complexity,
     },
     loopTrace,

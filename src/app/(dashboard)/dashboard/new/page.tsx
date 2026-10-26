@@ -37,6 +37,8 @@ import { ScoreBreakdown } from "@/components/studio/score-breakdown";
 import { ExportCodeModal } from "@/components/prompts/export-code-modal";
 import { LoopTraceCard } from "@/components/studio/loop-trace-card";
 import { PromptDiff } from "@/components/studio/prompt-diff";
+import { OutputContractSelector, type OutputContractConfig } from "@/components/studio/output-contract-selector";
+import { EnhancementFeedback } from "@/components/studio/enhancement-feedback";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -207,6 +209,12 @@ function PromptBuilderPage() {
   // Context Memory Blocks State
   const [availableBlocks, setAvailableBlocks] = useState<ContextBlock[]>(DEFAULT_CONTEXT_BLOCKS);
   const [selectedBlockIds, setSelectedBlockIds] = useState<string[]>([]);
+  const [outputContract, setOutputContract] = useState<OutputContractConfig>({
+    taskProfile: "general",
+    format: "default",
+    mandateVerification: false,
+    strictConstraints: false,
+  });
 
   const toggleContextBlock = (id: string) => {
     setSelectedBlockIds((prev) =>
@@ -386,11 +394,19 @@ function PromptBuilderPage() {
       }
 
       if (!finalEnhancedText) {
+        const contractDetails = [
+          outputContract.format !== "default" && `Output Format Contract: ${outputContract.format}`,
+          outputContract.mandateVerification && "Requirement: Include explicit step-by-step verification checkpoints",
+          outputContract.strictConstraints && "Requirement: Zero fluff, cite assumptions, enforce strict bounds",
+        ].filter(Boolean).join("\n");
+        const promptWithContract = contractDetails ? `${fullPrompt}\n\n[Output Contract Requirements]:\n${contractDetails}` : fullPrompt;
+
         const response = await fetch("/api/v2/optimize", {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
           body: JSON.stringify({
-            text: fullPrompt,
+            text: promptWithContract,
+            taskType: outputContract.taskProfile !== "general" ? outputContract.taskProfile : undefined,
             mode: runMode === "local" ? "algorithmic" : runMode === "cloud" ? "api" : "auto",
             modelId: selectedModel,
             confirmPaidUsage: paidConsent,
@@ -845,6 +861,9 @@ function PromptBuilderPage() {
             )}
           </div>
 
+          {/* Structured Output Contracts & Enhancement Profiles */}
+          <OutputContractSelector value={outputContract} onChange={setOutputContract} />
+
           {/* Selected context: removable items plus a preview of exactly what is sent. */}
           <ContextMemoryPanel
             accountId={accountId}
@@ -1109,7 +1128,12 @@ function PromptBuilderPage() {
                   aria-labelledby="result-tab-changes"
                   className="space-y-3 animate-smooth-in"
                 >
-                  <PromptDiff before={result.original.text} after={result.enhanced.text} />
+                  <PromptDiff
+                    before={result.original.text}
+                    after={result.enhanced.text}
+                    rationales={result.v2?.loopTrace?.improvementsApplied}
+                    taskType={result.v2?.intent?.taskType}
+                  />
                   <button
                     type="button"
                     onClick={handleRestoreOriginal}
@@ -1161,6 +1185,13 @@ function PromptBuilderPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
+
+              {/* Privacy-conscious micro-feedback */}
+              <EnhancementFeedback
+                promptId={result.promptId}
+                model={result.model}
+                source={result.source}
+              />
 
               {/* Developer details stay collapsed by default. */}
               <details className="rounded-xl border border-border">

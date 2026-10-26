@@ -66,7 +66,11 @@ export const POST = withAuth(
     const preferences = [parseResult.data.tone && `Tone: ${parseResult.data.tone}`, parseResult.data.length && `Length: ${parseResult.data.length}`, parseResult.data.category && `Category: ${parseResult.data.category}`].filter(Boolean).join("\n");
 
     // Execute Loop Engineering Optimization Loop (Generate -> Critique -> Auto-Repair -> Polish)
-    const loopResult = executeLoopEngineering(preferences ? `${text}\n\n${preferences}` : text, { zeroFluff: true, maxCycles: parseResult.data.level === "quick" ? 1 : 3 });
+    const loopResult = executeLoopEngineering(preferences ? `${text}\n\n${preferences}` : text, {
+      zeroFluff: true,
+      maxCycles: parseResult.data.level === "quick" ? 1 : 3,
+      taskType: parseResult.data.taskType as any,
+    });
 
     // Incorporate any user answers to adaptive questions
     let finalSelected = loopResult.selectedCandidate;

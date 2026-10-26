@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "@/components/providers/session-provider";
@@ -7,19 +6,9 @@ import { ToastProvider } from "@/components/ui/toast";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: "swap",
-  fallback: ["system-ui", "-apple-system", "sans-serif"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-  fallback: ["ui-monospace", "monospace"],
-});
+// System and modern web typography fallback for zero-network build resilience
+const geistSans = { variable: "font-sans" };
+const geistMono = { variable: "font-mono" };
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://prompt-plus-three.vercel.app"),

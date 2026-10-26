@@ -5,8 +5,8 @@
   "license": "UNLICENSED",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "vercel-build": "prisma migrate deploy && next build",
+    "build": "next build --webpack",
+    "vercel-build": "prisma migrate deploy && next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "check-routes": "node scripts/check-api-routes.mjs",
