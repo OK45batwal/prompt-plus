@@ -9,6 +9,7 @@ import {
   addConstraint,
   renderPromptIRToString,
   executeLoopEngineering,
+  TaskType,
 } from "@/lib/prompt-engine";
 import { getDb } from "@/lib/db/prisma";
 import { resolveModelCredentials, credentialActionPath } from "@/lib/llm/resolve-credentials";
@@ -69,7 +70,7 @@ export const POST = withAuth(
     const loopResult = executeLoopEngineering(preferences ? `${text}\n\n${preferences}` : text, {
       zeroFluff: true,
       maxCycles: parseResult.data.level === "quick" ? 1 : 3,
-      taskType: parseResult.data.taskType as any,
+      taskType: parseResult.data.taskType as TaskType | undefined,
     });
 
     // Incorporate any user answers to adaptive questions
