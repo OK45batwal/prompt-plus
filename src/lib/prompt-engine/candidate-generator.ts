@@ -1,7 +1,7 @@
-import { PromptIR, PromptCandidate, TaskType } from "./types";
-import { renderPromptIRToString, renderPromptIRToXMLString, removeRedundantInstructions, addConstraint } from "./prompt-ir";
+import { PromptIR, PromptCandidate, TaskType, ComplexityLevel } from "./types";
+import { renderPromptIRToString, renderPromptIRToXMLString, removeRedundantInstructions } from "./prompt-ir";
 import { StrategyRegistry, selectStrategiesForTask } from "./strategy-engine";
-import { synthesizeFewShotExamples } from "./example-synthesizer";
+import { selectFewShotExamples } from "./example-synthesizer";
 
 export interface ContradictionConflict {
   constraintA: string;
@@ -38,89 +38,58 @@ export function detectConstraintContradictions(ir: PromptIR): ContradictionConfl
   return conflicts;
 }
 
-export function generateCandidates(baseIR: PromptIR, taskType: TaskType, complexity: "low" | "medium" | "high" | "expert"): PromptCandidate[] {
-  const candidates: PromptCandidate[] = [];
+function toCandidate(id: string, name: string, strategyName: string, ir: PromptIR, renderedText: string): PromptCandidate {
+  return { id, name, strategyName, ir, renderedText, estimatedTokens: Math.ceil(renderedText.length / 4) };
+}
 
+/**
+ * Four genuinely different approaches -- a bare directive, a structured role, a
+ * rule-only guardrail set and an explicit reasoning pass -- instead of four
+ * verbosity levels of one prompt. Each carries its own cost, and which one wins
+ * depends on what the request actually asked for.
+ */
+export function generateCandidates(baseIR: PromptIR, taskType: TaskType, complexity: ComplexityLevel): PromptCandidate[] {
   // Remove redundancies first
   const { ir: cleanedIR } = removeRedundantInstructions(baseIR);
 
-  // Generate synthetic few-shot examples if none present
-  const synthesizedExamples = cleanedIR.examples.length === 0 ? synthesizeFewShotExamples(taskType, cleanedIR.objective) : [];
+  // The one library example whose tags best match this request.
+  const selectedExamples = cleanedIR.examples.length === 0 ? selectFewShotExamples(taskType, cleanedIR.objective) : [];
 
-  // Candidate A: Concise
-  const conciseIR: PromptIR = {
+  // A -- Direct: the request, tightened. No persona and no worked example, for
+  // requests short and specific enough that scaffolding is only cost. Critical
+  // rules stay, and so do the stated assumptions -- dropping either would lose
+  // something the user needs to see.
+  const directIR: PromptIR = {
     ...cleanedIR,
+    role: undefined,
     instructions: cleanedIR.instructions.slice(0, 3),
-    constraints: cleanedIR.constraints.filter((c) => c.priority === "critical" || c.priority === "high"),
+    constraints: cleanedIR.constraints.filter((c) => c.priority === "critical" || c.source === "inferred"),
+    examples: [],
     verbosityConfig: { level: "low" },
   };
-  const conciseText = renderPromptIRToString(conciseIR);
-  candidates.push({
-    id: "candidate_concise",
-    name: "Concise & Fast",
-    strategyName: "Efficiency Optimized",
-    ir: conciseIR,
-    renderedText: conciseText,
-    efficiencyScore: 95,
-    estimatedTokens: Math.ceil(conciseText.length / 4),
-  });
 
-  // Candidate B: Structured (Standard Production Grade)
-  let structuredIR = {
+  // B -- Role & Structure: the strategies declared for this task, plus the
+  // matched example.
+  let structuredIR: PromptIR = {
     ...cleanedIR,
-    examples: [...cleanedIR.examples, ...synthesizedExamples],
+    examples: [...cleanedIR.examples, ...selectedExamples],
   };
-  const targetStrategies = selectStrategiesForTask(taskType, complexity);
-  for (const stId of targetStrategies) {
-    const strategy = StrategyRegistry[stId];
-    if (strategy) {
-      structuredIR = strategy.apply(structuredIR);
-    }
+  for (const strategyId of selectStrategiesForTask(taskType, complexity)) {
+    const strategy = StrategyRegistry[strategyId];
+    if (strategy) structuredIR = strategy.apply(structuredIR);
   }
-  const structuredText = renderPromptIRToString(structuredIR);
-  candidates.push({
-    id: "candidate_structured",
-    name: "Structured & Production-Grade",
-    strategyName: "Standard Multi-Strategy",
-    ir: structuredIR,
-    renderedText: structuredText,
-    efficiencyScore: 85,
-    estimatedTokens: Math.ceil(structuredText.length / 4),
-  });
 
-  // Candidate C: Detailed & Exhaustive
-  let detailedIR = { ...structuredIR };
-  detailedIR = addConstraint(detailedIR, "Cover all edge cases, exception handling, and implicit assumptions explicitly.", "high", "system");
-  if (!detailedIR.reasoningConfig?.effort) {
-    detailedIR.reasoningConfig = { effort: "high", mandateStepByStep: true };
-  }
-  const detailedText = renderPromptIRToString(detailedIR);
-  candidates.push({
-    id: "candidate_detailed",
-    name: "Comprehensive & Deep",
-    strategyName: "Full Guardrails & Edge Cases",
-    ir: detailedIR,
-    renderedText: detailedText,
-    efficiencyScore: 70,
-    estimatedTokens: Math.ceil(detailedText.length / 4),
-  });
+  // C -- Lean: B's structure without the worked example, for requests where the
+  // example would be the largest single cost.
+  const leanIR: PromptIR = { ...structuredIR, examples: [] };
 
-  // Candidate D: Model-Specific (GPT-5 / o3 / Claude 3.5 Sonnet)
-  let modelSpecificIR = { ...structuredIR };
-  const modelStrategy = StrategyRegistry["model_specific"];
-  if (modelStrategy) {
-    modelSpecificIR = modelStrategy.apply(modelSpecificIR);
-  }
-  const modelSpecificText = renderPromptIRToXMLString(modelSpecificIR);
-  candidates.push({
-    id: "candidate_model_specific",
-    name: "Model-Tuned (GPT-5 / Claude 3.5)",
-    strategyName: "Anthropic XML & Reasoning Tuned",
-    ir: modelSpecificIR,
-    renderedText: modelSpecificText,
-    efficiencyScore: 80,
-    estimatedTokens: Math.ceil(modelSpecificText.length / 4),
-  });
+  // D -- Reasoning: B plus a reasoning mandate, rendered as XML tags.
+  const reasoningIR: PromptIR = StrategyRegistry.model_specific.apply(structuredIR);
 
-  return candidates;
+  return [
+    toCandidate("candidate_concise", "Direct & Minimal", "No persona, critical rules only", directIR, renderPromptIRToString(directIR)),
+    toCandidate("candidate_structured", "Role & Structure", "Task strategies + matched example", structuredIR, renderPromptIRToString(structuredIR)),
+    toCandidate("candidate_lean", "Lean & Structured", "Task strategies, no example", leanIR, renderPromptIRToString(leanIR)),
+    toCandidate("candidate_reasoning", "Reasoning-Led (XML)", "Step-by-step mandate, XML sections", reasoningIR, renderPromptIRToXMLString(reasoningIR)),
+  ];
 }
