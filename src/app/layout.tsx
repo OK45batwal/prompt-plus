@@ -6,9 +6,8 @@ import { ToastProvider } from "@/components/ui/toast";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-// System and modern web typography fallback for zero-network build resilience
-const geistSans = { variable: "font-sans" };
-const geistMono = { variable: "font-mono" };
+// Typography is loaded via high-performance preconnected Google Fonts in <head>
+// and configured via @theme inline in globals.css (Plus Jakarta Sans + JetBrains Mono)
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://prompt-plus-three.vercel.app"),
@@ -100,7 +99,7 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" suppressHydrationWarning className="font-sans antialiased">
       <head>
         <link rel="icon" href="/store-icon-128x128.png" type="image/png" sizes="128x128" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -108,6 +107,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" href="/store-icon-128x128.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap"
+          rel="stylesheet"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
