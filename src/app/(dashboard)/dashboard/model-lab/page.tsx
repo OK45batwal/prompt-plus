@@ -17,11 +17,11 @@ interface CompareResult {
 }
 
 const PROVIDERS: { id: ProviderId; label: string; model: string }[] = [
-  { id: "openai", label: "OpenAI", model: "GPT-4o Mini" },
-  { id: "anthropic", label: "Anthropic", model: "Claude 3.5 Sonnet" },
-  { id: "google", label: "Google", model: "Gemini 2.0 Flash" },
-  { id: "openrouter", label: "OpenRouter", model: "DeepSeek / Nemotron" },
-  { id: "nvidia", label: "NVIDIA", model: "Llama 3.3 70B" },
+  { id: "openai", label: "OpenAI", model: "GPT-4.5 / GPT-4o / o3-mini" },
+  { id: "anthropic", label: "Anthropic", model: "Claude 3.7 Sonnet / 3.5 Sonnet" },
+  { id: "google", label: "Google", model: "Gemini 2.5 Pro / 2.5 Flash" },
+  { id: "openrouter", label: "OpenRouter", model: "DeepSeek R1 / V3 / Qwen 2.5" },
+  { id: "nvidia", label: "NVIDIA", model: "Llama 3.3 70B NIM" },
 ];
 
 export default function ModelLabPage() {

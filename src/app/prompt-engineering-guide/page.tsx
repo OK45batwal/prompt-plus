@@ -153,22 +153,34 @@ Output:`,
 
 const modelComparisons = [
   {
-    model: "Anthropic Claude (3.5 / 3.7 Sonnet)",
-    strengths: "Long-form coding, nuanced reasoning, architectural trade-offs",
-    bestSyntax: "XML Delimiters (<context>, <thinking>, <instructions>)",
-    proTip: "Claude excels with explicit system instructions and step-by-step thinking scratchpads before code generation.",
+    model: "Anthropic Claude (3.7 Sonnet & 3.5 Sonnet)",
+    strengths: "Hybrid standard/extended thinking, long-form software architecture, nuanced edge cases",
+    bestSyntax: "XML Delimiters (<context>, <thinking>, <instructions>, <contract>)",
+    proTip: "Claude 3.7 Sonnet supports dynamic thinking budgets: define reasoning limits for code planning, then switch to strict declarative output format blocks.",
   },
   {
-    model: "OpenAI (GPT-4o & o1 / o3)",
-    strengths: "Speed, structured JSON outputs, complex multi-step logic (o1/o3)",
-    bestSyntax: "Markdown headers (### Instructions, ### Constraints)",
-    proTip: "For o1/o3 models, keep prompts simple and focused on goals; for GPT-4o, supply explicit few-shot exemplars and schemas.",
+    model: "OpenAI (GPT-4.5, o1, o3-mini & GPT-4o)",
+    strengths: "Flagship world knowledge (GPT-4.5), rigorous STEM/algorithmic reasoning (o1/o3-mini), JSON schemas (GPT-4o)",
+    bestSyntax: "Markdown headers (### Objective, ### Context, ### Hard Constraints)",
+    proTip: "For reasoning models (o1/o3), keep prompts minimal, objective-driven, and devoid of fake CoT instructions. For GPT-4.5 and 4o, supply explicit JSON schemas and boundary exemplars.",
   },
   {
-    model: "Google Gemini (1.5 / 2.0 Flash & Pro)",
-    strengths: "Massive 1M+ context window, multimodal analysis, on-device Nano",
-    bestSyntax: "Structured numbered directives with clear role grounding",
-    proTip: "Gemini performs exceptionally well when entire codebases or reference manuals are provided in-context, using precise section keys.",
+    model: "Google Gemini (2.5 Pro & Flash Thinking, 2.0 Flash)",
+    strengths: "Massive 1M–2M context window, native adaptive thinking, audio/visual multimodal grounding",
+    bestSyntax: "Hierarchical numbered directives with clear role and environment grounding",
+    proTip: "Gemini 2.5 models leverage adaptive thinking: provide entire codebases or system logs in-context and anchor the desired response with explicit output contracts.",
+  },
+  {
+    model: "DeepSeek (R1 & V3)",
+    strengths: "Deep chain-of-thought mathematical proof, autonomous bug discovery, exceptional cost-to-performance ratio",
+    bestSyntax: "Direct goal-oriented instructions with strict verification criteria",
+    proTip: "Allow DeepSeek R1 to complete its internal reflection phase without interrupting prompts with micro-management.",
+  },
+  {
+    model: "Open Weights (Llama 3.3 70B & Qwen 2.5 Coder 32B)",
+    strengths: "Syntax fidelity in 40+ programming languages, locally hostable, zero data transmission risk",
+    bestSyntax: "Precise type definitions, input/output test signatures, and standard markdown docstrings",
+    proTip: "For Qwen 2.5 Coder, provide function signatures and type stubs first; for Llama 3.3, declare explicit negative constraints to restrict output scope.",
   },
 ];
 

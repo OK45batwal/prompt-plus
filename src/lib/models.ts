@@ -51,10 +51,15 @@ export const MODEL_ALIASES: Record<string, string> = {
   "google-gemini-pro": "google-gemini-20-flash",
   "gemini-2.0-flash": "google-gemini-20-flash",
   "gemini-2.5-pro": "google-gemini-25-pro",
+  "gemini-2.5-flash": "google-gemini-25-flash",
   "claude-3-7-sonnet": "anthropic-claude-37-sonnet",
   "deepseek-r1": "openrouter-deepseek-r1",
   "deepseek-v3": "openrouter-deepseek-v3",
   "openrouter-nemotron": "openrouter-nemotron-free",
+  "gpt-4.5": "openai-gpt45",
+  "gpt-4.5-preview": "openai-gpt45",
+  "qwen-2.5-coder": "openrouter-qwen25-coder-32b",
+  "llama-3.3-70b": "openrouter-llama-33-70b",
 };
 
 export function getModelById(id: string | undefined | null): ModelDefinition | undefined {

@@ -18,7 +18,7 @@ import { Logo } from "@/components/ui/logo";
 interface ModelPricing {
   id: string;
   name: string;
-  provider: "OpenAI" | "Anthropic" | "Google" | "DeepSeek" | "Meta";
+  provider: "OpenAI" | "Anthropic" | "Google" | "DeepSeek" | "Meta" | "Qwen";
   inputCost: number; // USD per 1M tokens
   outputCost: number; // USD per 1M tokens
   contextWindow: string;
@@ -28,15 +28,19 @@ interface ModelPricing {
 
 const MODELS: ModelPricing[] = [
   // OpenAI
+  { id: "gpt-4-5", name: "GPT-4.5", provider: "OpenAI", inputCost: 75.00, outputCost: 150.00, contextWindow: "128k", category: "frontier", badge: "Massive Knowledge" },
   { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI", inputCost: 2.50, outputCost: 10.00, contextWindow: "128k", category: "frontier", badge: "Flagship" },
   { id: "gpt-4o-mini", name: "GPT-4o Mini", provider: "OpenAI", inputCost: 0.15, outputCost: 0.60, contextWindow: "128k", category: "fast", badge: "Popular" },
   { id: "o1", name: "o1", provider: "OpenAI", inputCost: 15.00, outputCost: 60.00, contextWindow: "200k", category: "reasoning" },
   { id: "o3-mini", name: "o3-mini", provider: "OpenAI", inputCost: 1.10, outputCost: 4.40, contextWindow: "200k", category: "reasoning", badge: "STEM & Code" },
   // Anthropic
-  { id: "claude-3-7-sonnet", name: "Claude 3.7 Sonnet", provider: "Anthropic", inputCost: 3.00, outputCost: 15.00, contextWindow: "200k", category: "frontier", badge: "Top Coding" },
+  { id: "claude-3-7-sonnet", name: "Claude 3.7 Sonnet", provider: "Anthropic", inputCost: 3.00, outputCost: 15.00, contextWindow: "200k", category: "reasoning", badge: "Hybrid Reasoning" },
+  { id: "claude-3-5-sonnet", name: "Claude 3.5 Sonnet", provider: "Anthropic", inputCost: 3.00, outputCost: 15.00, contextWindow: "200k", category: "frontier", badge: "Top Coding" },
   { id: "claude-3-5-haiku", name: "Claude 3.5 Haiku", provider: "Anthropic", inputCost: 0.80, outputCost: 4.00, contextWindow: "200k", category: "fast" },
   { id: "claude-3-opus", name: "Claude 3 Opus", provider: "Anthropic", inputCost: 15.00, outputCost: 75.00, contextWindow: "200k", category: "frontier" },
   // Google
+  { id: "gemini-2-5-pro", name: "Gemini 2.5 Pro", provider: "Google", inputCost: 1.25, outputCost: 5.00, contextWindow: "2M", category: "reasoning", badge: "Thinking Frontier" },
+  { id: "gemini-2-5-flash", name: "Gemini 2.5 Flash", provider: "Google", inputCost: 0.15, outputCost: 0.60, contextWindow: "1M", category: "fast", badge: "Ultra Fast Thinking" },
   { id: "gemini-2-0-flash", name: "Gemini 2.0 Flash", provider: "Google", inputCost: 0.10, outputCost: 0.40, contextWindow: "1M", category: "fast", badge: "Ultra Fast" },
   { id: "gemini-1-5-pro", name: "Gemini 1.5 Pro", provider: "Google", inputCost: 1.25, outputCost: 5.00, contextWindow: "2M", category: "frontier" },
   { id: "gemini-1-5-flash", name: "Gemini 1.5 Flash", provider: "Google", inputCost: 0.075, outputCost: 0.30, contextWindow: "1M", category: "fast", badge: "Cheapest" },
@@ -45,6 +49,8 @@ const MODELS: ModelPricing[] = [
   { id: "deepseek-v3", name: "DeepSeek V3", provider: "DeepSeek", inputCost: 0.14, outputCost: 0.28, contextWindow: "64k", category: "fast" },
   // Meta
   { id: "llama-3-3-70b", name: "Llama 3.3 70B", provider: "Meta", inputCost: 0.40, outputCost: 0.40, contextWindow: "128k", category: "fast", badge: "Open Weights" },
+  // Qwen
+  { id: "qwen-2-5-coder-32b", name: "Qwen 2.5 Coder 32B", provider: "Qwen", inputCost: 0.20, outputCost: 0.20, contextWindow: "128k", category: "fast", badge: "Code Specialist" },
 ];
 
 const PRESETS = [
@@ -400,7 +406,7 @@ export default function PromptCostCalculatorPage() {
               <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1">
                 <span className="text-xs font-semibold text-muted-foreground shrink-0">Filter Provider:</span>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  {["all", "OpenAI", "Anthropic", "Google", "DeepSeek", "Meta"].map((prov) => (
+                  {["all", "OpenAI", "Anthropic", "Google", "DeepSeek", "Meta", "Qwen"].map((prov) => (
                     <button
                       key={prov}
                       type="button"

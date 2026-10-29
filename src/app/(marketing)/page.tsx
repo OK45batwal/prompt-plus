@@ -192,7 +192,7 @@ const faqs = [
   },
   {
     q: "Which chat platforms and models does Prompt+ support?",
-    a: "Output is clean, standard plain text formatted with universal structural markers. It works seamlessly across ChatGPT, Claude, Gemini, DeepSeek, Grok, Perplexity, Copilot, and open-source models.",
+    a: "Output is clean, standard plain text formatted with universal structural markers. It works seamlessly across frontier reasoning and chat models including Claude 3.7 Sonnet, GPT-4.5, o3-mini, o1, Gemini 2.5 Pro & Flash, DeepSeek R1/V3, Grok, and open weights like Llama 3.3 and Qwen 2.5 Coder.",
   },
   {
     q: "What does the Chrome Extension do?",

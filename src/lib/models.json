@@ -548,5 +548,117 @@
       "note": "OpenAI flagship deep reasoning model for complex STEM and architecture."
     },
     "description": "Frontier deliberate reasoning model"
+  },
+  {
+    "id": "openai-gpt45",
+    "name": "GPT-4.5 (Flagship Knowledge)",
+    "icon": "🌐",
+    "provider": "openai",
+    "rawModel": "gpt-4.5-preview",
+    "access": "paid",
+    "availability": "active",
+    "capabilities": {
+      "text": true,
+      "json": true
+    },
+    "contextWindow": 128000,
+    "pricing": {
+      "inputPer1M": 75.0,
+      "outputPer1M": 150.0,
+      "currency": "USD",
+      "sourceUrl": "https://openai.com/api/pricing/",
+      "verifiedAt": "2026-10-24",
+      "note": "OpenAI flagship foundation model with deep emotional intelligence and massive world knowledge."
+    },
+    "description": "Frontier knowledge and reasoning flagship model"
+  },
+  {
+    "id": "google-gemini-25-flash",
+    "name": "Gemini 2.5 Flash (Adaptive Thinking)",
+    "icon": "⚡",
+    "provider": "google",
+    "rawModel": "gemini-2.5-flash",
+    "access": "free_tier_available",
+    "availability": "active",
+    "capabilities": {
+      "text": true,
+      "json": true
+    },
+    "contextWindow": 1048576,
+    "pricing": {
+      "inputPer1M": 0.15,
+      "outputPer1M": 0.6,
+      "currency": "USD",
+      "sourceUrl": "https://ai.google.dev/pricing",
+      "verifiedAt": "2026-10-24",
+      "note": "Lightweight frontier model featuring native adaptive thinking."
+    },
+    "description": "High-speed multimodal intelligence with adaptive CoT thinking"
+  },
+  {
+    "id": "openrouter-claude-37-sonnet",
+    "name": "Claude 3.7 Sonnet (OpenRouter)",
+    "icon": "🎭",
+    "provider": "openrouter",
+    "rawModel": "anthropic/claude-3.7-sonnet",
+    "access": "paid",
+    "availability": "active",
+    "capabilities": {
+      "text": true,
+      "json": true
+    },
+    "contextWindow": 200000,
+    "pricing": {
+      "inputPer1M": 3.0,
+      "outputPer1M": 15.0,
+      "currency": "USD",
+      "sourceUrl": "https://openrouter.ai/anthropic/claude-3.7-sonnet",
+      "verifiedAt": "2026-10-24"
+    },
+    "description": "Hybrid standard and reasoning model accessible through OpenRouter"
+  },
+  {
+    "id": "openrouter-qwen25-coder-32b",
+    "name": "Qwen 2.5 Coder 32B Instruct",
+    "icon": "💻",
+    "provider": "openrouter",
+    "rawModel": "qwen/qwen-2.5-coder-32b-instruct",
+    "access": "paid",
+    "availability": "active",
+    "capabilities": {
+      "text": true,
+      "json": true
+    },
+    "contextWindow": 131072,
+    "pricing": {
+      "inputPer1M": 0.2,
+      "outputPer1M": 0.2,
+      "currency": "USD",
+      "sourceUrl": "https://openrouter.ai/qwen/qwen-2.5-coder-32b-instruct",
+      "verifiedAt": "2026-10-24"
+    },
+    "description": "Top-tier open code generation model with 128k context"
+  },
+  {
+    "id": "openrouter-llama-33-70b",
+    "name": "Llama 3.3 70B Instruct (OpenRouter)",
+    "icon": "🦙",
+    "provider": "openrouter",
+    "rawModel": "meta-llama/llama-3.3-70b-instruct",
+    "access": "paid",
+    "availability": "active",
+    "capabilities": {
+      "text": true,
+      "json": true
+    },
+    "contextWindow": 131072,
+    "pricing": {
+      "inputPer1M": 0.4,
+      "outputPer1M": 0.4,
+      "currency": "USD",
+      "sourceUrl": "https://openrouter.ai/meta-llama/llama-3.3-70b-instruct",
+      "verifiedAt": "2026-10-24"
+    },
+    "description": "Flagship 70B open model via OpenRouter"
   }
 ]
