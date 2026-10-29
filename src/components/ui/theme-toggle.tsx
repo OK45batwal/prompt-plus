@@ -32,8 +32,6 @@ export function ThemeToggle({ className = "" }: ThemeToggleProps) {
           Math.max(y, window.innerHeight - y)
         );
 
-        document.documentElement.classList.add("theme-transition");
-
         const transition = (document as Document & {
           startViewTransition: (callback: () => void) => {
             ready: Promise<void>;
@@ -50,29 +48,22 @@ export function ThemeToggle({ className = "" }: ThemeToggleProps) {
 
           document.documentElement.animate(
             {
-              clipPath: nextTheme === "dark" ? clipPath : [...clipPath].reverse(),
+              clipPath,
             },
             {
-              duration: 480,
-              easing: "cubic-bezier(0.4, 0, 0.2, 1)",
-              pseudoElement:
-                nextTheme === "dark"
-                  ? "::view-transition-new(root)"
-                  : "::view-transition-old(root)",
+              duration: 420,
+              easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+              pseudoElement: "::view-transition-new(root)",
             }
           );
         });
-
-        setTimeout(() => {
-          document.documentElement.classList.remove("theme-transition");
-        }, 550);
       } else {
         // Fallback smooth transition
         if (typeof document !== "undefined") {
           document.documentElement.classList.add("theme-transition");
           setTimeout(() => {
             document.documentElement.classList.remove("theme-transition");
-          }, 450);
+          }, 350);
         }
         setTheme(nextTheme);
       }

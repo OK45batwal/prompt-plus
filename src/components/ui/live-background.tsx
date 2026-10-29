@@ -160,7 +160,12 @@ export function LiveBackground({ className = "" }: { className?: string }) {
       mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.04;
       mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.04;
 
-      const isDark = mounted ? resolvedTheme === "dark" : true;
+      const isDark =
+        typeof document !== "undefined"
+          ? document.documentElement.classList.contains("dark")
+          : mounted
+          ? resolvedTheme === "dark"
+          : true;
 
       ctx.clearRect(0, 0, width, height);
 

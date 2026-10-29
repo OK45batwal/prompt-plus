@@ -225,17 +225,17 @@ export default function PromptEngineeringGuidePage() {
                 <a
                   key={sec.id}
                   href={`#${sec.id}`}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium border border-border/80 bg-card/60 dark:bg-card/40 hover:bg-card hover:border-cyan-500/40 text-muted-foreground hover:text-foreground transition-all shadow-2xs"
+                  className="px-3 py-1.5 rounded-full text-xs font-medium border border-border/80 bg-card/80 hover:bg-card hover:border-primary/50 text-muted-foreground hover:text-foreground transition-all shadow-2xs"
                 >
-                  <span className="text-cyan-500 font-mono mr-1.5">{sec.number}.</span>
+                  <span className="text-primary font-mono mr-1.5">{sec.number}.</span>
                   {sec.title.split("(")[0].trim()}
                 </a>
               ))}
               <a
                 href="#models"
-                className="px-3 py-1.5 rounded-full text-xs font-medium border border-border/80 bg-card/60 dark:bg-card/40 hover:bg-card hover:border-cyan-500/40 text-muted-foreground hover:text-foreground transition-all shadow-2xs"
+                className="px-3 py-1.5 rounded-full text-xs font-medium border border-border/80 bg-card/80 hover:bg-card hover:border-primary/50 text-muted-foreground hover:text-foreground transition-all shadow-2xs"
               >
-                <Cpu className="h-3 w-3 inline mr-1 text-cyan-500" />
+                <Cpu className="h-3 w-3 inline mr-1 text-primary" />
                 Model Matrix
               </a>
             </div>
@@ -247,12 +247,12 @@ export default function PromptEngineeringGuidePage() {
               <section
                 key={sec.id}
                 id={sec.id}
-                className="p-6 sm:p-8 rounded-3xl border border-border/80 dark:border-white/10 bg-card/75 dark:bg-[#0c101d]/75 backdrop-blur-2xl shadow-sm hover:border-cyan-500/30 transition-all duration-300"
+                className="p-6 sm:p-8 rounded-3xl border border-border/80 dark:border-white/10 bg-card/85 dark:bg-card/75 backdrop-blur-2xl shadow-sm hover:border-primary/40 transition-all duration-300"
               >
                 {/* Header Row */}
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                   <div className="inline-flex items-center gap-2">
-                    <span className="flex items-center justify-center h-7 w-7 rounded-full bg-cyan-500/10 text-cyan-500 font-mono text-xs font-bold border border-cyan-500/25">
+                    <span className="flex items-center justify-center h-7 w-7 rounded-full bg-primary/10 text-primary font-mono text-xs font-bold border border-primary/25">
                       {sec.number}
                     </span>
                     <span className="text-xs font-mono font-semibold tracking-wider text-muted-foreground uppercase">
@@ -268,7 +268,7 @@ export default function PromptEngineeringGuidePage() {
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
                   {sec.title}
                 </h2>
-                <p className="text-sm font-medium text-cyan-600 dark:text-cyan-400 mb-4">
+                <p className="text-sm font-medium text-primary mb-4">
                   {sec.tagline}
                 </p>
 
@@ -340,10 +340,10 @@ export default function PromptEngineeringGuidePage() {
           {/* Model-Specific Optimization Matrix */}
           <section
             id="models"
-            className="mt-20 p-6 sm:p-10 rounded-3xl border border-border/80 dark:border-white/10 bg-card/75 dark:bg-[#0c101d]/75 backdrop-blur-2xl shadow-sm"
+            className="mt-20 p-6 sm:p-10 rounded-3xl border border-border/80 dark:border-white/10 bg-card/85 dark:bg-card/75 backdrop-blur-2xl shadow-sm"
           >
             <div className="text-center max-w-2xl mx-auto mb-10">
-              <span className="text-xs font-mono font-bold tracking-wider text-cyan-500 uppercase">
+              <span className="text-xs font-mono font-bold tracking-wider text-primary uppercase">
                 Cross-Model Architecture
               </span>
               <h2 className="text-3xl font-bold tracking-tight mt-1">
@@ -358,17 +358,17 @@ export default function PromptEngineeringGuidePage() {
               {modelComparisons.map((item, idx) => (
                 <div
                   key={idx}
-                  className="p-6 rounded-2xl border border-border/70 dark:border-white/10 bg-background/60 dark:bg-background/40 hover:border-cyan-500/40 transition-all flex flex-col justify-between"
+                  className="p-6 rounded-2xl border border-border/70 dark:border-white/10 bg-background/60 dark:bg-background/40 hover:border-primary/40 transition-all flex flex-col justify-between"
                 >
                   <div>
-                    <div className="h-8 w-8 rounded-xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center font-bold text-sm mb-4 border border-cyan-500/20">
+                    <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm mb-4 border border-primary/20">
                       {idx + 1}
                     </div>
                     <h3 className="font-bold text-base text-foreground mb-2">{item.model}</h3>
                     <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
                       <strong className="text-foreground">Core Superpower:</strong> {item.strengths}
                     </p>
-                    <div className="p-3 rounded-xl bg-muted/40 border border-border/50 text-xs font-mono text-cyan-600 dark:text-cyan-400 mb-4">
+                    <div className="p-3 rounded-xl bg-muted/40 border border-border/50 text-xs font-mono text-primary mb-4">
                       {item.bestSyntax}
                     </div>
                   </div>
@@ -381,9 +381,9 @@ export default function PromptEngineeringGuidePage() {
           </section>
 
           {/* Call to Action Banner */}
-          <section className="mt-20 p-8 sm:p-12 rounded-3xl border border-cyan-500/40 bg-linear-to-b from-cyan-500/10 via-card/80 to-card/90 dark:from-cyan-500/15 dark:via-[#090d16]/90 dark:to-[#090d16] backdrop-blur-2xl text-center shadow-lg">
+          <section className="mt-20 p-8 sm:p-12 rounded-3xl border border-primary/30 bg-gradient-to-b from-primary/10 via-card/80 to-card/90 backdrop-blur-2xl text-center shadow-lg">
             <div className="max-w-2xl mx-auto space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-600 dark:text-cyan-400 text-xs font-semibold">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary text-xs font-semibold">
                 <Zap className="h-3.5 w-3.5" />
                 <span>Automated Prompt Architecture</span>
               </div>
@@ -397,14 +397,14 @@ export default function PromptEngineeringGuidePage() {
               <div className="pt-4 flex flex-wrap items-center justify-center gap-3">
                 <Link
                   href="/dashboard/new"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-sm shadow-md hover:shadow-cyan-500/25 active:scale-95 transition-all"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm shadow-md transition-all active:scale-95"
                 >
                   <Sparkles className="h-4 w-4" />
                   <span>Open AI Sandbox</span>
                 </Link>
                 <Link
                   href="/"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-border/80 bg-background/80 hover:bg-accent text-foreground text-sm font-semibold hover:border-cyan-500/40 transition-all"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-border/80 bg-background/80 hover:bg-accent text-foreground text-sm font-semibold hover:border-primary/40 transition-all"
                 >
                   <span>Explore Features</span>
                   <ArrowRight className="h-4 w-4" />

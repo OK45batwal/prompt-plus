@@ -216,7 +216,7 @@ export default function PromptCostCalculatorPage() {
                   <label htmlFor="prompts-range" className="font-semibold text-foreground">
                     Prompts Per Day
                   </label>
-                  <span className="font-mono font-bold text-cyan-500 text-sm">
+                  <span className="font-mono font-bold text-primary dark:text-cyan-400 text-sm">
                     {promptsPerDay.toLocaleString()} reqs
                   </span>
                 </div>
@@ -373,7 +373,7 @@ export default function PromptCostCalculatorPage() {
                     <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
                       Frontier Tier (3.7)
                     </span>
-                    <Cpu className="h-3.5 w-3.5 text-cyan-500" />
+                    <Cpu className="h-3.5 w-3.5 text-primary" />
                   </div>
                   <p className="text-base font-bold text-foreground truncate">
                     Claude 3.7 Sonnet
@@ -385,17 +385,17 @@ export default function PromptCostCalculatorPage() {
                 </div>
 
                 {/* Card 3: Potential Prompt+ Optimization Savings */}
-                <div className="p-4 rounded-2xl border border-cyan-500/30 bg-cyan-500/5 space-y-1">
+                <div className="p-4 rounded-2xl border border-primary/30 bg-primary/5 space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-cyan-600 dark:text-cyan-400 uppercase tracking-wide">
+                    <span className="text-[11px] font-semibold text-primary uppercase tracking-wide">
                       Prompt+ Savings
                     </span>
-                    <TrendingDown className="h-3.5 w-3.5 text-cyan-500" />
+                    <TrendingDown className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <p className="text-base font-bold text-foreground">
                     ~28% Reduction
                   </p>
-                  <p className="text-xl font-mono font-extrabold text-cyan-500">
+                  <p className="text-xl font-mono font-extrabold text-primary dark:text-cyan-400">
                     -${estimatedMonthlySavings.toFixed(2)}
                     <span className="text-[11px] font-normal text-muted-foreground">/mo</span>
                   </p>
@@ -413,7 +413,7 @@ export default function PromptCostCalculatorPage() {
                       onClick={() => setSelectedProvider(prov)}
                       className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
                         selectedProvider.toLowerCase() === prov.toLowerCase()
-                          ? "bg-cyan-500 text-slate-950 font-semibold shadow-2xs"
+                          ? "bg-primary text-primary-foreground font-semibold shadow-2xs"
                           : "border border-border/80 bg-card/60 text-muted-foreground hover:text-foreground hover:bg-card"
                       }`}
                     >
@@ -503,7 +503,7 @@ export default function PromptCostCalculatorPage() {
             </div>
             <Link
               href="/dashboard/new"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-sm shadow-md hover:shadow-cyan-500/25 active:scale-95 transition-all shrink-0"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm shadow-md transition-all active:scale-95 shrink-0"
             >
               <span>Test Free in Prompt+ Studio</span>
               <ArrowRight className="h-4 w-4" />
@@ -524,7 +524,7 @@ export default function PromptCostCalculatorPage() {
               <Link href="/prompt-engineering-guide" className="hover:text-foreground transition-colors">
                 Guide
               </Link>
-              <Link href="/prompt-cost-calculator" className="hover:text-foreground font-semibold text-cyan-500 transition-colors">
+              <Link href="/prompt-cost-calculator" className="hover:text-foreground font-semibold text-primary transition-colors">
                 Cost Calculator
               </Link>
               <Link href="/privacy" className="hover:text-foreground transition-colors">

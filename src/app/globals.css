@@ -1,7 +1,7 @@
 @import "../../extension/design-tokens.css";
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   --color-background: var(--bg);
@@ -39,6 +39,7 @@
   --muted-fg: #6b6b70;
   --border: #e4e4e7;
   --input: #e4e4e7;
+  --brand-rgb: 14, 116, 144;
   /* One accent hue (189deg, cyan). #06b6d4 as text on #fafafa is only 2.4:1,
      so the light theme darkens it: #0e7490 is 5.4:1 and `text-primary` passes. */
   --ring: #0e7490;
@@ -63,6 +64,7 @@
   --muted-fg: #9a9aa1;
   --border: #1e1e24;
   --input: #1e1e24;
+  --brand-rgb: 6, 182, 212;
   --ring: #06b6d4;
   --accent: #1a1a1e;
   --accent-fg: #f4f4f5;
@@ -102,19 +104,14 @@ code, kbd, samp, pre {
   font-feature-settings: "liga" 1, "calt" 1, "zero" 1;
 }
 
-/* Smooth transition when toggling dark/light theme */
+/* Smooth transition when toggling dark/light theme (applied to html & body, not all descendant nodes) */
 html.theme-transition,
-html.theme-transition *,
-html.theme-transition *::before,
-html.theme-transition *::after {
-  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  transition-delay: 0s !important;
+html.theme-transition body {
+  transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* View Transition circular reveal when switching theme */
+/* View Transition circular ripple when switching theme */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;
@@ -125,12 +122,6 @@ html.theme-transition *::after {
 }
 ::view-transition-new(root) {
   z-index: 9999;
-}
-.dark::view-transition-old(root) {
-  z-index: 9999;
-}
-.dark::view-transition-new(root) {
-  z-index: 1;
 }
 
 ::selection {
