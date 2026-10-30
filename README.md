@@ -11,7 +11,11 @@ Prompt+ turns a rough request into a structured, model-ready prompt. It ships as
 **Web app**
 
 - Rewrite a prompt with the deterministic engine: cleanup, intent extraction, structured output, scoring, and repair. No provider call, no key, no model.
-- Optional cloud enhancement through a saved provider key (OpenRouter, NVIDIA, OpenAI, Anthropic, Google). The catalogue holds 17 models with an explicit free / paid / free-tier-available label.
+- Optional cloud enhancement through a saved provider key (OpenRouter, NVIDIA, OpenAI, Anthropic, Google). The catalog holds 29 models with explicit free / paid / free-tier-available labels, including frontier models like Claude 3.7 Sonnet (Hybrid Reasoning), GPT-4.5, o1, o3-mini, Gemini 2.5 Pro & Flash (Adaptive Thinking), DeepSeek R1 & V3, and Qwen 2.5 Coder 32B.
+- Explainable prompt diff view: side-by-side or inline view with additions, removals, and transparent rationales for each transformation.
+- Structured output contract selector: specify role persona, execution constraints, and structured deliverable formats across coding, research, writing, and system architecture profiles.
+- Model Lab: run prompt benchmarks and compare outputs across multiple models side by side.
+- Interactive Prompt Cost Calculator: forecast daily, monthly, and annual token burn across providers with verified pricing per 1M tokens.
 - Save prompts and collections, browse official templates, compare variants side by side or as a diff, enhance up to 20 prompts at once, and share a prompt by link.
 - Accounts with email/password, email verification, optional GitHub and Google sign-in, and session revocation.
 
@@ -120,6 +124,10 @@ Packaging verifies that every manifest script is present in the archive. `npm ru
 
 ## Documentation
 
+- [Production Readiness Audit](docs/PRODUCTION_READINESS_AUDIT.md)
+- [Competitive Analysis & Benchmarks](docs/COMPETITIVE_ANALYSIS.md)
+- [QA Test Plan & Verification](docs/QA_TEST_PLAN.md)
+- [Launch Checklist & Rollback Guide](docs/LAUNCH_CHECKLIST.md)
 - [Architecture and conventions](docs/ARCHITECTURE.md)
 - [Documentation index](docs/README.md)
 - [Database setup](docs/DATABASE-SETUP.md)
