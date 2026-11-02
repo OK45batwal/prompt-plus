@@ -133,6 +133,7 @@ Packaging verifies that every manifest script is present in the archive. `npm ru
 - [Database setup](docs/DATABASE-SETUP.md)
 - [Reliability contracts](docs/RELIABILITY.md)
 - [Improvement plan and status](docs/PROJECT-IMPROVEMENT-PLAN.md)
+- [Enhancement Engine Plan](docs/ENHANCEMENT-ENGINE-PLAN.md)
 - [Known technical debt](docs/TECHNICAL_DEBT.md)
 
 ## Limitations
