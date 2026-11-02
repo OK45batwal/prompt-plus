@@ -1,3 +1,5 @@
+import type { PromptSlots } from "./slots";
+
 export type TaskType =
   | "coding"
   | "research"
@@ -134,6 +136,8 @@ export interface IntentExtractionResult {
   assumptions: string[];
   unknowns: string[];
   intentPreservationScore?: number;
+  /** The request read as concrete slots, so strategies compose instead of lookup. */
+  slots: PromptSlots;
 }
 
 export interface QuestionCandidate {
@@ -166,7 +170,6 @@ export interface PromptCandidate {
   strategyName: string;
   ir: PromptIR;
   renderedText: string;
-  efficiencyScore: number;
   estimatedTokens: number;
   score?: number;
 }

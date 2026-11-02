@@ -1,5 +1,10 @@
 import { QuestionCandidate, IntentExtractionResult } from "./types";
 
+/** Entities that answer a gap, so the prompt is never told a slot is empty when it is not. */
+const LANGUAGE_ENTITIES = new Set(["TypeScript", "JavaScript", "Python", "Rust", "Golang", "Java", "Node.js", "Deno", "Bun", "Ruby", "PHP", "C#", "C++", "Swift", "Kotlin", "Elixir", "Scala"]);
+const STORAGE_ENTITIES = new Set(["PostgreSQL", "MySQL", "SQLite", "MongoDB", "Redis", "Prisma", "SQL"]);
+const DATA_ENTITIES = new Set(["CSV", "JSON", "Excel", "pandas", "NumPy", "SQL", "PostgreSQL", "MySQL", "SQLite"]);
+
 export interface ContextGap {
   id: string;
   field: string;
@@ -13,6 +18,10 @@ export interface ContextGap {
 export function detectContextGaps(input: string, intent: IntentExtractionResult): ContextGap[] {
   const text = (input || "").toLowerCase();
   const gaps: ContextGap[] = [];
+  // A slot is only "missing" if the request really did not name it. The old
+  // checks looked for a short keyword list, so "the memory leak in our node.js
+  // worker" was told that no language was named.
+  const named = (set: Set<string>) => intent.slots.entities.some((entity) => set.has(entity));
 
   const addGap = (id: string, field: string, description: string, impact: number, uncertainty: number, taskDependency: number) => {
     const importanceScore = Math.round(impact * uncertainty * taskDependency * 100) / 100;
@@ -21,10 +30,10 @@ export function detectContextGaps(input: string, intent: IntentExtractionResult)
 
   // Coding Gaps
   if (intent.taskType === "coding") {
-    if (!/\b(typescript|javascript|python|go|rust|java|c\+\+|swift|kotlin|php)\b/i.test(text)) {
+    if (!named(LANGUAGE_ENTITIES) && !/\b(typescript|javascript|python|golang|rust|java|ruby|php|c\+\+|c#|swift|kotlin|elixir|scala|deno|bun|framework)\b/i.test(text)) {
       addGap("coding_language", "programming_language", "Which programming language or framework should be used?", 0.9, 0.9, 0.95);
     }
-    if (!/\b(database|postgres|mysql|sqlite|mongo|prisma|redis)\b/i.test(text) && /\b(app|backend|crud|system|user|auth)\b/i.test(text)) {
+    if (!named(STORAGE_ENTITIES) && !/\b(database|postgres|mysql|sqlite|mongo|prisma|redis)\b/i.test(text) && /\b(app|backend|crud|system|user|auth)\b/i.test(text)) {
       addGap("coding_db", "database_choice", "What database technology or ORM is preferred?", 0.7, 0.8, 0.8);
     }
     if (!/\b(unit|test|integration|e2e|playwright|jest|vitest|pytest)\b/i.test(text)) {
@@ -34,10 +43,10 @@ export function detectContextGaps(input: string, intent: IntentExtractionResult)
 
   // Writing & Marketing Gaps
   if (intent.taskType === "writing" || intent.taskType === "marketing") {
-    if (!/\b(audience|developers|students|executives|customers|beginners|experts)\b/i.test(text)) {
+    if (!intent.slots.audience) {
       addGap("writing_audience", "target_audience", "Who is the primary target audience?", 0.85, 0.8, 0.9);
     }
-    if (!/\b(tone|voice|formal|casual|persuasive|witty|authoritative)\b/i.test(text)) {
+    if (!intent.slots.tone) {
       addGap("writing_tone", "tone_profile", "What tone of voice should be adopted?", 0.7, 0.7, 0.75);
     }
     if (!/\b(length|word count|pages|short|long|concise|comprehensive)\b/i.test(text)) {
@@ -47,7 +56,7 @@ export function detectContextGaps(input: string, intent: IntentExtractionResult)
 
   // Data Analysis Gaps
   if (intent.taskType === "data_analysis") {
-    if (!/\b(csv|json|sql|pandas|dataframe|excel)\b/i.test(text)) {
+    if (!named(DATA_ENTITIES) && !/\b(csv|json|sql|pandas|dataframe|dataset|excel)\b/i.test(text)) {
       addGap("data_source", "dataset_format", "What is the input data format or schema?", 0.9, 0.85, 0.9);
     }
     if (!/\b(chart|table|summary|insights|plot|regression|metrics)\b/i.test(text)) {
@@ -67,6 +76,33 @@ export function detectContextGaps(input: string, intent: IntentExtractionResult)
 
   // Sort by importance descending
   return gaps.sort((a, b) => b.importanceScore - a.importanceScore);
+}
+
+/**
+ * Turns the highest-importance gaps into rules the prompt states about itself.
+ *
+ * The engine detected what a request left unsaid and then threw it away, so the
+ * executing model silently invented an answer. Naming the assumption costs one
+ * line and is the honest version -- and it only appears when the request really
+ * did leave the slot open.
+ */
+const GAP_STATEMENTS: Record<string, string> = {
+  coding_language: "No language or framework is named in the request: state the one you are using before implementing.",
+  coding_db: "No database is named: state the storage you are assuming.",
+  coding_testing: "No test suite is named: include the tests you would write.",
+  writing_audience: "No audience is named: state who you are writing for.",
+  writing_tone: "No tone is named: state the register you are adopting.",
+  writing_length: "No length is named: keep the answer as short as the task allows.",
+  data_source: "No data format is named: state the format you are assuming.",
+  data_deliverable: "No deliverable is named: state the metrics you are reporting.",
+  image_style: "No visual style is named: state the style you are assuming.",
+  image_aspect: "No aspect ratio is named: state the ratio you are assuming.",
+};
+
+export function gapsToConstraintTexts(gaps: ContextGap[], limit = 2): string[] {
+  return gaps
+    .slice(0, limit)
+    .map((gap) => GAP_STATEMENTS[gap.id] || `No ${gap.field.replace(/_/g, " ")} is named: state the one you are assuming.`);
 }
 
 export function generateAdaptiveQuestions(gaps: ContextGap[], maxQuestions = 3): QuestionCandidate[] {
