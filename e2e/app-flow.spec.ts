@@ -5,7 +5,7 @@ test.describe("Prompt+ End-to-End User Flow", () => {
     await page.goto("/");
     await expect(page).toHaveTitle(/Prompt\+/i);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expect(page.locator('a[href="/signup"]').first()).toBeVisible();
+    await expect(page.locator('a[href="/dashboard/new"]').first()).toBeVisible();
   });
 
   test("Private API rejects unauthenticated requests", async ({ request }) => {

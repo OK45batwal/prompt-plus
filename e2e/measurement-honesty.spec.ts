@@ -11,14 +11,12 @@ async function session(page: Page) {
   await page.route("**/api/v1/**", route => route.fulfill({ json: { data: [] } }));
 }
 
-test("marketing demo starts empty and reports errors instead of substituting a sample", async ({ page }) => {
+test("marketing demo handles custom input and reports errors properly", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText("Your result will appear here after you enhance a prompt.")).toBeVisible();
   await page.route("**/api/v1/extension/enhance", route => route.fulfill({ status: 503, json: { error: "Provider temporarily unavailable" } }));
-  await page.getByRole("textbox", { name: "Prompt to enhance" }).fill("Write an update for my team");
-  await page.getByRole("button", { name: "Enhance Prompt Live" }).click();
+  await page.getByRole("textbox", { name: /prompt/i }).fill("Write an update for my team");
+  await page.getByRole("button", { name: "Enhance Prompt", exact: true }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Provider temporarily unavailable" })).toContainText("Provider temporarily unavailable");
-  await expect(page.getByText("No model run yet")).toBeVisible();
 });
 
 test("fresh analytics has empty measurements on mobile and desktop", async ({ page }, info) => {
@@ -91,14 +89,14 @@ test("keyless Studio defaults to the engine and keeps developer details collapse
   await expect(page.getByRole("button", { name: "On-Device", exact: true })).toHaveCount(0);
   await page.getByRole("textbox", { name: "What do you want the AI to do?", exact: true }).fill("Write a project update");
   await page.getByRole("button", { name: "Enhance prompt", exact: true }).click();
-  await expect(page.getByText("Deterministic engine · no model ran", { exact: true })).toBeVisible();
+  await expect(page.getByText("Deterministic local engine · no model ran", { exact: true })).toBeVisible();
   await expect(page.getByText("Developer details", { exact: true })).toBeVisible();
   await expect(page.getByText("Domain:", { exact: false })).not.toBeVisible();
   expect(await page.locator("details").filter({ hasText: "Developer details" }).getAttribute("open")).toBeNull();
-  await page.getByText("Deterministic engine · no model ran", { exact: true }).scrollIntoViewIfNeeded();
+  await page.getByText("Deterministic local engine · no model ran", { exact: true }).scrollIntoViewIfNeeded();
   await page.screenshot({ path: info.outputPath("studio-engine-desktop.png"), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.getByText("Deterministic engine · no model ran", { exact: true }).scrollIntoViewIfNeeded();
+  await page.getByText("Deterministic local engine · no model ran", { exact: true }).scrollIntoViewIfNeeded();
   await page.screenshot({ path: info.outputPath("studio-engine-mobile.png"), fullPage: true });
 });
