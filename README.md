@@ -134,6 +134,7 @@ Packaging verifies that every manifest script is present in the archive. `npm ru
 - [Reliability contracts](docs/RELIABILITY.md)
 - [Improvement plan and status](docs/PROJECT-IMPROVEMENT-PLAN.md)
 - [Enhancement Engine Plan](docs/ENHANCEMENT-ENGINE-PLAN.md)
+- [Community Q&A and Discussions](https://github.com/OK45batwal/prompt-plus/discussions)
 - [Known technical debt](docs/TECHNICAL_DEBT.md)
 
 ## Limitations
