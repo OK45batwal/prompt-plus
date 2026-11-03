@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getDb } from "@/lib/db/prisma";
 import { paginationSchema } from "@/lib/validations/common";
 import { createPromptSchema } from "@/lib/validations/prompts";
+import { normalizeTags } from "@/lib/prompts/tags";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 
@@ -22,16 +23,19 @@ export const GET = withAuth(
     }
 
     const { page, pageSize, search } = queryResult.data;
+    const tagFilter = searchParams.get("tag")?.trim().replace(/^#+/, "");
     const offset = (page - 1) * pageSize;
 
   const where = {
     userId,
     deletedAt: null,
+    ...(tagFilter ? { tags: { contains: tagFilter, mode: "insensitive" as const } } : {}),
     ...(search
       ? {
           OR: [
             { title: { contains: search, mode: "insensitive" as const } },
             { originalText: { contains: search, mode: "insensitive" as const } },
+            { tags: { contains: search, mode: "insensitive" as const } },
           ],
         }
       : {}),
@@ -54,7 +58,8 @@ export const GET = withAuth(
 export const POST = withAuth(
   async (req, context) => {
     const { userId, requestId, body } = context;
-    const { originalText, model, category, tone, length } = body!;
+    const { originalText, model, category, tags, tone, length } = body!;
+    const normalizedTags = normalizeTags(tags);
 
     const prompt = await getDb().prompt.create({
       data: {
@@ -62,13 +67,14 @@ export const POST = withAuth(
         originalText,
         model,
         category: category || null,
+        tags: normalizedTags,
         tone: tone || null,
         length: length || null,
       },
     });
 
     return jsonResponse(
-      { data: { id: prompt.id, originalText: prompt.originalText, model: prompt.model, category: prompt.category, tone: prompt.tone, length: prompt.length, createdAt: prompt.createdAt } },
+      { data: { id: prompt.id, originalText: prompt.originalText, model: prompt.model, category: prompt.category, tags: prompt.tags, tone: prompt.tone, length: prompt.length, createdAt: prompt.createdAt } },
       { status: 201, requestId }
     );
   },
