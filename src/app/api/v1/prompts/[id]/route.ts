@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { getDb } from "@/lib/db/prisma";
+import { normalizeTags } from "@/lib/prompts/tags";
 import { withAuth } from "@/lib/api/with-auth";
 import { jsonResponse } from "@/lib/api/response-headers";
 
@@ -54,6 +55,9 @@ export const PATCH = withAuth(async (req: NextRequest, { userId, requestId }) =>
   if (body.analysis !== undefined) data.analysis = body.analysis;
   if (typeof body.title === "string") data.title = body.title;
   if (typeof body.isFavorite === "boolean") data.isFavorite = body.isFavorite;
+  if (body.tags !== undefined) {
+    data.tags = normalizeTags(body.tags as string | string[] | null);
+  }
 
   if (Object.keys(data).length === 0) {
     return jsonResponse({ error: "No valid fields to update" }, { status: 400, requestId });
@@ -62,7 +66,7 @@ export const PATCH = withAuth(async (req: NextRequest, { userId, requestId }) =>
   const updated = await getDb().prompt.update({
     where: { id },
     data,
-    select: { id: true, enhancedText: true, score: true, analysis: true, title: true, isFavorite: true, updatedAt: true },
+    select: { id: true, enhancedText: true, score: true, analysis: true, title: true, tags: true, isFavorite: true, updatedAt: true },
   });
 
   return jsonResponse({ data: updated }, { requestId });

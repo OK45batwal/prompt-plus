@@ -5,6 +5,7 @@ import { calculateStructuralScore } from "@/lib/scoring";
 import { auth } from "@/lib/auth/config";
 import { verifySessionAccount, sessionCheckMessage } from "@/lib/auth/account";
 import { getDb } from "@/lib/db/prisma";
+import { normalizeTags } from "@/lib/prompts/tags";
 import { jsonResponse } from "@/lib/api/response-headers";
 
 export async function POST(request: NextRequest) {
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
       originalText?: string;
       enhancedText?: string;
       category?: string;
+      tags?: string | string[];
       tone?: string;
       model?: string;
       score?: number;
@@ -78,6 +80,7 @@ export async function POST(request: NextRequest) {
         originalText: originalText || enhancedText,
         enhancedText: enhancedText || originalText,
         category: body.category || "General",
+        tags: normalizeTags(body.tags),
         tone: body.tone || "code",
         model: body.model || "not-recorded",
         score: JSON.parse(JSON.stringify({ ...calculateStructuralScore(enhancedText || originalText), measuredBy: "structural", measuredTotal: null, originalTotal: calculateStructuralScore(originalText || enhancedText).total, enhancedTotal: calculateStructuralScore(enhancedText || originalText).total })),
@@ -88,6 +91,7 @@ export async function POST(request: NextRequest) {
         originalText: true,
         enhancedText: true,
         category: true,
+        tags: true,
         tone: true,
         model: true,
         score: true,

@@ -7,6 +7,7 @@ export const createPromptSchema = z.object({
     .max(10000, "Prompt text is too long (max 10,000 characters)"),
   model: z.string().min(1, "model is required"),
   category: z.string().optional().nullable(),
+  tags: z.union([z.array(z.string()), z.string()]).optional().nullable(),
   tone: z.string().optional().nullable(),
   length: z.string().optional().nullable(),
 });

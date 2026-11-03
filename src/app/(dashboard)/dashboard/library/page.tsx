@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { Search, Plus, Grid, List, Book, Star, Sparkles, Copy, Check, Code, FileText, GraduationCap, Megaphone, ChartLine, Briefcase, Lightbulb, Terminal, Pencil } from "lucide-react";
+import { Search, Plus, Grid, List, Book, Star, Sparkles, Copy, Check, Code, FileText, GraduationCap, Megaphone, ChartLine, Briefcase, Lightbulb, Terminal, Pencil, Tag, X } from "lucide-react";
 import { curatedPrompts } from "@/lib/curated-prompts";
 import { useToast } from "@/components/ui/toast";
 import { ExportCodeModal } from "@/components/prompts/export-code-modal";
+import { parseTags, normalizeTags } from "@/lib/prompts/tags";
 
 interface Prompt {
   id: string;
@@ -14,6 +15,7 @@ interface Prompt {
   enhancedText?: string | null;
   model: string;
   category: string | null;
+  tags?: string | null;
   score: unknown;
   isFavorite: boolean;
   createdAt: string;
@@ -50,12 +52,16 @@ export default function LibraryPage() {
   const [curatedSearch, setCuratedSearch] = useState("");
   const [curatedCategory, setCuratedCategory] = useState("all");
   const [savedCategory, setSavedCategory] = useState("all");
+  const [savedTag, setSavedTag] = useState<string>("all");
   const [savedSort, setSavedSort] = useState<"recent" | "oldest" | "title" | "category">("recent");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedTitle, setCopiedTitle] = useState<string | null>(null);
   const [exportPrompt, setExportPrompt] = useState<{ title: string; text: string } | null>(null);
+  const [tagEditingPrompt, setTagEditingPrompt] = useState<Prompt | null>(null);
+  const [tagInput, setTagInput] = useState<string>("");
+  const [isSavingTags, setIsSavingTags] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -90,16 +96,58 @@ export default function LibraryPage() {
 
   const titleOf = (p: Prompt) => p.title || (p.originalText ? p.originalText.substring(0, 50) : "Untitled Prompt");
 
+  const availableTags = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of prompts) {
+      for (const t of parseTags(p.tags)) {
+        set.add(t);
+      }
+    }
+    return Array.from(set).sort();
+  }, [prompts]);
+
+  const openTagEditor = (prompt: Prompt) => {
+    setTagEditingPrompt(prompt);
+    setTagInput(parseTags(prompt.tags).join(", "));
+  };
+
+  const savePromptTags = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!tagEditingPrompt) return;
+    setIsSavingTags(true);
+    const normalized = normalizeTags(tagInput);
+    const targetId = tagEditingPrompt.id;
+
+    try {
+      const res = await fetch(`/api/v1/prompts/${targetId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+        body: JSON.stringify({ tags: normalized }),
+      });
+      if (!res.ok) throw new Error();
+      setPrompts((prev) => prev.map((p) => (p.id === targetId ? { ...p, tags: normalized } : p)));
+      toast("Tags updated successfully", "success");
+      setTagEditingPrompt(null);
+    } catch {
+      toast("Failed to update tags. Please try again.", "error");
+    } finally {
+      setIsSavingTags(false);
+    }
+  };
+
   const filteredSavedPrompts = prompts.filter((p) => {
     const q = savedSearch.trim().toLowerCase();
+    const promptTags = parseTags(p.tags);
     const matchesSearch =
       !q ||
       p.title?.toLowerCase().includes(q) ||
       p.originalText?.toLowerCase().includes(q) ||
       p.category?.toLowerCase().includes(q) ||
-      p.model?.toLowerCase().includes(q);
+      p.model?.toLowerCase().includes(q) ||
+      promptTags.some((t) => t.toLowerCase().includes(q));
     const matchesCategory = savedCategory === "all" || p.category === savedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesTag = savedTag === "all" || promptTags.includes(savedTag);
+    return matchesSearch && matchesCategory && matchesTag;
   });
 
   const sortedSavedPrompts = [...filteredSavedPrompts].sort((a, b) => {
@@ -181,7 +229,7 @@ export default function LibraryPage() {
               <input
                 id="saved-search"
                 type="text"
-                placeholder="Search title, text, category"
+                placeholder="Search title, text, tags, category"
                 value={savedSearch}
                 onChange={(e) => setSavedSearch(e.target.value)}
                 className="h-8 w-full rounded-lg border bg-background pl-8 pr-3 text-xs outline-none focus:border-ring focus-visible:ring-2 focus-visible:ring-ring"
@@ -235,6 +283,45 @@ export default function LibraryPage() {
           </div>
         </div>
 
+        {/* Quick Tag Pills */}
+        {availableTags.length > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap pt-1 pb-1">
+            <span className="text-[11px] font-mono text-muted-foreground mr-1 flex items-center gap-1">
+              <Tag className="h-3 w-3" /> Tags:
+            </span>
+            <button
+              type="button"
+              onClick={() => setSavedTag("all")}
+              className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono transition-colors ${
+                savedTag === "all"
+                  ? "bg-primary text-primary-foreground font-semibold"
+                  : "bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
+              }`}
+            >
+              all ({prompts.length})
+            </button>
+            {availableTags.map((tag) => {
+              const count = prompts.filter((p) => parseTags(p.tags).includes(tag)).length;
+              const isSelected = savedTag === tag;
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => setSavedTag(isSelected ? "all" : tag)}
+                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono transition-colors flex items-center gap-1 ${
+                    isSelected
+                      ? "bg-primary text-primary-foreground font-semibold"
+                      : "bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
+                  }`}
+                >
+                  <span>#{tag}</span>
+                  <span className="opacity-70 text-[10px]">({count})</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {loading ? (
           <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-2"}>
             {Array.from({ length: 3 }).map((_, i) => (
@@ -257,13 +344,14 @@ export default function LibraryPage() {
           <div className="text-center py-8 border rounded-2xl bg-card/40">
             <p className="text-sm font-semibold">No saved prompts match these filters</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Try a different search term or category.
+              Try a different search term, category, or tag filter.
             </p>
             <button
               type="button"
               onClick={() => {
                 setSavedSearch("");
                 setSavedCategory("all");
+                setSavedTag("all");
               }}
               className="mt-3 inline-flex h-8 items-center justify-center rounded-lg border bg-background px-3.5 text-xs font-medium hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
@@ -274,6 +362,7 @@ export default function LibraryPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedSavedPrompts.map((prompt) => {
               const scoreNum = getDisplayScore(prompt.score);
+              const promptTags = parseTags(prompt.tags);
               return (
                 <div
                   key={prompt.id}
@@ -290,18 +379,46 @@ export default function LibraryPage() {
                       <span className="ml-auto text-muted-foreground text-[10px]">Unrated</span>
                     )}
                   </div>
+
+                  {promptTags.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1 my-2">
+                      {promptTags.map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => setSavedTag(tag)}
+                          className="px-1.5 py-0.5 rounded-md bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-[10px] font-mono hover:bg-cyan-500/20 transition-colors"
+                          title={`Filter by #${tag}`}
+                        >
+                          #{tag}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
                   <p className="text-[10px] text-muted-foreground mt-1">
                     {prompt.createdAt && !isNaN(new Date(prompt.createdAt).getTime())
                       ? new Date(prompt.createdAt).toLocaleDateString()
                       : ""}
                   </p>
                   <div className="mt-auto pt-3 border-t flex items-center justify-between">
-                    <Link
-                      href={`/dashboard/new?promptId=${prompt.id}`}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-primary rounded hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      <Pencil className="h-3.5 w-3.5" /> Edit prompt
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href={`/dashboard/new?promptId=${prompt.id}`}
+                        className="inline-flex items-center gap-1.5 text-xs font-medium text-primary rounded hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <Pencil className="h-3.5 w-3.5" /> Edit prompt
+                      </Link>
+                      <button
+                        type="button"
+                        aria-label="Manage tags"
+                        onClick={() => openTagEditor(prompt)}
+                        className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors rounded hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        title="Manage tags"
+                      >
+                        <Tag className="h-3 w-3" /> Tags
+                      </button>
+                    </div>
                     <button
                       type="button"
                       aria-pressed={prompt.isFavorite}
@@ -320,6 +437,7 @@ export default function LibraryPage() {
           <div className="space-y-2">
             {sortedSavedPrompts.map((prompt) => {
               const scoreNum = getDisplayScore(prompt.score);
+              const promptTags = parseTags(prompt.tags);
               return (
                 <div
                   key={prompt.id}
@@ -332,6 +450,21 @@ export default function LibraryPage() {
                       <span className="px-2 py-0.5 rounded bg-muted text-[10px] font-medium">{prompt.category || "General"}</span>
                     </div>
                     <p className="text-xs text-muted-foreground truncate">{prompt.originalText || "No content"}</p>
+                    {promptTags.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                        {promptTags.map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => setSavedTag(tag)}
+                            className="px-1.5 py-0.5 rounded-md bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-[10px] font-mono hover:bg-cyan-500/20 transition-colors"
+                            title={`Filter by #${tag}`}
+                          >
+                            #{tag}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="text-right shrink-0">
                     {scoreNum !== null ? (
@@ -345,6 +478,14 @@ export default function LibraryPage() {
                         : ""}
                     </p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => openTagEditor(prompt)}
+                    className="shrink-0 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground rounded p-1 hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    title="Manage tags"
+                  >
+                    <Tag className="h-3.5 w-3.5" />
+                  </button>
                   <Link
                     href={`/dashboard/new?promptId=${prompt.id}`}
                     className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium text-primary rounded hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -471,6 +612,63 @@ export default function LibraryPage() {
           </div>
         )}
       </div>
+
+      {/* Manage Tags Modal */}
+      {tagEditingPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl border bg-card p-6 shadow-xl space-y-4 animate-scale-in">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2">
+                <Tag className="h-4 w-4 text-cyan-500" />
+                <h3 className="font-bold text-sm">Manage Prompt Tags</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTagEditingPrompt(null)}
+                className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="Close dialog"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">
+                Add comma-separated tags to organize <strong className="text-foreground">{titleOf(tagEditingPrompt)}</strong>:
+              </p>
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                placeholder="e.g. frontend, react, bugfix, api"
+                className="h-10 w-full rounded-xl border bg-background px-3 font-mono text-xs outline-none focus:border-ring focus-visible:ring-2 focus-visible:ring-ring"
+                autoFocus
+              />
+              <p className="text-[11px] text-muted-foreground mt-1.5 font-mono">
+                Tags appear as clickable filter chips in your vault.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t">
+              <button
+                type="button"
+                onClick={() => setTagEditingPrompt(null)}
+                className="px-3 py-1.5 rounded-lg border text-xs font-medium hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isSavingTags}
+                onClick={() => savePromptTags()}
+                className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {isSavingTags ? "Saving…" : "Save Tags"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Export Code Modal */}
       {exportPrompt && (
