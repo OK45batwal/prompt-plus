@@ -2,7 +2,7 @@
 
 **Date:** October 26, 2026  
 **Auditor:** Senior Full-Stack & Application Security Engineer, QA Lead, Product Strategist  
-**Repository:** `OK45batwal/prompt-plus` (`ai-prompt-plus` v0.1.0, Extension v2.1.7)  
+**Repository:** `OK45batwal/prompt-plus` (`ai-prompt-plus` v0.1.0, Extension v2.1.8)  
 **Live Deployment:** [https://prompt-plus-three.vercel.app/](https://prompt-plus-three.vercel.app/)
 
 ---
@@ -34,7 +34,7 @@ The stack was inspected directly from configuration files, runtime scripts, and 
 | **API Defense & Anti-CSRF** | Higher-Order `withAuth` route wrapper, custom header checks, static CI gate | `src/lib/api/with-auth.ts`, `scripts/check-api-routes.mjs` |
 | **Distributed Rate Limiting** | Upstash Redis REST via `EVAL` script (atomic count + TTL); in-memory fallback for dev | `src/lib/rate-limit.ts`, `scripts/check-env.mjs` |
 | **Prompt Engineering Engine** | Hybrid `PromptIR` AST compiler, closed-loop critic/repair cycles, heuristic & evaluation scoring | `src/lib/prompt-engine/*` |
-| **Browser Extension** | Chrome Manifest V3 (v2.1.7) with Service Worker, Side Panel API, DOM Adapters | `extension/manifest.json`, `extension/content.js` |
+| **Browser Extension** | Chrome Manifest V3 (v2.1.8) with Service Worker, Side Panel API, DOM Adapters | `extension/manifest.json`, `extension/content.js` |
 | **Test Suites** | Vitest `4.1.10` (unit/integration), Playwright `1.62.1` (E2E), Custom test plan | `vitest.config.ts`, `extension/test-plan.js` |
 | **Deployment & Observability** | Vercel Edge Network, `@vercel/analytics`, `@vercel/speed-insights`, structured JSON logging | `next.config.ts`, `src/lib/logger.ts` |
 

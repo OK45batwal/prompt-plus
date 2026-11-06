@@ -1,6 +1,6 @@
 # Prompt+ Production Launch Checklist & Release Guide
 
-**Version:** Prompt+ v2.1.7 (Core Platform)  
+**Version:** Prompt+ v2.1.8 (Core Platform)  
 **Target Environment:** Production (Vercel Edge, Neon PostgreSQL, Chrome Web Store)  
 **Lead Release Engineer:** Senior Full-Stack & Application Security Engineer  
 
