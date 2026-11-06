@@ -15,6 +15,7 @@ import { getDb } from "@/lib/db/prisma";
 import { resolveModelCredentials, credentialActionPath } from "@/lib/llm/resolve-credentials";
 import { DEFAULT_MODEL_ID, getModelById } from "@/lib/models";
 import { callLLM } from "@/lib/llm/providers";
+import { cleanMasterPromptOutput } from "@/lib/llm/meta-prompt";
 import { z } from "zod";
 
 const optimizeSchema = z.object({
@@ -147,12 +148,13 @@ export const POST = withAuth(
             provider: credentials.provider,
             model: credentials.model.rawModel,
             tenantId: userId,
-            systemPrompt: "Improve the clarity and structure of this prompt. Preserve its intent and every explicit constraint. Do not invent requirements or claims. Return only the improved prompt.",
-            userPrompt: `Target Task: ${loopResult.intent.taskType}\n\nStructured Prompt IR Draft:\n${finalSelected.renderedText}\n\nDeliver the final polished prompt directly:`,
+            systemPrompt: "You are the Prompt+ Optimization Engine. Transform the draft into a clean, cohesive, production-grade prompt. Write in natural, authoritative prose without point-wise bullet lists, coded brackets, XML tags, or conversational chatter. Retain every explicit constraint and technical entity. Output only the improved prompt.",
+            userPrompt: `Target Task: ${loopResult.intent.taskType}\n\nDraft Prompt:\n${finalSelected.renderedText}\n\nDeliver the clean, cohesive prompt directly:`,
             temperature: 0.5,
             maxTokens: 3000,
           });
-          if (llmRes.content && llmRes.content.trim().length > 30) {
+          const cleanedText = cleanMasterPromptOutput(llmRes.content || "");
+          if (cleanedText && cleanedText.trim().length > 30) {
             source = "llm";
             actualModel = llmRes.model;
             actualProvider = llmRes.provider;
@@ -160,7 +162,7 @@ export const POST = withAuth(
             await getDb().usageLog.create({ data: { userId, action: "enhance", provider: llmRes.provider, model: llmRes.model, tokensIn: llmRes.tokensIn, tokensOut: llmRes.tokensOut, latencyMs: Date.now() - startedAt, success: true } }).catch(() => {});
             finalSelected = {
               ...finalSelected,
-              renderedText: llmRes.content.trim(),
+              renderedText: cleanedText.trim(),
               strategyName: `${finalSelected.strategyName} + LLM Refined (${llmRes.model})`,
             };
           } else {

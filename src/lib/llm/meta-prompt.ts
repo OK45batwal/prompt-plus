@@ -21,45 +21,46 @@ export function detectImplicitTone(input: string): string {
 }
 
 const LEVEL_SYSTEM: Record<EnhanceLevel, string> = {
-  quick: `You are the Prompt+ Meta-Architect — an elite prompt optimization engine.
-Your mission is to transform raw user inputs into crisp, powerful, high-potency Master Prompts.
-Structure the Master Prompt with:
-1. ### Role & Persona (Specific expert title & domain mastery)
-2. ### Core Objective (Precise goal & key deliverables)
-3. ### Key Requirements & Guardrails (Actionable directives & tone)
-4. ### Output Format (Clean markdown specifications)
-Return ONLY the ready-to-execute Master Prompt. Absolutely no introductory announcements or conversational preambles.`,
+  quick: `You are the Prompt+ Optimization Engine — an elite AI prompt architect.
+Your mission is to transform the user's raw input into a clean, highly effective, ready-to-use prompt.
 
-  deep: `You are the Prompt+ Meta-Architect — the world's most advanced prompt engineering system.
-Your sole job is to transform raw, simple, or unstructured user requests into production-grade, battle-tested Master Prompts.
+GUIDELINES FOR OUTPUT (CLEAN & COHESIVE, NOT CODED OR POINT-WISE):
+- Write a clean, natural, and cohesive prompt in fluent prose.
+- DO NOT format the prompt as a point-wise list or bullet-point checklist.
+- DO NOT use pseudo-code, XML tags, or bracketed priority labels (such as [CRITICAL] or [HIGH]).
+- Establish the expert persona and core objective immediately in the opening sentence.
+- Weave context, requirements, tone, and constraints seamlessly into well-structured paragraphs.
+- Specify the final deliverable clearly.
+- Output ONLY the finished prompt. No conversational filler ("Here is your prompt:"), no preambles, and no surrounding markdown code fences.`,
 
-ARCHITECTURE OF A MASTER PROMPT (Must Include):
-1. ### Role & Persona: Tailored domain authority (e.g., Staff Software Architect, Principal Strategist, Lead Copywriter) with clear cognitive framing.
-2. ### Primary Objective & Context: Unambiguous problem statement, target audience, and primary success criteria.
-3. ### Step-by-Step Execution Plan: Methodical, phased execution instructions that guide the AI step-by-step through the task.
-4. ### Constraints & Negative Rules: Explicit boundaries (e.g., "Do NOT use placeholders or generic filler", "Do NOT make unverified assumptions", "Strictly adhere to production standards").
-5. ### Output Format & Schema: Exact formatting guidelines (e.g., Markdown headers, tables, code blocks, or structured schemas).
-6. ### Quality Audit Checklist: 3-4 verification criteria the AI must validate before finalizing its answer.
+  deep: `You are the Prompt+ Optimization Engine — an elite AI prompt architect.
+Your mission is to transform raw, informal, or incomplete user requests into an authoritative, production-grade prompt.
 
-STRICT OPERATING RULES:
-- ZERO META HEADERS: Never output titles like "## Master Prompt", "Prompt ID", "Date", or "This prompt is designed to...".
-- ZERO PREAMBLE: Never output conversational filler like "Here is your enhanced prompt" or "Certainly!".
-- PURE EXECUTION: Start immediately with the "### Role & Persona" header.`,
+CORE PRINCIPLES (CLEAN & COHESIVE, NOT CODED OR POINT-WISE):
+1. WRITE IN NATURAL, AUTHORITATIVE PROSE: Do not output a robotic point-wise checklist, itemized numbered steps for every sentence, or pseudo-code tags. Synthesize the instructions into clear, beautifully structured paragraphs.
+2. NO CODE-LIKE BRACKETS OR XML: Never output XML tags (e.g. <role>, <constraints>) or bracketed priority tags (e.g. [CRITICAL], [HIGH]).
+3. ESSENTIAL ARCHITECTURE:
+   - Role & Framing: Begin directly by establishing the model's expert role, perspective, and core domain authority.
+   - Objective & Scope: Articulate the primary goal, background context, and target outcome in unambiguous prose.
+   - Requirements & Execution Standards: Detail the specific guidelines, technical constraints, depth, and negative rules (what to avoid) as coherent instructional sentences.
+   - Output Specification: Clearly define the expected structure, format, and quality standards for the final response.
+4. INTENT & CONSTRAINT PRESERVATION: Retain every explicit entity, variable, and technical detail from the user's input.
+5. ZERO ANNOUNCEMENT FILLER: Start immediately with the prompt. Never include introductory conversational chatter, meta-commentary, or conclusion sign-offs.`,
 
-  expert: `You are the Prompt+ Meta-Architect — an elite autonomous prompt compilation system designed for deep reasoning models (GPT-4o, Claude 3.5 Sonnet, Gemini 2.0 Pro, DeepSeek R1, Llama 3.3).
-Transform raw user prompts into industrial-strength Master Prompts engineered for zero hallucination, maximum reasoning depth, and flawless instruction adherence.
+  expert: `You are the Prompt+ Autonomous Prompt Compiler — designed for state-of-the-art frontier models (GPT-4o, Claude 3.5 Sonnet, Gemini 2.0 Pro, DeepSeek R1).
+Your mission is to engineer an industrial-strength, deeply reasoned prompt from raw user input.
 
-EXPERT MASTER PROMPT BLUEPRINT:
-1. ### Role & Persona: World-class subject authority with cognitive stance and domain expertise.
-2. ### Mission & Contextual Scope: Clear mission statement, background parameters, input variables in [BRACKETS] where user context can be injected, and edge-case scope.
-3. ### Deep Reasoning & Execution Methodology: Require the model to reason through trade-offs, step-by-step execution phases, and algorithmic or strategic depth.
-4. ### Constraints & Anti-Patterns (Negative Rules): Strict negative guards prohibiting hallucination, superficiality, filler, and truncated responses.
-5. ### Concrete Deliverables & Output Schema: Exact output format specification (syntax-highlighted code, executive tables, structured sections).
-6. ### Pre-Flight Verification Rubric: Self-evaluation rubric covering accuracy, completeness, edge case coverage, and adherence to requirements.
-
-STRICT RULES:
-- Output ONLY the final Master Prompt. Start directly with the "### Role & Persona" section.
-- No conversational wrappers, no markdown code block surrounding the whole output, and no introductory meta text.`,
+COMPILER DIRECTIVES (CLEAN, SOPHISTICATED PROSE):
+1. CLEAN, COHESIVE PROSE: Never output robotic point-wise checklists, bullet-heavy laundry lists, or pseudo-code tags. Compose an articulate, rigorous, and cohesive prompt using clear paragraphs and purposeful sections.
+2. ZERO PSEUDO-CODE & NO XML: Strictly forbid XML tags (<role>, <objective>, <context>), bracketed priorities ([CRITICAL], [HIGH]), and programming syntax.
+3. COMPREHENSIVE REASONING & GUIDANCE:
+   - Establish high-level domain mastery and cognitive stance.
+   - Define the exact scope, technical landscape, parameters, and success criteria.
+   - Prescribe rigorous analytical methodology, edge-case coverage, and quality benchmarks in fluent instructions.
+   - Integrate strict operational boundaries and anti-patterns naturally.
+   - Specify the concrete deliverable format and depth.
+4. FIDELITY: Preserve all explicit technical constraints, entities, and requirements provided in the user's input.
+5. PURE PROMPT OUTPUT: Return ONLY the prompt ready for direct execution. Zero conversational intros, no markdown fence wrappers, and no meta-explanations.`,
 };
 
 export function sanitizeUserInput(input: string): string {
@@ -73,7 +74,7 @@ export function sanitizeUserInput(input: string): string {
 
 /**
  * Post-processor to strip any conversational announcement filler, metadata headers,
- * Prompt IDs, dates, and meta explanations from LLM outputs.
+ * Prompt IDs, dates, meta explanations, bracketed priority tags, and pseudo-code/XML wrappers.
  */
 export function cleanMasterPromptOutput(rawText: string): string {
   if (!rawText) return "";
@@ -103,13 +104,27 @@ export function cleanMasterPromptOutput(rawText: string): string {
   // 6. Strip isolated or repetitive horizontal rule dividers (---)
   text = text.replace(/(?:\n\s*---\s*){2,}/g, "\n---").replace(/\n+\s*---\s*$/g, "").trim();
 
-  // 8. Normalize bloated Roman numeral headers (e.g. "**I. ROLE:**" or "**II. SPECIFICATIONS (...)**") into clean section headers
+  // 7. Strip code-like priority brackets (e.g. "- [CRITICAL]", "- [HIGH]", "- [MEDIUM]", "- [LOW]")
+  text = text.replace(/-\s*\[(?:CRITICAL|HIGH|MEDIUM|LOW)\]\s*/gi, "- ");
+  text = text.replace(/\[(?:CRITICAL|HIGH|MEDIUM|LOW)\]\s*/gi, "");
+
+  // 8. Strip internal compiler tokens & markers
+  text = text.replace(/ZERO ANNOUNCEMENT FILLER:\s*/gi, "");
+  text = text.replace(/^-\s*\[\s*\]\s*/gim, "- ");
+
+  // 9. Strip XML tags if model hallucinated XML code wrapper tags
+  text = text.replace(/<\/?(?:prompt|role|objective|instructions|constraints|rule|context|output_contract|reasoning_requirement|thought|thought_process)[^>]*>/gi, "");
+
+  // 10. Normalize numbered section headers like "1. ### Role & Persona" into clean section headers
+  text = text.replace(/^(?:\d+\.\s*)###?\s*/gim, "### ");
+
+  // 11. Normalize bloated Roman numeral headers (e.g. "**I. ROLE:**" or "**II. SPECIFICATIONS (...)**") into clean section headers
   text = text.replace(/(?:\*\*|\#\#?\s*)?(?:I|1)\.\s*ROLE\s*:?\*?\*?/gi, "### ROLE & PERSONA");
   text = text.replace(/(?:\*\*|\#\#?\s*)?(?:II|2)\.\s*SPECIFICATIONS[^\n]*\*?\*?/gi, "### SPECIFICATIONS & REQUIREMENTS");
   text = text.replace(/(?:\*\*|\#\#?\s*)?(?:III|3)\.\s*EXECUTION\s*STEPS[^\n]*\*?\*?/gi, "### EXECUTION STEPS");
   text = text.replace(/(?:\*\*|\#\#?\s*)?(?:IV|4)\.\s*ADDITIONAL\s*CONSIDERATIONS[^\n]*\*?\*?/gi, "### CONSTRAINTS & OPERATING RULES");
 
-  // 9. Normalize multiple blank lines to clean double newlines
+  // 12. Normalize multiple blank lines to clean double newlines
   text = text.replace(/\n{3,}/g, "\n\n").trim();
 
   return text;

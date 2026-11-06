@@ -83,13 +83,13 @@ export function generateCandidates(baseIR: PromptIR, taskType: TaskType, complex
   // example would be the largest single cost.
   const leanIR: PromptIR = { ...structuredIR, examples: [] };
 
-  // D -- Reasoning: B plus a reasoning mandate, rendered as XML tags.
+  // D -- Reasoning: B plus a reasoning mandate, rendered cleanly with deliberative requirements.
   const reasoningIR: PromptIR = StrategyRegistry.model_specific.apply(structuredIR);
 
   return [
     toCandidate("candidate_concise", "Direct & Minimal", "No persona, critical rules only", directIR, renderPromptIRToString(directIR)),
     toCandidate("candidate_structured", "Role & Structure", "Task strategies + matched example", structuredIR, renderPromptIRToString(structuredIR)),
     toCandidate("candidate_lean", "Lean & Structured", "Task strategies, no example", leanIR, renderPromptIRToString(leanIR)),
-    toCandidate("candidate_reasoning", "Reasoning-Led (XML)", "Step-by-step mandate, XML sections", reasoningIR, renderPromptIRToXMLString(reasoningIR)),
+    toCandidate("candidate_reasoning", "Reasoning-Led", "Step-by-step reasoning mandate with structured guidelines", reasoningIR, renderPromptIRToString(reasoningIR)),
   ];
 }

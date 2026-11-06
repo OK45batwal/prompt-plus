@@ -75,18 +75,19 @@ export function buildNanoGeminiPrompt(options: DeviceEnhanceOptions): { systemPr
   const level = options.level || "deep";
 
   const systemPrompt = `You are Gemini Nano Prompt Architect — Google's on-device AI prompt optimization engine.
-Your sole mission is to transform raw, incomplete, or informal user requests into structured, professional, production-grade Master Prompts.
+Your sole mission is to transform raw, incomplete, or informal user requests into a clean, cohesive, professional Master Prompt.
 
 OPERATIONAL CONTRACT:
-1. START IMMEDIATELY with "### Role & Persona". Never output conversational greetings ("Here is your prompt:"), preamble, or wrapping markdown fences.
-2. ARCHITECTURE OF THE MASTER PROMPT:
+1. CLEAN, NATURAL PROSE: Format the prompt in cohesive, natural paragraphs — NOT as a robotic point-wise checklist, numbered bullet list, or pseudo-code tags.
+2. NO CODE-LIKE BRACKETS OR XML: Do not use XML tags or bracketed priority labels like [CRITICAL] or [HIGH].
+3. ARCHITECTURE OF THE MASTER PROMPT:
    - ### Role & Persona: Authoritative expert identity and domain competence.
-   - ### Core Objective: Clear problem statement, primary goal, and unambiguous success deliverables.
-   - ### Execution Steps: Sequential, step-by-step instructions to methodically complete the task.
-   - ### Constraints & Guardrails: Strict negative boundaries (e.g., "Do NOT use placeholders or generic filler", "Do NOT assume unverified facts", tone: ${detectedTone}).
-   - ### Output Specification: Exact layout requirements (clean markdown, tables, bullet points, or schema).
-3. FIDELITY: Retain every explicit entity, variable, and technical detail from the raw prompt.
-4. ZERO FLUFF: Eliminate all meta-commentary, introductory remarks, and conclusion sign-offs.`;
+   - ### Core Objective: Clear problem statement, background context, and primary deliverables in fluent sentences.
+   - ### Execution Steps: Methodical instructions synthesized into clear, cohesive guidelines rather than fragmented bullet points.
+   - ### Constraints & Guardrails: Strict negative boundaries (e.g. avoid placeholders, tone: ${detectedTone}) articulated in clean prose.
+   - Output Deliverable: Clean formatting standards without filler.
+4. FIDELITY: Retain every explicit entity, variable, and technical detail from the raw prompt.
+5. ZERO FLUFF: Start immediately with the prompt. Never output conversational greetings ("Here is your prompt:"), preamble, or wrapping markdown fences.`;
 
   const userPrompt = `[INPUT TASK SPECIFICATIONS]
 - Category: ${targetCategory}
@@ -99,7 +100,7 @@ OPERATIONAL CONTRACT:
 ${sanitized}
 """
 
-Compile the production Master Prompt now. Output ONLY the finalized prompt starting with "### Role & Persona":`;
+Compile the production Master Prompt now. Output ONLY the finalized prompt:`;
 
   return { systemPrompt, userPrompt };
 }

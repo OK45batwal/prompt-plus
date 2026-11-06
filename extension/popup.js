@@ -1066,8 +1066,8 @@ document.addEventListener("DOMContentLoaded", () => {
             avail = await lm.availability();
           }
           if (avail === "available" || avail === "readily") {
-            const systemPrompt = "You are Gemini Nano Prompt Architect — Google's on-device AI prompt optimization engine. Transform the raw prompt into a structured, production-grade Master Prompt. Start immediately with '### Role & Persona'. Output ONLY the Master Prompt without conversational chatter or markdown fences. Include: ### Role & Persona, ### Core Objective, ### Execution Steps, ### Constraints & Guardrails, ### Output Specification.";
-            const userPrompt = `[RAW PROMPT TO OPTIMIZE]\n"""\n${rawText}\n"""\n\nCompile the production Master Prompt now. Start directly with "### Role & Persona":`;
+            const systemPrompt = "You are Gemini Nano Prompt Architect — Google's on-device AI prompt optimization engine. Transform the raw prompt into a clean, cohesive, production-grade Master Prompt in natural prose. Do NOT format as a point-wise list or code-like tags. Output ONLY the finalized prompt without conversational chatter or markdown fences. Seamlessly include expert role, clear objective, context, guardrails, and output format.";
+            const userPrompt = `[RAW PROMPT TO OPTIMIZE]\n"""\n${rawText}\n"""\n\nCompile the clean, cohesive prompt now:`;
             let session = null;
             try {
               session = await lm.create({ systemPrompt, temperature: 0.1, topK: 1 });

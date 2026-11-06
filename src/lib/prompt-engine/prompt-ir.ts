@@ -90,15 +90,18 @@ export function renderPromptIRToString(ir: PromptIR, options: { taskType?: TaskT
   // Context Blocks
   if (ir.context && ir.context.length > 0) {
     const ctxLines = ir.context
-      .map((c, i) => `[Context Item ${i + 1}] (${c.type}): ${c.content.trim()}`)
+      .map((c) => c.content.trim())
+      .filter(Boolean)
       .join("\n\n");
-    parts.push(`### ${labels.context}\n${ctxLines}`);
+    if (ctxLines) {
+      parts.push(`### ${labels.context}\n${ctxLines}`);
+    }
   }
 
   // Input Definitions
   if (ir.inputs && ir.inputs.length > 0) {
     const inputLines = ir.inputs
-      .map((inp) => `- ${inp.name} (${inp.type}): ${inp.description || "Required input"}`)
+      .map((inp) => `- ${inp.name}: ${inp.description || "Required input"}`)
       .join("\n");
     parts.push(`### REQUIRED INPUT VARIABLES\n${inputLines}`);
   }
@@ -114,7 +117,7 @@ export function renderPromptIRToString(ir: PromptIR, options: { taskType?: TaskT
   // Constraints
   if (ir.constraints && ir.constraints.length > 0) {
     const constraintLines = ir.constraints
-      .map((c) => `- [${c.priority.toUpperCase()}] ${c.text.trim()}`)
+      .map((c) => `- ${c.text.trim()}`)
       .join("\n");
     parts.push(`### ${labels.constraints}\n${constraintLines}`);
   }
