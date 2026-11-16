@@ -7,6 +7,7 @@ import { verifySessionAccount, sessionCheckMessage } from "@/lib/auth/account";
 import { getDb } from "@/lib/db/prisma";
 import { normalizeTags } from "@/lib/prompts/tags";
 import { jsonResponse } from "@/lib/api/response-headers";
+import { checkIpRateLimitAsync, extractClientIp, getRateLimitHeaders, rateLimitStatus, rateLimitMessage } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   const requestId = request.headers.get("x-request-id") || crypto.randomUUID();
@@ -29,6 +30,15 @@ export async function POST(request: NextRequest) {
       return jsonResponse(
         { success: false, error: sessionCheckMessage(account), code: account.reason },
         { status: account.status, requestId }
+      );
+    }
+
+    const ip = extractClientIp(request);
+    const rateCheck = await checkIpRateLimitAsync(`ext_save:${session.user.id}:${ip}`, 60, 60 * 1000);
+    if (!rateCheck.allowed) {
+      return jsonResponse(
+        { success: false, error: rateLimitMessage(rateCheck) },
+        { status: rateLimitStatus(rateCheck), headers: getRateLimitHeaders(rateCheck), requestId }
       );
     }
 

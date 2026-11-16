@@ -198,6 +198,19 @@ describe("Phase 1 Security & Correctness Hardening", () => {
     });
   });
 
+  describe("Timing-Safe OTP Verification", () => {
+    it("should accurately and safely verify valid OTP hashes", async () => {
+      const { generateOtp, hashOtp, verifyOtp } = await import("@/lib/auth/otp");
+      const otp = generateOtp();
+      const hash = hashOtp(otp);
+
+      expect(verifyOtp(otp, hash)).toBe(true);
+      expect(verifyOtp("000000", hash)).toBe(false);
+      expect(verifyOtp("", hash)).toBe(false);
+      expect(verifyOtp(otp, "short_invalid_hash")).toBe(false);
+    });
+  });
+
   describe("API Route Security Enforcer Gate", () => {
     it("should pass static analysis route security check on all API v1 routes", async () => {
       const { execSync } = await import("child_process");

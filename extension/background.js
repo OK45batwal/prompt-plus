@@ -120,6 +120,31 @@ async function checkWebAuth() {
 // ---------- Message Router Handler ----------
 let cachedWorkingUrl = null;
 
+// Validate that an incoming message originated from an internal extension page (popup, options, sidepanel)
+function isInternalExtensionSender(sender) {
+  if (!sender || sender.id !== chrome.runtime.id) return false;
+  const extOrigin = chrome.runtime.getURL("");
+  return typeof sender.url === "string" && sender.url.startsWith(extOrigin);
+}
+
+// Allowed web origins for session syncing
+const ALLOWED_WEB_ORIGINS = [
+  "https://prompt-plus-three.vercel.app",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+];
+
+function isTrustedWebSender(sender) {
+  if (!sender || sender.id !== chrome.runtime.id) return false;
+  if (!sender.url) return false;
+  try {
+    const origin = new URL(sender.url).origin;
+    return ALLOWED_WEB_ORIGINS.includes(origin);
+  } catch {
+    return false;
+  }
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "enhancePrompt") {
     (async () => {
@@ -272,6 +297,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.action === "saveApiKey") {
+    if (!isInternalExtensionSender(sender)) {
+      sendResponse({ success: false, error: "Unauthorized sender" });
+      return true;
+    }
     (async () => {
       const encryptedKey = await encryptData(request.apiKey);
       chrome.storage.local.get(STORAGE_KEY, (data) => {
@@ -285,6 +314,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.action === "getApiKey") {
+    if (!isInternalExtensionSender(sender)) {
+      sendResponse({ apiKey: "", error: "Unauthorized sender" });
+      return true;
+    }
     (async () => {
       chrome.storage.local.get(STORAGE_KEY, async (data) => {
         const settings = data[STORAGE_KEY] || {};
@@ -301,6 +334,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.action === "saveSessionFromWeb") {
+    if (!isTrustedWebSender(sender) && !isInternalExtensionSender(sender)) {
+      sendResponse({ success: false, error: "Unauthorized sender" });
+      return true;
+    }
     chrome.storage.local.set({
       pp_web_session: {
         authenticated: true,

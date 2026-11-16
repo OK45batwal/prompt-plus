@@ -42,7 +42,9 @@ export const DELETE = withAuth(async (req: NextRequest, { session, requestId }) 
     return jsonResponse({ error: "Cannot delete official system templates" }, { status: 403, requestId });
   }
 
-  const isAdmin = Boolean(session?.user?.email && process.env.ADMIN_EMAIL && session.user.email === process.env.ADMIN_EMAIL);
+  const userEmail = session?.user?.email?.trim().toLowerCase();
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const isAdmin = Boolean(userEmail && adminEmail && userEmail === adminEmail);
   if (!isAdmin) {
     return jsonResponse({ error: "Forbidden: Only administrators can delete community templates" }, { status: 403, requestId });
   }

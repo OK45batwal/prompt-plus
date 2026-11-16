@@ -3,11 +3,11 @@ import { jsonResponse } from "@/lib/api/response-headers";
 import { getDb } from "@/lib/db/prisma";
 import { Prisma } from "@prisma/client";
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-
 export const GET = withAuth(
   async (_req, { session, requestId }) => {
-    if (!session?.user?.email || session.user.email !== ADMIN_EMAIL) {
+    const userEmail = session?.user?.email?.trim().toLowerCase();
+    const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+    if (!userEmail || !adminEmail || userEmail !== adminEmail) {
       return jsonResponse({ error: "Forbidden" }, { status: 403, requestId });
     }
 

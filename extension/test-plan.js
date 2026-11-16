@@ -246,6 +246,9 @@ assert(!/if \(authData\?\.authenticated[^]*?syncStatusText/.test(popupJs), "popu
 
 const backgroundJs = fs.readFileSync(path.join(__dirname, "background.js"), "utf8");
 assert(backgroundJs.includes('cachedHealthState.status === "unknown" ? await pingServerHealth()'), "background.js probes before answering getHealthStatus on a cold worker");
+assert(backgroundJs.includes("function isInternalExtensionSender(sender)"), "background.js implements internal extension sender origin verification");
+assert(backgroundJs.includes("function isTrustedWebSender(sender)"), "background.js implements trusted web platform sender origin verification");
+assert(backgroundJs.includes("if (!isInternalExtensionSender(sender))") && backgroundJs.includes("saveApiKey") && backgroundJs.includes("getApiKey"), "background.js restricts API key access to internal extension callers only");
 
 // -------------------------------------------------------------------
 // SUMMARY

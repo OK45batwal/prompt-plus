@@ -41,11 +41,11 @@ export const DELETE = withAuth(async (req: NextRequest, { userId, requestId }) =
 
   // Delete collection and unlink related prompts
   await getDb().prompt.updateMany({
-    where: { collectionId: id },
+    where: { collectionId: id, userId },
     data: { collectionId: null },
   });
-  await getDb().collection.delete({
-    where: { id },
+  await getDb().collection.deleteMany({
+    where: { id, userId },
   });
 
   return jsonResponse(

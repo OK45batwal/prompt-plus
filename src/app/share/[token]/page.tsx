@@ -23,7 +23,7 @@ export default async function SharedPromptPage({
     },
   });
 
-  if (!prompt) {
+  if (!prompt || prompt.deletedAt !== null) {
     notFound();
   }
 

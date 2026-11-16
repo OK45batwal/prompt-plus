@@ -9,7 +9,14 @@ export function hashOtp(otp: string): string {
 }
 
 export function verifyOtp(input: string, hash: string): boolean {
-  return hashOtp(input) === hash;
+  if (typeof input !== "string" || typeof hash !== "string") {
+    return false;
+  }
+  const inputHash = hashOtp(input);
+  if (inputHash.length !== hash.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(Buffer.from(inputHash, "utf8"), Buffer.from(hash, "utf8"));
 }
 
 const PREFIX_VERIFY = "ev:";
