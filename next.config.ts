@@ -43,6 +43,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   experimental: {
+    agentUpgrade: "security",
     optimizePackageImports: [
       "lucide-react",
       "@base-ui/react",
